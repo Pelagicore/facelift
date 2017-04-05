@@ -1,0 +1,3 @@
+[submodule "qface"]
+	path = qface
+	url = git@github.com:Pelagicore/qface.git

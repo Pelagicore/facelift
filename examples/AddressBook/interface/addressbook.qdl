@@ -1,0 +1,38 @@
+module addressbook 1.0;
+
+interface AddressBook {
+
+    readonly bool isLoaded;
+    readonly Contact currentContact;
+    readonly list<Contact> contacts;
+
+    void selectContact(int contactId);
+    void createNewContact();
+
+    event void contactCreated(Contact contact);
+    event void contactCreationFailed(FailureReason reason);
+
+}
+
+struct Contact {
+    string name
+    string number
+    ContactType type
+}
+
+struct Blabla {
+    string blabla_name
+    Contact contact
+}
+
+
+enum ContactType {
+    Friend,
+    Family,
+    Colleague,
+}
+
+enum FailureReason {
+    Full,
+    Other,
+}
