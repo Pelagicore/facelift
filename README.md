@@ -17,9 +17,11 @@ submodule which you can fetch using:
 $ git submodule init && git submodule update
 
 Build the project with:
+```
 $ mkdir build
 $ cd build
 $ cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/lib/cmake .. && make
+```
 
 Start the example application with:
 $ /path/to/Qt/gcc_64/bin/qmlscene ../examples/AddressBook/ui/AddressBookApp.qml  -I imports
