@@ -12,7 +12,9 @@ Project folder structure:
 
 # Build
 
-Check the qface INSTALL.md file located in the "qface" folder.
+Check the qface INSTALL.md file located in the "qface" folder. Note that qface is a
+submodule which you can fetch using:
+$ git submodule init && git submodule update
 
 Build the project with:
 $ mkdir build
