@@ -15,7 +15,7 @@ import yaml
 
 here = Path(__file__).dirname()
 
-logging.config.dictConfig(yaml.load(open(here / 'log.yaml')))
+logging.config.dictConfig(yaml.load(open(here / 'qface/log.yaml')))
 log = logging.getLogger(__name__)
 
 
