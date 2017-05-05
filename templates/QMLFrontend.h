@@ -55,6 +55,11 @@ public:
         {% for property in interface.properties %}
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
         {% endfor %}
+
+        {% for event in interface.events %}
+        connect(m_provider, &{{class}}::{{event.name}}, this, &{{class}}QMLFrontend::{{event.name}});
+        {% endfor %}
+
     }
 
     {% for property in interface.properties %}
