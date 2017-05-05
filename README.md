@@ -14,7 +14,12 @@ Project folder structure:
 
 Check the qface INSTALL.md file located in the "qface" folder. Note that qface is a
 submodule which you can fetch using:
+```
 $ git submodule init && git submodule update
+```
+## Build dependencies
+* Cmake >= 3.1
+* Python 3 (for qface)
 
 Build the project with:
 ```
