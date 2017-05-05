@@ -1,3 +1,3 @@
 [submodule "qface"]
 	path = qface
-	url = https://github.com/Pelagicore/qface.git
+	url = ../qface.git
