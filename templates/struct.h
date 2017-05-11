@@ -63,7 +63,7 @@ public:
         return roleNames_(FIELD_NAMES);
     }
 
-    {{struct.name}} clone() const {
+    Q_INVOKABLE {{struct|fullyQualifiedCppName}} clone() const {
         {{struct.name}} s;
         s.setValue(asTuple());
         return s;
@@ -80,7 +80,8 @@ public:
         return m_{{field.name}};
     }
 
-    void set{{field.name}}({{field|returnType}} value)  {
+    void set{{field.name}}({{field|returnType}} value) {
+    	qDebug() << "Setting field {{field.name}} with value:"; // << value;
         m_{{field.name}} = value;
     }
 

@@ -42,6 +42,16 @@ public:
     }
     {% endfor %}
 
+    {% for property in interface.properties %}
+    	{% if (not property.is_readonly) %}
+    virtual void set{{property}}({{property|returnType}} newValue) {
+    	m_dummy.logSetterCall("{{property}}", newValue);
+    }
+        {% endif %}
+    {% endfor %}
+
+
+
     class Dummy : public DummyModel<{{class}}> {
 
     public:

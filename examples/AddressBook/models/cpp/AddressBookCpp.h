@@ -80,6 +80,26 @@ public:
         contactCreated(newContact);
     }
 
+    void updateContact(int contactId, Contact newContact) override {
+    	Contact* contact = nullptr;
+
+    	for (auto& c : m_contacts) {
+    		if (c.id() == contactId)
+    			contact = &c;
+    	}
+
+        Q_ASSERT(contact != nullptr);
+        if (contact != nullptr) {
+            *contact = newContact;
+            contact->setId(contactId);
+            qDebug() << "Updated contact " << newContact.toString();
+            currentContactChanged();
+            contactsChanged();
+        }
+        else
+            qWarning() << "Unknown elementID " << newContact.id();
+    }
+
     void selectContact(int contactId) override {
         if (m_currentContact.id() != contactId) {
             for (auto& contact : m_contacts) {

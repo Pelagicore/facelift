@@ -686,8 +686,17 @@ public:
         QTextStream s(&argString);
         generateToString(s, parameters ...);
 
-        QString text = m_logLabel->text() + methodName + " called with args : " + argString + "\n";
+        appendLog(methodName + " called with args : " + argString);
+    }
+
+    void appendLog(QString textToAppend) {
+        QString text = m_logLabel->text() + "\n" + textToAppend;
         m_logLabel->setText(text);
+    }
+
+    template<typename ParameterType>
+    void logSetterCall(const QString propertyName, const ParameterType & value) {
+        appendLog(propertyName + " setter called with value : " + toString(value));
     }
 
 };

@@ -205,6 +205,15 @@ public:
 
     {% endfor %}
 
+    {% for property in interface.properties %}
+    	{% if (not property.is_readonly) %}
+    virtual void set{{property}}({{property|returnType}} newValue) {
+    	qDebug() << "TODO";
+    }
+        {% endif %}
+    {% endfor %}
+
+
 private:
 
 };

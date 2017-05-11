@@ -70,7 +70,13 @@ public:
     virtual {{property|returnType}} {{property}}() const = 0;
 
     {% else %}
+
     virtual {{property|returnType}} {{property}}() const = 0;
+
+    {% if (not property.is_readonly) %}
+    virtual void set{{property}}({{property|returnType}} newValue) = 0;
+    {% endif %}
+
     {% endif %}
 
     Q_SIGNAL void {{property}}Changed();
