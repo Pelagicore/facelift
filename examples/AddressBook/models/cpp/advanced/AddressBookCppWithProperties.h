@@ -34,6 +34,21 @@ public:
             qWarning() << "Unknown elementID " << contactId;
     }
 
+    void updateContact(int contactId, Contact newContact) override {
+        auto* contact = m_contacts.elementPointerById(contactId);
+
+        Q_ASSERT(contact != nullptr);
+        if (contact != nullptr) {
+            *contact = newContact;
+            contact->setId(contactId);
+            qDebug() << "Updated contact " << newContact.toString();
+            currentContactChanged();
+            contactsChanged();
+        }
+        else
+            qWarning() << "Unknown elementID " << newContact.id();
+    }
+
     void createNewContact() override {
         if (m_contacts.list().size() < 3) {
             qDebug() << "C++ createNewContact called";

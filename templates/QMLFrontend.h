@@ -82,8 +82,20 @@ public:
 */
 
     {% else %}
+
+        {% if property.is_readonly %}
     Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed);
-    virtual {{property|returnType}} {{property}}() {
+        {% else %}
+    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed);
+
+    void set{{property}}({{property|returnType}} newValue) {
+    	qDebug() << "Writing property {{property}}";
+    	m_provider->set{{property}}(newValue);
+    }
+        {% endif %}
+
+    virtual {{property|returnType}} {{property}}() const {
+    	qDebug() << "Reading property {{property}}";
         return m_provider->{{property}}();
     }
     {% endif %}

@@ -29,7 +29,7 @@ void AddressBookModelPlugin::registerTypes(const char *uri) {
 
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here
-//    registerQmlComponent<AddressBookCppWithProperties>(uri);
+    registerQmlComponent<AddressBookCppWithProperties>(uri);
 //    registerQmlComponent<AddressBookCpp>(uri);
 
     // Register the dummy implementations

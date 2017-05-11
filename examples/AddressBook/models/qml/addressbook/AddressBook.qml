@@ -21,12 +21,11 @@ AddressBookImplementation {
     implementationID: "QML model"
 
     property int nextIndex: 0
-
     property string privateProperty: "This property is not defined in the public interface, but accessible via the \"provider\" property"
 
     Timer {
-        interval: 4000;
-        running: true;
+        interval: 4000
+        running: true
         repeat: false
         onTriggered: {
             isLoaded = true
@@ -50,6 +49,10 @@ AddressBookImplementation {
 	    else {
             contactCreationFailed(FailureReason.Full);
 	    } 
+    }
+
+    updateContact: function() {
+        print("Not implemented"); // TODO
     }
 
 }

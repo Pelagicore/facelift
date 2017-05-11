@@ -8,7 +8,7 @@ import QtQuick.Controls 1.2
  */
 Item {
     id: root
-    
+
     width: 600
     height: 600
 
@@ -79,13 +79,16 @@ Item {
         }
 
         Rectangle {
+
             width: parent.width/2
             height: parent.height
             anchors.right: parent.right
             color: "darkCyan"
+
             Column {
 
                 width: parent.width
+                spacing: 10
 
                 Button {
                     height: 50
@@ -102,20 +105,34 @@ Item {
                         anchors.fill: parent
                         text: "Create new contact"
                     }
+
                 }
 
-                spacing: 10
                 Text {
+                    id: nameText
                     text: "Name : " + viewModel.currentContact.name
                 }
+
+                    Button {
+                        anchors.left: nameText.right
+                        text: "Clear name"
+
+                        onClicked: {
+                            var contact = viewModel.currentContact.clone();
+                            contact.name = "";
+                            viewModel.updateContact(viewModel.currentContact.id, contact)
+                        }
+                    }
+
 
                 Text {
                     text: "Number : " + viewModel.currentContact.number
                 }
-                
+
                 Text {
                     text: "Family : " + ((viewModel.currentContact.type == ContactType.Family) ? "Yes" : "No")
                 }
+
             }
 
         }

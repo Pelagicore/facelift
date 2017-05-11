@@ -35,6 +35,12 @@ public:
     ) override;
     {% endfor %}
 
+    {% for property in interface.properties %}
+    	{% if (not property.is_readonly) %}
+    virtual void set{{property}}({{property|returnType}} newValue) {}
+        {% endif %}
+    {% endfor %}
+
     static void registerTypes(const char* uri) {
         ModelQMLImplementation<{{interface}}QMLImplementationFrontend>::registerTypes(uri);
     }

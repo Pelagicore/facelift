@@ -393,7 +393,16 @@ public:
         return m_list[index];
     }
 
-    const ElementType* elementPointerById(ModelElementID id) {
+    ElementType* elementPointerById(ModelElementID elementId) {
+        Q_ASSERT(elementExists(elementId));
+        for(auto& element : m_list) {
+            if(element.id() == elementId)
+                return &element;
+        }
+        return nullptr;
+    }
+
+    const ElementType* elementPointerById(ModelElementID id) const {
         for(const auto& element : m_list) {
             if(element.id() == id)
                 return &element;
