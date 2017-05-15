@@ -238,6 +238,8 @@ template <> struct DummyUIDesc<QString> {
 template<typename StructType>
 class StructurePropertyWidget : public PropertyWidget {
 
+	typedef std::array<const char*, StructType::FieldCount> FieldNames;
+
 public:
     StructurePropertyWidget(const QString& propertyName, QWidget* parent = nullptr) :
         PropertyWidget(propertyName, parent) {
@@ -249,17 +251,18 @@ public:
 
     template<std::size_t I = 0, typename ... Tp>
     inline typename std::enable_if<I == sizeof...(Tp), void>::type
-    create_widget_panel(std::tuple<Tp...>& t)
+    create_widget_panel(std::tuple<Tp...>& t, const FieldNames& fieldNames)
     {
         Q_UNUSED(t);
+        Q_UNUSED(fieldNames);
     }
 
     template<std::size_t I = 0, typename ... Tp>
     inline typename std::enable_if<I < sizeof...(Tp), void>::type
-    create_widget_panel(std::tuple<Tp...>& t)
+    create_widget_panel(std::tuple<Tp...>& t, const FieldNames& fieldNames)
     {
-        createPanelForField(std::get<I>(t), StructType::FIELD_NAMES[I]);
-        create_widget_panel<I + 1, Tp...>(t);
+        createPanelForField(std::get<I>(t), fieldNames[I]);
+        create_widget_panel<I + 1, Tp...>(t, fieldNames);
     }
 
     template<typename FieldType> void createPanelForField(FieldType& v, const char* fieldName) {
@@ -280,9 +283,9 @@ public:
         Q_UNUSED(v);
     }
 
-    void init(const StructType& initialValue = StructType()) {
+    void init(const StructType& initialValue = StructType(), FieldNames fieldNames = StructType::FIELD_NAMES) {
         m_fieldValues = initialValue.asTuple();
-        create_widget_panel(m_fieldValues);
+        create_widget_panel(m_fieldValues, fieldNames);
     }
 
     void add(PropertyWidget* child) {
@@ -600,7 +603,18 @@ public:
 
     }
 
+    template<typename ... ParameterTypes>
+    void initSignal(QString signalName, const std::array<const char*, sizeof...(ParameterTypes) >& parameterNames, void (TypeName::*signalPointer)(ParameterTypes ...)) {
+    	typedef TModelStructure<ParameterTypes ...> SignalParametersStruct;
+    	SignalParametersStruct s;
 
+        typedef typename DummyUIDesc<SignalParametersStruct>::PanelType PanelType;
+        auto widget = new PanelType(signalName);
+
+        widget->init(s, parameterNames);
+        addWidget(*widget);
+
+    }
 
     template<typename PropertyType> void initWidget(Property<PropertyType>& property, const QString& propertyName) {
 
@@ -670,6 +684,9 @@ public:
         });
     }
 
+
+
+
     void generateToString(QTextStream& message) {
         Q_UNUSED(message);
     }
@@ -679,6 +696,7 @@ public:
         ToStringDesc<FirstParameterTypes>::appendToString(message, firstParameter);
         generateToString(message, parameters ...);
     }
+
 
     template<typename ... ParameterTypes>
     void logMethodCall(const QString methodName, const ParameterTypes & ... parameters) {

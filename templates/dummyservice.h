@@ -61,23 +61,39 @@ public:
             initWidget(m_adapter.m_{{property.name}}, "{{property.name}}");
             {% endfor %}
 
+            {% for event in interface.events %}
+            initSignal<
+			            {% set comma = joiner(",") %}
+			            {% for parameter in event.parameters %}
+			            {{ comma() }}
+			            {{parameter|returnType}}
+			            {% endfor %}
+			    >("{{event.name}}", {
+			            {% set comma = joiner(",") %}
+			            {% for parameter in event.parameters %}
+			            {{ comma() }}
+			            "{{parameter}}"
+			            {% endfor %}
+			    }, &{{class}}::{{event.name}});
+
+            {% endfor %}
         }
-    void writeJsonValues(QJsonObject& jsonObject) const override {
-        Q_UNUSED(jsonObject);
-        {% for property in interface.properties %}
-        writeJSONProperty(jsonObject, m_adapter.m_{{property.name}}, "{{property.name}}");
-        {% endfor %}
-    }
 
+		void writeJsonValues(QJsonObject& jsonObject) const override {
+			Q_UNUSED(jsonObject);
+			{% for property in interface.properties %}
+			writeJSONProperty(jsonObject, m_adapter.m_{{property.name}}, "{{property.name}}");
+			{% endfor %}
+		}
 
-    void loadJsonValues(const QJsonObject& jsonObject) override {
-        Q_UNUSED(jsonObject);
-        {% for property in interface.properties %}
-        readJSONProperty(jsonObject, m_adapter.m_{{property.name}}, "{{property.name}}");
-        {% endfor %}
-    }
+		void loadJsonValues(const QJsonObject& jsonObject) override {
+			Q_UNUSED(jsonObject);
+			{% for property in interface.properties %}
+			readJSONProperty(jsonObject, m_adapter.m_{{property.name}}, "{{property.name}}");
+			{% endfor %}
+		}
 
-    {{class}}PropertyAdapter& m_adapter;
+		{{class}}PropertyAdapter& m_adapter;
 
     };
 

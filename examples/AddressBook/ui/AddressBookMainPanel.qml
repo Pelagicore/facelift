@@ -118,8 +118,6 @@ Item {
 
             height: 100
             spacing: 20
-
-
             anchors.horizontalCenter: parent.Center
 
             Button {
