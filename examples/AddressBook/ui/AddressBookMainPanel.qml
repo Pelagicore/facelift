@@ -1,12 +1,14 @@
-import QtQuick 2.0
+import QtQuick 2.7
 import qface.addressbook 1.0
 
-import QtQuick.Controls 1.2
+import QtQuick.Controls 1.5
 
 /**
  * AddressBook application UI
  */
+
 Item {
+
     id: root
 
     width: 600
@@ -16,133 +18,174 @@ Item {
     property bool serverSide: true
     property var viewModel
 
-    Timer {
-        id: hidePopupTimer
-        interval: 2000
-        onTriggered: {
-            popupVisible = false
-        }
-    }
+    Column {
 
-    Text {
-        id: implementationLabel
-        text: viewModel.implementationID
-    }
-
-    Text {
-        anchors.top: implementationLabel.bottom
-        text: viewModel.provider.privateProperty
-    }
-
-    Item {
-
+        spacing: 10
         anchors.fill: parent
-        anchors.margins: 40
 
-        TableView {
-            id: tableView
-            width: parent.width / 2
-            height: parent.height
-            anchors.left: parent.left
-            headerVisible : true
+        Label {
+            id: implementationLabel
+            horizontalAlignment: Label.AlignHCenter
+            text: viewModel.implementationID
+        }
 
-            TableViewColumn {
-                id: titleColumn
-                title: "Contacts"
-                role: "name"
-                width: tableView.viewport.width
-            }
+        Text {
+            text: viewModel.provider.privateProperty
+        }
 
-            function updateSelection() {
-                var contactID = viewModel.currentContact.id;
-                selection.clear()
-                for (var contactIndex in model) {
-                    if (model[contactIndex].id === contactID) {
-                        selection.select(contactIndex)
+        Item {
+
+            anchors.margins: 40
+
+            height: 300
+            width: parent.width
+
+            TableView {
+                id: tableView
+                width: parent.width / 2
+                height: parent.height
+                anchors.left: parent.left
+                headerVisible : true
+
+                TableViewColumn {
+                    id: titleColumn
+                    title: "Contacts"
+                    role: "name"
+                    width: tableView.viewport.width
+                }
+
+                function updateSelection() {
+                    var contactID = viewModel.currentContact.id;
+                    selection.clear()
+                    for (var contactIndex in model) {
+                        if (model[contactIndex].id === contactID) {
+                            selection.select(contactIndex)
+                        }
                     }
                 }
+
+                onModelChanged: {
+                    updateSelection()
+                }
+
+                model: viewModel.contacts
             }
 
-            onModelChanged: {
-                updateSelection()
+            Connections {
+                target: tableView.selection
+                onSelectionChanged: tableView.selection.forEach(function(rowIndex) {
+                    var elementID = tableView.model[rowIndex].id;
+                    viewModel.selectContact(elementID);
+                });
             }
 
-            model: viewModel.contacts
-        }
+            Rectangle {
 
-        Connections {
-            target: tableView.selection
-            onSelectionChanged: tableView.selection.forEach(function(rowIndex) {
-                var elementID = tableView.model[rowIndex].id;
-                viewModel.selectContact(elementID);
-            });
-        }
+                width: parent.width / 2
+                height: parent.height
+                anchors.right: parent.right
+                color: "darkCyan"
 
-        Rectangle {
+                Column {
 
-            width: parent.width/2
-            height: parent.height
-            anchors.right: parent.right
-            color: "darkCyan"
-
-            Column {
-
-                width: parent.width
-                spacing: 10
-
-                Button {
-                    height: 50
                     width: parent.width
+                    spacing: 10
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                        	viewModel.createNewContact()
-                        }
+                    StringField {
+                        id: nameField
+                        label: "Name"
+                        text: viewModel.currentContact.name
+                    }
+
+                    StringField {
+                        id: numberField
+                        label: "Number"
+                        text: viewModel.currentContact.number
                     }
 
                     Text {
-                        anchors.fill: parent
-                        text: "Create new contact"
+                        text: "Family : " + ((viewModel.currentContact.type == ContactType.Family) ? "Yes" : "No")
                     }
 
-                }
-
-                Text {
-                    id: nameText
-                    text: "Name : " + viewModel.currentContact.name
-                }
-
-                    Button {
-                        anchors.left: nameText.right
-                        text: "Clear name"
-
-                        onClicked: {
-                            var contact = viewModel.currentContact.clone();
-                            contact.name = "";
-                            viewModel.updateContact(viewModel.currentContact.id, contact)
-                        }
-                    }
-
-
-                Text {
-                    text: "Number : " + viewModel.currentContact.number
-                }
-
-                Text {
-                    text: "Family : " + ((viewModel.currentContact.type == ContactType.Family) ? "Yes" : "No")
                 }
 
             }
 
+
         }
 
-        BusyIndicator {
-            anchors.margins: 200
-            anchors.fill: parent
-            running: !viewModel.isLoaded
+        Row {
+
+            height: 100
+            spacing: 20
+
+
+            anchors.horizontalCenter: parent.Center
+
+            Button {
+                text: "Create new contact"
+                onClicked: {
+                    viewModel.createNewContact()
+                }
+            }
+
+            Button {
+                text: "Delete contact"
+                onClicked: {
+                    viewModel.deleteContact(viewModel.currentContact.id)
+                }
+            }
+
+            Button {
+                text: "Apply changes"
+
+                onClicked: {
+                    var contact = viewModel.currentContact.clone();
+                    contact.name = nameField.text;
+                    contact.number = numberField.text;
+                    viewModel.updateContact(viewModel.currentContact.id, contact)
+                }
+            }
+
         }
+
+        Timer {
+            id: hidePopupTimer
+            interval: 2000
+            onTriggered: {
+                popupVisible = false
+            }
+        }
+
+        Connections {
+            target: viewModel
+
+            onContactCreated : {
+                showPopup("Contact created !")
+            }
+
+            onContactDeleted : {
+                showPopup("Contact deleted : " + contact.name)
+            }
+
+            onContactCreationFailed : {
+                showPopup("Contact creation failed !\nReason : " + ( (reason===FailureReason.Full) ? "Full" : "Other") )
+            }
+
+            onCurrentContactChanged: {
+                tableView.updateSelection();
+            }
+
+        }
+
     }
+
+    BusyIndicator {
+        anchors.margins: 200
+        anchors.fill: parent
+        running: !viewModel.isLoaded
+    }
+
 
     Rectangle {
         color: "lightgray"
@@ -150,8 +193,8 @@ Item {
         height:  100
         anchors.centerIn: parent
         visible: opacity > 0
-
         opacity: root.popupVisible ? 1 : 0
+
         Behavior on opacity {
             NumberAnimation {
                 duration: 200
@@ -163,27 +206,12 @@ Item {
             anchors.centerIn: parent
         }
     }
-    
-    Connections {
-    	target: viewModel
 
-        onContactCreated : {
-            popupText.text = "Contact created !"
-            popupVisible = true;
-            hidePopupTimer.restart();
-        }
-
-        onContactCreationFailed : {
-            popupText.text = "Contact creation failed !\nReason : " + ( (reason==FailureReason.Full) ? "Full" : "Other")
-            popupVisible = true;
-            hidePopupTimer.restart();
-        }
-
-        onCurrentContactChanged: {
-            tableView.updateSelection();
-        }
-
+    function showPopup(text) {
+        popupText.text = text
+        popupVisible = true;
+        hidePopupTimer.restart();
     }
 
-}
 
+}

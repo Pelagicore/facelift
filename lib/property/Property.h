@@ -280,8 +280,8 @@ template<typename ElementType> class StructListProperty : public StructListPrope
         }
 
         int elementID(int elementIndex) const override {
-            Q_ASSERT(elementIndex>=0);
-            Q_ASSERT(elementIndex<m_list.size());
+            Q_ASSERT(elementIndex >= 0);
+            Q_ASSERT(elementIndex < m_list.size());
 
             if (!(elementIndex>=0) && (elementIndex<m_list.size())) {
                 qWarning() << "Invalid index : " << elementIndex;
@@ -393,8 +393,17 @@ public:
         return m_list[index];
     }
 
+    void removeElementById(ModelElementID elementId) {
+    	m_model.beginChange();
+    	for (size_t i = 0; i< m_list.size(); i++) {
+    		if (m_list[i].id() == elementId) {
+    			m_list.removeAt(i);
+    			break;
+    		}
+    	}
+    }
+
     ElementType* elementPointerById(ModelElementID elementId) {
-        Q_ASSERT(elementExists(elementId));
         for(auto& element : m_list) {
             if(element.id() == elementId)
                 return &element;

@@ -14,12 +14,14 @@ interface AddressBook {
     readonly Contact currentContact;
     readonly list<Contact> contacts;
 
-    void selectContact(int contactId);
     void createNewContact();
+    void selectContact(int contactId);
+    void deleteContact(int contactId);
     void updateContact(int contactId, Contact contact);
 
     event void contactCreated(Contact contact);
     event void contactCreationFailed(FailureReason reason);
+    event void contactDeleted(Contact contact);
 
 }
 

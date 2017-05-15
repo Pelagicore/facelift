@@ -42,15 +42,35 @@ public:
             *contact = newContact;
             contact->setId(contactId);
             qDebug() << "Updated contact " << newContact.toString();
-            currentContactChanged();
             contactsChanged();
         }
         else
             qWarning() << "Unknown elementID " << newContact.id();
     }
 
+    void deleteContact(int contactId) override {
+        auto* contact = m_contacts.elementPointerById(contactId);
+
+        Q_ASSERT(contact != nullptr);
+        if (contact != nullptr) {
+
+        	contactDeleted(*contact);
+        	m_contacts.removeElementById(contactId);
+
+        	// Select first contact from the list if it exists
+        	if (m_contacts.size() > 0)
+        	    selectContact(m_contacts.elementAt(0).id());
+        	else
+        		m_currentContact = Contact();
+
+        	contactsChanged();
+        }
+        else
+            qWarning() << "Unknown elementID " << contactId;
+    }
+
     void createNewContact() override {
-        if (m_contacts.list().size() < 3) {
+        if (m_contacts.list().size() < 10) {
             qDebug() << "C++ createNewContact called";
 
             static int nextContactIndex = 0;
