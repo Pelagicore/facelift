@@ -1,3 +1,4 @@
+
 {% set class = '{0}'.format(interface) %}
 
 /****************************************************************************
@@ -8,7 +9,7 @@
 #pragma once
 
 #include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
-#include "model/DummyModel.h"
+#include "dummy/DummyModel.h"
 
 {{module|namespaceOpen}}
 
@@ -77,6 +78,8 @@ public:
 			    }, &{{class}}::{{event.name}});
 
             {% endfor %}
+
+            finishInit();
         }
 
 		void writeJsonValues(QJsonObject& jsonObject) const override {

@@ -7,10 +7,10 @@
 
 #include <QtCore>
 
-#include "model/JSON.h"
+#include "common/JSON.h"
 #include "model/Model.h"
 #include "property/Property.h"
-#include "model/DummyModel.h"
+#include "dummy/DummyModelCommon.h"
 
 {{module|namespaceOpen}}
 

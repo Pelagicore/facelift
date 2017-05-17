@@ -59,7 +59,7 @@ public:
 
     Q_PROPERTY(QString privateProperty READ privateProperty CONSTANT)
     QString privateProperty() const {
-        return "This property is not defined in the public interface, but accessible via the \"provider\" property";
+        return "This property is a private property of the interface implementation, accessible via the \"provider\" property";
     }
 
     void createNewContact() override {
@@ -93,19 +93,24 @@ public:
             *contact = newContact;
             contact->setId(contactId);
             qDebug() << "Updated contact " << newContact.toString();
-            currentContactChanged();
+            selectContact(contactId);
             contactsChanged();
         }
         else
             qWarning() << "Unknown elementID " << newContact.id();
     }
 
+    void deleteContact(int contactId) override {
+    	qWarning() << "TODO";
+    }
+
     void selectContact(int contactId) override {
         if (m_currentContact.id() != contactId) {
             for (auto& contact : m_contacts) {
-                if(contactId == contact.id()) {
+                if (contactId == contact.id()) {
                     m_currentContact = contact;
                     currentContactChanged();
+                    qDebug() << "Current contact changed to " << m_currentContact.toString();
                 }
             }
         }

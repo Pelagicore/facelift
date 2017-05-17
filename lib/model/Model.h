@@ -80,11 +80,15 @@ template <typename Type> inline QJSValue toJSValue(const QList<Type>& v) {
 
 
 template <typename Type> inline QString toString(const Type& v) {
-    Q_UNUSED(v);
+	Q_UNUSED(v);
+    Q_ASSERT(false);
     return "Unknown";
 }
 
 
+template <> inline QString toString(const QString& v) {
+	return v;
+}
 
 template <typename Type, typename Sfinae = void>
 struct ModelTypeTraits {

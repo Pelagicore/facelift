@@ -24,85 +24,15 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include "JSON.h"
 
-#include "Model.h"
+#include "common/JSON.h"
+#include "model/Model.h"
 #include "property/Property.h"
 
+#include "DummyModelCommon.h"
 
-class PropertyWidget : public QWidget {
-public:
-
-    typedef std::function<void()> ChangeListener;
-
-    PropertyWidget(const QString& propertyName, QWidget* parent = nullptr) : QWidget(parent) {
-        m_propertyName = propertyName;
-
-        m_layout = new QHBoxLayout();
-        setLayout(m_layout);
-
-        m_propertyNameLabel = new QLabel();
-        m_layout->addWidget(m_propertyNameLabel);
-        setPropertyName(propertyName);
-        setAutoFillBackground(true);
-    }
-
-    void setWidget(QWidget* widget) {
-        m_layout->addWidget(widget);
-    }
-
-    void setPropertyName(const QString& propertyName) {
-        m_propertyNameLabel->setText(propertyName);
-    }
-
-    const QString& propertyName() const {
-        return m_propertyName;
-    }
-
-    void setListener(ChangeListener listener) {
-        m_listener= listener;
-    }
-
-    QHBoxLayout *m_layout;
-    QLabel *m_propertyNameLabel;
-    ChangeListener m_listener;
-    QString m_propertyName;
-};
-
-template <typename EnumType>
-class EnumerationPropertyWidget : public PropertyWidget {
-
-public:
-    EnumerationPropertyWidget(const QString& propertyName, QWidget* parent = nullptr) : PropertyWidget(propertyName, parent) {
-        widget = new QComboBox();
-        setWidget(widget);
-        auto values = validValues<EnumType>();
-        for(auto& v:values) {
-            widget->addItem(toString(v), static_cast<int>(v));
-        }
-    }
-
-    EnumType value() const {
-        int index = widget->currentIndex();
-        return validValues<EnumType>()[index];
-    }
-
-    void init(EnumType initialValue) {
-
-        auto values = validValues<EnumType>();
-        for(int i = 0; i < values.size(); i++) {
-            if (initialValue == values[i])
-            widget->setCurrentIndex(i);
-        }
-
-        QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
-            m_listener();
-        });
-
-    }
-
-    QComboBox* widget = nullptr;
-};
+#include "ui_dummymodelsmainwindow.h"
+#include "ui_dummymodelpanel.h"
 
 
 class BooleanPropertyWidget : public PropertyWidget {
@@ -209,10 +139,6 @@ public:
         return QList<ElementType>();
     }
 
-};
-
-template <typename Type, typename Sfinae = void> struct DummyUIDesc {
-    typedef PropertyWidget PanelType;
 };
 
 template <typename ListElementType> struct DummyUIDesc<QList<ListElementType>> {
@@ -362,6 +288,7 @@ inline QTextStream &operator <<(QTextStream &outStream, const QList<ElementType>
 
 
 template <typename Type, typename Sfinae = void> struct ToStringDesc {
+
     static void appendToString(QTextStream& s, const Type& value) {
         s << value;
     }
@@ -374,28 +301,46 @@ class DummyModelBase : public QObject {
     Q_OBJECT
 
 protected:
+
     DummyModelBase(QObject* parent) : QObject(parent) {
     }
 
     virtual ~DummyModelBase();
 
-    void init();
+    void initUi();
+
+    Ui_DummyModelPanel* ui = nullptr;
 
     QWidget* m_window;
-    QVBoxLayout *m_layout;
-    QLabel* m_logLabel;
     bool m_autoSaveEnabled = true;
-
-    QList<PropertyWidget*> m_widgets;
 
     bool m_oddWidget = true;
 
-    QPushButton* m_saveSnapshotButton;
-    QPushButton* m_loadSnapshotButton;
-    QPushButton* m_clearLogButton;
-    QCheckBox* m_autoSaveCheckBox;
+    QList<PropertyWidget*> m_widgets;
 
 };
+
+
+class DummyModelControlWindow : public QMainWindow {
+
+public:
+
+	DummyModelControlWindow();
+
+	static void addModel(DummyModelBase& model) {
+
+	}
+
+	static DummyModelControlWindow& instance() {
+		static DummyModelControlWindow singleton;
+		return singleton;
+	}
+
+private:
+    Ui::DummyModelsMainWindow *ui;
+
+};
+
 
 /**
  * Abstract class for dummy models
@@ -409,7 +354,7 @@ public:
 
     void init() {
 
-        DummyModelBase::init();
+        initUi();
         m_window->setWindowTitle(TypeName::INTERFACE_NAME);
 
         loadSettings();
@@ -417,23 +362,27 @@ public:
             loadJSONSnapshot();
         }
 
-        m_autoSaveCheckBox->setChecked(m_autoSaveEnabled);
+        ui->autoSaveCheckBox->setChecked(m_autoSaveEnabled);
 
-        QObject::connect(m_saveSnapshotButton, &QPushButton::clicked, [this]() {
+        QObject::connect(ui->saveSnapshotButton, &QPushButton::clicked, [this]() {
             saveJSONSnapshot();
         });
-        QObject::connect(m_loadSnapshotButton, &QPushButton::clicked, [this]() {
+        QObject::connect(ui->loadSnapshotButton, &QPushButton::clicked, [this]() {
             loadJSONSnapshot();
         });
-        QObject::connect(m_clearLogButton, &QPushButton::clicked, [this]() {
-            m_logLabel->setText("");
+        QObject::connect(ui->clearLogButton, &QPushButton::clicked, [this]() {
+            ui->logLabel->setText("");
         });
 
-        QObject::connect(m_autoSaveCheckBox, &QCheckBox::stateChanged, [this]() {
-            m_autoSaveEnabled = m_autoSaveCheckBox->isChecked();
+        QObject::connect(ui->autoSaveCheckBox, &QCheckBox::stateChanged, [this]() {
+            m_autoSaveEnabled = ui->autoSaveCheckBox->isChecked();
             saveSettings();
         });
 
+    }
+
+    void finishInit() {
+    	DummyModelControlWindow::instance().addModel(*this);
     }
 
     void addWidget(PropertyWidget& widget) {
@@ -441,7 +390,7 @@ public:
         m_oddWidget = !m_oddWidget;
         pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
         widget.setPalette(pal);
-        m_layout->addWidget(&widget);
+        ui->controlsLayout->addWidget(&widget);
         m_widgets.append(&widget);
     }
 
@@ -685,8 +634,6 @@ public:
     }
 
 
-
-
     void generateToString(QTextStream& message) {
         Q_UNUSED(message);
     }
@@ -708,8 +655,8 @@ public:
     }
 
     void appendLog(QString textToAppend) {
-        QString text = m_logLabel->text() + "\n" + textToAppend;
-        m_logLabel->setText(text);
+        QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
+        ui->logLabel->setPlainText(text);
     }
 
     template<typename ParameterType>

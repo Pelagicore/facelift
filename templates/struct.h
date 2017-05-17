@@ -11,7 +11,7 @@
 #include <QTextStream>
 
 #include "model/Model.h"
-#include "model/JSON.h"
+#include "common/JSON.h"
 
 #include "property/Property.h"
 

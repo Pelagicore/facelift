@@ -11,12 +11,13 @@ Item {
 
     id: root
 
-    width: 600
+    width: 700
     height: 600
 
     property bool popupVisible: false
     property bool serverSide: true
     property var viewModel
+    property bool contactDirty: nameField.isDirty || numberField.isDirty
 
     Column {
 
@@ -136,12 +137,21 @@ Item {
 
             Button {
                 text: "Apply changes"
-
+                enabled: contactDirty
                 onClicked: {
                     var contact = viewModel.currentContact.clone();
-                    contact.name = nameField.text;
-                    contact.number = numberField.text;
+                    contact.name = nameField.editedText;
+                    contact.number = numberField.editedText;
                     viewModel.updateContact(viewModel.currentContact.id, contact)
+                }
+            }
+
+            Button {
+                text: "Discard changes"
+                enabled: contactDirty
+                onClicked: {
+                    nameField.reset();
+                    numberField.reset();
                 }
             }
 
@@ -183,7 +193,6 @@ Item {
         anchors.fill: parent
         running: !viewModel.isLoaded
     }
-
 
     Rectangle {
         color: "lightgray"

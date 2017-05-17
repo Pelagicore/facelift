@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "ipc.h"
+#include "ipc/ipc.h"
 
 #include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
 #include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
