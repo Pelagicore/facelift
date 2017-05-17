@@ -10,21 +10,40 @@ Project folder structure:
          - models : contains various implementations of the model interfaces
          - ui : contains the UI code of the application
 
+## Dependencies
+
+* Cmake >= 3.1
+* Python 3 (for qface)
+* Qt >= 5.5
+* Antlr4 python3 runtime
+
+Ubuntu/Debian packages:
+The required packages can be installed using the following commands:
+```
+$ sudo apt-get install python3-click python3-path python3-pip python3-jinja2 python3-yaml cmake qtdeclarative5-dev qml-module-qtquick-controls
+```
+
+In addition, since no deb package is available for it, you need to install the antlr4 runtime using the following command line (for example):
+```
+$ pip3 install antlr4-python3-runtime
+```
+
 # Build
 
-Check the qface INSTALL.md file located in the "qface" folder. Note that qface is a
-submodule which you can fetch using:
+We use QFace as a submodule, which you need to fetch using the following command line:
 ```
 $ git submodule init && git submodule update
 ```
-## Build dependencies
-* Cmake >= 3.1
-* Python 3 (for qface)
 
-Build the project with:
+You are now ready to build the package using the following commands:
 ```
 $ mkdir build
 $ cd build
+$ cmake .. && make
+```
+
+If you want to build using your own version of Qt, you can specify its location using the following command instead:
+```
 $ cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/lib/cmake .. && make
 ```
 

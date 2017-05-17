@@ -1,7 +1,7 @@
-import QtQuick 2.7
+import QtQuick 2.5
 import qface.addressbook 1.0
 
-import QtQuick.Controls 1.5
+import QtQuick.Controls 1.4
 
 /**
  * AddressBook application UI
