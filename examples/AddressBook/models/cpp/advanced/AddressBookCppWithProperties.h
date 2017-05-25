@@ -22,8 +22,14 @@ class AddressBookCppWithProperties: public AddressBookPropertyAdapter {
 public:
     AddressBookCppWithProperties(QObject* parent = nullptr) :
             AddressBookPropertyAdapter(parent) {
-        m_isLoaded = true;
         setImplementationID("C++ model implemented with properties");
+
+        m_isLoaded.bind([this] () {
+    		return !(m_timer.remainingTime() > 0);
+    	});
+        m_timer.setSingleShot(true);
+        m_timer.start(4000);
+        connect(&m_timer, &QTimer::timeout, this, &AddressBook::isLoadedChanged);
     }
 
     void selectContact(int contactId) override {
@@ -91,6 +97,8 @@ public:
         }
 
     }
+
+    QTimer m_timer;
 
 };
 

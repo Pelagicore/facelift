@@ -90,14 +90,8 @@ class Property : public PropertyBase {
 
 public:
 
-/*
-    template <typename ServiceType>
-    Property(BaseObject* ownerObject, void (ServiceType::*changeSignal)()) {
-        init(ownerObject, changeSignal);
-    }
-*/
-
     void breakBinding() {
+    	m_lambda = nullptr;
         if (m_boundObject != nullptr) {
             qWarning() << "Breaking binding";
             m_boundObject = nullptr;
@@ -105,14 +99,14 @@ public:
             Q_ASSERT(successfull);
         }
     }
-
+/*
     template <typename BoundType> void bind(BoundType& obj, Type (BoundType::*getter)(), void (BoundType::*changeSignal)()) {
         breakBinding();
         m_boundObject = &obj;
         m_getter = (GetterMethod) getter;
         m_connection = QObject::connect(&obj, changeSignal, m_ownerObject, m_ownerSignal);
     }
-
+*/
 public:
 
     QString toString() const override {
@@ -140,7 +134,7 @@ public:
         return value();
     }
 
-    void setValueLambda(const GetterLambda& f) {
+    void bind(const GetterLambda& f) {
         breakBinding();
         m_lambda = f;
         onValueChanged();
@@ -543,53 +537,4 @@ template<typename EnumType> class EnumListProperty: public SimpleTypeListPropert
 typedef SimpleTypeListProperty<int> intListProperty;
 typedef SimpleTypeListProperty<QString> QStringListProperty;
 typedef SimpleTypeListProperty<bool> boolListProperty;
-
-
-/*
-class Service1 : public BaseObject {
-
-    Q_OBJECT
-
-public:
-
-    Service1() : m_property(*this, &Service1::propertyChanged) {
-    }
-
-    Q_SIGNAL void propertyChanged();
-
-    int getA() {
-        return m_property.getValue();
-    }
-
-    QProperty<int> m_property;
-
-};
-
-class Service2 : public BaseObject {
-
-public:
-
-    int getA() {
-        qDebug() << "Service2 getA";
-        return 8;
-    }
-
-};
-
-
-class OtherService : public BaseObject {
-
-    Q_OBJECT
-
-public:
-
-    int getInt() {
-        return m_value;
-    }
-
-    Q_SIGNAL void propertyChanged();
-
-    int m_value = 7;
-};
-*/
 

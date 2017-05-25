@@ -49,7 +49,7 @@ public:
     {% else %}
 
     {{property|returnType}} {{property}}() const override {
-        return m_{{property.name}};
+        return m_{{property.name}}.value();
     }
     ::Property<{{property|returnType}}> m_{{property.name}};
     {% endif %}
