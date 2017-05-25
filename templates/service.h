@@ -73,6 +73,8 @@ public:
 
     virtual {{property|returnType}} {{property}}() const = 0;
 
+    PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed); };
+
     {% if (not property.is_readonly) %}
     virtual void set{{property}}({{property|returnType}} newValue) = 0;
     {% endif %}

@@ -436,3 +436,21 @@ inline QJSValue structToJSValue(const StructType s) {
     return v.value<QJSValue>();
 }
 
+template <typename Class, typename PropertyType>
+class PropertyInterface {
+
+public:
+
+	typedef void (Class::*ChangeSignal)();
+    typedef PropertyType (Class::*GetterMethod)() const;
+
+	PropertyInterface(Class* o, GetterMethod g, ChangeSignal s) {
+		object = o;
+		signal = s;
+		getter = g;
+	}
+
+	Class* object;
+	ChangeSignal signal;
+	GetterMethod getter;
+};

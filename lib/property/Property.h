@@ -72,7 +72,7 @@ public:
         return m_ownerSignal;
     }
 
-private:
+//private:
     BaseObject* m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
 
@@ -85,7 +85,6 @@ template<typename Type>
 class Property : public PropertyBase {
 
     typedef Type (BaseObject::*GetterMethod)();
-
     typedef std::function<Type()> GetterLambda;
 
 public:
@@ -95,18 +94,26 @@ public:
         if (m_boundObject != nullptr) {
             qWarning() << "Breaking binding";
             m_boundObject = nullptr;
-            auto successfull = QObject::disconnect(m_connection);
-            Q_ASSERT(successfull);
+            for (const auto& connection : m_connections) {
+                auto successfull = QObject::disconnect(connection);
+                Q_ASSERT(successfull);
+            }
+            m_connections.clear();
         }
     }
-/*
-    template <typename BoundType> void bind(BoundType& obj, Type (BoundType::*getter)(), void (BoundType::*changeSignal)()) {
-        breakBinding();
-        m_boundObject = &obj;
-        m_getter = (GetterMethod) getter;
-        m_connection = QObject::connect(&obj, changeSignal, m_ownerObject, m_ownerSignal);
+
+    template <typename Class, typename PropertyType> Property& bind(const PropertyInterface<Class, PropertyType>& property) {
+    	breakBinding();
+        m_boundObject = property.object;
+        m_getter = (GetterMethod) property.getter;
+        addDependency(property);
+        return *this;
     }
-*/
+
+    template <typename Class, typename PropertyType> void addDependency(const PropertyInterface<Class, PropertyType>& property) {
+        m_connections.push_back(QObject::connect(property.object, property.signal, m_ownerObject, m_ownerSignal));
+    }
+
 public:
 
     QString toString() const override {
@@ -134,10 +141,11 @@ public:
         return value();
     }
 
-    void bind(const GetterLambda& f) {
+    Property& bind(const GetterLambda& f) {
         breakBinding();
         m_lambda = f;
         onValueChanged();
+        return *this;
     }
 
     void setValue(const Type &right) {
@@ -190,7 +198,7 @@ private:
 
     GetterLambda m_lambda;
 
-    QMetaObject::Connection m_connection;
+    QVector<QMetaObject::Connection> m_connections;
 
 };
 
