@@ -23,8 +23,8 @@ class PropertyBase {
 
 public:
 
-    typedef ModelInterface BaseObject;
-    typedef void (BaseObject::*ChangeSignal)();
+//    typedef ModelInterface BaseObject;
+    typedef void (ModelInterface::*ChangeSignal)();
 
     PropertyBase() {
     }
@@ -53,7 +53,7 @@ public:
     }
 
     template <typename ServiceType>
-    void init(BaseObject* ownerObject, void (ServiceType::*changeSignal)()) {
+    void init(ModelInterface* ownerObject, void (ServiceType::*changeSignal)()) {
         m_ownerObject = ownerObject;
         m_ownerSignal = (ChangeSignal) changeSignal;
     }
@@ -64,16 +64,16 @@ public:
 
     virtual void clean() = 0;
 
-    BaseObject* owner() {
+    ModelInterface* owner() const {
         return m_ownerObject;
     }
 
-    ChangeSignal signal() {
+    ChangeSignal signal() const {
         return m_ownerSignal;
     }
 
-//private:
-    BaseObject* m_ownerObject = nullptr;
+private:
+    ModelInterface* m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
 
     bool m_timerEnabled = false;
@@ -84,7 +84,7 @@ public:
 template<typename Type>
 class Property : public PropertyBase {
 
-    typedef Type (BaseObject::*GetterMethod)();
+    typedef Type (ModelInterface::*GetterMethod)();
     typedef std::function<Type()> GetterLambda;
 
 public:
@@ -111,7 +111,7 @@ public:
     }
 
     template <typename Class, typename PropertyType> void addDependency(const PropertyInterface<Class, PropertyType>& property) {
-        m_connections.push_back(QObject::connect(property.object, property.signal, m_ownerObject, m_ownerSignal));
+        m_connections.push_back(QObject::connect(property.object, property.signal, owner(), signal()));
     }
 
 public:
@@ -193,7 +193,7 @@ private:
     Type m_value = { };
     Type m_previousValue = m_value;
 
-    BaseObject* m_boundObject = nullptr;
+    ModelInterface* m_boundObject = nullptr;
     GetterMethod m_getter = nullptr;
 
     GetterLambda m_lambda;
