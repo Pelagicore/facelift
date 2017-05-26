@@ -152,6 +152,14 @@ inline QTextStream &operator <<(QTextStream &outStream, const {{struct|fullyQual
     return outStream;
 }
 
+inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f) {
+	QString s;
+	QTextStream stream(&s);
+	stream << f;
+	d << s;
+    return d;
+}
+
 Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list properties
 Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 

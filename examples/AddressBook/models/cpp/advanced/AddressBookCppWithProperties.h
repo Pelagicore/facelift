@@ -24,11 +24,12 @@ public:
             AddressBookPropertyAdapter(parent) {
         setImplementationID("C++ model implemented with properties");
 
+        m_timer.setSingleShot(true);
+        m_timer.start(4000);
+
         m_isLoaded.bind([this] () {
     		return !(m_timer.remainingTime() > 0);
     	});
-        m_timer.setSingleShot(true);
-        m_timer.start(4000);
         connect(&m_timer, &QTimer::timeout, this, &AddressBook::isLoadedChanged);
     }
 

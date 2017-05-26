@@ -39,12 +39,12 @@ public:
             m_timerEnabled = true;
 
             QTimer::singleShot(0, m_ownerObject, [this] () {
-                if(isValueChanged()) {
-                    qDebug() << "Triggering notification. value : " << toString();
+                if (isValueChanged()) {
+                    qDebug() << "Property " << m_name << " : Triggering notification. value : " << toString();
                     doTriggerChangeSignal();
                 }
                 else {
-                    qDebug() << "Triggering notification. value unchanged: " << toString();
+                    qDebug() << "Property " << m_name << " : Triggering notification. value unchanged: " << toString();
                 }
                 m_timerEnabled = false;
             });
@@ -53,9 +53,10 @@ public:
     }
 
     template <typename ServiceType>
-    void init(ModelInterface* ownerObject, void (ServiceType::*changeSignal)()) {
+    void init(const char* name, ModelInterface* ownerObject, void (ServiceType::*changeSignal)()) {
         m_ownerObject = ownerObject;
         m_ownerSignal = (ChangeSignal) changeSignal;
+        m_name = name;
     }
 
     virtual QString toString() const = 0;
@@ -72,11 +73,16 @@ public:
         return m_ownerSignal;
     }
 
+    const char* name() const {
+    	return m_name;
+    }
+
 private:
     ModelInterface* m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
 
     bool m_timerEnabled = false;
+    const char* m_name = nullptr;
 
 };
 
@@ -84,34 +90,45 @@ private:
 template<typename Type>
 class Property : public PropertyBase {
 
-    typedef Type (ModelInterface::*GetterMethod)();
-    typedef std::function<Type()> GetterLambda;
+    typedef std::function<Type()> GetterFunction;
 
 public:
 
     void breakBinding() {
-    	m_lambda = nullptr;
-        if (m_boundObject != nullptr) {
+        if (m_lambda) {
             qWarning() << "Breaking binding";
-            m_boundObject = nullptr;
-            for (const auto& connection : m_connections) {
-                auto successfull = QObject::disconnect(connection);
-                Q_ASSERT(successfull);
-            }
-            m_connections.clear();
+			for (const auto& connection : m_connections) {
+				auto successfull = QObject::disconnect(connection);
+				Q_ASSERT(successfull);
+			}
+			m_connections.clear();
+			m_lambda = nullptr;
         }
     }
 
     template <typename Class, typename PropertyType> Property& bind(const PropertyInterface<Class, PropertyType>& property) {
     	breakBinding();
-        m_boundObject = property.object;
-        m_getter = (GetterMethod) property.getter;
+    	m_lambda = [property] () {
+    		return property.value();
+    	};
         addDependency(property);
+
+        if (isValueChanged())
+        	onValueChanged();
+
         return *this;
     }
 
     template <typename Class, typename PropertyType> void addDependency(const PropertyInterface<Class, PropertyType>& property) {
-        m_connections.push_back(QObject::connect(property.object, property.signal, owner(), signal()));
+    	m_connections.push_back(QObject::connect(property.object, property.signal, owner(), [this, property]() {
+    		if (isValueChanged()) {
+        		onValueChanged();
+        		qDebug() << name() << "OK value changed !!!";
+     		}
+        	else {
+        		qDebug() << name() << "No change !!!";
+        	}
+        }));
     }
 
 public:
@@ -125,13 +142,12 @@ public:
     const Type value() const {
         if (m_lambda) {
             return m_lambda();
-        } else if (m_boundObject != nullptr)
-            return (m_boundObject->*m_getter)();
+        }
         else
             return m_value;
     }
 
-    Type& value() {
+    Type& modifiableValue() {
         // We return a modifiable reference so we might have to trigger a "value changed" signal later
         onValueChanged();
         return m_value;
@@ -141,19 +157,23 @@ public:
         return value();
     }
 
-    Property& bind(const GetterLambda& f) {
+    Property& bind(const GetterFunction& f) {
         breakBinding();
         m_lambda = f;
-        onValueChanged();
+
+        if (isValueChanged())
+            onValueChanged();
+
         return *this;
     }
 
     void setValue(const Type &right) {
         breakBinding();
-        if (!(m_value == right)) {
-            m_value = right;
+
+        m_value = right;
+
+        if (isValueChanged())
             onValueChanged();
-        }
     }
 
     Type& operator=(const Type &right) {
@@ -170,7 +190,8 @@ public:
     }
 
     void clean() override {
-        m_previousValue = m_value;
+        m_previousValue = value();
+    	qDebug() << "Cleaning " << name() << " value: " << m_previousValue;
     }
 
     Type operator -=(const Type &right) {
@@ -192,12 +213,7 @@ public:
 private:
     Type m_value = { };
     Type m_previousValue = m_value;
-
-    ModelInterface* m_boundObject = nullptr;
-    GetterMethod m_getter = nullptr;
-
-    GetterLambda m_lambda;
-
+    GetterFunction m_lambda;
     QVector<QMetaObject::Connection> m_connections;
 
 };
@@ -267,7 +283,7 @@ template<typename ElementType> class StructListProperty : public StructListPrope
         }
 
         void beginChange() {
-            if(!m_changeOnGoing) {
+            if (!m_changeOnGoing) {
 
                 m_changeOnGoing = true;
                 ModelListModel::beginResetModel();
@@ -311,9 +327,8 @@ public:
         return m_model;
     }
 
-    // TODO : remove need for that method
-    QList<ElementType>& value() {
-        return list();
+    QList<ElementType>& modifiableValue() {
+    	return list();
     }
 
     /**

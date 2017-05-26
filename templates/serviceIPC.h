@@ -156,9 +156,7 @@ public:
             {%if property.type.is_model -%}
             {% else %}
             {
-                typeof(m_{{property.name}}.value()) value;
-                msg >> value;
-                m_{{property.name}}.setValue(value);
+                msg >> m_{{property.name}}.modifiableValue();
             }
             {% endif %}
         {% endfor %}

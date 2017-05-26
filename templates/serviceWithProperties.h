@@ -23,7 +23,7 @@ public:
         {% for property in interface.properties %}
         {%if property.type.is_model -%}
         {% else %}
-          m_{{property.name}}.init(this, &{{class}}::{{property.name}}Changed);
+          m_{{property.name}}.init("{{property.name}}", this, &{{class}}::{{property.name}}Changed);
         {% endif %}
         {% endfor %}
     }

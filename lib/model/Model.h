@@ -450,7 +450,14 @@ public:
 		getter = g;
 	}
 
+	PropertyType value() const {
+		auto v = (object->*getter)();
+		return v;
+	}
+
 	Class* object;
 	ChangeSignal signal;
 	GetterMethod getter;
+
+
 };

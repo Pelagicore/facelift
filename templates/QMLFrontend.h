@@ -95,8 +95,9 @@ public:
         {% endif %}
 
     virtual {{property|returnType}} {{property}}() const {
-    	qDebug() << "Reading property {{property}}";
-        return m_provider->{{property}}();
+        const auto value = m_provider->{{property}}();
+    	qDebug() << "Read property {{property}}. Value: " << value ;
+        return value;
     }
     {% endif %}
 
