@@ -13,7 +13,7 @@
 {{module|namespaceOpen}}
 
 /**
- * Definition of the service interface
+ * A partial implementation of the service interface, using the Property helper class
  */
 class {{class}}PropertyAdapter : public {{class}} {
 
@@ -30,7 +30,7 @@ public:
 
     {% for property in interface.properties %}
 
-    {%if property.type.is_model %}
+    {% if property.type.is_model %}
 
     virtual ::ModelListModel& {{property.name}}() override {
         return m_{{property.name}}.getModel();

@@ -10,20 +10,21 @@ module test 1.0;
 
 interface TestInterface {
 
-    readonly bool isLoaded;
-    readonly int intProperty;
-    readonly TestStruct structProperty;
-    
-//    readonly list<int> intListProperty;
-//    readonly list<bool> boolListProperty;
+    readonly bool boolProperty;
+    int intProperty;
+    TestStruct structProperty;
+
+    readonly list<int> intListProperty;
+    readonly list<bool> boolListProperty;
+    readonly list<string> stringListProperty;
     readonly list<TestStruct> structListProperty;
 
     void createNewContact();
     void method1(int intParam, bool boolParam);
 
-    signal void event1(TestStruct p);
-    signal void eventEnum(TestEnum p);
-    signal void eventInt(int p);
+    signal event1(TestStruct p);
+    signal eventEnum(TestEnum p);
+    signal eventInt(int p);
 
 }
 

@@ -31,8 +31,13 @@ def fullyQualifiedName(symbol):
     return symbol.qualified_name
 
 
-def fullyQualifiedCppName(symbol):
-    return '::{0}'.format(fullyQualifiedName(symbol)).replace(".", "::")
+def fullyQualifiedCppName(type):
+    try:
+        if type.is_primitive:
+            return "::" + type.name
+    except AttributeError:
+        pass
+    return '::{0}'.format(fullyQualifiedName(type)).replace(".", "::")
 
 
 def namespaceOpen(symbol):

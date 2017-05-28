@@ -23,7 +23,6 @@ class PropertyBase {
 
 public:
 
-//    typedef ModelInterface BaseObject;
     typedef void (ModelInterface::*ChangeSignal)();
 
     PropertyBase() {
@@ -466,8 +465,7 @@ class SimpleTypeListProperty: public ListPropertyBase {
         QVariant data(const QModelIndex& index, int role) const override {
             Q_UNUSED(role);
             Q_UNUSED(index);
-            Q_ASSERT(false);
-            return 1;
+            return toVariant(m_list.at(index.row()));
         }
 
         void beginChange() {
@@ -489,6 +487,7 @@ class SimpleTypeListProperty: public ListPropertyBase {
         int elementID(int elementIndex) const override {
             Q_ASSERT(elementIndex>=0);
             Q_ASSERT(elementIndex<m_list.size());
+            Q_ASSERT(false);
             return 0;
         }
 
@@ -514,6 +513,10 @@ public:
     QList<ElementType>& modifiableValue() {
         onValueChanged();
         m_model.beginChange();
+        return m_list;
+    }
+
+    const QList<ElementType>& value() const {
         return m_list;
     }
 
@@ -547,17 +550,17 @@ public:
         return s;
     }
 
+private:
     QList<ElementType> m_list;
-
     TheModelListModel m_model;
+
 };
 
 template<typename EnumType> class EnumListProperty: public SimpleTypeListProperty<EnumType> {
-
 };
 
 
 typedef SimpleTypeListProperty<int> intListProperty;
-typedef SimpleTypeListProperty<QString> QStringListProperty;
+typedef SimpleTypeListProperty<QString> stringListProperty;
 typedef SimpleTypeListProperty<bool> boolListProperty;
 
