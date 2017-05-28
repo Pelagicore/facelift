@@ -25,7 +25,7 @@
 {% endfor %}
 {% endfor %}
 
-{% for event in interface.events %}
+{% for event in interface.signals %}
 {% for parameter in event.parameters %}
 {{parameter|requiredInclude}}
 {% endfor %}
@@ -56,7 +56,7 @@ public:
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
         {% endfor %}
 
-        {% for event in interface.events %}
+        {% for event in interface.signals %}
         connect(m_provider, &{{class}}::{{event.name}}, this, &{{class}}QMLFrontend::{{event.name}});
         {% endfor %}
 
@@ -83,7 +83,7 @@ public:
 
     {% else %}
 
-        {% if property.is_readonly %}
+        {% if property.readonly %}
     Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed);
         {% else %}
     Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed);
@@ -125,7 +125,7 @@ public:
     {% endfor %}
 
 
-    {% for event in interface.events %}
+    {% for event in interface.signals %}
     Q_SIGNAL void {{event}}(
         {% set comma = joiner(",") %}
         {% for parameter in event.parameters %}

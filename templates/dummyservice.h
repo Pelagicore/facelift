@@ -44,7 +44,7 @@ public:
     {% endfor %}
 
     {% for property in interface.properties %}
-    	{% if (not property.is_readonly) %}
+    	{% if (not property.readonly) %}
     virtual void set{{property}}({{property|returnType}} newValue) {
     	m_dummy.logSetterCall("{{property}}", newValue);
     }
@@ -62,7 +62,7 @@ public:
             initWidget(m_adapter.m_{{property.name}}, "{{property.name}}");
             {% endfor %}
 
-            {% for event in interface.events %}
+            {% for event in interface.signals %}
             initSignal<
 			            {% set comma = joiner(",") %}
 			            {% for parameter in event.parameters %}

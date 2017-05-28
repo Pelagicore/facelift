@@ -36,7 +36,7 @@ public:
     {% endfor %}
 
     {% for property in interface.properties %}
-    	{% if (not property.is_readonly) %}
+    	{% if (not property.readonly) %}
     virtual void set{{property}}({{property|returnType}} newValue) {}
         {% endif %}
     {% endfor %}
@@ -131,7 +131,7 @@ public:
         return *m_interface;
     }
 
-    {% for event in interface.events %}
+    {% for event in interface.signals %}
     Q_INVOKABLE void {{event}}(
             {% set comma = joiner(",") %}
             {% for parameter in event.parameters %}

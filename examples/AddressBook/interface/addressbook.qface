@@ -19,9 +19,9 @@ interface AddressBook {
     void deleteContact(int contactId);
     void updateContact(int contactId, Contact contact);
 
-    event void contactCreated(Contact contact);
-    event void contactCreationFailed(FailureReason reason);
-    event void contactDeleted(Contact contact);
+    signal void contactCreated(Contact contact);
+    signal void contactCreationFailed(FailureReason reason);
+    signal void contactDeleted(Contact contact);
 
 }
 

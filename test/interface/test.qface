@@ -21,9 +21,9 @@ interface TestInterface {
     void createNewContact();
     void method1(int intParam, bool boolParam);
 
-    event void event1(TestStruct p);
-    event void eventEnum(TestEnum p);
-    event void eventInt(int p);
+    signal void event1(TestStruct p);
+    signal void eventEnum(TestEnum p);
+    signal void eventInt(int p);
 
 }
 

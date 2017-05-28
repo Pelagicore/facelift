@@ -89,7 +89,7 @@ public:
         {% endfor %}
 
         // signals
-        {% for event in interface.events %}
+        {% for event in interface.signals %}
         connect(m_service, &{{interface}}::{{event}}, this, &{{interface}}IPCAdapter::{{event}});
         {% endfor %}
 
@@ -106,7 +106,7 @@ public:
         {% endfor %}
     }
 
-    {% for event in interface.events %}
+    {% for event in interface.signals %}
         void {{event}}(
                 {% set comma = joiner(",") %}
                 {% for parameter in event.parameters %}
@@ -155,7 +155,7 @@ public:
         QString signalName;
         msg >> signalName;
 
-        {% for event in interface.events %}
+        {% for event in interface.signals %}
         if (signalName == "{{event}}") {
             {% for parameter in event.parameters %}
                 {{parameter|returnType}} param_{{parameter.name}};
@@ -192,7 +192,7 @@ public:
     {% endfor %}
 
     {% for property in interface.properties %}
-    	{% if (not property.is_readonly) %}
+    	{% if (not property.readonly) %}
     virtual void set{{property}}({{property|returnType}} newValue) {
     	qDebug() << "TODO";
     }

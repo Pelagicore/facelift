@@ -25,7 +25,7 @@
 {% endfor %}
 {% endfor %}
 
-{% for event in interface.events %}
+{% for event in interface.signals %}
 {% for parameter in event.parameters %}
 {{parameter|requiredInclude}}
 {% endfor %}
@@ -75,7 +75,7 @@ public:
 
     PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed); };
 
-    {% if (not property.is_readonly) %}
+    {% if (not property.readonly) %}
     virtual void set{{property}}({{property|returnType}} newValue) = 0;
     {% endif %}
 
@@ -97,7 +97,7 @@ public:
     {% endfor %}
 
 
-    {% for event in interface.events %}
+    {% for event in interface.signals %}
     Q_SIGNAL void {{event}}(
         {% set comma = joiner(",") %}
         {% for parameter in event.parameters %}

@@ -93,7 +93,7 @@ def requiredInclude(symbol):
 
 def run_generation(input, output):
     system = FileSystem.parse(input)
-    generator = Generator(searchpath=Path(here / 'templates'))
+    generator = Generator(search_path=Path(here / 'templates'))
     generator.register_filter('returnType', returnType)
     generator.register_filter('returnQMLType', returnQMLType)
     generator.register_filter('parameterType', parameterType)
