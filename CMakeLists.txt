@@ -58,7 +58,7 @@ endfunction()
 
 #add_subdirectory(lib)
 add_subdirectory(examples)
-add_subdirectory(misc/test)
+add_subdirectory(test)
 
 
 file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.yaml *.qdl)

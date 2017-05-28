@@ -480,7 +480,7 @@ class SimpleTypeListProperty: public ListPropertyBase {
                     ModelListModel::endResetModel();
                     m_changeOnGoing = false;
 
-                    emit m_listProperty.valueChanged();
+                    m_listProperty.doTriggerChangeSignal();
                 });
 
             }
@@ -511,14 +511,14 @@ public:
     /**
      * Returns a modifiable instance of the list.
      */
-    QList<ElementType>& list() {
+    QList<ElementType>& modifiableValue() {
         onValueChanged();
         m_model.beginChange();
         return m_list;
     }
 
     void setList(const QList<ElementType>& newList) {
-        list() = newList;
+    	modifiableValue() = newList;
     }
 
     const QList<ElementType>& list() const {

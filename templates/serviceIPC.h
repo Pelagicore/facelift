@@ -51,13 +51,7 @@ public:
             );
 
         {% endfor %}
-}
-
-/*
-    void init(QDBusConnection& bus) {
-        IPCServiceAdapterBase::init(bus, objectPath(m_service), {{interface}}IPCAdapter::INTERFACE);
     }
-*/
 
     IPCHandlingResult handleMethodCallMessage(IPCMessage& requestMessage, IPCMessage& replyMessage) override {
 
@@ -143,12 +137,6 @@ public:
     {{interface}}IPCProxy(QObject* parent = nullptr) : IPCProxy<{{interface}}PropertyAdapter>(parent) {
         ipc()->setObjectPath({{interface}}PropertyAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
-
-/*
-    void init(QDBusConnection& bus) {
-        IPCProxyBase::init(bus, SERVICE, objectPath(this), {{interface}}::IPC_INTERFACE_NAME);
-    }
-*/
 
     void deserializePropertyValues(IPCMessage& msg) override {
         Q_UNUSED(msg);

@@ -626,7 +626,7 @@ public:
 
         addWidget(*widget);
 
-        connect(property.m_ownerObject, property.m_ownerSignal, this, [this]() {
+        connect(property.owner(), property.signal(), this, [this]() {
             if (m_autoSaveEnabled) {
                 saveJSONSnapshot();
             }

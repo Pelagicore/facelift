@@ -1,0 +1,40 @@
+/*
+ *   This file is part of the QMLCppAPI project
+ *   Copyright (C) 2017 Pelagicore AB
+ *   SPDX-License-Identifier: LGPL-2.1
+ *   This file is subject to the terms of the <license name> licence.
+ *   Please see the LICENSE file for details. 
+ */
+
+module test 1.0;
+
+interface TestInterface {
+
+    readonly bool isLoaded;
+    readonly int intProperty;
+    readonly TestStruct structProperty;
+    
+//    readonly list<int> intListProperty;
+//    readonly list<bool> boolListProperty;
+    readonly list<TestStruct> structListProperty;
+
+    void createNewContact();
+    void method1(int intParam, bool boolParam);
+
+    event void event1(TestStruct p);
+    event void eventEnum(TestEnum p);
+    event void eventInt(int p);
+
+}
+
+struct TestStruct {
+    string s
+    int i
+}
+
+enum TestEnum {
+    E1,
+    E2,
+    E3,
+}
+

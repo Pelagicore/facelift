@@ -3,12 +3,13 @@
  *   Copyright (C) 2017 Pelagicore AB
  *   SPDX-License-Identifier: LGPL-2.1
  *   This file is subject to the terms of the LGPL 2.1 license.
- *   Please see the LICENSE file for details. 
+ *   Please see the LICENSE file for details.
  */
+
+#include "test1.h"
 
 #include <QDebug>
 
-#include "test1.h"
 
 class MyAddressBookImplementation : public AddressBookImplementation {
 
