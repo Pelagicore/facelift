@@ -45,8 +45,9 @@ public:
 
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}
-    virtual void set{{property}}({{property|returnType}} newValue) {
+    void set{{property}}(const {{property|returnType}}& newValue) override {
     	m_dummy.logSetterCall("{{property}}", newValue);
+    	m_{{property}} = newValue;
     }
         {% endif %}
     {% endfor %}

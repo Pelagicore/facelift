@@ -143,9 +143,7 @@ public:
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
             {% else %}
-            {
-                msg >> m_{{property.name}}.modifiableValue();
-            }
+        msg >> m_{{property.name}}.modifiableValue();
             {% endif %}
         {% endfor %}
     }
@@ -193,8 +191,8 @@ public:
 
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}
-    virtual void set{{property}}({{property|returnType}} newValue) {
-    	qDebug() << "TODO";
+    virtual void set{{property}}(const {{property|returnType}}& newValue) {
+		sendMethodCall("set{{property}}", newValue);
     }
         {% endif %}
     {% endfor %}

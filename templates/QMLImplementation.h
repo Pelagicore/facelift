@@ -37,7 +37,7 @@ public:
 
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}
-    virtual void set{{property}}({{property|returnType}} newValue) {}
+    void set{{property}}(const {{property|returnType}}& newValue) override {}
         {% endif %}
     {% endfor %}
 
@@ -115,7 +115,7 @@ public:
           return interface().m_{{property.name}};
       }
 
-      void set{{property.name}}({{property|returnType}} value) {
+      void set{{property.name}}(const {{property|returnType}}& value) {
           checkInterface();
           interface().m_{{property.name}} = value;
       }

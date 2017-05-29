@@ -86,6 +86,10 @@ template <typename Type> inline QString toString(const Type& v) {
 }
 
 
+template <> inline QString toString(const int& v) {
+    return QString::number(v);
+}
+
 template <> inline QString toString(const QString& v) {
 	return v;
 }

@@ -22,10 +22,7 @@ void mainClient(int &argc, char **argv) {
     QTimer timer;
     QObject::connect(&timer, &QTimer::timeout, [&] () {
         qWarning() << "boolProperty" << proxy.boolProperty();
-        qDebug() << "createNewContact ";
         proxy.method1();
-//            static int id = 0;
-//            proxy.selectContact(id++);
         });
     timer.start(1000);
 
@@ -46,6 +43,13 @@ void mainServer(int &argc, char **argv) {
     TestInterfaceDummy testInterface;
     TestInterfaceIPCAdapter svc;
     svc.setService(&testInterface);
+
+    QTimer timer;
+    timer.setInterval(1000);
+    QObject::connect(&timer, &QTimer::timeout, [&] () {
+//    	svc.onPropertyValueChanged();
+    });
+    timer.start();
 
     qDebug() << "Server running";
     app.exec();

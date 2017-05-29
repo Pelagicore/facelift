@@ -88,7 +88,7 @@ public:
         {% else %}
     Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed);
 
-    void set{{property}}({{property|returnType}} newValue) {
+    void set{{property}}(const {{property|returnType}}& newValue) {
     	qDebug() << "Writing property {{property}}";
     	m_provider->set{{property}}(newValue);
     }
