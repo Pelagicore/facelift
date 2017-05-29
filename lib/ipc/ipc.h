@@ -94,7 +94,7 @@ public:
 
     template<typename Type>
     void writeSimple(const Type& v) {
-//        qDebug() << "Writing to message " << v;
+//        qDebug() << "Writing to message : " << v;
         msg() << v;
     }
 
@@ -210,7 +210,6 @@ struct IPCTypeHandler<QList<ElementType>> {
         for (const auto& e : list) {
             IPCTypeHandler<ElementType>::write(msg, e);
         }
-
     }
 
     static void read(IPCMessage& msg, QList<ElementType>& list) {
@@ -222,7 +221,6 @@ struct IPCTypeHandler<QList<ElementType>> {
             IPCTypeHandler<ElementType>::read(msg, e);
             list.append(e);
         }
-
     }
 
 };

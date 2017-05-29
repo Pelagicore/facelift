@@ -5,10 +5,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "addressbook/AddressBookDummy.h"
-#include "addressbook/AddressBookIPC.h"
+#include "test/TestInterfaceDummy.h"
+#include "test/TestInterfaceIPC.h"
 
-using namespace addressbook;
+using namespace test;
 
 void mainClient(int &argc, char **argv) {
 
@@ -17,20 +17,20 @@ void mainClient(int &argc, char **argv) {
 
     qDebug() << "Client running";
 
-    AddressBookIPCProxy proxy;
+    TestInterfaceIPCProxy proxy;
 
     QTimer timer;
     QObject::connect(&timer, &QTimer::timeout, [&] () {
-        qWarning() << "IsLodaded" << proxy.isLoaded();
+        qWarning() << "boolProperty" << proxy.boolProperty();
         qDebug() << "createNewContact ";
-        proxy.createNewContact();
+        proxy.method1();
 //            static int id = 0;
 //            proxy.selectContact(id++);
         });
     timer.start(1000);
 
-    QObject::connect(&proxy, &AddressBook::isLoadedChanged, [&] () {
-        qWarning() << "IsLodaded changed " << proxy.isLoaded();
+    QObject::connect(&proxy, &TestInterface::boolPropertyChanged, [&] () {
+        qWarning() << "boolProperty changed " << proxy.boolProperty();
     });
 
     app.exec();
@@ -43,13 +43,9 @@ void mainServer(int &argc, char **argv) {
 
     QApplication app(argc, argv);
 
-//    auto sessionBus = QDBusConnection::sessionBus();
-//    auto success = sessionBus.registerService(SERVICE);
-//    assert(success);
-
-    AddressBookDummy abook;
-    AddressBookIPCAdapter svc;
-    svc.setService(&abook);
+    TestInterfaceDummy testInterface;
+    TestInterfaceIPCAdapter svc;
+    svc.setService(&testInterface);
 
     qDebug() << "Server running";
     app.exec();
