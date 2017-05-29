@@ -3,7 +3,7 @@
  *   Copyright (C) 2017 Pelagicore AB
  *   SPDX-License-Identifier: LGPL-2.1
  *   This file is subject to the terms of the <license name> licence.
- *   Please see the LICENSE file for details. 
+ *   Please see the LICENSE file for details.
  */
 
 #include "AddressBookModelPlugin.h"
@@ -18,7 +18,8 @@
 
 using namespace addressbook;
 
-void AddressBookModelPlugin::registerTypes(const char *uri) {
+void AddressBookModelPlugin::registerTypes(const char *uri)
+{
 
     // Register the generated types
     AddressbookModule::registerTypes();
@@ -30,7 +31,7 @@ void AddressBookModelPlugin::registerTypes(const char *uri) {
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here
     registerQmlComponent<AddressBookCppWithProperties>(uri);
-//    registerQmlComponent<AddressBookCpp>(uri);
+    //    registerQmlComponent<AddressBookCpp>(uri);
 
     // Register the dummy implementations
     AddressbookModuleDummy::registerQmlTypes(uri);

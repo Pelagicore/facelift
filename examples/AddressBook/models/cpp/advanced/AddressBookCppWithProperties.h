@@ -3,7 +3,7 @@
  *   Copyright (C) 2017 Pelagicore AB
  *   SPDX-License-Identifier: LGPL-2.1
  *   This file is subject to the terms of the <license name> licence.
- *   Please see the LICENSE file for details. 
+ *   Please see the LICENSE file for details.
  */
 
 #pragma once
@@ -15,33 +15,39 @@ using namespace addressbook;
 /**
  * C++ Implementation of the AddressBook API, based on the Property template class
  */
-class AddressBookCppWithProperties: public AddressBookPropertyAdapter {
+class AddressBookCppWithProperties :
+    public AddressBookPropertyAdapter
+{
 
     Q_OBJECT
 
 public:
-    AddressBookCppWithProperties(QObject* parent = nullptr) :
-            AddressBookPropertyAdapter(parent) {
+    AddressBookCppWithProperties(QObject *parent = nullptr) :
+        AddressBookPropertyAdapter(parent)
+    {
         setImplementationID("C++ model implemented with properties");
 
         m_timer.setSingleShot(true);
         m_timer.start(3000);
 
         m_isLoaded.bind([this] () {
-    		return !(m_timer.remainingTime() > 0);
-    	}).connect(&m_timer, &QTimer::timeout);
+                    return !(m_timer.remainingTime() > 0);
+                }).connect(&m_timer, &QTimer::timeout);
     }
 
-    void selectContact(int contactId) override {
-        auto* contact = m_contacts.elementPointerById(contactId);
-        if (contact != nullptr)
+    void selectContact(int contactId) override
+    {
+        auto *contact = m_contacts.elementPointerById(contactId);
+        if (contact != nullptr) {
             m_currentContact = *contact;
-        else
+        } else {
             qWarning() << "Unknown elementID " << contactId;
+        }
     }
 
-    void updateContact(int contactId, Contact newContact) override {
-        auto* contact = m_contacts.elementPointerById(contactId);
+    void updateContact(int contactId, Contact newContact) override
+    {
+        auto *contact = m_contacts.elementPointerById(contactId);
 
         Q_ASSERT(contact != nullptr);
         if (contact != nullptr) {
@@ -49,33 +55,36 @@ public:
             contact->setId(contactId);
             qDebug() << "Updated contact " << newContact.toString();
             contactsChanged();
-        }
-        else
+        } else {
             qWarning() << "Unknown elementID " << newContact.id();
+        }
     }
 
-    void deleteContact(int contactId) override {
-        auto* contact = m_contacts.elementPointerById(contactId);
+    void deleteContact(int contactId) override
+    {
+        auto *contact = m_contacts.elementPointerById(contactId);
 
         Q_ASSERT(contact != nullptr);
         if (contact != nullptr) {
 
-        	contactDeleted(*contact);
-        	m_contacts.removeElementById(contactId);
+            contactDeleted(*contact);
+            m_contacts.removeElementById(contactId);
 
-        	// Select first contact from the list if it exists
-        	if (m_contacts.size() > 0)
-        	    selectContact(m_contacts.elementAt(0).id());
-        	else
-        		m_currentContact = Contact();
+            // Select first contact from the list if it exists
+            if (m_contacts.size() > 0) {
+                selectContact(m_contacts.elementAt(0).id());
+            } else {
+                m_currentContact = Contact();
+            }
 
-        	contactsChanged();
-        }
-        else
+            contactsChanged();
+        } else {
             qWarning() << "Unknown elementID " << contactId;
+        }
     }
 
-    void createNewContact() override {
+    void createNewContact() override
+    {
         if (m_contacts.list().size() < 10) {
             qDebug() << "C++ createNewContact called";
 
@@ -91,8 +100,7 @@ public:
             m_currentContact = newContact;
 
             contactCreated(newContact);
-        }
-        else {
+        } else {
             contactCreationFailed(FailureReason::Full);
         }
 
@@ -101,4 +109,3 @@ public:
     QTimer m_timer;
 
 };
-

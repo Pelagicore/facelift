@@ -31,12 +31,15 @@
 
 
 
-class PropertyWidget : public QWidget {
+class PropertyWidget :
+    public QWidget
+{
 public:
+    typedef std::function<void ()> ChangeListener;
 
-    typedef std::function<void()> ChangeListener;
-
-    PropertyWidget(const QString& propertyName, QWidget* parent = nullptr) : QWidget(parent) {
+    PropertyWidget(const QString &propertyName, QWidget *parent = nullptr) :
+        QWidget(parent)
+    {
         m_propertyName = propertyName;
 
         m_layout = new QHBoxLayout();
@@ -48,20 +51,24 @@ public:
         setAutoFillBackground(true);
     }
 
-    void setWidget(QWidget* widget) {
+    void setWidget(QWidget *widget)
+    {
         m_layout->addWidget(widget);
     }
 
-    void setPropertyName(const QString& propertyName) {
+    void setPropertyName(const QString &propertyName)
+    {
         m_propertyNameLabel->setText(propertyName);
     }
 
-    const QString& propertyName() const {
+    const QString &propertyName() const
+    {
         return m_propertyName;
     }
 
-    void setListener(ChangeListener listener) {
-        m_listener= listener;
+    void setListener(ChangeListener listener)
+    {
+        m_listener = listener;
     }
 
     QHBoxLayout *m_layout;
@@ -71,43 +78,50 @@ public:
 };
 
 
-template <typename EnumType>
-class EnumerationPropertyWidget : public PropertyWidget {
+template<typename EnumType>
+class EnumerationPropertyWidget :
+    public PropertyWidget
+{
 
 public:
-    EnumerationPropertyWidget(const QString& propertyName, QWidget* parent = nullptr) : PropertyWidget(propertyName, parent) {
+    EnumerationPropertyWidget(const QString &propertyName, QWidget *parent = nullptr) :
+        PropertyWidget(propertyName, parent)
+    {
         widget = new QComboBox();
         setWidget(widget);
         auto values = validValues<EnumType>();
-        for(auto& v:values) {
+        for (auto &v : values) {
             widget->addItem(toString(v), static_cast<int>(v));
         }
     }
 
-    EnumType value() const {
+    EnumType value() const
+    {
         int index = widget->currentIndex();
         return validValues<EnumType>()[index];
     }
 
-    void init(EnumType initialValue) {
+    void init(EnumType initialValue)
+    {
 
         auto values = validValues<EnumType>();
-        for(int i = 0; i < values.size(); i++) {
-            if (initialValue == values[i])
-            widget->setCurrentIndex(i);
+        for (int i = 0; i < values.size(); i++) {
+            if (initialValue == values[i]) {
+                widget->setCurrentIndex(i);
+            }
         }
 
         QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
-            m_listener();
-        });
+                    m_listener();
+                });
 
     }
 
-    QComboBox* widget = nullptr;
+    QComboBox *widget = nullptr;
 };
 
-template <typename Type, typename Sfinae = void> struct DummyUIDesc {
+template<typename Type, typename Sfinae = void>
+struct DummyUIDesc
+{
     typedef PropertyWidget PanelType;
 };
-
-

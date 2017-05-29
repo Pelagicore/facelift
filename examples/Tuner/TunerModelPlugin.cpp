@@ -8,13 +8,14 @@
 
 #include "models/TunerViewModelCpp.h"
 
-void TunerModelPlugin::registerTypes(const char *uri) {
+void TunerModelPlugin::registerTypes(const char *uri)
+{
 
     TunerModule::registerTypes();
     TunerModule::registerQmlTypes(uri);
 
     TunerModuleDummy::registerQmlTypes(uri);
     registerQmlComponent<TunerViewModelCpp>(uri);
-//    TunerViewModelQMLImplementation::registerTypes(uri, STRINGIFY(TUNERVIEWMODEL_QML_LOCATION));
+    //    TunerViewModelQMLImplementation::registerTypes(uri, STRINGIFY(TUNERVIEWMODEL_QML_LOCATION));
 
 }

@@ -3,7 +3,7 @@
  *   Copyright (C) 2017 Pelagicore AB
  *   SPDX-License-Identifier: LGPL-2.1
  *   This file is subject to the terms of the LGPL 2.1 license.
- *   Please see the LICENSE file for details. 
+ *   Please see the LICENSE file for details.
  */
 
 #pragma once
@@ -19,40 +19,43 @@
 #include "model/Model.h"
 
 
-class PropertyBase {
+class PropertyBase
+{
 
 public:
-
     typedef void (ModelInterface::*ChangeSignal)();
 
-    PropertyBase() {
+    PropertyBase()
+    {
     }
 
-    void doTriggerChangeSignal() {
+    void doTriggerChangeSignal()
+    {
         (m_ownerObject->*m_ownerSignal)();
         clean();
     }
 
-    void onValueChanged() {
+    void onValueChanged()
+    {
         if (!m_timerEnabled) {
             m_timerEnabled = true;
 
             QTimer::singleShot(0, m_ownerObject, [this] () {
-                if (isValueChanged()) {
-                    qDebug() << "Property " << m_name << " : Triggering notification. value : " << toString();
-                    doTriggerChangeSignal();
-                }
-                else {
-                    qDebug() << "Property " << m_name << " : Triggering notification. value unchanged: " << toString();
-                }
-                m_timerEnabled = false;
-            });
+                        if (isValueChanged()) {
+                            qDebug() << "Property " << m_name << " : Triggering notification. value : " << toString();
+                            doTriggerChangeSignal();
+                        } else {
+                            qDebug() << "Property " << m_name << " : Triggering notification. value unchanged: " << toString();
+                        }
+                        m_timerEnabled = false;
+                    });
 
         }
     }
 
-    template <typename ServiceType>
-    void init(const char* name, ModelInterface* ownerObject, void (ServiceType::*changeSignal)()) {
+    template<typename ServiceType>
+    void init(const char *name, ModelInterface *ownerObject, void (ServiceType::*changeSignal)())
+    {
         m_ownerObject = ownerObject;
         m_ownerSignal = (ChangeSignal) changeSignal;
         m_name = name;
@@ -64,167 +67,190 @@ public:
 
     virtual void clean() = 0;
 
-    ModelInterface* owner() const {
+    ModelInterface *owner() const
+    {
         return m_ownerObject;
     }
 
-    ChangeSignal signal() const {
+    ChangeSignal signal() const
+    {
         return m_ownerSignal;
     }
 
-    const char* name() const {
-    	return m_name;
+    const char *name() const
+    {
+        return m_name;
     }
 
 private:
-    ModelInterface* m_ownerObject = nullptr;
+    ModelInterface *m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
 
     bool m_timerEnabled = false;
-    const char* m_name = nullptr;
+    const char *m_name = nullptr;
 
 };
 
 
 template<typename Type>
-class Property : public PropertyBase {
+class Property :
+    public PropertyBase
+{
 
     typedef std::function<Type()> GetterFunction;
 
 public:
-
-    void breakBinding() {
+    void breakBinding()
+    {
         if (m_lambda) {
             qWarning() << "Breaking binding";
-			for (const auto& connection : m_connections) {
-				auto successfull = QObject::disconnect(connection);
-				Q_ASSERT(successfull);
-			}
-			m_connections.clear();
-			m_lambda = nullptr;
+            for (const auto &connection : m_connections) {
+                auto successfull = QObject::disconnect(connection);
+                Q_ASSERT(successfull);
+            }
+            m_connections.clear();
+            m_lambda = nullptr;
         }
     }
 
-    template <typename Class, typename PropertyType> Property& bind(const PropertyInterface<Class, PropertyType>& property) {
-    	breakBinding();
-    	m_lambda = [property] () {
-    		return property.value();
-    	};
+    template<typename Class, typename PropertyType>
+    Property &bind(const PropertyInterface<Class, PropertyType> &property)
+    {
+        breakBinding();
+        m_lambda = [property] () {
+            return property.value();
+        };
         addDependency(property);
 
-        if (isValueChanged())
-        	onValueChanged();
+        if (isValueChanged()) {
+            onValueChanged();
+        }
 
         return *this;
     }
 
-    template <typename Class, typename PropertyType> Property& addDependency(const PropertyInterface<Class, PropertyType>& property) {
-    	m_connections.push_back(QObject::connect(property.object, property.signal, owner(), [this]() {
-    		triggerIfValueChanged();
-        }));
+    template<typename Class, typename PropertyType>
+    Property &addDependency(const PropertyInterface<Class, PropertyType> &property)
+    {
+        m_connections.push_back(QObject::connect(property.object, property.signal, owner(), [this]() {
+                        triggerIfValueChanged();
+                    }));
         return *this;
     }
 
     template<typename SourceType, typename ... Args>
-    Property& connect(SourceType* source, void (SourceType::*changeSignal)(Args...)) {
-    	m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
-    		triggerIfValueChanged();
-        }));
+    Property &connect(SourceType *source, void (SourceType::*changeSignal)(Args ...))
+    {
+        m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
+                        triggerIfValueChanged();
+                    }));
         return *this;
     }
 
 public:
-
-    QString toString() const override {
+    QString toString() const override
+    {
         QString result;
         QTextStream(&result) << "value = " << value();
         return result;
     }
 
-    const Type value() const {
+    const Type value() const
+    {
         if (m_lambda) {
             return m_lambda();
-        }
-        else
+        } else {
             return m_value;
+        }
     }
 
-    Type& modifiableValue() {
+    Type &modifiableValue()
+    {
         // We return a modifiable reference so we might have to trigger a "value changed" signal later
         onValueChanged();
         return m_value;
     }
-
     operator const Type() const {
         return value();
     }
 
-    Property& bind(const GetterFunction& f) {
+    Property &bind(const GetterFunction &f)
+    {
         breakBinding();
         m_lambda = f;
 
-        if (isValueChanged())
+        if (isValueChanged()) {
             onValueChanged();
+        }
 
         return *this;
     }
 
-    void setValue(const Type &right) {
+    void setValue(const Type &right)
+    {
         breakBinding();
 
         m_value = right;
 
-        if (isValueChanged())
+        if (isValueChanged()) {
             onValueChanged();
+        }
     }
 
-    Type& operator=(const Type &right) {
+    Type &operator=(const Type &right)
+    {
         setValue(right);
         return m_value;
     }
 
-    Type* operator->() {
+    Type *operator->()
+    {
         return &value();
     }
 
-    bool isValueChanged() const override {
+    bool isValueChanged() const override
+    {
         return !(m_previousValue == value());
     }
 
-    void clean() override {
+    void clean() override
+    {
         m_previousValue = value();
-    	qDebug() << "Cleaning " << name() << " value: " << m_previousValue;
+        qDebug() << "Cleaning " << name() << " value: " << m_previousValue;
     }
 
-    Type operator -=(const Type &right) {
+    Type operator-=(const Type &right)
+    {
         return operator=(value() - right);
     }
 
-    Type operator +=(const Type &right) {
+    Type operator+=(const Type &right)
+    {
         return operator=(value() + right);
     }
 
-    Type operator *=(const Type &right) {
+    Type operator*=(const Type &right)
+    {
         return operator=(value() * right);
     }
 
-    Type operator /=(const Type &right) {
+    Type operator/=(const Type &right)
+    {
         return operator=(value() / right);
     }
 
 private:
-
-    void triggerIfValueChanged() {
-		if (isValueChanged()) {
-    		onValueChanged();
-    		qDebug() << name() << "OK value changed !!!";
- 		}
-    	else {
-    		qDebug() << name() << "No change !!!";
-    	}
+    void triggerIfValueChanged()
+    {
+        if (isValueChanged()) {
+            onValueChanged();
+            qDebug() << name() << "OK value changed !!!";
+        } else {
+            qDebug() << name() << "No change !!!";
+        }
     }
 
-    Type m_value = { };
+    Type m_value = {};
     Type m_previousValue = m_value;
     GetterFunction m_lambda;
     QVector<QMetaObject::Connection> m_connections;
@@ -232,39 +258,48 @@ private:
 };
 
 
-class ListPropertyBase : public QObject, public PropertyBase {
+class ListPropertyBase :
+    public QObject, public PropertyBase
+{
 
     Q_OBJECT
 
 public:
-    ListPropertyBase() {
+    ListPropertyBase()
+    {
     }
 
     Q_INVOKABLE virtual int size() const = 0;
     Q_INVOKABLE virtual void clear() = 0;
 
-    bool isValueChanged() const override {
+    bool isValueChanged() const override
+    {
         return true;
     }
 
-    QString toString() const override {
+    QString toString() const override
+    {
         qWarning() << "TODO";
         return "";
     }
 
-    void clean() override {
+    void clean() override
+    {
         qWarning() << "TODO";
     }
 
 };
 
 
-class StructListPropertyBase : public ListPropertyBase {
+class StructListPropertyBase :
+    public ListPropertyBase
+{
 
     Q_OBJECT
 
 public:
-    StructListPropertyBase() {
+    StructListPropertyBase()
+    {
     }
 
     Q_INVOKABLE virtual int addElement() = 0;
@@ -273,133 +308,160 @@ public:
 };
 
 
-template<typename ElementType> class StructListProperty : public StructListPropertyBase {
+template<typename ElementType>
+class StructListProperty :
+    public StructListPropertyBase
+{
 
-    class TheModelListModel : public ModelListModel {
+    class TheModelListModel :
+        public ModelListModel
+    {
 
-    public:
-
-        TheModelListModel(StructListProperty& listProperty, const QList<ElementType>& list) : m_listProperty(listProperty), m_list(list) {
+public:
+        TheModelListModel(StructListProperty &listProperty, const QList<ElementType> &list) :
+            m_listProperty(listProperty), m_list(list)
+        {
         }
 
-        QHash<int,QByteArray> roleNames() const override {
+        QHash<int, QByteArray> roleNames() const override
+        {
             return ElementType::roleNames_(ElementType::FIELD_NAMES);
         }
 
-        int rowCount(const QModelIndex& index) const override {
+        int rowCount(const QModelIndex &index) const override
+        {
             Q_UNUSED(index);
             return m_list.size();
         }
 
-        QVariant data(const QModelIndex& index, int role) const override {
+        QVariant data(const QModelIndex &index, int role) const override
+        {
             return m_list.at(index.row()).getFieldAsVariant(role);
         }
 
-        void beginChange() {
+        void beginChange()
+        {
             if (!m_changeOnGoing) {
 
                 m_changeOnGoing = true;
                 ModelListModel::beginResetModel();
 
                 QTimer::singleShot(0, this, [this] () {
-                    ModelListModel::endResetModel();
-                    m_changeOnGoing = false;
-                    m_listProperty.doTriggerChangeSignal();
-                });
+                            ModelListModel::endResetModel();
+                            m_changeOnGoing = false;
+                            m_listProperty.doTriggerChangeSignal();
+                        });
 
             }
         }
 
-        int elementID(int elementIndex) const override {
+        int elementID(int elementIndex) const override
+        {
             Q_ASSERT(elementIndex >= 0);
             Q_ASSERT(elementIndex < m_list.size());
 
-            if (!(elementIndex>=0) && (elementIndex<m_list.size())) {
+            if (!(elementIndex >= 0) && (elementIndex < m_list.size())) {
                 qWarning() << "Invalid index : " << elementIndex;
                 return -1;
             }
 
-            auto& element = m_list[elementIndex];
+            auto &element = m_list[elementIndex];
             return element.id();
         }
 
-    private:
-        StructListProperty& m_listProperty;
-        const QList<ElementType>& m_list;
+private:
+        StructListProperty &m_listProperty;
+        const QList<ElementType> &m_list;
     };
 
 public:
-
-    StructListProperty() : m_model(*this, m_list) {
+    StructListProperty() :
+        m_model(*this, m_list)
+    {
     }
 
     /**
      * Returns the model object exposed to QML
      */
-    ModelListModel& getModel() {
+    ModelListModel &getModel()
+    {
         return m_model;
     }
 
-    QList<ElementType>& modifiableValue() {
-    	return list();
+    QList<ElementType> &modifiableValue()
+    {
+        return list();
     }
 
     /**
      * Returns a modifiable instance of the list.
      */
-    QList<ElementType>& list() {
+    QList<ElementType> &list()
+    {
         m_model.beginChange();
         return m_list;
     }
 
-    void setList(const QList<ElementType>& newList) {
+    void setList(const QList<ElementType> &newList)
+    {
         list() = newList;
     }
 
-    const QList<ElementType>& list() const {
+    const QList<ElementType> &list() const
+    {
         return m_list;
     }
 
-    int addElement() override {
+    int addElement() override
+    {
         ElementType newElement;
         addElement(newElement);
         return newElement.id();
     }
 
-    void addElement(ElementType element) {
+    void addElement(ElementType element)
+    {
         list().append(element);
     }
 
-    int size() const override {
+    int size() const override
+    {
         return m_list.size();
     }
 
-    bool elementExists(ModelElementID elementId) const override {
-        for(const auto& element : m_list) {
-            if(element.id() == elementId)
+    bool elementExists(ModelElementID elementId) const override
+    {
+        for (const auto &element : m_list) {
+            if (element.id() == elementId) {
                 return true;
+            }
         }
         return false;
     }
 
-    ElementType elementById(ModelElementID elementId) const {
+    ElementType elementById(ModelElementID elementId) const
+    {
         Q_ASSERT(elementExists(elementId));
-        for(const auto& element : m_list) {
-            if(element.id() == elementId)
+        for (const auto &element : m_list) {
+            if (element.id() == elementId) {
                 return element;
+            }
         }
         return ElementType();
     }
 
-    int elementIndexById(ModelElementID elementId) const {
-        for (int index=0;index<m_list.size();index++) {
-            if (m_list[index].id() == elementId)
+    int elementIndexById(ModelElementID elementId) const
+    {
+        for (int index = 0; index < m_list.size(); index++) {
+            if (m_list[index].id() == elementId) {
                 return index;
+            }
         }
         return -1;
     }
 
-    void setValue(const QList<ElementType>& other) {
+    void setValue(const QList<ElementType> &other)
+    {
         m_list = other;
         onValueChanged();
     }
@@ -410,41 +472,49 @@ public:
 
     operator const QList<QVariant>() const {
         QList<QVariant> s;
-        for(const auto& e : m_list)
+        for (const auto &e : m_list) {
             s.append(QVariant::fromValue(e));
+        }
         return s;
     }
 
-    void clear() override {
+    void clear() override
+    {
         list().clear();
     }
 
-    ElementType elementAt(int index) const {
+    ElementType elementAt(int index) const
+    {
         return m_list[index];
     }
 
-    void removeElementById(ModelElementID elementId) {
-    	m_model.beginChange();
-    	for (size_t i = 0; i< m_list.size(); i++) {
-    		if (m_list[i].id() == elementId) {
-    			m_list.removeAt(i);
-    			break;
-    		}
-    	}
+    void removeElementById(ModelElementID elementId)
+    {
+        m_model.beginChange();
+        for (size_t i = 0; i < m_list.size(); i++) {
+            if (m_list[i].id() == elementId) {
+                m_list.removeAt(i);
+                break;
+            }
+        }
     }
 
-    ElementType* elementPointerById(ModelElementID elementId) {
-        for(auto& element : m_list) {
-            if(element.id() == elementId)
+    ElementType *elementPointerById(ModelElementID elementId)
+    {
+        for (auto &element : m_list) {
+            if (element.id() == elementId) {
                 return &element;
+            }
         }
         return nullptr;
     }
 
-    const ElementType* elementPointerById(ModelElementID id) const {
-        for(const auto& element : m_list) {
-            if(element.id() == id)
+    const ElementType *elementPointerById(ModelElementID id) const
+    {
+        for (const auto &element : m_list) {
+            if (element.id() == id) {
                 return &element;
+            }
         }
         return nullptr;
     }
@@ -456,100 +526,120 @@ private:
 };
 
 template<typename ElementType>
-class SimpleTypeListProperty: public ListPropertyBase {
+class SimpleTypeListProperty :
+    public ListPropertyBase
+{
 
-    class TheModelListModel : public ModelListModel {
+    class TheModelListModel :
+        public ModelListModel
+    {
 
-    public:
-
-        TheModelListModel(SimpleTypeListProperty& listProperty, const QList<ElementType>& list) : m_listProperty(listProperty), m_list(list) {
+public:
+        TheModelListModel(SimpleTypeListProperty &listProperty, const QList<ElementType> &list) :
+            m_listProperty(listProperty), m_list(list)
+        {
         }
 
-        QHash<int,QByteArray> roleNames() const override {
-            QHash<int,QByteArray> roles;
+        QHash<int, QByteArray> roleNames() const override
+        {
+            QHash<int, QByteArray> roles;
             roles[1000] = "data";
             return roles;
         }
 
-        int rowCount(const QModelIndex& index) const override {
+        int rowCount(const QModelIndex &index) const override
+        {
             Q_UNUSED(index);
             return m_list.size();
         }
 
-        QVariant data(const QModelIndex& index, int role) const override {
+        QVariant data(const QModelIndex &index, int role) const override
+        {
             Q_UNUSED(role);
             Q_UNUSED(index);
             return toVariant(m_list.at(index.row()));
         }
 
-        void beginChange() {
-            if(!m_changeOnGoing) {
+        void beginChange()
+        {
+            if (!m_changeOnGoing) {
 
                 m_changeOnGoing = true;
                 ModelListModel::beginResetModel();
 
                 QTimer::singleShot(0, this, [this] () {
-                    ModelListModel::endResetModel();
-                    m_changeOnGoing = false;
+                            ModelListModel::endResetModel();
+                            m_changeOnGoing = false;
 
-                    m_listProperty.doTriggerChangeSignal();
-                });
+                            m_listProperty.doTriggerChangeSignal();
+                        });
 
             }
         }
 
-        int elementID(int elementIndex) const override {
-            Q_ASSERT(elementIndex>=0);
-            Q_ASSERT(elementIndex<m_list.size());
+        int elementID(int elementIndex) const override
+        {
+            Q_ASSERT(elementIndex >= 0);
+            Q_ASSERT(elementIndex < m_list.size());
             Q_ASSERT(false);
             return 0;
         }
 
-    private:
-        SimpleTypeListProperty& m_listProperty;
-        const QList<ElementType>& m_list;
+private:
+        SimpleTypeListProperty &m_listProperty;
+        const QList<ElementType> &m_list;
     };
 
 public:
-    SimpleTypeListProperty() : m_model(*this, m_list) {
+    SimpleTypeListProperty() :
+        m_model(*this, m_list)
+    {
     }
 
-    int size() const {
+    int size() const
+    {
         return m_list.size();
     }
 
-    void clear() {
+    void clear()
+    {
     }
 
     /**
      * Returns a modifiable instance of the list.
      */
-    QList<ElementType>& modifiableValue() {
+    QList<ElementType> &modifiableValue()
+    {
         onValueChanged();
         m_model.beginChange();
         return m_list;
     }
 
-    const QList<ElementType>& value() const {
+    const QList<ElementType> &value() const
+    {
         return m_list;
     }
 
-    void setList(const QList<ElementType>& newList) {
-    	modifiableValue() = newList;
+    void setList(const QList<ElementType> &newList)
+    {
+        modifiableValue() = newList;
     }
 
-    const QList<ElementType>& list() const {
+    const QList<ElementType> &list() const
+    {
         return m_list;
     }
 
-    void addElement(ElementType element) {
+    void addElement(ElementType element)
+    {
         list().append(element);
     }
 
     /**
      * Returns the model object exposed to QML
      */
-    ModelListModel& getModel() {
+    ModelListModel &getModel()
+    {
         return m_model;
     }
 
@@ -559,8 +649,9 @@ public:
 
     operator const QList<QVariant>() const {
         QList<QVariant> s;
-        for(const auto& e : m_list)
+        for (const auto &e : m_list) {
             s.append(QVariant::fromValue(e));
+        }
         return s;
     }
 
@@ -570,11 +661,13 @@ private:
 
 };
 
-template<typename EnumType> class EnumListProperty: public SimpleTypeListProperty<EnumType> {
+template<typename EnumType>
+class EnumListProperty :
+    public SimpleTypeListProperty<EnumType>
+{
 };
 
 
 typedef SimpleTypeListProperty<int> intListProperty;
 typedef SimpleTypeListProperty<QString> stringListProperty;
 typedef SimpleTypeListProperty<bool> boolListProperty;
-
