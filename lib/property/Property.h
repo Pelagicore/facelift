@@ -118,16 +118,19 @@ public:
         return *this;
     }
 
-    template <typename Class, typename PropertyType> void addDependency(const PropertyInterface<Class, PropertyType>& property) {
-    	m_connections.push_back(QObject::connect(property.object, property.signal, owner(), [this, property]() {
-    		if (isValueChanged()) {
-        		onValueChanged();
-        		qDebug() << name() << "OK value changed !!!";
-     		}
-        	else {
-        		qDebug() << name() << "No change !!!";
-        	}
+    template <typename Class, typename PropertyType> Property& addDependency(const PropertyInterface<Class, PropertyType>& property) {
+    	m_connections.push_back(QObject::connect(property.object, property.signal, owner(), [this]() {
+    		triggerIfValueChanged();
         }));
+        return *this;
+    }
+
+    template<typename SourceType, typename ... Args>
+    Property& connect(SourceType* source, void (SourceType::*changeSignal)(Args...)) {
+    	m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
+    		triggerIfValueChanged();
+        }));
+        return *this;
     }
 
 public:
@@ -210,6 +213,17 @@ public:
     }
 
 private:
+
+    void triggerIfValueChanged() {
+		if (isValueChanged()) {
+    		onValueChanged();
+    		qDebug() << name() << "OK value changed !!!";
+ 		}
+    	else {
+    		qDebug() << name() << "No change !!!";
+    	}
+    }
+
     Type m_value = { };
     Type m_previousValue = m_value;
     GetterFunction m_lambda;
