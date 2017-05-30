@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tuner/TunerViewModelPropertyAdapter.h"
+#include "TunerService.h"
 
 using namespace tuner;
 
@@ -11,16 +12,23 @@ class TunerViewModelCpp :
     Q_OBJECT
 
 public:
+
     TunerViewModelCpp(QObject *parent = nullptr) :
         TunerViewModelPropertyAdapter(parent)
     {
-        setImplementationID("C++ model");
+        m_currentStation.bind([this] () {
+        	auto station = m_service.currentStation();
+        	Station s;
+        	s.setfrequency(station.frequency);
+        	s.setname(station.name);
+        	s.setstationId(station.stationId);
+        	return s;
+        }).connect(&m_service, &TunerService::onCurrentStationChanged);
 
-        addStation("FM1");
-        addStation("Bayern 3");
-        addStation("Big FM");
-        addStation("C++ station");
-        trySelectStation(0);
+        m_stationList.bind([this] () {
+        	QList<Station> list;
+        	return list;
+        }).connect(&m_service, &TunerService::onStationListChanged);
     }
 
     void nextStation() override
@@ -33,32 +41,19 @@ public:
         trySelectStation(m_currentStationIndex - 1);
     }
 
-    void updateCurrentStation(int stationId) override
-    {
-        qDebug() << "updateCurrentStation called " << stationId;
-        for (int index = 0; index < m_stationList.list().size(); index++) {
-            const auto &station = m_stationList.list()[index];
-            if (station.id() == stationId) {
-                trySelectStation(index);
-            }
-        }
-    }
-
 private:
+
     void trySelectStation(int stationIndex)
     {
+    	qDebug() << "fsggfs";
         auto &list = m_stationList.list();
         if ((stationIndex < list.size()) && (stationIndex >= 0)) {
-            m_currentStationIndex = stationIndex;
-            m_currentStation = list[m_currentStationIndex];
+        	qDebug() << "fsggfs";
+        	m_service.setCurrentStationByID(stationList()[stationIndex].stationId());
         }
     }
 
-    void addStation(const char *stationName)
-    {
-        Station s;
-        s.setname(stationName);
-        m_stationList.list().append(s);
-    }
+    int m_currentStationIndex = 0;
+    TunerService m_service;
 
 };

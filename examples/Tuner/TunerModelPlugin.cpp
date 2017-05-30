@@ -1,6 +1,12 @@
-#include "TunerModelPlugin.h"
+/*
+ *   This file is part of the QMLCppAPI project
+ *   Copyright (C) 2017 Pelagicore AB
+ *   SPDX-License-Identifier: LGPL-2.1
+ *   This file is subject to the terms of the <license name> licence.
+ *   Please see the LICENSE file for details.
+ */
 
-#include <qqml.h>
+#include "TunerModelPlugin.h"
 
 #include "tuner/TunerModuleDummy.h"
 #include "tuner/TunerModule.h"
@@ -10,12 +16,11 @@
 
 void TunerModelPlugin::registerTypes(const char *uri)
 {
-
     TunerModule::registerTypes();
     TunerModule::registerQmlTypes(uri);
 
-    TunerModuleDummy::registerQmlTypes(uri);
     registerQmlComponent<TunerViewModelCpp>(uri);
-    //    TunerViewModelQMLImplementation::registerTypes(uri, STRINGIFY(TUNERVIEWMODEL_QML_LOCATION));
+
+    TunerModuleDummy::registerQmlTypes(uri);
 
 }

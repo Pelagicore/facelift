@@ -1,51 +1,16 @@
 module tuner 1.0
 
-interface TunerService {
-    readonly Station currentStation;
-	readonly model<Station> stationList;
-	readonly model<Waveband> wavebandList;
-}
-
-interface AudioService {
-	readonly model<AudioSource> audioSources;
-}
-
-interface ClimateService { 
-   readonly real currentTemperature;
-}
-
-interface SystemService {
-   void exit();
-}
-
-struct AudioSource {
-	string source
-	string name
-}
-
 struct Station {
 	string name
+	int frequency
+	string frequencyText
 	int stationId
-}
-
-struct Waveband {
-	string name
 }
 
 interface TunerViewModel {
     readonly Station currentStation;
-    readonly int currentStationIndex;
-	readonly model<Station> stationList;
-	readonly model<Waveband> wavebandList;
+	readonly list<Station> stationList;
 
     void nextStation();
     void previousStation();
-    void updateCurrentStation(int stationId);
-}
-
-interface StatusViewModel {
-    readonly string currentTime;
-    readonly string currentTemperature;
-
-    void doExit();
 }
