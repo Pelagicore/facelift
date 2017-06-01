@@ -72,7 +72,7 @@ public:
 
             // Select first contact from the list if it exists
             if (m_contacts.size() > 0) {
-                selectContact(m_contacts.elementAt(0).id());
+                selectContact(m_contacts.value()[0].id());
             } else {
                 m_currentContact = Contact();
             }
@@ -85,7 +85,7 @@ public:
 
     void createNewContact() override
     {
-        if (m_contacts.list().size() < 10) {
+        if (m_contacts.size() < 10) {
             qDebug() << "C++ createNewContact called";
 
             static int nextContactIndex = 0;

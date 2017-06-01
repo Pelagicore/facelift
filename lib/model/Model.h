@@ -109,6 +109,12 @@ inline QString toString(const int &v)
 }
 
 template<>
+inline QString toString(const bool &v)
+{
+    return v ? "true" : "false";
+}
+
+template<>
 inline QString toString(const QString &v)
 {
     return v;
@@ -289,7 +295,7 @@ class ModelQMLImplementationBase :
     Q_OBJECT
 
 public:
-    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID);
+    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID)
 
     ModelQMLImplementationBase(QQuickItem *parent = nullptr) :
         QQuickItem(parent)
@@ -418,34 +424,6 @@ void qmlRegisterType(const char *uri)
 {
     qmlRegisterType<QMLType>(uri, QMLType::INTERFACE_NAME);
 }
-
-
-class QMLModelImplementationFrontendBase
-{
-protected:
-    QQmlEngine *qmlEngine()
-    {
-        if (s_engine == nullptr) {
-            s_engine = new QQmlEngine();
-        }
-        return s_engine;
-    }
-
-    static QQmlEngine *s_engine;
-};
-
-template<typename QMLModelImplementationType>
-class QMLModelImplementationFrontend :
-    public QMLModelImplementationFrontendBase
-{
-protected:
-    QMLModelImplementationFrontend()
-    {
-    }
-
-    QMLModelImplementationType *m_impl;
-
-};
 
 
 class ModelListModel :

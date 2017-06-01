@@ -36,18 +36,29 @@ Item {
         }
 
         Row {
-            Button {
-                text: "Next"
-                onClicked: viewModel.nextStation()
+            Label {
+                text: "AF: "
             }
+            CheckBox {
+                checked: viewModel.enable_AF
+                onCheckedChanged: {
+                    if (viewModel.enable_AF !== checked)
+                        viewModel.enable_AF = checked
+                }
+            }
+        }
+
+        Row {
             Button {
                 text: "Previous"
                 onClicked: viewModel.previousStation()
             }
+            Button {
+                text: "Next"
+                onClicked: viewModel.nextStation()
+            }
         }
 
-
     }
-
 
 }

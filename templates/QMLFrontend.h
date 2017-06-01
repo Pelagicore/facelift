@@ -66,11 +66,11 @@ public:
 
     {% if property.type.is_model -%}
 
-    Q_PROPERTY(QObject* {{property}} READ {{property}}_ NOTIFY {{property.name}}Changed);
+    Q_PROPERTY(QObject* {{property}} READ {{property}}_ NOTIFY {{property.name}}Changed)
     ModelListModel* {{property}}_() {return &m_provider->{{property}}();}
 
     {% elif property.type.is_list -%}
-    Q_PROPERTY(QList<QVariant> {{property}} READ {{property}} NOTIFY {{property.name}}Changed);   // Exposing QList<ActualType> to QML does not seem to work
+    Q_PROPERTY(QList<QVariant> {{property}} READ {{property}} NOTIFY {{property.name}}Changed)   // Exposing QList<ActualType> to QML does not seem to work
     QList<QVariant> {{property}}() const {
         return toQMLCompatibleType(m_provider->{{property}}());
     }
@@ -84,12 +84,12 @@ public:
     {% else %}
 
         {% if property.readonly %}
-    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed);
+    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
         {% else %}
-    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed);
+    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
 
     void set{{property}}(const {{property|returnType}}& newValue) {
-    	qDebug() << "Writing property {{property}}";
+    	qDebug() << "Request to set property {{property}} to " << newValue;
     	m_provider->set{{property}}(newValue);
     }
         {% endif %}

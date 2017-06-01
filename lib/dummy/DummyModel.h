@@ -572,7 +572,7 @@ public:
     {
         QJsonArray array;
 
-        for (auto &propertyElement : property.list()) {
+        for (auto &propertyElement : property.value()) {
             QJsonValue jsonValue;
             writeJSON(jsonValue, propertyElement);
             array.append(jsonValue);
@@ -587,7 +587,7 @@ public:
     {
         QJsonArray array;
 
-        for (auto &propertyElement : property.list()) {
+        for (auto &propertyElement : property.value()) {
             QJsonValue jsonValue;
             writeJSON(jsonValue, propertyElement);
             array.append(jsonValue);
@@ -607,7 +607,6 @@ public:
     template<typename ListElementType>
     void readJSONProperty(const QJsonObject &json, StructListProperty<ListElementType> &property, const char *propertyName) const
     {
-
         if (json[propertyName].isArray()) {
             QList<ListElementType> elements;
             auto jsonArray = json[propertyName].toArray();
@@ -619,18 +618,16 @@ public:
                 elements.append(e);
             }
 
-            property.setList(elements);
+            property.setValue(elements);
         } else {
             qWarning() << "Expected array in property " << propertyName;
         }
-
     }
 
     template<typename ListElementType>
     void readJSONProperty(const QJsonObject &json, SimpleTypeListProperty<ListElementType> &property,
             const char *propertyName) const
     {
-
         if (json[propertyName].isArray()) {
             QList<ListElementType> elements;
             auto jsonArray = json[propertyName].toArray();
@@ -642,11 +639,10 @@ public:
                 elements.append(e);
             }
 
-            property.setList(elements);
+            property.setValue(elements);
         } else {
             qWarning() << "Expected array in property " << propertyName;
         }
-
     }
 
     template<typename ... ParameterTypes>
@@ -699,7 +695,9 @@ public:
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
-                    property.addElement(widgetForNewElement->value().clone());
+                    auto v = property.value();
+                    v.append(widgetForNewElement->value().clone());
+                    property.setValue(v);
                 });
 
         addWidget(*widget);

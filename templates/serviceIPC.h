@@ -20,7 +20,7 @@ class {{interface}}IPCAdapter: public IPCServiceAdapter<{{interface|fullyQualifi
 
 public:
 
-    Q_PROPERTY(QObject* service READ service WRITE setService);
+    Q_PROPERTY(QObject* service READ service WRITE setService)
 
     typedef {{interface|fullyQualifiedCppName}} ServiceType;
 

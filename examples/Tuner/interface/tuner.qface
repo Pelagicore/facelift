@@ -11,6 +11,8 @@ interface TunerViewModel {
     readonly Station currentStation;
 	readonly list<Station> stationList;
 
+	bool enable_AF;
+
     void nextStation();
     void previousStation();
 }

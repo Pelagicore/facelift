@@ -10,5 +10,3 @@
 
 ModelElementID ModelStructure::s_nextID = 0;
 constexpr int ModelStructure::ROLE_ID;
-
-QQmlEngine *QMLModelImplementationFrontendBase::s_engine = nullptr;

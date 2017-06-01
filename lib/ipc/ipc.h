@@ -330,10 +330,10 @@ public:
     static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "SetProperty";
     static constexpr const char *INTROSPECT_MESSAGE_NAME = "org.freedesktop.DBus.Introspectable";
 
-    Q_PROPERTY(QObject * service READ service WRITE setService);
-    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath);
-    Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName);
-    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled);
+    Q_PROPERTY(QObject * service READ service WRITE setService)
+    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
+    Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
+    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
     bool enabled() const
     {
@@ -543,10 +543,10 @@ class IPCProxyBinder :
     Q_OBJECT
 
 public:
-    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath);
-    Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName);
-    Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName);
-    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled);
+    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
+    Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
+    Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
+    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
     bool enabled() const
     {

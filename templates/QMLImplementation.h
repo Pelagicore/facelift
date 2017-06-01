@@ -5,7 +5,7 @@
 
 #pragma once
 
-
+#include "model/QMLModel.h"
 
 #include "{{interface}}PropertyAdapter.h"
 
@@ -37,7 +37,7 @@ public:
 
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}
-    void set{{property}}(const {{property|returnType}}& newValue) override {}
+    void set{{property}}(const {{property|returnType}}& newValue) override;
         {% endif %}
     {% endfor %}
 
@@ -102,14 +102,18 @@ public:
     {% for property in interface.properties %}
 
     {%if property.type.is_list or property.type.is_model -%}
-    Q_PROPERTY(QObject* {{property.name}} READ {{property.name}});
+    Q_PROPERTY(QObject* {{property.name}} READ {{property.name}})
+
+    {{property|nestedType|fullyQualifiedCppName}}QMLImplListProperty m_{{property.name}}QMLProperty;
+
 
     QObject* {{property.name}}() {
-        return &interface().m_{{property.name}};
+    	m_{{property.name}}QMLProperty.setProperty(interface().m_{{property.name}});
+        return &m_{{property.name}}QMLProperty;
     }
 
     {% else %}
-      Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}});
+      Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}})
       {{property|returnType}} {{property.name}}() const {
           checkInterface();
           return interface().m_{{property.name}};
@@ -120,6 +124,33 @@ public:
           interface().m_{{property.name}} = value;
       }
 
+      Q_PROPERTY(QJSValue set{{property.name}} READ set{{property.name}}JSFunction WRITE setset{{property.name}}JSFunction)
+
+      void setset{{property.name}}JSFunction(QJSValue v) {
+          m_set{{property.name}} = v;
+      }
+
+      QJSValue set{{property.name}}JSFunction() const {
+          return m_set{{property.name}};
+      }
+
+      QJSValue m_set{{property.name}};
+
+      void requestSet{{property.name}}(const {{property|returnType}}& value) {
+          checkInterface();
+          QJSValueList args;
+          args.append(toJSValue(value));
+
+          if(m_set{{property.name}}.isCallable())
+          {
+        	  m_set{{property.name}}.call(args);
+          }
+          else
+          {
+              qWarning() << "set{{property.name}} method is not set or not callable";
+          }
+
+      }
     {% endif %}
     {% endfor %}
 
@@ -177,6 +208,13 @@ inline void {{interface}}QMLImplementationFrontend::{{operation.name}}(
 }
 {% endfor %}
 
+{% for property in interface.properties %}
+	{% if (not property.readonly) %}
+inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{property|returnType}}& newValue) {
+	m_impl->requestSet{{property}}(newValue);
+}
+    {% endif %}
+{% endfor %}
+
 
 {{module|namespaceClose}}
-

@@ -11,6 +11,7 @@
 #include <QTextStream>
 
 #include "model/Model.h"
+#include "model/QMLModel.h"
 #include "common/JSON.h"
 
 #include "property/Property.h"
@@ -95,32 +96,44 @@ public:
 };
 
 
+typedef StructListProperty<{{struct.name}}> {{struct.name}}ListProperty;
 
 
-
-class {{struct.name}}ListProperty : public StructListProperty<{{struct.name}}> {
+class {{struct.name}}QMLImplListProperty : public QMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
 
     Q_OBJECT
 
 public:
 
+    Q_INVOKABLE bool elementExists(int elementId) const {
+        for (const auto &element : property().value()) {
+            if (element.id() == elementId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     Q_INVOKABLE void addElement({{struct | fullyQualifiedCppName}} element) {
-        StructListProperty<{{struct.name}}>::addElement(element);
+    	QMLImplListProperty<{{struct.name}}>::addElement(element);
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementById(int elementId) const {
-        return StructListProperty<{{struct.name}}>::elementById(elementId);
+        auto element = QMLImplListProperty<{{struct.name}}>::elementById(elementId);
+        Q_ASSERT(element != nullptr);
+        return *element;
     }
 
     Q_INVOKABLE int elementIndexById(int elementId) const {
-        return StructListProperty<{{struct.name}}>::elementIndexById(elementId);
+        return QMLImplListProperty<{{struct.name}}>::elementIndexById(elementId);
     }
 
-    Q_INVOKABLE {{struct.name}} elementAt(int index) const {
-        return StructListProperty<{{struct.name}}>::elementAt(index);
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementAt(int index) const {
+        return QMLImplListProperty<{{struct.name}}>::elementAt(index);
     }
 
 };
+
 
 {{module|namespaceClose}}
 

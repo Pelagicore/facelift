@@ -12,23 +12,52 @@ class TunerViewModelCpp :
     Q_OBJECT
 
 public:
-
     TunerViewModelCpp(QObject *parent = nullptr) :
         TunerViewModelPropertyAdapter(parent)
     {
         m_currentStation.bind([this] () {
-        	auto station = m_service.currentStation();
-        	Station s;
-        	s.setfrequency(station.frequency);
-        	s.setname(station.name);
-        	s.setstationId(station.stationId);
-        	return s;
-        }).connect(&m_service, &TunerService::onCurrentStationChanged);
+
+                    auto station = m_service.currentStation();
+
+                    // Update our station index
+                    for (int i = 0; i < m_stationList.value().size(); i++) {
+                        if (m_stationList.value()[i].stationId() == station.stationId) {
+                            m_currentStationIndex = i;
+                        }
+                    }
+
+                    Station modelStation;
+                    modelStation.setfrequency(station.frequency);
+                    modelStation.setname(station.name);
+                    modelStation.setstationId(station.stationId);
+                    return modelStation;
+                }).connect(&m_service, &TunerService::onCurrentStationChanged);
 
         m_stationList.bind([this] () {
-        	QList<Station> list;
-        	return list;
-        }).connect(&m_service, &TunerService::onStationListChanged);
+                    QList<Station> modelStationList;
+
+                    for (const auto &station: m_service.stationList()) {
+                        Station modelStation;
+                        qDebug() << station.name;
+                        qDebug() << station.stationId;
+                        modelStation.setname(station.name);
+                        modelStation.setstationId(station.stationId);
+                        modelStationList.push_back(modelStation);
+                        qDebug() << modelStation;
+                    }
+                    qDebug() << modelStationList;
+                    return modelStationList;
+                }).connect(&m_service, &TunerService::onStationListChanged);
+
+        m_enable_AF.bind([this] () {
+                    return m_service.rdsSettings().af;
+                }).connect(&m_service, &TunerService::onRDSettingsChanged);
+
+    }
+
+    void setenable_AF(const bool &enabled)
+    {
+        m_service.setAFEnabled(enabled);
     }
 
     void nextStation() override
@@ -42,14 +71,11 @@ public:
     }
 
 private:
-
     void trySelectStation(int stationIndex)
     {
-    	qDebug() << "fsggfs";
-        auto &list = m_stationList.list();
+        auto &list = m_stationList.value();
         if ((stationIndex < list.size()) && (stationIndex >= 0)) {
-        	qDebug() << "fsggfs";
-        	m_service.setCurrentStationByID(stationList()[stationIndex].stationId());
+            m_service.setCurrentStationByID(stationList()[stationIndex].stationId());
         }
     }
 

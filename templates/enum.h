@@ -40,8 +40,6 @@ public:
 
 class {{enum.name}}ListProperty : public EnumListProperty<{{enum.name}}> {
 
-    Q_OBJECT
-
 public:
 
 };

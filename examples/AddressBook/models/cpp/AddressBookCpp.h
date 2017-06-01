@@ -109,6 +109,7 @@ public:
 
     void deleteContact(int contactId) override
     {
+        Q_UNUSED(contactId);
         qWarning() << "TODO";
     }
 

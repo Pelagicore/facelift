@@ -1,6 +1,8 @@
 
 add_qface_package(TunerGenerated ${CMAKE_CURRENT_SOURCE_DIR}/interface)
 
+set_qface_qml_service_implementation_path(TunerGenerated "${CMAKE_CURRENT_SOURCE_DIR}/models/qml")
+
 file(GLOB_RECURSE CPP_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 

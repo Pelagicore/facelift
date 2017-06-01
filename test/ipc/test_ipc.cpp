@@ -10,7 +10,8 @@
 
 using namespace test;
 
-void mainClient(int &argc, char **argv) {
+void mainClient(int &argc, char * *argv)
+{
 
     QApplication app(argc, argv);
     auto sessionBus = QDBusConnection::sessionBus();
@@ -21,14 +22,14 @@ void mainClient(int &argc, char **argv) {
 
     QTimer timer;
     QObject::connect(&timer, &QTimer::timeout, [&] () {
-        qWarning() << "boolProperty" << proxy.boolProperty();
-        proxy.method1();
-        });
+                qWarning() << "boolProperty" << proxy.boolProperty();
+                proxy.method1();
+            });
     timer.start(1000);
 
     QObject::connect(&proxy, &TestInterface::boolPropertyChanged, [&] () {
-        qWarning() << "boolProperty changed " << proxy.boolProperty();
-    });
+                qWarning() << "boolProperty changed " << proxy.boolProperty();
+            });
 
     app.exec();
     qDebug() << "Client exited";
@@ -36,7 +37,8 @@ void mainClient(int &argc, char **argv) {
 }
 
 
-void mainServer(int &argc, char **argv) {
+void mainServer(int &argc, char * *argv)
+{
 
     QApplication app(argc, argv);
 
@@ -47,8 +49,8 @@ void mainServer(int &argc, char **argv) {
     QTimer timer;
     timer.setInterval(1000);
     QObject::connect(&timer, &QTimer::timeout, [&] () {
-//    	svc.onPropertyValueChanged();
-    });
+                //      svc.onPropertyValueChanged();
+            });
     timer.start();
 
     qDebug() << "Server running";
@@ -57,7 +59,8 @@ void mainServer(int &argc, char **argv) {
 
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char * *argv)
+{
 
     if (argc == 1) {
         mainServer(argc, argv);

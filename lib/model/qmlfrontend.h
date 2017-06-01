@@ -26,10 +26,10 @@ public:
     {
     }
 
-    Q_PROPERTY(QString implementationID READ implementationID CONSTANT);
-    Q_PROPERTY(QObject * provider READ provider CONSTANT);
-    virtual QObject *provider() = 0;
+    Q_PROPERTY(QObject * provider READ provider CONSTANT)
+    virtual QObject * provider() = 0;
 
+    Q_PROPERTY(QString implementationID READ implementationID CONSTANT)
     virtual const QString &implementationID() = 0;
 
 };
