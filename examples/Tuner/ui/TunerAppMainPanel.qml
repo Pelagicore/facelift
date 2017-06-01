@@ -50,11 +50,23 @@ Item {
 
         Row {
             Button {
-                text: "Previous"
+                text: "<<"
                 onClicked: viewModel.previousStation()
             }
+            Repeater {
+                model: viewModel.stationList
+
+                delegate: Button {
+                    text: modelData.name + (modelData.isPlaying ? "* " : "")
+                    onClicked: {
+                        viewModel.setCurrentStation(modelData)
+                        print("Clicked " + modelData.name + " id " + modelData.stationId)
+                    }
+                }
+
+            }
             Button {
-                text: "Next"
+                text: ">>"
                 onClicked: viewModel.nextStation()
             }
         }

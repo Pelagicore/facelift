@@ -13,7 +13,6 @@ class TunerService :
 public:
     struct Station
     {
-
         int stationId;
         QString name;
         int frequency;
@@ -31,7 +30,6 @@ public:
             }
             return true;
         }
-
     };
 
     struct RDSSettings

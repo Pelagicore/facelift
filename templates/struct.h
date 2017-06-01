@@ -177,7 +177,7 @@ Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list
 Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 
 
-inline QJSValue toJSValue(const {{struct|fullyQualifiedCppName}}& f) {
-    return structToJSValue(f);
+inline QJSValue toJSValue(const {{struct|fullyQualifiedCppName}}& f, QQmlEngine* engine) {
+    return structToJSValue(f, engine);
 }
 

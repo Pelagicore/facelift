@@ -79,15 +79,16 @@ inline QVariant toVariant(const QList<Type> &v)
 
 
 template<typename Type>
-inline QJSValue toJSValue(const Type &v)
+inline QJSValue toJSValue(const Type &v, QQmlEngine* engine)
 {
-    return v;
+	return engine->toScriptValue(v);
 }
 
 template<typename Type>
-inline QJSValue toJSValue(const QList<Type> &v)
+inline QJSValue toJSValue(const QList<Type> &v, QQmlEngine* engine)
 {
     Q_ASSERT(false);
+    // TODO
     Q_UNUSED(v);
     return QJSValue();
 }
@@ -476,16 +477,16 @@ inline QList<QVariant> toQMLCompatibleType(const QList<ElementType> &list)
 }
 
 template<typename EnumType>
-inline QJSValue enumToJSValue(const EnumType e)
+inline QJSValue enumToJSValue(const EnumType e, QQmlEngine* engine)
 {
+	Q_UNUSED(engine);
     return static_cast<int>(e);
 }
 
 template<typename StructType>
-inline QJSValue structToJSValue(const StructType s)
+inline QJSValue structToJSValue(const StructType& s, QQmlEngine* engine)
 {
-    QVariant v = QVariant::fromValue(s);
-    return v.value<QJSValue>();
+	return engine->toScriptValue(s);
 }
 
 template<typename Class, typename PropertyType>

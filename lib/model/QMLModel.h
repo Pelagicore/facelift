@@ -40,18 +40,28 @@ class QMLImplListPropertyBase :
 public:
     Q_INVOKABLE virtual int size() const = 0;
 
+    Q_PROPERTY(QList<QVariant> elements READ elementsAsVariant NOTIFY elementsChanged)
+
+    Q_SIGNAL void elementsChanged();
+
+    virtual QList<QVariant> elementsAsVariant() const = 0;
+
 };
 
 template<typename ElementType>
 class QMLImplListProperty :
     public QMLImplListPropertyBase
 {
-
 public:
     Property<QList<ElementType> > &property() const
     {
         Q_ASSERT(m_property != nullptr);
         return *m_property;
+    }
+
+    // TODO : check why the QML engine does not seem to be able to handle the return type of this method
+    QList<QVariant> elementsAsVariant() const {
+    	return toQMLCompatibleType(elements());
     }
 
     void setProperty(Property<QList<ElementType> > &property)
@@ -62,6 +72,11 @@ public:
     int size() const override
     {
         return property().value().size();
+    }
+
+    const QList<ElementType>& elements() const
+    {
+        return property().value();
     }
 
     void addElement(ElementType element)

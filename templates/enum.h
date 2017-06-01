@@ -95,8 +95,8 @@ inline QTextStream &operator <<(QTextStream &outStream, const {{enum|fullyQualif
     return outStream;
 }
 
-inline QJSValue toJSValue(const {{enum|fullyQualifiedCppName}}& f) {
-    return enumToJSValue(f);
+inline QJSValue toJSValue(const {{enum|fullyQualifiedCppName}}& f, QQmlEngine* engine) {
+    return enumToJSValue(f, engine);
 }
 
 //inline QList<QVariant> toQMLCompatibleType(const QList<{{enum|fullyQualifiedCppName}}>& list) {

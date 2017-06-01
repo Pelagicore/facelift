@@ -42,12 +42,14 @@ public:
                         qDebug() << station.stationId;
                         modelStation.setname(station.name);
                         modelStation.setstationId(station.stationId);
+                        modelStation.setisPlaying(m_service.currentStation().stationId == station.stationId);
                         modelStationList.push_back(modelStation);
                         qDebug() << modelStation;
                     }
                     qDebug() << modelStationList;
                     return modelStationList;
-                }).connect(&m_service, &TunerService::onStationListChanged);
+                }).connect(&m_service, &TunerService::onStationListChanged).connect(&m_service,
+                &TunerService::onCurrentStationChanged);
 
         m_enable_AF.bind([this] () {
                     return m_service.rdsSettings().af;
@@ -55,7 +57,7 @@ public:
 
     }
 
-    void setenable_AF(const bool &enabled)
+    void setenable_AF(const bool &enabled) override
     {
         m_service.setAFEnabled(enabled);
     }
@@ -68,6 +70,11 @@ public:
     void previousStation() override
     {
         trySelectStation(m_currentStationIndex - 1);
+    }
+
+    void setCurrentStation(Station station) override
+    {
+        m_service.setCurrentStationByID(station.stationId());
     }
 
 private:

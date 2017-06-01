@@ -36,6 +36,15 @@ TunerViewModelImplementation {
         enable_AF = enabled
     }
 
+    setCurrentStation: function(s) {
+        print("TODO : implement setCurrentStation " + s)
+/*
+        var elements = stationList.elements();
+        for (var station in elements) {
+        }
+*/
+    }
+
     function trySelectStation(stationIndex) {
         if ((stationIndex < stationList.size()) && (stationIndex >= 0 )) {
             var station = stationList.elementAt(currentStationIndex)

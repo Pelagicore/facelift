@@ -71,8 +71,10 @@ public:
     ) {
         QJSValueList args;
 
+        QQmlEngine* engine = qmlEngine(this);
+
         {% for parameter in operation.parameters %}
-        args.append(toJSValue({{parameter.name}}));
+        args.append(toJSValue({{parameter.name}}, engine));
         {% endfor %}
 
         if(m_{{operation}}.isCallable())
@@ -139,7 +141,9 @@ public:
       void requestSet{{property.name}}(const {{property|returnType}}& value) {
           checkInterface();
           QJSValueList args;
-          args.append(toJSValue(value));
+
+          QQmlEngine* engine = qmlEngine(this);
+          args.append(toJSValue(value, engine));
 
           if(m_set{{property.name}}.isCallable())
           {
