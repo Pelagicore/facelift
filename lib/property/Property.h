@@ -46,7 +46,7 @@ public:
 
             QTimer::singleShot(0, m_ownerObject, [this] () {
                         if (isValueChanged()) {
-                            qDebug() << "Property " << m_name << " : Triggering notification";
+                            qDebug() << "Property" << name() << ": Triggering notification";
                             doTriggerChangeSignal();
                         } else {
                             //                            qDebug() << "Property " << m_name << " : Triggering notification. value unchanged: " << toString();
@@ -273,71 +273,6 @@ class StructListProperty :
     public Property<QList<ElementType> >
 {
 
-    class TheModelListModel :
-        public ModelListModel
-    {
-
-public:
-        TheModelListModel(StructListProperty &listProperty) :
-            m_listProperty(listProperty)
-        {
-        }
-
-        QHash<int, QByteArray> roleNames() const override
-        {
-            return ElementType::roleNames_(ElementType::FIELD_NAMES);
-        }
-
-        int rowCount(const QModelIndex &index) const override
-        {
-            Q_UNUSED(index);
-            return list().size();
-        }
-
-        QVariant data(const QModelIndex &index, int role) const override
-        {
-            return list().at(index.row()).getFieldAsVariant(role);
-        }
-
-        void beginChange()
-        {
-            if (!m_changeOnGoing) {
-
-                m_changeOnGoing = true;
-                ModelListModel::beginResetModel();
-
-                QTimer::singleShot(0, this, [this] () {
-                            ModelListModel::endResetModel();
-                            m_changeOnGoing = false;
-                            m_listProperty.doTriggerChangeSignal();
-                        });
-
-            }
-        }
-
-        const QList<ElementType> &list() const
-        {
-            return m_listProperty.list();
-        }
-
-        int elementID(int elementIndex) const override
-        {
-            Q_ASSERT(elementIndex >= 0);
-            Q_ASSERT(elementIndex < m_listProperty.list().size());
-
-            if (!(elementIndex >= 0) && (elementIndex < m_listProperty.list().size())) {
-                qWarning() << "Invalid index : " << elementIndex;
-                return -1;
-            }
-
-            auto &element = list()[elementIndex];
-            return element.id();
-        }
-
-private:
-        StructListProperty &m_listProperty;
-    };
-
 public:
     void removeElementById(ModelElementID elementId)
     {
@@ -399,3 +334,64 @@ class EnumListProperty :
 typedef SimpleTypeListProperty<int> intListProperty;
 typedef SimpleTypeListProperty<QString> stringListProperty;
 typedef SimpleTypeListProperty<bool> boolListProperty;
+
+template<typename ElementType>
+class ModelProperty :
+    public PropertyBase
+{
+public:
+    typedef std::function<ElementType(int)> ElementGetter;
+
+    ModelProperty()
+    {
+    }
+
+    ElementType elementAt(int index)
+    {
+        if (m_elementGetter == nullptr) {
+            qFatal("Getter has not been set for property %1", name());
+        }
+        return m_elementGetter(index);
+    }
+
+    void setGetter(ElementGetter getter)
+    {
+        m_elementGetter = getter;
+    }
+
+    void setSize(size_t size)
+    {
+        if (m_size != size) {
+            m_size = size;
+            notifyDataChanged();
+        }
+    }
+
+    void notifyDataChanged()
+    {
+        m_modified = true;
+        triggerValueChangedSignal();
+    }
+
+    size_t size() const
+    {
+        return m_size;
+    }
+
+    virtual bool isValueChanged() const override
+    {
+        return m_modified;
+    }
+
+    virtual void clean()
+    {
+        m_modified = false;
+    }
+
+private:
+    ElementGetter m_elementGetter;
+    size_t m_size;
+
+    bool m_modified = false;
+
+};

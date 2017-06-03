@@ -54,6 +54,12 @@ public:
         m_provider = &provider;
         {% for property in interface.properties %}
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
+
+        {% if property.type.is_model -%}
+        m_{{property}}Model.init(m_provider, &MediaIndexerModel::{{property}}Changed, &{{class}}::{{property.name}}Size, &{{class}}::{{property.name}}ElementAt);
+        connect(m_provider, &MediaIndexerModel::{{property}}Changed, &m_{{property}}Model, &ModelListModel<{{property|nestedType|fullyQualifiedCppName}}>::notifyModelChanged);
+        {% endif %}
+
         {% endfor %}
 
         {% for event in interface.signals %}
@@ -66,20 +72,18 @@ public:
 
     {% if property.type.is_model -%}
 
-    Q_PROPERTY(QObject* {{property}} READ {{property}}_ NOTIFY {{property.name}}Changed)
-    ModelListModel* {{property}}_() {return &m_provider->{{property}}();}
+    Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+    QObject* {{property}}() {
+    	return &m_{{property}}Model;
+    }
+
+    ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
 
     {% elif property.type.is_list -%}
     Q_PROPERTY(QList<QVariant> {{property}} READ {{property}} NOTIFY {{property.name}}Changed)   // Exposing QList<ActualType> to QML does not seem to work
     QList<QVariant> {{property}}() const {
         return toQMLCompatibleType(m_provider->{{property}}());
     }
-
-/*
-    virtual {{property|returnType}} {{property}}() const {
-        return m_provider->{{property}}();
-    }
-*/
 
     {% else %}
 

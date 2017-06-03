@@ -394,7 +394,6 @@ public:
 
     static void addModel(DummyModelBase &model)
     {
-
     }
 
     static DummyModelControlWindow &instance()
@@ -425,7 +424,6 @@ public:
 
     void init()
     {
-
         initUi();
         m_window->setWindowTitle(TypeName::INTERFACE_NAME);
 
@@ -581,6 +579,19 @@ public:
         json[propertyName] = array;
     }
 
+
+    template<typename ListElementType>
+    void writeJSONProperty(QJsonObject &json, const ModelProperty<ListElementType> &property,
+            const char *propertyName) const
+    {
+        QJsonArray array;
+
+        Q_ASSERT(false);
+        // TODO
+
+
+    }
+
     template<typename ListElementType>
     void writeJSONProperty(QJsonObject &json, const SimpleTypeListProperty<ListElementType> &property,
             const char *propertyName) const
@@ -622,6 +633,13 @@ public:
         } else {
             qWarning() << "Expected array in property " << propertyName;
         }
+    }
+
+    template<typename ListElementType>
+    void readJSONProperty(const QJsonObject &json, ModelProperty<ListElementType> &property, const char *propertyName) const
+    {
+        Q_ASSERT(false);
+        // TODO
     }
 
     template<typename ListElementType>
@@ -681,6 +699,13 @@ public:
                 });
 
         addWidget(*widget);
+    }
+
+    template<typename ListElementType>
+    void initWidget(ModelProperty<ListElementType> &property, const QString &propertyName)
+    {
+        Q_ASSERT(false);
+        // TODO
     }
 
     template<typename ListElementType>

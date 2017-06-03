@@ -60,8 +60,9 @@ public:
     }
 
     // TODO : check why the QML engine does not seem to be able to handle the return type of this method
-    QList<QVariant> elementsAsVariant() const {
-    	return toQMLCompatibleType(elements());
+    QList<QVariant> elementsAsVariant() const
+    {
+        return toQMLCompatibleType(elements());
     }
 
     void setProperty(Property<QList<ElementType> > &property)
@@ -74,7 +75,7 @@ public:
         return property().value().size();
     }
 
-    const QList<ElementType>& elements() const
+    const QList<ElementType> &elements() const
     {
         return property().value();
     }

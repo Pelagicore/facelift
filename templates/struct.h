@@ -97,6 +97,7 @@ public:
 
 
 typedef StructListProperty<{{struct.name}}> {{struct.name}}ListProperty;
+typedef ModelProperty<{{struct.name}}> {{struct.name}}ModelProperty;
 
 
 class {{struct.name}}QMLImplListProperty : public QMLImplListProperty<{{struct | fullyQualifiedCppName}}> {

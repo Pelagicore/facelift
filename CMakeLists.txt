@@ -13,17 +13,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
 # Build a QML plugin
-function(add_qml_plugin PLUGIN_NAME URI PLUGIN_MAJOR_VERSION PLUGIN_MINOR_VERSION SOURCE_FILES HEADERS EXTRA_DEPENDENCIES)
+function(add_qml_plugin PLUGIN_NAME URI PLUGIN_MAJOR_VERSION PLUGIN_MINOR_VERSION SOURCE_FILES HEADERS)
 
-    # All plugins are linked against Qt libraries (QML and Quick). Use parameter EXTRA_DEPENDENCIES
-    # if additional libraries are needed.
+    # All plugins are linked against Qt libraries (QML and Quick)
     string(REPLACE "." "/" PLUGIN_PATH ${URI})
 
     set(PLUGINREGISTER "plugin ${PLUGIN_NAME}")
     qt5_wrap_cpp(MOCS_PLUGIN ${HEADERS} OPTIONS -Muri=${URI})
 
     add_library(${PLUGIN_NAME} SHARED ${SOURCE_FILES} ${MOCS_PLUGIN})
-    target_link_libraries(${PLUGIN_NAME} ${EXTRA_DEPENDENCIES} Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+    target_link_libraries(${PLUGIN_NAME} Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
 
     target_include_directories(${PLUGIN_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 

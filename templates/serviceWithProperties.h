@@ -21,10 +21,7 @@ public:
 
     {{class}}PropertyAdapter(QObject* parent = nullptr) : {{class}}(parent) {
         {% for property in interface.properties %}
-        {%if property.type.is_model -%}
-        {% else %}
           m_{{property.name}}.init("{{property.name}}", this, &{{class}}::{{property.name}}Changed);
-        {% endif %}
         {% endfor %}
     }
 
@@ -32,11 +29,15 @@ public:
 
     {% if property.type.is_model %}
 
-    virtual ::ModelListModel& {{property.name}}() override {
-        return m_{{property.name}}.getModel();
+    {{property|nestedType|fullyQualifiedCppName}} {{property.name}}ElementAt(size_t index) override {
+        return m_{{property.name}}.elementAt(index);
     }
 
-    {{property|nestedType|fullyQualifiedCppName}}ListProperty m_{{property.name}};
+    size_t {{property.name}}Size() override {
+    	return m_{{property.name}}.size();
+    }
+
+    ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
 
     {%elif property.type.is_list %}
 

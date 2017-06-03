@@ -1,0 +1,18 @@
+module mediaplayer 1.0
+
+enum MediaType {
+    Audio,
+    Video
+}
+
+struct MediaFile {
+	string title
+	string artist
+	string album
+	string url
+	MediaType type
+}
+
+interface MediaIndexerModel {
+	readonly model<MediaFile> files;
+}

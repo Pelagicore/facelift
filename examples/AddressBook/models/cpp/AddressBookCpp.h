@@ -21,38 +21,6 @@ class AddressBookCpp :
 
     Q_OBJECT
 
-    //    class ContactsModelListModel : public ModelListModel {
-    //    public:
-    //
-    //        QHash<int,QByteArray> roleNames() const override {
-    //            return Contact::roleNames();
-    //        }
-    //
-    //        QVariant data(const QModelIndex &index, int role) const override {
-    //            return m_list[index.row()].getFieldAsVariant(role);
-    //        }
-    //
-    //        int rowCount(const QModelIndex &index) const override {
-    //            Q_UNUSED(index);
-    //            return m_list.size();
-    //        }
-    //
-    //        void addContact(const Contact& contact) {
-    //            beginResetModel();
-    //            m_list.append(contact);
-    //            endResetModel();
-    //        }
-    //
-    //        int elementID(int elementIndex) const override {
-    //            Q_ASSERT(elementIndex>=0);
-    //            Q_ASSERT(elementIndex<m_list.size());
-    //            return m_list[elementIndex].id();
-    //        }
-    //
-    //        QList<Contact> m_list;
-    //    };
-
-
 public:
     AddressBookCpp(QObject *parent = nullptr) :
         AddressBook(parent)

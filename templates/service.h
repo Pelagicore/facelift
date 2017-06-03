@@ -63,7 +63,9 @@ public:
 
     {% if property.type.is_model -%}
 
-    virtual ModelListModel& {{property}}() = 0;
+    virtual {{property|nestedType|fullyQualifiedCppName}} {{property.name}}ElementAt(size_t index) = 0;
+
+    virtual size_t {{property.name}}Size() = 0;
 
     {% elif property.type.is_list -%}
 

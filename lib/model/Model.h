@@ -79,13 +79,13 @@ inline QVariant toVariant(const QList<Type> &v)
 
 
 template<typename Type>
-inline QJSValue toJSValue(const Type &v, QQmlEngine* engine)
+inline QJSValue toJSValue(const Type &v, QQmlEngine *engine)
 {
-	return engine->toScriptValue(v);
+    return engine->toScriptValue(v);
 }
 
 template<typename Type>
-inline QJSValue toJSValue(const QList<Type> &v, QQmlEngine* engine)
+inline QJSValue toJSValue(const QList<Type> &v, QQmlEngine *engine)
 {
     Q_ASSERT(false);
     // TODO
@@ -348,12 +348,6 @@ public:
 
     static void registerTypes(const char *theURI)
     {
-
-        //        modelImplementationFilePath() = modelFilePath;
-
-        // register the component to be used in the UI code
-        //        qmlRegisterType<InterfaceType>(theURI, 1, 0, InterfaceType::INTERFACE_NAME);
-
         typedef typename InterfaceType::QMLImplementationModelType QMLImplementationModelType;
 
         // Register the component used to actually implement the model in QML
@@ -427,25 +421,6 @@ void qmlRegisterType(const char *uri)
 }
 
 
-class ModelListModel :
-    public QAbstractListModel
-{
-
-    Q_OBJECT
-
-public:
-    ModelListModel()
-    {
-    }
-
-    Q_INVOKABLE virtual int elementID(int elementIndex) const = 0;
-
-    bool m_changeOnGoing = false;
-
-};
-
-
-
 template<typename ElementType>
 inline QList<QVariant> toQListQVariant(const QList<ElementType> &list)
 {
@@ -477,16 +452,16 @@ inline QList<QVariant> toQMLCompatibleType(const QList<ElementType> &list)
 }
 
 template<typename EnumType>
-inline QJSValue enumToJSValue(const EnumType e, QQmlEngine* engine)
+inline QJSValue enumToJSValue(const EnumType e, QQmlEngine *engine)
 {
-	Q_UNUSED(engine);
+    Q_UNUSED(engine);
     return static_cast<int>(e);
 }
 
 template<typename StructType>
-inline QJSValue structToJSValue(const StructType& s, QQmlEngine* engine)
+inline QJSValue structToJSValue(const StructType &s, QQmlEngine *engine)
 {
-	return engine->toScriptValue(s);
+    return engine->toScriptValue(s);
 }
 
 template<typename Class, typename PropertyType>
@@ -513,6 +488,5 @@ public:
     Class *object;
     ChangeSignal signal;
     GetterMethod getter;
-
 
 };

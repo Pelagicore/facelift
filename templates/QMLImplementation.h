@@ -103,7 +103,7 @@ public:
 
     {% for property in interface.properties %}
 
-    {%if property.type.is_list or property.type.is_model -%}
+    {% if property.type.is_list -%}
     Q_PROPERTY(QObject* {{property.name}} READ {{property.name}})
 
     {{property|nestedType|fullyQualifiedCppName}}QMLImplListProperty m_{{property.name}}QMLProperty;
@@ -114,6 +114,8 @@ public:
         return &m_{{property.name}}QMLProperty;
     }
 
+    {% elif property.type.is_model %}
+    // TODO
     {% else %}
       Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}})
       {{property|returnType}} {{property.name}}() const {
@@ -137,6 +139,7 @@ public:
       }
 
       QJSValue m_set{{property.name}};
+
 
       void requestSet{{property.name}}(const {{property|returnType}}& value) {
           checkInterface();
