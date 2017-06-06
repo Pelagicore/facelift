@@ -7,10 +7,8 @@
 
 #include <QtCore>
 
-#include "common/JSON.h"
 #include "model/Model.h"
 #include "property/Property.h"
-#include "dummy/DummyModelCommon.h"
 
 {{module|namespaceOpen}}
 
@@ -31,7 +29,7 @@ public:
         {%- for member in enum.members -%}
         {{ comma() }}
         {{member.name}} = {{member.value}}
-        {%- endfor %}        
+        {%- endfor %}
     };
     Q_ENUM(TheEnum)
 
@@ -49,17 +47,6 @@ public:
 Q_DECLARE_METATYPE({{enum|fullyQualifiedCppName}})
 
 
-template<> inline void readJSON(const QJsonValue& json, {{enum|fullyQualifiedCppName}}& value) {
-    int i = -1;
-    readJSON(json, i);
-    value = static_cast<{{enum|fullyQualifiedCppName}}>(i);
-}
-
-template<> inline void writeJSON(QJsonValue& json, const {{enum|fullyQualifiedCppName}}& value) {
-    int i = static_cast<int>(value);
-    writeJSON(json, i);
-}
-
 template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {
     return static_cast<int>(v);
 }
@@ -71,10 +58,6 @@ template<> inline QList<{{enum|fullyQualifiedCppName}}> validValues<{{enum|fully
     {% endfor %}
     return values;
 }
-
-template <> struct DummyUIDesc<{{enum|fullyQualifiedCppName}}> {
-    typedef EnumerationPropertyWidget<{{enum|fullyQualifiedCppName}}> PanelType;
-};
 
 template <> inline QString toString(const {{enum|fullyQualifiedCppName}}& v) {
     const char* s = "Invalid";
@@ -98,8 +81,3 @@ inline QTextStream &operator <<(QTextStream &outStream, const {{enum|fullyQualif
 inline QJSValue toJSValue(const {{enum|fullyQualifiedCppName}}& f, QQmlEngine* engine) {
     return enumToJSValue(f, engine);
 }
-
-//inline QList<QVariant> toQMLCompatibleType(const QList<{{enum|fullyQualifiedCppName}}>& list) {
-//    return toQListQVariantEnum(list);
-//}
-

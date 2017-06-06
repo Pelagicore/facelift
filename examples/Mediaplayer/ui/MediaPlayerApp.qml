@@ -13,7 +13,7 @@ Item {
     height: mainPanel.height
     width: mainPanel.width
 
-    TunerAppMainPanel {
+    MediaPlayerAppMainPanel {
         id: mainPanel
     	anchors.fill: parent
         mediaIndexerModel: viewModel

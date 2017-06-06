@@ -25,14 +25,143 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-#include "common/JSON.h"
 #include "model/Model.h"
 #include "property/Property.h"
 
-#include "DummyModelCommon.h"
-
 #include "ui_dummymodelsmainwindow.h"
 #include "ui_dummymodelpanel.h"
+
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+
+
+template<typename Type>
+inline void readJSONSimple(const QJsonValue &json, Type &value)
+{
+    Q_UNUSED(value);
+    Q_UNUSED(json);
+    Q_ASSERT(false);
+}
+
+template<>
+inline void readJSONSimple<int>(const QJsonValue &json, int &value)
+{
+    if (json.isDouble()) {
+        value = json.toInt();
+    }
+}
+
+template<>
+inline void readJSONSimple<bool>(const QJsonValue &json, bool &value)
+{
+    if (json.isBool()) {
+        value = json.toBool();
+    } else {
+        qFatal("Invalid data type");
+    }
+}
+
+template<>
+inline void readJSONSimple<QString>(const QJsonValue &json, QString &value)
+{
+    if (json.isString()) {
+        value = json.toString();
+    } else {
+        qFatal("Invalid data type");
+    }
+}
+
+
+
+class PropertyWidget :
+    public QWidget
+{
+public:
+    typedef std::function<void ()> ChangeListener;
+
+    PropertyWidget(const QString &propertyName, QWidget *parent = nullptr) :
+        QWidget(parent)
+    {
+        m_propertyName = propertyName;
+
+        m_layout = new QHBoxLayout();
+        setLayout(m_layout);
+
+        m_propertyNameLabel = new QLabel();
+        m_layout->addWidget(m_propertyNameLabel);
+        setPropertyName(propertyName);
+        setAutoFillBackground(true);
+    }
+
+    void setWidget(QWidget *widget)
+    {
+        m_layout->addWidget(widget);
+    }
+
+    void setPropertyName(const QString &propertyName)
+    {
+        m_propertyNameLabel->setText(propertyName);
+    }
+
+    const QString &propertyName() const
+    {
+        return m_propertyName;
+    }
+
+    void setListener(ChangeListener listener)
+    {
+        m_listener = listener;
+    }
+
+    QHBoxLayout *m_layout;
+    QLabel *m_propertyNameLabel;
+    ChangeListener m_listener;
+    QString m_propertyName;
+};
+
+
+template<typename EnumType>
+class EnumerationPropertyWidget :
+    public PropertyWidget
+{
+
+public:
+    EnumerationPropertyWidget(const QString &propertyName, QWidget *parent = nullptr) :
+        PropertyWidget(propertyName, parent)
+    {
+        widget = new QComboBox();
+        setWidget(widget);
+        auto values = validValues<EnumType>();
+        for (auto &v : values) {
+            widget->addItem(toString(v), static_cast<int>(v));
+        }
+    }
+
+    EnumType value() const
+    {
+        int index = widget->currentIndex();
+        return validValues<EnumType>()[index];
+    }
+
+    void init(EnumType initialValue)
+    {
+
+        auto values = validValues<EnumType>();
+        for (int i = 0; i < values.size(); i++) {
+            if (initialValue == values[i]) {
+                widget->setCurrentIndex(i);
+            }
+        }
+
+        QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
+                    m_listener();
+                });
+
+    }
+
+    QComboBox *widget = nullptr;
+};
 
 
 class BooleanPropertyWidget :
@@ -170,6 +299,13 @@ public:
 
 };
 
+template<typename Type, typename Sfinae = void>
+struct DummyUIDesc
+{
+    typedef PropertyWidget PanelType;
+};
+
+
 template<typename ListElementType>
 struct DummyUIDesc<QList<ListElementType> >
 {
@@ -199,6 +335,13 @@ struct DummyUIDesc<QString>
 {
     typedef StringPropertyWidget PanelType;
 };
+
+template<typename EnumType>
+struct DummyUIDesc<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
+{
+    typedef EnumerationPropertyWidget<EnumType> PanelType;
+};
+
 
 template<typename StructType>
 class StructurePropertyWidget :
@@ -355,6 +498,98 @@ struct ToStringDesc
     }
 
 };
+
+
+
+template<typename Type, typename Enable = void>
+struct DummyModelTypeHandler
+{
+	static void writeJSON(QJsonValue &json, const Type &value)
+	{
+	    json = value;
+	}
+
+	static void readJSON(const QJsonValue& json, Type& value) {
+		readJSONSimple(json, value);
+	}
+};
+
+template<typename Type>
+struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
+{
+
+	static void writeJSON(QJsonValue& json, const Type& value) {
+	    QJsonObject subObject;
+        writeFieldsToJson(value.asTuple(), subObject);
+	    json = subObject;
+	}
+
+    template<std::size_t I = 0, typename ... Tp>
+    static typename std::enable_if<I == sizeof ... (Tp), void>::type
+	writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    {
+    	Q_UNUSED(value);
+        Q_UNUSED(jsonObject);
+    }
+
+    template<std::size_t I = 0, typename ... Tp>
+    static typename std::enable_if < I<sizeof ... (Tp), void>::type
+	writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    {
+        QJsonValue v;
+        typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
+        DummyModelTypeHandler<FieldType>::writeJSON(v, std::get<I>(value));
+        jsonObject[Type::FIELD_NAMES[I]] = v;
+    	writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
+    }
+
+	static void readJSON(const QJsonValue& json, Type& value) {
+	    QJsonObject subObject = json.toObject();
+	    readFieldsFromJson(value.asTuple(), subObject);
+	    // TODO
+/*
+	    readJSON(subObject["s"], value.m_s);
+	    readJSON(subObject["i"], value.m_i);
+*/
+	}
+
+    template<std::size_t I = 0, typename ... Tp>
+    static typename std::enable_if<I == sizeof ... (Tp), void>::type
+	readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    {
+    	Q_UNUSED(value);
+        Q_UNUSED(jsonObject);
+    }
+
+    template<std::size_t I = 0, typename ... Tp>
+    static typename std::enable_if < I<sizeof ... (Tp), void>::type
+	readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    {
+        typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
+        DummyModelTypeHandler<FieldType>::readJSON(jsonObject[Type::FIELD_NAMES[I]], std::get<I>(value));
+    	writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
+    }
+
+
+};
+
+template<typename Type>
+struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+{
+	static void readJSON(const QJsonValue& json, Type& value) {
+	    int i = -1;
+	    readJSONSimple(json, i);
+	    value = static_cast<Type>(i);
+	}
+
+	static void writeJSON(QJsonValue& json, const Type& value) {
+	    int i = static_cast<int>(value);
+	    json = i;
+	    // TODO : write string representation
+	}
+
+};
+
 
 
 class DummyModelBase :
@@ -560,7 +795,7 @@ public:
     void writeJSONProperty(QJsonObject &json, const Property<ElementType> &property, const char *propertyName) const
     {
         QJsonValue jsonValue;
-        writeJSON(jsonValue, property.value());
+        DummyModelTypeHandler<ElementType>::writeJSON(jsonValue, property.value());
         json[propertyName] = jsonValue;
     }
 
@@ -572,7 +807,7 @@ public:
 
         for (auto &propertyElement : property.value()) {
             QJsonValue jsonValue;
-            writeJSON(jsonValue, propertyElement);
+            DummyModelTypeHandler<ListElementType>::writeJSON(jsonValue, propertyElement);
             array.append(jsonValue);
         }
 
@@ -600,7 +835,7 @@ public:
 
         for (auto &propertyElement : property.value()) {
             QJsonValue jsonValue;
-            writeJSON(jsonValue, propertyElement);
+            DummyModelTypeHandler<ListElementType>::writeJSON(jsonValue, propertyElement);
             array.append(jsonValue);
         }
 
@@ -611,7 +846,7 @@ public:
     void readJSONProperty(const QJsonObject &json, Property<ElementType> &property, const char *propertyName) const
     {
         ElementType v = {};
-        readJSON(json[propertyName], v);
+        DummyModelTypeHandler<ElementType>::readJSON(json[propertyName], v);
         property = v;
     }
 
@@ -625,7 +860,7 @@ public:
 
             for (int i = 0; i < size; i++) {
                 ListElementType e;
-                readJSON(jsonArray[i], e);
+                DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
                 elements.append(e);
             }
 
@@ -653,7 +888,7 @@ public:
 
             for (int i = 0; i < size; i++) {
                 ListElementType e = {};
-                readJSON(jsonArray[i], e);
+                DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
                 elements.append(e);
             }
 

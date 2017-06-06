@@ -12,7 +12,6 @@
 
 #include "model/Model.h"
 #include "model/QMLModel.h"
-#include "common/JSON.h"
 
 #include "property/Property.h"
 
@@ -137,29 +136,6 @@ public:
 
 
 {{module|namespaceClose}}
-
-
-template<> inline void writeJSON(QJsonValue& json, const {{struct|fullyQualifiedCppName}}& value) {
-    QJsonObject subObject;
-    Q_UNUSED(value);
-    {% for field in struct.fields %}
-    {
-        QJsonValue v;
-        writeJSON(v, value.m_{{field}});
-        subObject["{{field}}"] = v;
-    }
-    {% endfor %}
-    json = subObject;
-}
-
-template<> inline void readJSON(const QJsonValue& json, {{struct|fullyQualifiedCppName}}& value) {
-    QJsonObject subObject = json.toObject();
-    Q_UNUSED(value);
-    {% for field in struct.fields %}
-    readJSON(subObject["{{field}}"], value.m_{{field}});
-    {% endfor %}
-}
-
 
 inline QTextStream &operator <<(QTextStream &outStream, const {{struct|fullyQualifiedCppName}}& f) {
     outStream << f.toString();

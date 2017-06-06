@@ -1,1 +1,0 @@
-add_library_simple(CommonLib)
