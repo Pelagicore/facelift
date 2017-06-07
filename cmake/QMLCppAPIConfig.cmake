@@ -133,7 +133,7 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
     file(GLOB_RECURSE GENERATED_FILES_HEADERS ${API_OUTPUT_PATH}/*.h)
     qt5_wrap_cpp(API_GENERATED_FILES_HEADERS_MOCS ${GENERATED_FILES_HEADERS})
     qface_add_aggregator_library(${LIBRARY_NAME}_api "${GENERATED_FILES};${GENERATED_FILES_HEADERS};${API_GENERATED_FILES_HEADERS_MOCS}")
-    target_link_libraries(${LIBRARY_NAME}_api ModelLib PropertyLib)
+    target_link_libraries(${LIBRARY_NAME}_api ModelLib QMLModelLib PropertyLib)
     target_include_directories(${LIBRARY_NAME}_api PUBLIC ${API_OUTPUT_PATH})
 
     file(GLOB_RECURSE DUMMY_GENERATED_FILES ${DUMMY_OUTPUT_PATH}/*.*)

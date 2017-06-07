@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "model/QMLModel.h"
+#include "qmlmodel/QMLModel.h"
 
 #include "{{interface}}PropertyAdapter.h"
 

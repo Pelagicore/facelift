@@ -10,5 +10,6 @@ endfunction()
 
 add_subdirectory(model)
 add_subdirectory(property)
+add_subdirectory(qmlmodel)
 add_subdirectory(ipc)
 add_subdirectory(dummy)

@@ -17,7 +17,6 @@
 #include <QJSValue>
 
 #include <array>
-//#include "qmlruntime.h"
 
 #define STRINGIFY_(x) # x
 #define STRINGIFY(x) STRINGIFY_(x)

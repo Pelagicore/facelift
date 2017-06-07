@@ -11,7 +11,7 @@
 #include <QTextStream>
 
 #include "model/Model.h"
-#include "model/QMLModel.h"
+#include "qmlmodel/QMLModel.h"
 
 // Dependencies
 {% for field in struct.fields %}
