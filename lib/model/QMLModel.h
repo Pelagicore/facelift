@@ -3,6 +3,62 @@
 #include "Model.h"
 #include "property/Property.h"
 
+
+template<typename EnumType>
+inline QJSValue enumToJSValue(const EnumType e, QQmlEngine *engine)
+{
+    Q_UNUSED(engine);
+    return static_cast<int>(e);
+}
+
+template<typename StructType>
+inline QJSValue structToJSValue(const StructType &s, QQmlEngine *engine)
+{
+    return engine->toScriptValue(s);
+}
+
+
+template<typename Type, typename Sfinae = void>
+struct QMLModelTypeHandler
+{
+    static QJSValue toJSValue(const Type& v, QQmlEngine* engine) {
+        return engine->toScriptValue(v);
+    }
+};
+
+template<typename StructType>
+struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
+{
+    static QJSValue toJSValue(const StructType& f, QQmlEngine* engine) {
+	    return structToJSValue(f, engine);
+	}
+};
+
+
+template<typename EnumType>
+struct QMLModelTypeHandler<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
+{
+    static QJSValue toJSValue(const EnumType& v, QQmlEngine* engine) {
+        return enumToJSValue(v, engine);
+    }
+};
+
+
+template<typename ListElementType>
+struct QMLModelTypeHandler<QList<ListElementType> >
+{
+    static QJSValue toJSValue(const QList<ListElementType> &v, QQmlEngine* engine) {
+        Q_ASSERT(false);
+    	return enumToJSValue(v, engine);
+    }
+};
+
+template <typename Type>
+QJSValue toJSValue(const Type &v, QQmlEngine* engine) {
+	return QMLModelTypeHandler<Type>::toJSValue(v, engine);
+}
+
+
 class QMLModelImplementationFrontendBase
 {
 protected:
@@ -49,10 +105,11 @@ public:
 };
 
 template<typename ElementType>
-class QMLImplListProperty :
+class TQMLImplListProperty :
     public QMLImplListPropertyBase
 {
 public:
+
     Property<QList<ElementType> > &property() const
     {
         Q_ASSERT(m_property != nullptr);
@@ -60,7 +117,7 @@ public:
     }
 
     // TODO : check why the QML engine does not seem to be able to handle the return type of this method
-    QList<QVariant> elementsAsVariant() const
+    QList<QVariant> elementsAsVariant() const override
     {
         return toQMLCompatibleType(elements());
     }
@@ -130,7 +187,7 @@ private:
 
 };
 
+template<typename ElementType>
+class QMLImplListProperty : public TQMLImplListProperty<ElementType> {
 
-typedef QMLImplListProperty<bool> boolQMLImplListProperty;
-typedef QMLImplListProperty<int> intQMLImplListProperty;
-typedef QMLImplListProperty<QString> stringQMLImplListProperty;
+};

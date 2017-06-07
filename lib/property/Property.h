@@ -268,8 +268,10 @@ private:
 };
 
 
+
+
 template<typename ElementType>
-class StructListProperty :
+class ListProperty :
     public Property<QList<ElementType> >
 {
 
@@ -318,24 +320,6 @@ public:
 
 
 template<typename ElementType>
-class SimpleTypeListProperty :
-    public StructListProperty<ElementType>
-{
-
-};
-
-template<typename EnumType>
-class EnumListProperty :
-    public SimpleTypeListProperty<EnumType>
-{
-};
-
-
-typedef SimpleTypeListProperty<int> intListProperty;
-typedef SimpleTypeListProperty<QString> stringListProperty;
-typedef SimpleTypeListProperty<bool> boolListProperty;
-
-template<typename ElementType>
 class ModelProperty :
     public PropertyBase
 {
@@ -378,12 +362,12 @@ public:
         return m_size;
     }
 
-    virtual bool isValueChanged() const override
+    bool isValueChanged() const override
     {
         return m_modified;
     }
 
-    virtual void clean()
+    void clean() override
     {
         m_modified = false;
     }

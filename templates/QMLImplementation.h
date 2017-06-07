@@ -73,6 +73,8 @@ public:
 
         QQmlEngine* engine = qmlEngine(this);
 
+        Q_UNUSED(engine);
+
         {% for parameter in operation.parameters %}
         args.append(toJSValue({{parameter.name}}, engine));
         {% endfor %}
@@ -106,7 +108,7 @@ public:
     {% if property.type.is_list -%}
     Q_PROPERTY(QObject* {{property.name}} READ {{property.name}})
 
-    {{property|nestedType|fullyQualifiedCppName}}QMLImplListProperty m_{{property.name}}QMLProperty;
+    QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
 
 
     QObject* {{property.name}}() {

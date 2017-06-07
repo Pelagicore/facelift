@@ -77,23 +77,6 @@ inline QVariant toVariant(const QList<Type> &v)
     return "";
 }
 
-
-template<typename Type>
-inline QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-{
-    return engine->toScriptValue(v);
-}
-
-template<typename Type>
-inline QJSValue toJSValue(const QList<Type> &v, QQmlEngine *engine)
-{
-    Q_ASSERT(false);
-    // TODO
-    Q_UNUSED(v);
-    return QJSValue();
-}
-
-
 template<typename Type>
 inline QString toString(const Type &v)
 {
@@ -101,7 +84,6 @@ inline QString toString(const Type &v)
     Q_ASSERT(false);
     return "Unknown";
 }
-
 
 template<>
 inline QString toString(const int &v)
@@ -466,18 +448,6 @@ inline QList<QVariant> toQMLCompatibleType(const QList<ElementType> &list)
     return variantList;
 }
 
-template<typename EnumType>
-inline QJSValue enumToJSValue(const EnumType e, QQmlEngine *engine)
-{
-    Q_UNUSED(engine);
-    return static_cast<int>(e);
-}
-
-template<typename StructType>
-inline QJSValue structToJSValue(const StructType &s, QQmlEngine *engine)
-{
-    return engine->toScriptValue(s);
-}
 
 template<typename Class, typename PropertyType>
 class PropertyInterface

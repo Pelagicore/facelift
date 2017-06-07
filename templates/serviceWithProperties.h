@@ -42,10 +42,10 @@ public:
     {%elif property.type.is_list %}
 
     {{property|returnType}} {{property}}() const override {
-        return m_{{property.name}};
+        return m_{{property.name}}.value();
     }
 
-    {{property|nestedType|fullyQualifiedCppName}}ListProperty m_{{property.name}};
+    ListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
 
     {% else %}
 

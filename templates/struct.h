@@ -13,8 +13,6 @@
 #include "model/Model.h"
 #include "model/QMLModel.h"
 
-#include "property/Property.h"
-
 // Dependencies
 {% for field in struct.fields %}
 {{field|requiredInclude}}
@@ -95,11 +93,7 @@ public:
 };
 
 
-typedef StructListProperty<{{struct.name}}> {{struct.name}}ListProperty;
-typedef ModelProperty<{{struct.name}}> {{struct.name}}ModelProperty;
-
-
-class {{struct.name}}QMLImplListProperty : public QMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
+class QMLImplListProperty{{struct}} : public TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
 
     Q_OBJECT
 
@@ -115,27 +109,34 @@ public:
     }
 
     Q_INVOKABLE void addElement({{struct | fullyQualifiedCppName}} element) {
-    	QMLImplListProperty<{{struct.name}}>::addElement(element);
+    	TQMLImplListProperty::addElement(element);
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementById(int elementId) const {
-        auto element = QMLImplListProperty<{{struct.name}}>::elementById(elementId);
+        auto element = TQMLImplListProperty::elementById(elementId);
         Q_ASSERT(element != nullptr);
         return *element;
     }
 
     Q_INVOKABLE int elementIndexById(int elementId) const {
-        return QMLImplListProperty<{{struct.name}}>::elementIndexById(elementId);
+        return TQMLImplListProperty::elementIndexById(elementId);
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementAt(int index) const {
-        return QMLImplListProperty<{{struct.name}}>::elementAt(index);
+        return TQMLImplListProperty::elementAt(index);
     }
 
 };
 
-
 {{module|namespaceClose}}
+
+
+
+template<>
+class QMLImplListProperty<{{struct | fullyQualifiedCppName}}> : public {{module|fullyQualifiedCppName}}::QMLImplListProperty{{struct}} {
+
+};
+
 
 inline QTextStream &operator <<(QTextStream &outStream, const {{struct|fullyQualifiedCppName}}& f) {
     outStream << f.toString();
@@ -152,9 +153,4 @@ inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f) {
 
 Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list properties
 Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
-
-
-inline QJSValue toJSValue(const {{struct|fullyQualifiedCppName}}& f, QQmlEngine* engine) {
-    return structToJSValue(f, engine);
-}
 

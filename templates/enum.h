@@ -8,7 +8,6 @@
 #include <QtCore>
 
 #include "model/Model.h"
-#include "property/Property.h"
 
 {{module|namespaceOpen}}
 
@@ -32,13 +31,6 @@ public:
         {%- endfor %}
     };
     Q_ENUM(TheEnum)
-
-};
-
-
-class {{enum.name}}ListProperty : public EnumListProperty<{{enum.name}}> {
-
-public:
 
 };
 
@@ -76,8 +68,4 @@ template <> inline QString toString(const {{enum|fullyQualifiedCppName}}& v) {
 inline QTextStream &operator <<(QTextStream &outStream, const {{enum|fullyQualifiedCppName}}& f) {
     outStream << toString(f);
     return outStream;
-}
-
-inline QJSValue toJSValue(const {{enum|fullyQualifiedCppName}}& f, QQmlEngine* engine) {
-    return enumToJSValue(f, engine);
 }

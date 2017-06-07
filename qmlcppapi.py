@@ -30,11 +30,17 @@ def fullyQualifiedPath(symbol):
 def fullyQualifiedName(symbol):
     return symbol.qualified_name
 
+def getPrimitiveCppType(symbol):
+    if symbol.name == 'string':
+        return 'QString'
+    if symbol.name == 'real':
+        return 'float'
+    return symbol;
 
 def fullyQualifiedCppName(type):
     try:
         if type.is_primitive:
-            return "::" + type.name
+            return getPrimitiveCppType(type)
     except AttributeError:
         pass
     return '::{0}'.format(fullyQualifiedName(type)).replace(".", "::")
