@@ -41,15 +41,14 @@ function(qface_add_aggregator_library LIB_NAME FILE_LIST_)
 
         list(REMOVE_ITEM FILE_LIST ${FILES})
 
-        # Generate an aggregator unit
+        # Generate an aggregator unit content
         set(FILE_CONTENT "")
         set(FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}_aggregated_${FILE_INDEX}.cpp)
         foreach(SRC_FILE ${FILES})
             set(FILE_CONTENT "${FILE_CONTENT}#include \"${SRC_FILE}\"\n")
         endforeach()
 
-        # Check if the current content of the file is already the one we expect, to avoid having "make" recompile
-        # the file even if not needed
+        # To avoid unnecessary recompiles, check if it is really necessary to rewrite the aggregator file
         if(EXISTS ${FILE_NAME})
             file(READ ${FILE_NAME} OLD_FILE_CONTENT)
         endif()

@@ -21,7 +21,8 @@ inline QJSValue structToJSValue(const StructType &s, QQmlEngine *engine)
 template<typename Type, typename Sfinae = void>
 struct QMLModelTypeHandler
 {
-    static QJSValue toJSValue(const Type& v, QQmlEngine* engine) {
+    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+    {
         return engine->toScriptValue(v);
     }
 };
@@ -29,16 +30,18 @@ struct QMLModelTypeHandler
 template<typename StructType>
 struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
 {
-    static QJSValue toJSValue(const StructType& f, QQmlEngine* engine) {
-	    return structToJSValue(f, engine);
-	}
+    static QJSValue toJSValue(const StructType &f, QQmlEngine *engine)
+    {
+        return structToJSValue(f, engine);
+    }
 };
 
 
 template<typename EnumType>
 struct QMLModelTypeHandler<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
 {
-    static QJSValue toJSValue(const EnumType& v, QQmlEngine* engine) {
+    static QJSValue toJSValue(const EnumType &v, QQmlEngine *engine)
+    {
         return enumToJSValue(v, engine);
     }
 };
@@ -47,15 +50,17 @@ struct QMLModelTypeHandler<EnumType, typename std::enable_if<std::is_enum<EnumTy
 template<typename ListElementType>
 struct QMLModelTypeHandler<QList<ListElementType> >
 {
-    static QJSValue toJSValue(const QList<ListElementType> &v, QQmlEngine* engine) {
+    static QJSValue toJSValue(const QList<ListElementType> &v, QQmlEngine *engine)
+    {
         Q_ASSERT(false);
-    	return enumToJSValue(v, engine);
+        return enumToJSValue(v, engine);
     }
 };
 
-template <typename Type>
-QJSValue toJSValue(const Type &v, QQmlEngine* engine) {
-	return QMLModelTypeHandler<Type>::toJSValue(v, engine);
+template<typename Type>
+QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+{
+    return QMLModelTypeHandler<Type>::toJSValue(v, engine);
 }
 
 
@@ -109,7 +114,6 @@ class TQMLImplListProperty :
     public QMLImplListPropertyBase
 {
 public:
-
     Property<QList<ElementType> > &property() const
     {
         Q_ASSERT(m_property != nullptr);
@@ -188,6 +192,8 @@ private:
 };
 
 template<typename ElementType>
-class QMLImplListProperty : public TQMLImplListProperty<ElementType> {
+class QMLImplListProperty :
+    public TQMLImplListProperty<ElementType>
+{
 
 };

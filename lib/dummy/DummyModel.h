@@ -299,48 +299,56 @@ public:
 
 };
 
-struct DummyUIDescBase {
+struct DummyUIDescBase
+{
 
     template<typename Type>
-    static Type clone(const Type& v) {
-    	return v;
+    static Type clone(const Type &v)
+    {
+        return v;
     }
 
 };
 
 template<typename Type, typename Sfinae = void>
-struct DummyUIDesc : public DummyUIDescBase
+struct DummyUIDesc :
+    public DummyUIDescBase
 {
     typedef PropertyWidget PanelType;
 };
 
 
 template<typename ListElementType>
-struct DummyUIDesc<QList<ListElementType> > : public DummyUIDescBase
+struct DummyUIDesc<QList<ListElementType> > :
+    public DummyUIDescBase
 {
     typedef SimpleListPropertyWidget<ListElementType> PanelType;
 };
 
 template<>
-struct DummyUIDesc<bool> : public DummyUIDescBase
+struct DummyUIDesc<bool> :
+    public DummyUIDescBase
 {
     typedef BooleanPropertyWidget PanelType;
 };
 
 template<>
-struct DummyUIDesc<int> : public DummyUIDescBase
+struct DummyUIDesc<int> :
+    public DummyUIDescBase
 {
     typedef IntegerPropertyWidget PanelType;
 };
 
 template<>
-struct DummyUIDesc<float> : public DummyUIDescBase
+struct DummyUIDesc<float> :
+    public DummyUIDescBase
 {
     typedef IntegerPropertyWidget PanelType;
 };
 
 template<>
-struct DummyUIDesc<QString> : public DummyUIDescBase
+struct DummyUIDesc<QString> :
+    public DummyUIDescBase
 {
     typedef StringPropertyWidget PanelType;
 };
@@ -435,8 +443,9 @@ struct DummyUIDesc<StructType, typename std::enable_if<std::is_base_of<ModelStru
 {
     typedef StructurePropertyWidget<StructType> PanelType;
 
-    static StructType clone(const StructType& v) {
-    	return v.clone();
+    static StructType clone(const StructType &v)
+    {
+        return v.clone();
     }
 
 };
@@ -518,65 +527,68 @@ struct ToStringDesc
 template<typename Type, typename Enable = void>
 struct DummyModelTypeHandler
 {
-	static void writeJSON(QJsonValue &json, const Type &value)
-	{
-	    json = value;
-	}
+    static void writeJSON(QJsonValue &json, const Type &value)
+    {
+        json = value;
+    }
 
-	static void readJSON(const QJsonValue& json, Type& value) {
-		readJSONSimple(json, value);
-	}
+    static void readJSON(const QJsonValue &json, Type &value)
+    {
+        readJSONSimple(json, value);
+    }
 };
 
 template<typename Type>
 struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
 {
 
-	static void writeJSON(QJsonValue& json, const Type& value) {
-	    QJsonObject subObject;
+    static void writeJSON(QJsonValue &json, const Type &value)
+    {
+        QJsonObject subObject;
         writeFieldsToJson(value.asTuple(), subObject);
-	    json = subObject;
-	}
+        json = subObject;
+    }
 
     template<std::size_t I = 0, typename ... Tp>
     static typename std::enable_if<I == sizeof ... (Tp), void>::type
-	writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
-    	Q_UNUSED(value);
+        Q_UNUSED(value);
         Q_UNUSED(jsonObject);
     }
 
     template<std::size_t I = 0, typename ... Tp>
     static typename std::enable_if < I<sizeof ... (Tp), void>::type
-	writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
         QJsonValue v;
         typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
         DummyModelTypeHandler<FieldType>::writeJSON(v, std::get<I>(value));
         jsonObject[Type::FIELD_NAMES[I]] = v;
-    	writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
+        writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
     }
 
-	static void readJSON(const QJsonValue& json, Type& value) {
-	    QJsonObject subObject = json.toObject();
-	    readFieldsFromJson(value.asTuple(), subObject);
-	}
+    static void readJSON(const QJsonValue &json, Type &value)
+    {
+        QJsonObject subObject = json.toObject();
+        readFieldsFromJson(value.asTuple(), subObject);
+    }
 
     template<std::size_t I = 0, typename ... Tp>
     static typename std::enable_if<I == sizeof ... (Tp), void>::type
-	readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
-    	Q_UNUSED(value);
+        Q_UNUSED(value);
         Q_UNUSED(jsonObject);
     }
 
     template<std::size_t I = 0, typename ... Tp>
     static typename std::enable_if < I<sizeof ... (Tp), void>::type
-	readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
         typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
         DummyModelTypeHandler<FieldType>::readJSON(jsonObject[Type::FIELD_NAMES[I]], std::get<I>(value));
-    	writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
+        writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
     }
 
 };
@@ -584,17 +596,19 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<Model
 template<typename Type>
 struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
 {
-	static void readJSON(const QJsonValue& json, Type& value) {
-	    int i = -1;
-	    readJSONSimple(json, i);
-	    value = static_cast<Type>(i);
-	}
+    static void readJSON(const QJsonValue &json, Type &value)
+    {
+        int i = -1;
+        readJSONSimple(json, i);
+        value = static_cast<Type>(i);
+    }
 
-	static void writeJSON(QJsonValue& json, const Type& value) {
-	    int i = static_cast<int>(value);
-	    json = i;
-	    // TODO : write string representation
-	}
+    static void writeJSON(QJsonValue &json, const Type &value)
+    {
+        int i = static_cast<int>(value);
+        json = i;
+        // TODO : write string representation
+    }
 
 };
 

@@ -14,7 +14,8 @@
 class {{interface}}QMLImplementation;
 
 /**
- * This class is exposed to the QMLFrontend class
+ * This class implements the actual service interface and wraps the object instantiated from QML, which implements
+ * the actual logic
  */
 class {{interface}}QMLImplementationFrontend: public {{interface}}PropertyAdapter, public QMLModelImplementationFrontend<{{interface}}QMLImplementation> {
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
-#include "dummy/DummyModel.h"
+#include "DummyModel.h"
 
 {{module|namespaceOpen}}
 

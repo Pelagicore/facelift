@@ -13,7 +13,7 @@
 using namespace addressbook;
 
 /**
- * C++ Implementation of the AddressBook API, based on the Property template class
+ * C++ Implementation of the AddressBook API, using the PropertyAdapter helper class
  */
 class AddressBookCppWithProperties :
     public AddressBookPropertyAdapter
@@ -22,6 +22,12 @@ class AddressBookCppWithProperties :
     Q_OBJECT
 
 public:
+    Q_PROPERTY(QString privateProperty READ privateProperty CONSTANT)
+    QString privateProperty() const
+    {
+        return "This property is a private property of the interface implementation, accessible via the \"provider\" property";
+    }
+
     AddressBookCppWithProperties(QObject *parent = nullptr) :
         AddressBookPropertyAdapter(parent)
     {

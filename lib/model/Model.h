@@ -105,7 +105,7 @@ inline QString toString(const QString &v)
 template<typename Type, typename Sfinae = void>
 struct ModelTypeTraits
 {
-	typedef bool IsSimple;
+    typedef bool IsSimple;
 
     template<typename Type2>
     static void assignToVariant(const Type2 &value, QVariant &variant)
@@ -120,7 +120,7 @@ struct ModelTypeTraits
 template<typename StructType>
 struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
 {
-	typedef bool IsStruct;
+    typedef bool IsStruct;
 
     template<typename Type2>
     static void assignToVariant(const Type2 &value, QVariant &variant)
@@ -136,7 +136,7 @@ struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<Model
 template<typename EnumType>
 struct ModelTypeTraits<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
 {
-	typedef bool IsEnum;
+    typedef bool IsEnum;
 };
 
 
@@ -474,4 +474,3 @@ public:
     GetterMethod getter;
 
 };
-

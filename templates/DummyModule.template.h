@@ -1,3 +1,4 @@
+
 {% set class = '{0}Module'.format(module.module_name) %}
 /****************************************************************************
 ** This is an auto-generated file.
@@ -9,7 +10,7 @@
 #include <QString>
 #include <QQmlEngine>
 
-#include "qmlfrontend.h"
+#include "QMLFrontend.h"
 
 {% for interface in module.interfaces %}
 #include "{{interface}}Dummy.h"

@@ -1,3 +1,4 @@
+
 {% set class = '{0}'.format(interface) %}
 {% set comma = joiner(",") %}
 
@@ -12,7 +13,7 @@
 #include <QtCore>
 
 #include "{{module|upperfirst}}Module.h"
-#include "qmlfrontend.h"
+#include "QMLFrontend.h"
 
 // Dependencies
 {% for property in interface.properties %}
@@ -35,7 +36,7 @@
 {{module|namespaceOpen}}
 
 /**
- * Definition of the {{interface}} interface.interface
+ * This is the class registered as a QML component for the {{interface}} interface
  */
 class {{class}}QMLFrontend : public QMLFrontend {
 
@@ -100,7 +101,7 @@ public:
 
     virtual {{property|returnType}} {{property}}() const {
         const auto value = m_provider->{{property}}();
-    	qDebug() << "Read property {{property}}. Value: " << value ;
+//    	qDebug() << "Read property {{property}}. Value: " << value ;
         return value;
     }
     {% endif %}

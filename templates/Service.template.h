@@ -37,7 +37,7 @@
 class {{class}}QMLFrontend;
 
 /**
- * Definition of the {{interface}} interface.interface
+ * Definition of the {{interface}} interface
  */
 class {{class}} : public ModelInterface {
 

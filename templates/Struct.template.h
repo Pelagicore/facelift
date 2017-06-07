@@ -79,7 +79,7 @@ public:
     }
 
     void set{{field.name}}({{field|returnType}} value) {
-    	qDebug() << "Setting field {{field.name}} with value:"; // << value;
+//    	qDebug() << "Setting field {{field.name}} with value:"; // << value;
         m_{{field.name}} = value;
     }
 
