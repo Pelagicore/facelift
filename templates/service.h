@@ -12,7 +12,7 @@
 #include <QtCore>
 
 #include "{{module|upperfirst}}Module.h"
-#include "model/Model.h"
+#include "Model.h"
 
 // Dependencies
 {% for property in interface.properties %}

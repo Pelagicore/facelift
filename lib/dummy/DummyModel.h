@@ -25,8 +25,8 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-#include "model/Model.h"
-#include "property/Property.h"
+#include "Model.h"
+#include "Property.h"
 
 #include "ui_dummymodelsmainwindow.h"
 #include "ui_dummymodelpanel.h"

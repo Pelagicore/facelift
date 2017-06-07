@@ -8,12 +8,15 @@
 
 #include <QDebug>
 
+#include "Property.h"
+
 
 class QMLFrontendBase :
     public QObject
 {
     Q_OBJECT
 };
+
 
 class InterfaceImplementation :
     public QObject
@@ -81,8 +84,6 @@ public:
 
 };
 
-
-#include "property/Property.h"
 
 
 class AddressBookImplementationWithProperties :

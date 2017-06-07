@@ -12,7 +12,7 @@
 #include <QtCore>
 
 #include "{{module|upperfirst}}Module.h"
-#include "model/qmlfrontend.h"
+#include "qmlfrontend.h"
 
 // Dependencies
 {% for property in interface.properties %}

@@ -8,7 +8,7 @@
 
 #include "{{module|upperfirst}}Module.h"
 #include "{{class}}.h"
-#include "property/Property.h"
+#include "Property.h"
 
 {{module|namespaceOpen}}
 

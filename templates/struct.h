@@ -10,8 +10,8 @@
 #include <QAbstractListModel>
 #include <QTextStream>
 
-#include "model/Model.h"
-#include "qmlmodel/QMLModel.h"
+#include "Model.h"
+#include "QMLModel.h"
 
 // Dependencies
 {% for field in struct.fields %}

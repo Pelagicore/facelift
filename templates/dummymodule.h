@@ -9,7 +9,7 @@
 #include <QString>
 #include <QQmlEngine>
 
-#include "model/qmlfrontend.h"
+#include "qmlfrontend.h"
 
 {% for interface in module.interfaces %}
 #include "{{interface}}Dummy.h"

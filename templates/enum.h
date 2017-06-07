@@ -7,7 +7,7 @@
 
 #include <QtCore>
 
-#include "model/Model.h"
+#include "Model.h"
 
 {{module|namespaceOpen}}
 

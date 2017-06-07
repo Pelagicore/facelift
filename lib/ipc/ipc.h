@@ -19,7 +19,7 @@
 #include <QDBusAbstractInterface>
 #include <QDBusInterface>
 
-#include "model/Model.h"
+#include "Model.h"
 
 class IPCMessage
 {

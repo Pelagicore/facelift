@@ -1,4 +1,4 @@
-#include "ipc/ipc.h"
+#include "ipc.h"
 #include <QDebug>
 #include <QApplication>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "model/Model.h"
-#include "property/Property.h"
+#include "Model.h"
+#include "Property.h"
 
 
 template<typename EnumType>

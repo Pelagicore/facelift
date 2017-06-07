@@ -5,7 +5,7 @@ function(add_library_simple LIBRARY_NAME)
         qt5_wrap_cpp(MOCS ${HEADER_FILES})
         add_library(${LIBRARY_NAME} SHARED ${CPP_SOURCE_FILES} ${MOCS})
         target_link_libraries(${LIBRARY_NAME} Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Widgets )
-        target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+        target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endfunction()
 
 add_subdirectory(model)

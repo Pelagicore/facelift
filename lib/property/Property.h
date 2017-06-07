@@ -16,7 +16,7 @@
 #include <QTimer>
 #include <functional>
 
-#include "model/Model.h"
+#include "Model.h"
 
 
 class PropertyBase
