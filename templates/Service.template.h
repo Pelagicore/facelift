@@ -71,6 +71,11 @@ public:
 
     virtual const {{property|returnType}}& {{property}}() const = 0;
 
+    {% elif property.type.is_interface -%}
+
+    // Service property
+    virtual {{property|returnType}}* {{property}}() = 0;
+
     {% else %}
 
     virtual const {{property|returnType}}& {{property}}() const = 0;

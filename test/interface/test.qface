@@ -8,24 +8,29 @@
 
 module test 1.0;
 
+interface TestInterface2 {
+    void doSomething();
+}
+
 interface TestInterface {
+
+    readonly TestInterface2 ttt;
 
     readonly bool boolProperty;
     int intProperty;
     TestStruct structProperty;
     TestStruct2 structProperty2;
-
     readonly list<int> intListProperty;
     readonly list<bool> boolListProperty;
     readonly list<string> stringListProperty;
     readonly list<TestStruct> structListProperty;
-
     void method1();
     void method2(int intParam, bool boolParam);
 
     signal event1(TestStruct p);
     signal eventEnum(TestEnum p);
     signal eventInt(int p);
+
 
 }
 

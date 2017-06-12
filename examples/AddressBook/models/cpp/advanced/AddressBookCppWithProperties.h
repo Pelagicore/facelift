@@ -9,6 +9,8 @@
 #pragma once
 
 #include "addressbook/AddressBookPropertyAdapter.h"
+#include "addressbook/SubInterfacePropertyAdapter.h"
+
 
 using namespace addressbook;
 
@@ -28,6 +30,18 @@ public:
         return "This property is a private property of the interface implementation, accessible via the \"provider\" property";
     }
 
+    class SubInterfaceImpl :
+        public SubInterfacePropertyAdapter
+    {
+        void doSomething() override
+        {
+            qDebug() << "doSomething() called";
+        }
+    };
+
+    SubInterfaceImpl m_subInterface;
+
+
     AddressBookCppWithProperties(QObject *parent = nullptr) :
         AddressBookPropertyAdapter(parent)
     {
@@ -39,6 +53,8 @@ public:
         m_isLoaded.bind([this] () {
                     return !(m_timer.remainingTime() > 0);
                 }).connect(&m_timer, &QTimer::timeout);
+
+        m_subService = &m_subInterface;
     }
 
     void selectContact(int contactId) override

@@ -28,10 +28,32 @@ public:
     }
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
-    virtual QObject * provider() = 0;
+    virtual QObject * provider() {
+        qWarning() << "Accessing private provider implementation object";
+        return nullptr;
+    }
 
     Q_PROPERTY(QString implementationID READ implementationID CONSTANT)
-    virtual const QString &implementationID() = 0;
+    virtual const QString &implementationID() {
+        static QString id = "";
+        return id;
+    }
+
+    /**
+     *
+     */
+    template<typename FrontendType, typename InterfaceType>
+    void synchronizeInterfaceProperty(QPointer<FrontendType> &p, InterfaceType *i)
+    {
+        if (p.isNull() || (p->m_provider.data() != i)) {
+            if (i != nullptr) {
+                p = new FrontendType(i);
+                p->init(*i);
+            } else {
+                p = nullptr;
+            }
+        }
+    }
 
 };
 
@@ -41,8 +63,8 @@ class TQMLFrontend :
 {
 
 public:
-    TQMLFrontend() :
-        QMLType()
+    TQMLFrontend(QObject *parent = nullptr) :
+        QMLType(parent)
     {
         this->init(m_provider);
     }
@@ -143,7 +165,6 @@ public:
     QVariant data(const QModelIndex &index, int role) const override
     {
         Q_UNUSED(role);
-        qDebug() << "Geettt " << index.row();
         auto element = (m_provider->*m_elementGetter)(index.row());
         return QVariant::fromValue(element);
     }

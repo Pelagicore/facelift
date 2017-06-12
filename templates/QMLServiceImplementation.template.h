@@ -119,6 +119,10 @@ public:
 
     {% elif property.type.is_model %}
     // TODO
+
+    {% elif property.type.is_interface -%}
+
+    // TODO
     {% else %}
       Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}})
       const {{property|returnType}}& {{property.name}}() const {

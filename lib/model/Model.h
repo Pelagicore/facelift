@@ -454,7 +454,7 @@ class PropertyInterface
 
 public:
     typedef void (Class::*ChangeSignal)();
-    typedef const PropertyType& (Class::*GetterMethod)() const;
+    typedef const PropertyType & (Class::*GetterMethod)() const;
 
     PropertyInterface(Class *o, GetterMethod g, ChangeSignal s)
     {
@@ -463,7 +463,7 @@ public:
         getter = g;
     }
 
-    const PropertyType& value() const
+    const PropertyType &value() const
     {
         auto v = (object->*getter)();
         return v;

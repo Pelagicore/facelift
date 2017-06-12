@@ -39,13 +39,24 @@ public:
 
     ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
 
-    {%elif property.type.is_list %}
+    {% elif property.type.is_list %}
 
     const {{property|returnType}}& {{property}}() const override {
         return m_{{property.name}}.value();
     }
 
     ListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
+
+    {% elif property.type.is_interface -%}
+
+    // Service property
+    {{property|returnType}}* {{property}}() override {
+    	return m_{{property.name}}.value();
+    }
+
+    ::ServiceProperty<{{property|returnType}}> m_{{property.name}};
+
+ // TODO
 
     {% else %}
 

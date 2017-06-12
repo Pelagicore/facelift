@@ -83,14 +83,14 @@ def nestedType(symbol):
     return symbol.type.nested
 
 
-def requiredIncludeFromType(symbol):
+def requiredIncludeFromType(symbol, suffix):
     typeName = ''
     if not symbol.is_primitive:
         symbol = symbol.nested if symbol.nested else symbol
         typeName = fullyQualifiedCppName(symbol)
         if typeName.startswith("::"):
             typeName = typeName[2:]
-        return '#include "' + typeName.replace('::', '/') + '.h"'
+        return '#include "' + typeName.replace('::', '/') + suffix + '"'
     else:
         return ""
 
@@ -98,8 +98,16 @@ def requiredIncludeFromType(symbol):
 def requiredInclude(symbol):
     if not symbol.type.is_primitive:
         type = symbol.type.nested if symbol.type.nested else symbol.type
-        return requiredIncludeFromType(type)
+        return requiredIncludeFromType(type, ".h")
     return ""
+
+
+def requiredQMLInclude(symbol):
+    if symbol.type.is_interface:
+        type = symbol.type.nested if symbol.type.nested else symbol.type
+        return requiredIncludeFromType(type, "QMLFrontend.h")
+    else:
+        return ""
 
 
 def run_generation(input, output):
@@ -110,6 +118,7 @@ def run_generation(input, output):
     generator.register_filter('parameterType', parameterType)
     generator.register_filter('nestedType', nestedType)
     generator.register_filter('requiredInclude', requiredInclude)
+    generator.register_filter('requiredQMLInclude', requiredQMLInclude)
     generator.register_filter('namespaceOpen', namespaceOpen)
     generator.register_filter('namespaceClose', namespaceClose)
     generator.register_filter('fullyQualifiedName', fullyQualifiedName)

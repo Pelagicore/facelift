@@ -98,6 +98,7 @@ private:
 
 };
 
+
 /**
  * This template helper class wraps a value and a "value changed" signal which should be triggered whenever the value is changed.
  * When changing the value of the property, the user of this class does not need to explicitly trigger the signal since this is
@@ -120,20 +121,21 @@ public:
     {
     }
 
-/*
-    template<typename Class, typename PropertyType>
-    Property &bind(const PropertyInterface<Class, PropertyType> &property)
-    {
-        breakBinding();
-        m_getterFunction = [property] () {
-            return property.value();
-        };
-        addDependency(property);
-        reevaluate();
+    /*
+        template<typename Class, typename PropertyType>
+        Property &bind(const PropertyInterface<Class, PropertyType> &property)
+        {
+            breakBinding();
+            m_getterFunction = [property] () {
+                return property.value();
+            };
+            addDependency(property);
+            reevaluate();
 
-        return *this;
-    }
-*/
+            return *this;
+        }
+    */
+
     /**
      * Add the given property to the properties which "this" property is bound to, which means that the value of "this" property will
      * be reevaluated whenever the signal is triggered
@@ -163,7 +165,7 @@ public:
         return m_value;
     }
 
-    operator const Type&() const {
+    operator const Type &() const {
         return value();
     }
 
@@ -210,28 +212,27 @@ public:
         //        qDebug() << "Cleaning " << name() << " value: " << m_previousValue;
     }
 
-    Type& operator-=(const Type &right)
+    Type &operator-=(const Type &right)
     {
         return operator=(value() - right);
     }
 
-    Type& operator+=(const Type &right)
+    Type &operator+=(const Type &right)
     {
         return operator=(value() + right);
     }
 
-    Type& operator*=(const Type &right)
+    Type &operator*=(const Type &right)
     {
         return operator=(value() * right);
     }
 
-    Type& operator/=(const Type &right)
+    Type &operator/=(const Type &right)
     {
         return operator=(value() / right);
     }
 
 protected:
-
     Type &modifiableValue()
     {
         if (m_getterFunction) {
@@ -245,7 +246,6 @@ protected:
     }
 
 private:
-
     void reevaluate()
     {
         Q_ASSERT(m_getterFunction);
@@ -272,7 +272,15 @@ private:
 };
 
 
+template<typename Type>
+class ServiceProperty :
+    public Property<Type *>
+{
 
+public:
+    using Property<Type *>::operator=;
+
+};
 
 template<typename ElementType>
 class ListProperty :

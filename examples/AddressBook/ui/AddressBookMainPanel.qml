@@ -112,7 +112,6 @@ Item {
 
             }
 
-
         }
 
         Row {
@@ -152,6 +151,13 @@ Item {
                 onClicked: {
                     nameField.reset();
                     numberField.reset();
+                }
+            }
+
+            Button {
+                text: "Test"
+                onClicked: {
+                    viewModel.subService.doSomething();
                 }
             }
 

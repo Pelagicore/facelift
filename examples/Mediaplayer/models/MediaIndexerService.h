@@ -40,7 +40,6 @@ public:
     Q_SIGNAL void filesChanged();
 
 private:
-
     void addFile(const char *title, const char *artist, const char *url, MediaType type)
     {
         static int i = 0;

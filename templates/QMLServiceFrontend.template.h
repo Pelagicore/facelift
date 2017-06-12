@@ -18,6 +18,7 @@
 // Dependencies
 {% for property in interface.properties %}
 {{property|requiredInclude}}
+{{property|requiredQMLInclude}}
 {% endfor %}
 
 {% for operation in interface.operations %}
@@ -86,6 +87,18 @@ public:
         return toQMLCompatibleType(m_provider->{{property}}());
     }
 
+
+    {% elif property.type.is_interface %}
+
+    Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+
+    {{property|returnType}}QMLFrontend* {{property}}() {
+    	synchronizeInterfaceProperty(m_{{property}}Frontend, m_provider->{{property}}());
+        return m_{{property}}Frontend;
+    }
+
+    QPointer<{{property|returnType}}QMLFrontend> m_{{property}}Frontend;
+
     {% else %}
 
         {% if property.readonly %}
@@ -95,11 +108,13 @@ public:
 
     void set{{property}}(const {{property|returnType}}& newValue) {
     	qDebug() << "Request to set property {{property}} to " << newValue;
+    	Q_ASSERT(m_provider);
     	m_provider->set{{property}}(newValue);
     }
         {% endif %}
 
     virtual const {{property|returnType}}& {{property}}() const {
+    	Q_ASSERT(m_provider);
 //    	qDebug() << "Read property {{property}}. Value: " << m_provider->{{property}}() ;
         return m_provider->{{property}}();
     }
@@ -117,6 +132,7 @@ public:
         {{parameter|returnType}} {{parameter.name}}
         {% endfor %}
     ) {
+    	Q_ASSERT(m_provider);
         m_provider->{{operation}}(
                 {% set comma = joiner(",") %}
                 {% for parameter in operation.parameters %}
@@ -139,7 +155,7 @@ public:
     );
     {% endfor %}
 
-    {{class}}* m_provider;
+    QPointer<{{class}}> m_provider;
 };
 
 

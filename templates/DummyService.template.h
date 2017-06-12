@@ -60,8 +60,13 @@ public:
         Dummy({{class}}PropertyAdapter& adapter) : DummyModel<{{class}}>(&adapter), m_adapter(adapter) {
             init();
             {% for property in interface.properties %}
+			{% if property.type.is_interface -%}
+			// TODO : support interface property type
+			{% else %}
             initWidget(m_adapter.m_{{property.name}}, "{{property.name}}");
+            {% endif %}
             {% endfor %}
+
 
             {% for event in interface.signals %}
             initSignal<
@@ -86,14 +91,23 @@ public:
 		void writeJsonValues(QJsonObject& jsonObject) const override {
 			Q_UNUSED(jsonObject);
 			{% for property in interface.properties %}
+
+			{% if property.type.is_interface -%}
+			// TODO : support interface property type
+			{% else %}
 			writeJSONProperty(jsonObject, m_adapter.m_{{property.name}}, "{{property.name}}");
+			{% endif %}
 			{% endfor %}
 		}
 
 		void loadJsonValues(const QJsonObject& jsonObject) override {
 			Q_UNUSED(jsonObject);
 			{% for property in interface.properties %}
+			{% if property.type.is_interface -%}
+			// TODO : support interface property type
+			{% else %}
 			readJSONProperty(jsonObject, m_adapter.m_{{property.name}}, "{{property.name}}");
+			{% endif %}
 			{% endfor %}
 		}
 

@@ -100,6 +100,10 @@ public:
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
             // TODO : model
+            qFatal("Property of interface type not supported");
+            {% elif property.type.is_interface -%}
+            // TODO
+            qFatal("Property of interface type not supported");
             {% else %}
         msg << m_service->{{property.name}}();
             {% endif %}
@@ -141,11 +145,16 @@ public:
     void deserializePropertyValues(IPCMessage& msg) override {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
-            {%if property.type.is_model -%}
+        {% if property.type.is_model -%}
+
+        qFatal("Model not supported");
+        {% elif property.type.is_interface -%}
+        qFatal("Property of interface type not supported");
+
             {% else %}
-			std::decay<typeof(m_{{property.name}}.value())>::type {{property.name}};
-			msg >> {{property.name}};
-			m_{{property.name}}.setValue({{property.name}});
+		std::decay<typeof(m_{{property.name}}.value())>::type {{property.name}};
+		msg >> {{property.name}};
+		m_{{property.name}}.setValue({{property.name}});
 
             {% endif %}
         {% endfor %}
