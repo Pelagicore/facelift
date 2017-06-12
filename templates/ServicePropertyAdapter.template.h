@@ -41,7 +41,7 @@ public:
 
     {%elif property.type.is_list %}
 
-    {{property|returnType}} {{property}}() const override {
+    const {{property|returnType}}& {{property}}() const override {
         return m_{{property.name}}.value();
     }
 
@@ -49,7 +49,7 @@ public:
 
     {% else %}
 
-    {{property|returnType}} {{property}}() const override {
+    const {{property|returnType}}& {{property}}() const override {
         return m_{{property.name}}.value();
     }
     ::Property<{{property|returnType}}> m_{{property.name}};

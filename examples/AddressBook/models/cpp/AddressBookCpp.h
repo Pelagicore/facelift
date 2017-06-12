@@ -94,17 +94,17 @@ public:
         }
     }
 
-    bool isLoaded() const override
+    const bool& isLoaded() const override
     {
         return m_isLoaded;
     }
 
-    Contact currentContact() const override
+    const Contact& currentContact() const override
     {
         return m_currentContact;
     }
 
-    QList<Contact> contacts() const override
+    const QList<Contact>& contacts() const override
     {
         return m_contacts;
     }

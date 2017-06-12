@@ -69,11 +69,11 @@ public:
 
     {% elif property.type.is_list -%}
 
-    virtual {{property|returnType}} {{property}}() const = 0;
+    virtual const {{property|returnType}}& {{property}}() const = 0;
 
     {% else %}
 
-    virtual {{property|returnType}} {{property}}() const = 0;
+    virtual const {{property|returnType}}& {{property}}() const = 0;
 
     PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed); };
 

@@ -121,7 +121,7 @@ public:
     // TODO
     {% else %}
       Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}})
-      {{property|returnType}} {{property.name}}() const {
+      const {{property|returnType}}& {{property.name}}() const {
           checkInterface();
           return interface().m_{{property.name}};
       }

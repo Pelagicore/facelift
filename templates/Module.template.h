@@ -6,6 +6,14 @@
 
 #pragma once
 
+{{module|namespaceOpen}}
+
+{% for interface in module.interfaces %}
+class {{interface}};
+{% endfor %}
+
+{{module|namespaceClose}}
+
 #include <QObject>
 
 {% for struct in module.structs %}
@@ -26,18 +34,7 @@ class {{class}} : public QObject {
     Q_OBJECT
 public:
     {{class}}(QObject *parent=0);
-/*
-{% for enum in module.enums %}
-    {% set comma = joiner(",") %}
-    enum {{enum}} { 
-        {%- for member in enum.members -%}
-        {{ comma() }}
-        {{member.name}} = {{member.value}}
-        {%- endfor %}
-    };
-    Q_ENUM({{enum}})
-{% endfor %}
-*/
+
 {% for struct in module.structs %}
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} create{{struct}}();
 {% endfor %}

@@ -32,7 +32,7 @@ public:
         addFile("Bock to Bock", "Wes Montgomery", "http://www.youtube.com/embed/g3faH74Sba4?autoplay=1", MediaType::Video);
     }
 
-    const QVector<MediaFile> &files()
+    const QVector<MediaFile> &files() const
     {
         return m_files;
     }
@@ -40,6 +40,7 @@ public:
     Q_SIGNAL void filesChanged();
 
 private:
+
     void addFile(const char *title, const char *artist, const char *url, MediaType type)
     {
         static int i = 0;

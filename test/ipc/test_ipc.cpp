@@ -12,7 +12,6 @@ using namespace test;
 
 void mainClient(int &argc, char * *argv)
 {
-
     QApplication app(argc, argv);
     auto sessionBus = QDBusConnection::sessionBus();
 
@@ -39,7 +38,6 @@ void mainClient(int &argc, char * *argv)
 
 void mainServer(int &argc, char * *argv)
 {
-
     QApplication app(argc, argv);
 
     TestInterfaceDummy testInterface;

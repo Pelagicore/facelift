@@ -143,7 +143,10 @@ public:
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
             {% else %}
-        msg >> m_{{property.name}}.modifiableValue();
+			std::decay<typeof(m_{{property.name}}.value())>::type {{property.name}};
+			msg >> {{property.name}};
+			m_{{property.name}}.setValue({{property.name}});
+
             {% endif %}
         {% endfor %}
     }

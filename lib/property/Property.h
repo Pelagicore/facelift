@@ -120,6 +120,7 @@ public:
     {
     }
 
+/*
     template<typename Class, typename PropertyType>
     Property &bind(const PropertyInterface<Class, PropertyType> &property)
     {
@@ -132,7 +133,7 @@ public:
 
         return *this;
     }
-
+*/
     /**
      * Add the given property to the properties which "this" property is bound to, which means that the value of "this" property will
      * be reevaluated whenever the signal is triggered
@@ -162,19 +163,7 @@ public:
         return m_value;
     }
 
-    Type &modifiableValue()
-    {
-        if (m_getterFunction) {
-            qDebug() << name() << " property : breaking binding";
-            breakBinding();
-        }
-
-        // We return a modifiable reference so we might have to trigger a "value changed" signal later
-        triggerValueChangedSignal();
-        return m_value;
-    }
-
-    operator const Type() const {
+    operator const Type&() const {
         return value();
     }
 
@@ -221,27 +210,42 @@ public:
         //        qDebug() << "Cleaning " << name() << " value: " << m_previousValue;
     }
 
-    Type operator-=(const Type &right)
+    Type& operator-=(const Type &right)
     {
         return operator=(value() - right);
     }
 
-    Type operator+=(const Type &right)
+    Type& operator+=(const Type &right)
     {
         return operator=(value() + right);
     }
 
-    Type operator*=(const Type &right)
+    Type& operator*=(const Type &right)
     {
         return operator=(value() * right);
     }
 
-    Type operator/=(const Type &right)
+    Type& operator/=(const Type &right)
     {
         return operator=(value() / right);
     }
 
+protected:
+
+    Type &modifiableValue()
+    {
+        if (m_getterFunction) {
+            qDebug() << name() << " property : breaking binding";
+            breakBinding();
+        }
+
+        // We return a modifiable reference so we might have to trigger a "value changed" signal later
+        triggerValueChangedSignal();
+        return m_value;
+    }
+
 private:
+
     void reevaluate()
     {
         Q_ASSERT(m_getterFunction);
