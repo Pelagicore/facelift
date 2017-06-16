@@ -17,6 +17,8 @@ interface TestInterface {
     readonly TestInterface2 ttt;
 
     readonly bool boolProperty;
+    readonly TestEnum enumProperty;
+    TestEnum writableEnumProperty;
     int intProperty;
     TestStruct structProperty;
     TestStruct2 structProperty2;

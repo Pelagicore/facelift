@@ -11,7 +11,6 @@
 
 #include <QtCore>
 
-#include "{{module|upperfirst}}Module.h"
 #include "Model.h"
 
 // Dependencies

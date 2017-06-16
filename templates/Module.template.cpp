@@ -1,10 +1,10 @@
-{% set class = '{0}Module'.format(module.module_name) %}
+{% set class = 'Module' %}
 /****************************************************************************
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{class}}.h"
+#include "Module.h"
 
 #include <QtQml>
 

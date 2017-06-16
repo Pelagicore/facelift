@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "{{module|upperfirst}}Module.h"
 #include "{{class}}.h"
 #include "Property.h"
 

@@ -12,8 +12,9 @@
 
 #include <QtCore>
 
-#include "{{module|upperfirst}}Module.h"
 #include "QMLFrontend.h"
+
+#include "{{class}}.h"
 
 // Dependencies
 {% for property in interface.properties %}
@@ -107,7 +108,7 @@ public:
     Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
 
     void set{{property}}(const {{property|returnType}}& newValue) {
-    	qDebug() << "Request to set property {{property}} to " << newValue;
+//    	qDebug() << "Request to set property {{property}} to " << newValue;
     	Q_ASSERT(m_provider);
     	m_provider->set{{property}}(newValue);
     }

@@ -8,20 +8,19 @@
 
 #include "MediaPlayerPlugin.h"
 
-#include "mediaplayer/MediaplayerModuleDummy.h"
-#include "mediaplayer/MediaplayerModule.h"
-#include "mediaplayer/MediaIndexerModelDummy.h"
+#include "mediaplayer/Module.h"
+#include "mediaplayer/ModuleDummy.h"
 #include "models/MediaIndexerModelCpp.h"
 
 using namespace mediaplayer;
 
 void TunerModelPlugin::registerTypes(const char *uri)
 {
-    MediaplayerModule::registerTypes();
-    MediaplayerModule::registerQmlTypes(uri);
+    mediaplayer::Module::registerTypes();
+    mediaplayer::Module::registerQmlTypes(uri);
 
     registerQmlComponent<MediaIndexerModelCpp>(uri);
 
-    MediaplayerModuleDummy::registerQmlTypes(uri);
+    mediaplayer::ModuleDummy::registerQmlTypes(uri);
 
 }

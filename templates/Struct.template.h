@@ -35,7 +35,8 @@ public:
 
     Q_PROPERTY(int id READ id CONSTANT)   // This seems to be necessary even if the base class already contains an "id" property. TODO : clarify
 
-    {{struct.name}}() :
+    {{struct.name}}()
+	{% if struct.fields %}:{% endif %}
     {%-for field in struct.fields %}
         m_{{field}}(std::get<{{loop.index-1}}>(m_values))
         {% if not loop.last %},{% endif %}
@@ -43,7 +44,8 @@ public:
     {
     }
 
-    {{struct.name}}(const {{struct.name}}& other) :
+    {{struct.name}}(const {{struct.name}}& other)
+    {% if struct.fields %}:{% endif %}
     {%-for field in struct.fields %}
         m_{{field}}(std::get<{{loop.index-1}}>(m_values))
         {% if not loop.last %},{% endif %}
