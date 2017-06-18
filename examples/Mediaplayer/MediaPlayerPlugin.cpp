@@ -19,7 +19,7 @@ void TunerModelPlugin::registerTypes(const char *uri)
     mediaplayer::Module::registerTypes();
     mediaplayer::Module::registerQmlTypes(uri);
 
-    registerQmlComponent<MediaIndexerModelCpp>(uri);
+    registerSingletonQmlComponent<MediaIndexerModelCpp>(uri);
 
     mediaplayer::ModuleDummy::registerQmlTypes(uri);
 
