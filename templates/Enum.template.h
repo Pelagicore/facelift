@@ -11,32 +11,26 @@
 
 {{module|namespaceOpen}}
 
-enum class {{enum}} {
-    {% set comma = joiner(",") %}
-    {%- for member in enum.members -%}
-    {{ comma() }}
-    {{member.name}} = {{member.value}}
-    {%- endfor %}
-};
-
 class {{enum}}Qml
 {
     Q_GADGET
 public:
-    enum TheEnum {
+    enum Type {
         {% set comma = joiner(",") %}
         {%- for member in enum.members -%}
         {{ comma() }}
         {{member.name}} = {{member.value}}
         {%- endfor %}
     };
-    Q_ENUM(TheEnum)
+    Q_ENUM(Type)
 
 };
 
+typedef {{enum}}Qml::Type {{enum}};
+
 {{module|namespaceClose}}
 
-Q_DECLARE_METATYPE({{enum|fullyQualifiedCppName}})
+Q_DECLARE_METATYPE({{enum|fullyQualifiedCppName}}Qml::Type)
 
 
 template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {

@@ -85,10 +85,10 @@ public:
 };
 
 template<typename ProviderType>
-void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME)
+void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion = ProviderType::VERSION_MAJOR, int minorVersion = ProviderType::VERSION_MINOR)
 {
     ProviderType::registerTypes(uri);
-    qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, 1, 0, name);
+    qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, majorVersion, minorVersion, name);
 }
 
 template<typename Type>
@@ -101,11 +101,11 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine) {
 }
 
 template<typename ProviderType>
-void registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME)
+void registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion = ProviderType::VERSION_MAJOR, int minorVersion = ProviderType::VERSION_MINOR)
 {
     ProviderType::registerTypes(uri);
 	typedef TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> QMLType;
-    qmlRegisterSingletonType<QMLType>(uri, 1, 0, name, &singletonGetter<QMLType>);
+    qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
 
 

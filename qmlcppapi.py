@@ -43,7 +43,7 @@ def fullyQualifiedCppName(type):
             return getPrimitiveCppType(type)
     except AttributeError:
         pass
-    return '::{0}'.format(fullyQualifiedName(type)).replace(".", "::")
+    return '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
 
 
 def namespaceOpen(symbol):
@@ -73,10 +73,6 @@ def returnTypeFromSymbol(symbol):
 
 def returnType(symbol):
     return returnTypeFromSymbol(symbol.type)
-
-
-def returnQMLType(symbol):
-    return symbol
 
 
 def nestedType(symbol):
@@ -114,7 +110,6 @@ def run_generation(input, output):
     system = FileSystem.parse(input)
     generator = Generator(search_path=Path(here / 'templates'))
     generator.register_filter('returnType', returnType)
-    generator.register_filter('returnQMLType', returnQMLType)
     generator.register_filter('parameterType', parameterType)
     generator.register_filter('nestedType', nestedType)
     generator.register_filter('requiredInclude', requiredInclude)

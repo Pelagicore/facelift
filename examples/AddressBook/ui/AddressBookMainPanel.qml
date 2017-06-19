@@ -105,7 +105,7 @@ Item {
                     }
 
                     Text {
-                        text: "Family : " + ((viewModel.currentContact.type == ContactType.Family) ? "Yes" : "No")
+                        text: "Family : " + ((viewModel.currentContact.type === ContactType.Family) ? "Yes" : "No")
                     }
 
                 }

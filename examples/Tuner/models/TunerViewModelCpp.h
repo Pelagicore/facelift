@@ -29,6 +29,7 @@ public:
                     Station modelStation;
                     modelStation.setfrequency(station.frequency);
                     modelStation.setname(station.name);
+                    modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
                     modelStation.setstationId(station.stationId);
                     return modelStation;
                 }).connect(&m_service, &TunerService::onCurrentStationChanged);
@@ -42,6 +43,7 @@ public:
                         qDebug() << station.stationId;
                         modelStation.setname(station.name);
                         modelStation.setstationId(station.stationId);
+                        modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
                         modelStation.setisPlaying(m_service.currentStation().stationId == station.stationId);
                         modelStationList.push_back(modelStation);
                         qDebug() << modelStation;

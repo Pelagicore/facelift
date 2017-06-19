@@ -16,6 +16,7 @@ public:
         int stationId;
         QString name;
         int frequency;
+        bool isInfo;
 
         bool operator==(const Station &s) const
         {
@@ -26,6 +27,9 @@ public:
                 return false;
             }
             if (frequency != s.frequency) {
+                return false;
+            }
+            if (isInfo != s.isInfo) {
                 return false;
             }
             return true;
@@ -66,9 +70,9 @@ public:
 
     TunerService()
     {
-        addStation("TSF Jazz");
-        addStation("France Info");
-        addStation("Big FM");
+        addStation("TSF Jazz", false);
+        addStation("France Info", true);
+        addStation("Big FM", false);
         setCurrentStationByID(0);
         m_currentStation.init("CurrentStation", this, &TunerService::onCurrentStationChanged);
     }
@@ -93,13 +97,14 @@ public:
     }
 
 private:
-    void addStation(const char *stationName)
+    void addStation(const char *stationName, bool isInfo)
     {
         static int nextID = 0;
 
         Station s;
         s.name = stationName;
         s.stationId = nextID++;
+        s.isInfo = isInfo;
         s.frequency = 88000 + s.stationId * 2100;
         m_stationList.push_back(s);
     }

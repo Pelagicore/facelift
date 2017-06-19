@@ -40,7 +40,7 @@ public:
 {% endfor %}
 
     static void registerTypes();
-    static void registerQmlTypes(const char* uri);
+    static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
 };
 
 {{module|namespaceClose}}

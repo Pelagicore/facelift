@@ -102,10 +102,15 @@ public:
 
     {% else %}
 
+        {% set QmlType=property|returnType %}
+        {% if property.type.is_enum %}
+            {% set QmlType=QmlType + "Qml::Type" %}
+        {% endif %}
+
         {% if property.readonly %}
-    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{QmlType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
         {% else %}
-    Q_PROPERTY({{property|returnType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{QmlType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
 
     void set{{property}}(const {{property|returnType}}& newValue) {
 //    	qDebug() << "Request to set property {{property}} to " << newValue;

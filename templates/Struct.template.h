@@ -74,7 +74,13 @@ public:
     }
 
 {% for field in struct.fields %}
-    Q_PROPERTY({{field|returnType}} {{field}} READ {{field}} WRITE set{{field}})
+
+	{% set QmlType=field|returnType %}
+	{% if field.type.is_enum %}
+		{% set QmlType=QmlType + "Qml::Type" %}
+	{% endif %}
+
+    Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
 
     {{field|returnType}} {{field.name}}() const {
         return m_{{field.name}};

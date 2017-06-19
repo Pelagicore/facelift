@@ -651,6 +651,7 @@ public:
 
     static void addModel(DummyModelBase &model)
     {
+    	Q_UNUSED(model);
     }
 
     static DummyModelControlWindow &instance()

@@ -48,6 +48,9 @@ public:
     static constexpr const char* IPC_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
     static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
 
+    static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
+    static constexpr const int VERSION_MINOR = {{module.minorVersion}};
+
     typedef {{class}}QMLFrontend QMLFrontendType;
 
     {{class}}(QObject* parent = nullptr) :

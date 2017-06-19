@@ -44,11 +44,9 @@ void {{class}}::registerTypes()
     {% endfor %}
 }
 
-void {{class}}::registerQmlTypes(const char* uri)
+void {{class}}::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
 {
     Q_UNUSED(uri);
-    int majorVersion = 1;  // TODO: get version from qface
-    int minorVersion = 0;
 
     {% for struct in module.structs %}
     {% endfor %}

@@ -1,6 +1,7 @@
 import QtQuick 2.5
 
 import QtQuick.Controls 1.4
+import tuner 1.0
 
 /**
  * Tuner application UI
@@ -32,6 +33,16 @@ Item {
             }
             Text {
                 text: viewModel.currentStation.name
+            }
+        }
+
+        Row {
+            Label {
+                text: "Information program"
+            }
+            CheckBox {
+                checked: viewModel.currentStation.programType === ProgramType.Info
+                enabled: false
             }
         }
 
