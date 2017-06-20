@@ -15,17 +15,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 
-# Build a QML plugin
+# Build and install a QML plugin
 function(add_qml_plugin PLUGIN_NAME URI PLUGIN_MAJOR_VERSION PLUGIN_MINOR_VERSION SOURCE_FILES HEADERS)
 
-    # All plugins are linked against Qt libraries (QML and Quick)
     string(REPLACE "." "/" PLUGIN_PATH ${URI})
 
-    set(PLUGINREGISTER "plugin ${PLUGIN_NAME}")
     qt5_wrap_cpp(MOCS_PLUGIN ${HEADERS} OPTIONS -Muri=${URI})
 
     add_library(${PLUGIN_NAME} SHARED ${SOURCE_FILES} ${MOCS_PLUGIN})
-    target_link_libraries(${PLUGIN_NAME} Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
+    target_link_libraries(${PLUGIN_NAME} Qt5::Core Qt5::Qml Qt5::Quick)
 
     target_include_directories(${PLUGIN_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
@@ -38,23 +36,18 @@ function(add_qml_plugin PLUGIN_NAME URI PLUGIN_MAJOR_VERSION PLUGIN_MINOR_VERSIO
 
     install(TARGETS ${PLUGIN_NAME} DESTINATION ${INSTALL_PATH})
 
-    #Build the exports defines from the library path
-    string(TOUPPER "${PLUGIN_PATH}_PLUGIN" EXPORT_DEFINE)
-    string(REPLACE "/" "_" EXPORT_DEFINE ${EXPORT_DEFINE})
+    install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
+    file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${URI}\nplugin ${PLUGIN_NAME}\ntypeinfo plugins.qmltypes")
 
-    set_target_properties(${PLUGIN_NAME} PROPERTIES
-        COMPILE_DEFINITIONS  "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION};${EXPORT_DEFINE}"
+    add_custom_command(
+        OUTPUT  ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
+        COMMAND ${_qt5Core_install_prefix}/bin/qmlplugindump -noinstantiate ${URI} ${PLUGIN_MAJOR_VERSION}.${PLUGIN_MINOR_VERSION} ${CMAKE_BINARY_DIR}/imports > ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
+        DEPENDS ${PLUGIN_NAME}
     )
 
-    #write qmldir file
-    set(QMLDIR_PLUGIN ${PLUGINREGISTER})
-    set(QMLDIR_URI ${URI})
-
-    install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
-    set(REG_IMPORT "Q_IMPORT_PLUGIN(${PLUGIN_NAME})\n")
-    set_property(GLOBAL APPEND_STRING PROPERTY STATIC_REGISTRATION_IMPORTS ${REG_IMPORT})
-
-    file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${QMLDIR_URI}\n${QMLDIR_PLUGIN}\ntypeinfo plugins.qmltypes")
+    add_custom_target("generate_qmltypes_${PLUGIN_NAME}" ALL DEPENDS ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes)
+    add_dependencies("generate_qmltypes_${PLUGIN_NAME}" ${PLUGIN_NAME})
+    install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes DESTINATION ${INSTALL_PATH})
 
 endfunction()
 
@@ -67,3 +60,4 @@ add_subdirectory(test)
 
 file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.yaml *.qdl)
 add_custom_target(QFACE_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
+

@@ -8,7 +8,7 @@
 
 import QtQuick 2.0
 import QtQml 2.2
-import qface.addressbook 1.0
+import addressbook 1.0
 
 import QtQuick.Controls 1.2
 

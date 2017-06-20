@@ -135,7 +135,13 @@ public:
         {% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}
         {{ comma() }}
-        {{parameter|returnType}} {{parameter.name}}
+
+        {% set QmlType=parameter|returnType %}
+        {% if parameter.type.is_enum %}
+            {% set QmlType=QmlType + "Qml::Type" %}
+        {% endif %}
+
+        {{QmlType}} {{parameter.name}}
         {% endfor %}
     ) {
     	Q_ASSERT(m_provider);
@@ -156,7 +162,13 @@ public:
         {% set comma = joiner(",") %}
         {% for parameter in event.parameters %}
         {{ comma() }}
-        {{parameter|returnType}} {{parameter.name}}
+
+        {% set QmlType=parameter|returnType %}
+        {% if parameter.type.is_enum %}
+            {% set QmlType=QmlType + "Qml::Type" %}
+        {% endif %}
+
+        {{QmlType}} {{parameter.name}}
         {% endfor %}
     );
     {% endfor %}

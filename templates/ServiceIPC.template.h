@@ -152,7 +152,8 @@ public:
 
         qFatal("Model not supported");
         {% elif property.type.is_interface -%}
-        qFatal("Property of interface type not supported");
+//        qFatal("Property of interface type not supported");
+        qWarning() << "TODO : handle interface properties" ;
 
             {% else %}
 		std::decay<typeof(m_{{property.name}}.value())>::type {{property.name}};

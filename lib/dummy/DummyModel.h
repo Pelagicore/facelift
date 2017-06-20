@@ -35,6 +35,37 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
+#include <tuple>
+
+namespace detail
+{
+    template <typename Model, typename F, typename Tuple, bool Done, int Total, int... N>
+    struct call_impl
+    {
+        static void call_method(Model* obj, F f, Tuple && t)
+        {
+            call_impl<Model, F, Tuple, Total == 1 + sizeof...(N), Total, N..., sizeof...(N)>::call_method(obj, f, std::forward<Tuple>(t));
+        }
+    };
+
+    template <typename Model, typename F, typename Tuple, int Total, int... N>
+    struct call_impl<Model, F, Tuple, true, Total, N...>
+    {
+        static void call_method(Model* obj, F f, Tuple && t)
+        {
+            (obj->*f)(std::get<N>(std::forward<Tuple>(t))...);
+        }
+    };
+}
+
+// user invokes this
+template <typename Model, typename F, typename Tuple>
+void call_method(Model* obj, F f, Tuple && t)
+{
+    typedef typename std::decay<Tuple>::type ttype;
+    detail::call_impl<Model, F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call_method(obj, f, std::forward<Tuple>(t));
+}
+
 
 template<typename Type>
 inline void readJSONSimple(const QJsonValue &json, Type &value)
@@ -94,7 +125,7 @@ public:
         setAutoFillBackground(true);
     }
 
-    void setWidget(QWidget *widget)
+    void addWidget(QWidget *widget)
     {
         m_layout->addWidget(widget);
     }
@@ -131,7 +162,7 @@ public:
         PropertyWidget(propertyName, parent)
     {
         widget = new QComboBox();
-        setWidget(widget);
+        addWidget(widget);
         auto values = validValues<EnumType>();
         for (auto &v : values) {
             widget->addItem(toString(v), static_cast<int>(v));
@@ -173,7 +204,7 @@ public:
         PropertyWidget(propertyName, parent)
     {
         widget = new QCheckBox();
-        setWidget(widget);
+        addWidget(widget);
     }
 
     bool value() const
@@ -202,7 +233,7 @@ public:
         PropertyWidget(propertyName, parent)
     {
         widget = new QSpinBox();
-        setWidget(widget);
+        addWidget(widget);
     }
 
     int value() const
@@ -231,7 +262,7 @@ public:
         PropertyWidget(propertyName, parent)
     {
         widget = new QTextEdit();
-        setWidget(widget);
+        addWidget(widget);
     }
 
     QString value() const
@@ -261,7 +292,7 @@ public:
         PropertyWidget(propertyName, parent)
     {
         createNewElementButton = new QPushButton("Create new element");
-        setWidget(createNewElementButton);
+        addWidget(createNewElementButton);
     }
 
     void setValueWidget(QWidget *widget)
@@ -374,7 +405,7 @@ public:
         auto widget = new QWidget();
         m_layout = new QVBoxLayout();
         widget->setLayout(m_layout);
-        setWidget(widget);
+        addWidget(widget);
     }
 
     template<std::size_t I = 0, typename ... Tp>
@@ -887,16 +918,28 @@ public:
 
 
     template<typename ... ParameterTypes>
-    void initSignal(QString signalName, const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames,
+    void initSignal(QString signalName, const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName* obj,
             void (TypeName::*signalPointer)(ParameterTypes ...))
     {
         typedef TModelStructure<ParameterTypes ...> SignalParametersStruct;
         SignalParametersStruct s;
 
+        // Create a new structure type containing the signal arguments
         typedef typename DummyUIDesc<SignalParametersStruct>::PanelType PanelType;
-        auto widget = new PanelType(signalName);
 
+        // Create a panel for that structure
+        auto widget = new PanelType(signalName);
         widget->init(s, parameterNames);
+
+        // And add the trigger button
+        auto triggerButton = new QPushButton("Trigger signal");
+        widget->addWidget(triggerButton);
+
+        QObject::connect(triggerButton, &QPushButton::clicked, [=]() {
+        	// Trigger signal using the parameters of the structure
+        	call_method(obj, signalPointer, widget->value().asTuple());
+        });
+
         addWidget(*widget);
 
     }

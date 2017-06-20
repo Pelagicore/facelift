@@ -81,7 +81,7 @@ public:
 			            {{ comma() }}
 			            "{{parameter}}"
 			            {% endfor %}
-			    }, &{{class}}::{{event.name}});
+			    }, &adapter, &{{class}}::{{event.name}});
 
             {% endfor %}
 

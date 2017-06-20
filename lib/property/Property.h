@@ -68,6 +68,7 @@ public:
     virtual QString toString() const
     {
         Q_ASSERT(false);
+        return "";
     }
 
     virtual bool isValueChanged() const = 0;
