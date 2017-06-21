@@ -20,7 +20,7 @@ Project folder structure:
 Ubuntu/Debian packages:
 The required packages can be installed using the following commands:
 ```
-$ sudo apt-get install python3-click python3-path python3-pip python3-jinja2 python3-yaml cmake qtdeclarative5-dev qml-module-qtquick-controls
+$ sudo apt-get install python3-click python3-path python3-pip python3-jinja2 python3-yaml cmake qtdeclarative5-dev qml-module-qtquick-controls qtdeclarative5-private-dev
 ```
 
 In addition, since no deb package is available for it, you need to install the antlr4 runtime using the following command line (for example):
