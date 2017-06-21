@@ -70,11 +70,11 @@ public:
 
     TunerService()
     {
+        m_currentStation.init("CurrentStation", this, &TunerService::onCurrentStationChanged);
         addStation("TSF Jazz", false);
         addStation("France Info", true);
         addStation("Big FM", false);
         setCurrentStationByID(0);
-        m_currentStation.init("CurrentStation", this, &TunerService::onCurrentStationChanged);
     }
 
     void setCurrentStationByFrequency(int frequency)

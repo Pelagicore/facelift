@@ -85,26 +85,31 @@ public:
 };
 
 template<typename ProviderType>
-void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion = ProviderType::VERSION_MAJOR, int minorVersion = ProviderType::VERSION_MINOR)
+void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion =
+            ProviderType::VERSION_MAJOR,
+        int minorVersion = ProviderType::VERSION_MINOR)
 {
     ProviderType::registerTypes(uri);
     qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, majorVersion, minorVersion, name);
 }
 
 template<typename Type>
-QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine) {
-	Q_UNUSED(scriptEngine);
-	Q_UNUSED(engine);
-	auto obj = new Type();
-	qDebug() << "Singleton created" << obj;
-	return obj;
+QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(scriptEngine);
+    Q_UNUSED(engine);
+    auto obj = new Type();
+    qDebug() << "Singleton created" << obj;
+    return obj;
 }
 
 template<typename ProviderType>
-void registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion = ProviderType::VERSION_MAJOR, int minorVersion = ProviderType::VERSION_MINOR)
+void registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME,
+        int majorVersion = ProviderType::VERSION_MAJOR,
+        int minorVersion = ProviderType::VERSION_MINOR)
 {
     ProviderType::registerTypes(uri);
-	typedef TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> QMLType;
+    typedef TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> QMLType;
     qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
 
@@ -191,7 +196,7 @@ public:
     void init(QObject *ownerObject, void (ProviderType::*changeSignal)(), size_t (ProviderType::*sizeGetter)(),
             ElementType (ProviderType::*elementGetter)(size_t))
     {
-    	Q_UNUSED(changeSignal);
+        Q_UNUSED(changeSignal);
         m_provider = ownerObject;
         m_sizeGetter = (SizeGetterFunction) sizeGetter;
         m_elementGetter = (ElementGetterFunction) elementGetter;

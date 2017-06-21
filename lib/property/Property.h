@@ -29,34 +29,6 @@ public:
     {
     }
 
-    void doTriggerChangeSignal()
-    {
-        if (signal() == nullptr) {
-            qFatal("init() has not been called");
-        }
-
-        (m_ownerObject->*m_ownerSignal)();
-        clean();
-    }
-
-    void triggerValueChangedSignal()
-    {
-        if (!m_timerEnabled) {
-            m_timerEnabled = true;
-
-            QTimer::singleShot(0, m_ownerObject, [this] () {
-                        if (isValueChanged()) {
-                            qDebug() << "Property" << name() << ": Triggering notification";
-                            doTriggerChangeSignal();
-                        } else {
-                            //                            qDebug() << "Property " << m_name << " : Triggering notification. value unchanged: " << toString();
-                        }
-                        m_timerEnabled = false;
-                    });
-
-        }
-    }
-
     template<typename ServiceType>
     void init(const char *name, QObject *ownerObject, void (ServiceType::*changeSignal)())
     {
@@ -65,15 +37,29 @@ public:
         m_name = name;
     }
 
+    void triggerValueChangedSignal()
+    {
+        if (m_asynchronousNotification) {
+            // Asynchronous notification is enabled => we will actually trigger the change signal during the next main loop iteration
+            if (!m_notificationTimerEnabled) {
+                m_notificationTimerEnabled = true;
+
+                QTimer::singleShot(0, m_ownerObject, [this] () {
+                            doTriggerChangeSignal();
+                            m_notificationTimerEnabled = false;
+                        });
+
+            }
+        } else {
+            doTriggerChangeSignal();
+        }
+    }
+
     virtual QString toString() const
     {
         Q_ASSERT(false);
         return "";
     }
-
-    virtual bool isValueChanged() const = 0;
-
-    virtual void clean() = 0;
 
     QObject *owner() const
     {
@@ -90,12 +76,32 @@ public:
         return m_name;
     }
 
+protected:
+    virtual void clean() = 0;
+
+    virtual bool isDirty() const = 0;
+
 private:
+    void doTriggerChangeSignal()
+    {
+        if (signal() != nullptr) {
+            if (isDirty()) {
+                qDebug() << "Property" << name() << ": Triggering notification";
+                // Trigger the signal
+                clean();
+                (m_ownerObject->*signal())();
+            }
+        } else {
+            qFatal("init() has not been called");
+        }
+    }
+
     QObject *m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
 
-    bool m_timerEnabled = false;
+    bool m_notificationTimerEnabled = false;
     const char *m_name = nullptr;
+    bool m_asynchronousNotification = true;
 
 };
 
@@ -172,10 +178,7 @@ public:
 
     Property &bind(const GetterFunction &f)
     {
-        if (m_getterFunction) {
-            qDebug() << name() << " property : breaking binding";
-            breakBinding();
-        }
+        breakBinding();
 
         m_getterFunction = f;
         reevaluate();
@@ -185,11 +188,7 @@ public:
 
     void setValue(const Type &right)
     {
-        if (m_getterFunction) {
-            qDebug() << name() << " property : breaking binding";
-            breakBinding();
-            m_getterFunction = nullptr;
-        }
+        breakBinding();
 
         m_value = right;
         qDebug() << "Written value to property " << name();
@@ -202,7 +201,7 @@ public:
         return m_value;
     }
 
-    bool isValueChanged() const override
+    bool isDirty() const override
     {
         return !(m_previousValue == m_value);
     }
@@ -234,17 +233,22 @@ public:
     }
 
 protected:
-    Type &modifiableValue()
+    void breakBinding()
     {
         if (m_getterFunction) {
-            qDebug() << name() << " property : breaking binding";
-            breakBinding();
-        }
+            qDebug() << this->name() << " property : breaking binding";
 
-        // We return a modifiable reference so we might have to trigger a "value changed" signal later
-        triggerValueChangedSignal();
-        return m_value;
+            m_getterFunction = nullptr;
+            for (const auto &connection : m_connections) {
+                auto successfull = QObject::disconnect(connection);
+                Q_ASSERT(successfull);
+            }
+            m_connections.clear();
+
+        }
     }
+
+    Type m_value = {};  /// The current value
 
 private:
     void reevaluate()
@@ -254,16 +258,6 @@ private:
         triggerValueChangedSignal();
     }
 
-    void breakBinding()
-    {
-        for (const auto &connection : m_connections) {
-            auto successfull = QObject::disconnect(connection);
-            Q_ASSERT(successfull);
-        }
-        m_connections.clear();
-    }
-
-    Type m_value = {};  /// The current value
     Type m_previousValue = m_value;  /// The value when the last "value changed" signal was triggered
 
     GetterFunction m_getterFunction;  /// The bound getter function, if any
@@ -289,6 +283,8 @@ class ListProperty :
 {
 
 public:
+    using Property<QList<ElementType> >::operator=;
+
     void removeElementById(ModelElementID elementId)
     {
         for (int i = 0; i < size(); i++) {
@@ -297,26 +293,19 @@ public:
                 break;
             }
         }
+
+        this->triggerValueChangedSignal();
     }
 
     void addElement(ElementType element)
     {
         this->modifiableValue().append(element);
+        this->triggerValueChangedSignal();
     }
 
     int size() const
     {
         return this->value().size();
-    }
-
-    ElementType *elementPointerById(ModelElementID elementId)
-    {
-        for (auto &element : this->modifiableValue()) {
-            if (element.id() == elementId) {
-                return &element;
-            }
-        }
-        return nullptr;
     }
 
     const ElementType *elementPointerById(ModelElementID id) const
@@ -327,6 +316,13 @@ public:
             }
         }
         return nullptr;
+    }
+
+private:
+    QList<ElementType> &modifiableValue()
+    {
+        this->breakBinding();
+        return this->m_value;
     }
 
 };
@@ -375,7 +371,7 @@ public:
         return m_size;
     }
 
-    bool isValueChanged() const override
+    bool isDirty() const override
     {
         return m_modified;
     }

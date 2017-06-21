@@ -69,14 +69,20 @@ public:
 
     void updateContact(int contactId, Contact newContact) override
     {
-        auto *contact = m_contacts.elementPointerById(contactId);
+        bool found = false;
+        auto list = m_contacts.value();
+        for (auto &contact : list) {
+            if (contact.id() == contactId) {
+                contact = newContact;
+                contact.setId(contactId);
+                qDebug() << "Updated contact " << contact.toString();
+                found = true;
+            }
+        }
 
-        Q_ASSERT(contact != nullptr);
-        if (contact != nullptr) {
-            *contact = newContact;
-            contact->setId(contactId);
-            qDebug() << "Updated contact " << newContact.toString();
-            contactsChanged();
+        if (found) {
+            // Assign the new list
+            m_contacts = list;
         } else {
             qWarning() << "Unknown elementID " << newContact.id();
         }
@@ -86,7 +92,6 @@ public:
     {
         auto *contact = m_contacts.elementPointerById(contactId);
 
-        Q_ASSERT(contact != nullptr);
         if (contact != nullptr) {
 
             contactDeleted(*contact);

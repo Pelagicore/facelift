@@ -37,33 +37,34 @@
 
 #include <tuple>
 
-namespace detail
+namespace detail {
+template<typename Model, typename F, typename Tuple, bool Done, int Total, int ... N>
+struct call_impl
 {
-    template <typename Model, typename F, typename Tuple, bool Done, int Total, int... N>
-    struct call_impl
+    static void call_method(Model *obj, F f, Tuple && t)
     {
-        static void call_method(Model* obj, F f, Tuple && t)
-        {
-            call_impl<Model, F, Tuple, Total == 1 + sizeof...(N), Total, N..., sizeof...(N)>::call_method(obj, f, std::forward<Tuple>(t));
-        }
-    };
+        call_impl<Model, F, Tuple, Total == 1 + sizeof ... (N), Total, N ..., sizeof ... (N)>::call_method(obj, f,
+                    std::forward<Tuple>(t));
+    }
+};
 
-    template <typename Model, typename F, typename Tuple, int Total, int... N>
-    struct call_impl<Model, F, Tuple, true, Total, N...>
+template<typename Model, typename F, typename Tuple, int Total, int ... N>
+struct call_impl<Model, F, Tuple, true, Total, N ...>
+{
+    static void call_method(Model *obj, F f, Tuple && t)
     {
-        static void call_method(Model* obj, F f, Tuple && t)
-        {
-            (obj->*f)(std::get<N>(std::forward<Tuple>(t))...);
-        }
-    };
+        (obj->*f)(std::get<N>(std::forward<Tuple>(t)) ...);
+    }
+};
 }
 
 // user invokes this
-template <typename Model, typename F, typename Tuple>
-void call_method(Model* obj, F f, Tuple && t)
+template<typename Model, typename F, typename Tuple>
+void call_method(Model *obj, F f, Tuple && t)
 {
     typedef typename std::decay<Tuple>::type ttype;
-    detail::call_impl<Model, F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call_method(obj, f, std::forward<Tuple>(t));
+    detail::call_impl<Model, F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call_method(
+            obj, f, std::forward<Tuple>(t));
 }
 
 
@@ -682,7 +683,7 @@ public:
 
     static void addModel(DummyModelBase &model)
     {
-    	Q_UNUSED(model);
+        Q_UNUSED(model);
     }
 
     static DummyModelControlWindow &instance()
@@ -918,7 +919,8 @@ public:
 
 
     template<typename ... ParameterTypes>
-    void initSignal(QString signalName, const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName* obj,
+    void initSignal(QString signalName,
+            const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName *obj,
             void (TypeName::*signalPointer)(ParameterTypes ...))
     {
         typedef TModelStructure<ParameterTypes ...> SignalParametersStruct;
@@ -935,10 +937,10 @@ public:
         auto triggerButton = new QPushButton("Trigger signal");
         widget->addWidget(triggerButton);
 
-        QObject::connect(triggerButton, &QPushButton::clicked, [=]() {
-        	// Trigger signal using the parameters of the structure
-        	call_method(obj, signalPointer, widget->value().asTuple());
-        });
+        QObject::connect(triggerButton, &QPushButton::clicked, [ = ]() {
+                    // Trigger signal using the parameters of the structure
+                    call_method(obj, signalPointer, widget->value().asTuple());
+                });
 
         addWidget(*widget);
 
