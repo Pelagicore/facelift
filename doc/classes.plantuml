@@ -1,0 +1,49 @@
+@startuml
+
+abstract class Interface {
+C++ abstract class defining the interface
+...
+    generated from IDL
+}
+
+abstract class InterfacePropertyAdapter {
+    Abstract helper class which contains boilerplate code to help writing concrete interface implementations
+...
+    generated from IDL
+
+}
+
+class DummyImplementation {
+    generated from IDL
+}
+
+class InterfaceIPCProxy {
+    generated from IDL
+}
+
+class InterfaceQMLFrontend {
+    Implements the interface exposed to the QML engine, to be used by the UI code
+    Turns data from the interface implementation into QML-compatible types
+...
+    generated from IDL
+
+}
+
+class InterfaceImplementation {
+    concrete class implementing the interface
+    
+}
+
+Interface <|-- InterfacePropertyAdapter
+InterfacePropertyAdapter <|-- InterfaceImplementation
+InterfacePropertyAdapter <|-- DummyImplementation
+InterfacePropertyAdapter <|-- InterfaceIPCProxy
+
+InterfaceQMLFrontend --* Interface
+
+
+ModelInterface <|-- Interface
+
+QMLFrontend <|-- InterfaceQMLFrontend
+
+@enduml

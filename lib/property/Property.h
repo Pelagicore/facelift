@@ -287,14 +287,18 @@ public:
 
     void removeElementById(ModelElementID elementId)
     {
+        bool bModified = false;
         for (int i = 0; i < size(); i++) {
             if (this->value()[i].id() == elementId) {
                 this->modifiableValue().removeAt(i);
+                bModified = true;
                 break;
             }
         }
 
-        this->triggerValueChangedSignal();
+        if (bModified) {
+            this->triggerValueChangedSignal();
+        }
     }
 
     void addElement(ElementType element)

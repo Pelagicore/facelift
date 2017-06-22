@@ -59,6 +59,7 @@ endfunction()
 add_subdirectory(examples)
 add_subdirectory(test)
 
+add_subdirectory(doc)
 
 file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.yaml *.qdl)
 add_custom_target(QFACE_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
