@@ -54,7 +54,7 @@ void {{class}}::registerQmlTypes(const char* uri, int majorVersion, int minorVer
     qmlRegisterSingletonType<{{class}}>(uri, majorVersion, minorVersion, "{{class}}", {{class}}_singletontype_provider);
 
     {% for enum in module.enums %}
-    qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Qml>(uri, majorVersion, minorVersion, "{{enum}}", "");
+    qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
     {% endfor %}
 
     {% for interface in module.interfaces %}

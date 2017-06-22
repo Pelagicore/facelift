@@ -15,14 +15,14 @@
 #include <functional>
 
 
-class QMLFrontend :
+class QMLFrontendBase :
     public QObject
 {
 
     Q_OBJECT
 
 public:
-    QMLFrontend(QObject *parent = nullptr) :
+    QMLFrontendBase(QObject *parent = nullptr) :
         QObject(parent)
     {
     }

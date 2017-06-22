@@ -58,7 +58,7 @@ private:
 };
 
 template<typename Type>
-inline QList<Type> validValues()
+inline const QList<Type> &validValues()
 {
 }
 
@@ -253,14 +253,14 @@ protected:
 
 };
 
-class ModelInterface :
+class InterfaceBase :
     public QObject
 {
 
     Q_OBJECT
 
 public:
-    ModelInterface(QObject *parent = nullptr) :
+    InterfaceBase(QObject *parent = nullptr) :
         QObject(parent)
     {
     }
@@ -311,12 +311,12 @@ public:
         return m_interface->implementationID();
     }
 
-    void setInterface(ModelInterface *interface)
+    void setInterface(InterfaceBase *interface)
     {
         m_interface = interface;
     }
 
-    ModelInterface *m_interface = nullptr;
+    InterfaceBase *m_interface = nullptr;
 };
 
 template<typename InterfaceType>

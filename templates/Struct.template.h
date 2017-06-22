@@ -77,7 +77,7 @@ public:
 
 	{% set QmlType=field|returnType %}
 	{% if field.type.is_enum %}
-		{% set QmlType=QmlType + "Qml::Type" %}
+		{% set QmlType=QmlType + "Gadget::Type" %}
 	{% endif %}
 
     Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})

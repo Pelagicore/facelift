@@ -42,8 +42,8 @@ InterfacePropertyAdapter <|-- InterfaceIPCProxy
 InterfaceQMLFrontend --* Interface
 
 
-ModelInterface <|-- Interface
+InterfaceBase <|-- Interface
 
-QMLFrontend <|-- InterfaceQMLFrontend
+QMLFrontendBase <|-- InterfaceQMLFrontend
 
 @enduml

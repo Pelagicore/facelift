@@ -11,7 +11,7 @@
 
 {{module|namespaceOpen}}
 
-class {{enum}}Qml
+class {{enum}}Gadget
 {
     Q_GADGET
 public:
@@ -26,22 +26,24 @@ public:
 
 };
 
-typedef {{enum}}Qml::Type {{enum}};
+typedef {{enum}}Gadget::Type {{enum}};
 
 {{module|namespaceClose}}
 
-Q_DECLARE_METATYPE({{enum|fullyQualifiedCppName}}Qml::Type)
+Q_DECLARE_METATYPE({{enum|fullyQualifiedCppName}}Gadget::Type)
 
-
+/*
 template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {
     return static_cast<int>(v);
 }
+*/
 
-template<> inline QList<{{enum|fullyQualifiedCppName}}> validValues<{{enum|fullyQualifiedCppName}}>() {
-    QList<{{enum|fullyQualifiedCppName}}> values;
+template<> inline const QList<{{enum|fullyQualifiedCppName}}>& validValues<{{enum|fullyQualifiedCppName}}>() {
+    static QList<{{enum|fullyQualifiedCppName}}> values = {
     {% for member in enum.members %}
-    values.append({{enum|fullyQualifiedCppName}}::{{member}});
+    {{enum|fullyQualifiedCppName}}::{{member}},
     {% endfor %}
+    };
     return values;
 }
 

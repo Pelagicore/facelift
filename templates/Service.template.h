@@ -38,7 +38,7 @@ class {{class}}QMLFrontend;
 /**
  * Definition of the {{interface}} interface
  */
-class {{class}} : public ModelInterface {
+class {{class}} : public InterfaceBase {
 
     Q_OBJECT
 
@@ -54,7 +54,7 @@ public:
     typedef {{class}}QMLFrontend QMLFrontendType;
 
     {{class}}(QObject* parent = nullptr) :
-            ModelInterface(parent) {
+		InterfaceBase(parent) {
     }
 
     static void registerTypes(const char* uri) {

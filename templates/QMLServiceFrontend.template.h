@@ -40,7 +40,7 @@
 /**
  * This is the class registered as a QML component for the {{interface}} interface
  */
-class {{class}}QMLFrontend : public QMLFrontend {
+class {{class}}QMLFrontend : public QMLFrontendBase {
 
     Q_OBJECT
 
@@ -50,7 +50,7 @@ public:
     static constexpr const char* IPC_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
 
     {{class}}QMLFrontend(QObject* parent = nullptr) :
-        QMLFrontend(parent) {
+    	QMLFrontendBase(parent) {
     }
 
     void init({{class}}& provider) {
@@ -104,7 +104,7 @@ public:
 
         {% set QmlType=property|returnType %}
         {% if property.type.is_enum %}
-            {% set QmlType=QmlType + "Qml::Type" %}
+            {% set QmlType=QmlType + "Gadget::Type" %}
         {% endif %}
 
         {% if property.readonly %}
@@ -138,7 +138,7 @@ public:
 
         {% set QmlType=parameter|returnType %}
         {% if parameter.type.is_enum %}
-            {% set QmlType=QmlType + "Qml::Type" %}
+            {% set QmlType=QmlType + "Gadget::Type" %}
         {% endif %}
 
         {{QmlType}} {{parameter.name}}
@@ -165,7 +165,7 @@ public:
 
         {% set QmlType=parameter|returnType %}
         {% if parameter.type.is_enum %}
-            {% set QmlType=QmlType + "Qml::Type" %}
+            {% set QmlType=QmlType + "Gadget::Type" %}
         {% endif %}
 
         {{QmlType}} {{parameter.name}}
