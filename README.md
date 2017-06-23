@@ -47,6 +47,11 @@ If you want to build using your own version of Qt, you can specify its location 
 $ cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/lib/cmake .. && make
 ```
 
+CCACHE can greatly improve build time in some situations. Configure the project with the following command to enable CCACHE:
+```
+$ CC="ccache gcc" CXX="ccache g++" cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/lib/cmake .. && make
+```
+
 Start the example application with:
 $ /path/to/Qt/gcc_64/bin/qmlscene ../examples/AddressBook/ui/AddressBookApp.qml  -I imports
 

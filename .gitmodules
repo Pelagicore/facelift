@@ -3,4 +3,4 @@
 	url = ../qface.git
 [submodule "tools/multimake"]
 	path = tools/multimake
-	url = https://github.com/Pelagicore/multimake.git
+	url = ../multimake.git

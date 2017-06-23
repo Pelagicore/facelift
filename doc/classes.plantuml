@@ -1,7 +1,7 @@
 @startuml
 
 abstract class Interface {
-C++ abstract class defining the interface
+    C++ abstract class defining the interface
 ...
     generated from IDL
 }
