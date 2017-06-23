@@ -29,6 +29,10 @@ public:
     {
     }
 
+    virtual ~PropertyBase()
+    {
+    }
+
     template<typename ServiceType>
     void init(const char *name, QObject *ownerObject, void (ServiceType::*changeSignal)())
     {
@@ -343,12 +347,12 @@ public:
     {
     }
 
-    ElementType elementAt(int index)
+    ElementType elementAt(int index) const
     {
-        if (m_elementGetter == nullptr) {
-            qFatal("Getter has not been set for property %1", name());
-        }
-        return m_elementGetter(index);
+    	if (m_elementGetter != nullptr)
+            return m_elementGetter(index);
+    	else
+    		return m_elements[index];
     }
 
     void setGetter(ElementGetter getter)
@@ -372,7 +376,10 @@ public:
 
     size_t size() const
     {
-        return m_size;
+    	if (m_elementGetter != nullptr)
+    		return m_size;
+    	else
+    		return m_elements.size();
     }
 
     bool isDirty() const override
@@ -385,9 +392,25 @@ public:
         m_modified = false;
     }
 
+    void setElements(const QList<ElementType>& elements) {
+    	m_elements = elements;
+    	notifyDataChanged();
+    }
+
+     QList<ElementType> asList() const {
+    	QList<ElementType> list;
+    	auto elementCount = size();
+for (size_t i = 0 ; i<elementCount;i++){
+	list.append(elementAt(i));
+
+}
+return list;
+    }
+
 private:
     ElementGetter m_elementGetter;
-    size_t m_size;
+    QList<ElementType> m_elements;
+    size_t m_size = 0;
 
     bool m_modified = false;
 

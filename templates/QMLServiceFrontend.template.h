@@ -59,8 +59,8 @@ public:
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
 
         {% if property.type.is_model -%}
-        m_{{property}}Model.init(m_provider, &MediaIndexerModel::{{property}}Changed, &{{class}}::{{property.name}}Size, &{{class}}::{{property.name}}ElementAt);
-        connect(m_provider, &MediaIndexerModel::{{property}}Changed, &m_{{property}}Model, &ModelListModel<{{property|nestedType|fullyQualifiedCppName}}>::notifyModelChanged);
+        m_{{property}}Model.init(m_provider, &{{class}}::{{property}}Changed, &{{class}}::{{property.name}}Size, &{{class}}::{{property.name}}ElementAt);
+        connect(m_provider, &{{class}}::{{property}}Changed, &m_{{property}}Model, &ModelListModel<{{property|nestedType|fullyQualifiedCppName}}>::notifyModelChanged);
         {% endif %}
 
         {% endfor %}

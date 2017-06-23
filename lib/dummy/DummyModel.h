@@ -76,6 +76,14 @@ inline void readJSONSimple(const QJsonValue &json, Type &value)
     Q_ASSERT(false);
 }
 
+template<typename Type>
+inline Type fromString(const QString &s)
+{
+	Q_UNUSED(s);
+    Q_ASSERT(false);
+    return {};
+}
+
 template<>
 inline void readJSONSimple<int>(const QJsonValue &json, int &value)
 {
@@ -620,7 +628,7 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<Model
     {
         typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
         DummyModelTypeHandler<FieldType>::readJSON(jsonObject[Type::FIELD_NAMES[I]], std::get<I>(value));
-        writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
+        readFieldsFromJson<I + 1, Tp ...>(value, jsonObject);
     }
 
 };
@@ -630,16 +638,14 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::v
 {
     static void readJSON(const QJsonValue &json, Type &value)
     {
-        int i = -1;
-        readJSONSimple(json, i);
-        value = static_cast<Type>(i);
+        QString s;
+        readJSONSimple(json, s);
+        assignFromString(s, value);
     }
 
     static void writeJSON(QJsonValue &json, const Type &value)
     {
-        int i = static_cast<int>(value);
-        json = i;
-        // TODO : write string representation
+        json = toString(value);
     }
 
 };
@@ -664,7 +670,7 @@ protected:
 
     Ui_DummyModelPanel *ui = nullptr;
 
-    QWidget *m_window;
+    QWidget *m_window = nullptr;
     bool m_autoSaveEnabled = true;
 
     bool m_oddWidget = true;
@@ -855,18 +861,23 @@ public:
     }
 
     template<typename ListElementType>
-    void writeJSONProperty(QJsonObject &json, const ListProperty<ListElementType> &property,
-            const char *propertyName) const
+    QJsonArray toJsonArray(const QList<ListElementType> &list) const
     {
         QJsonArray array;
-
-        for (auto &propertyElement : property.value()) {
+        for (auto &propertyElement : list) {
             QJsonValue jsonValue;
             DummyModelTypeHandler<ListElementType>::writeJSON(jsonValue, propertyElement);
             array.append(jsonValue);
         }
+        return array;
+    }
 
-        json[propertyName] = array;
+
+    template<typename ListElementType>
+    void writeJSONProperty(QJsonObject &json, const ListProperty<ListElementType> &property,
+            const char *propertyName) const
+    {
+        json[propertyName] = toJsonArray(property.value());
     }
 
 
@@ -874,12 +885,7 @@ public:
     void writeJSONProperty(QJsonObject &json, const ModelProperty<ListElementType> &property,
             const char *propertyName) const
     {
-        QJsonArray array;
-
-        Q_ASSERT(false);
-        // TODO
-
-
+        json[propertyName] = toJsonArray(property.asList());
     }
 
     template<typename ElementType>
@@ -891,19 +897,27 @@ public:
     }
 
     template<typename ListElementType>
+    QList<ListElementType> readJSONArray(const QJsonValue &jsonValue) const {
+    	QList<ListElementType> elements;
+
+    	Q_ASSERT(jsonValue.isArray());
+		auto jsonArray = jsonValue.toArray();
+		auto size = jsonArray.size();
+		for (int i = 0; i < size; i++) {
+			ListElementType e;
+			DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
+			elements.append(e);
+		}
+
+        return elements;
+    }
+
+    template<typename ListElementType>
     void readJSONProperty(const QJsonObject &json, ListProperty<ListElementType> &property, const char *propertyName) const
     {
-        if (json[propertyName].isArray()) {
-            QList<ListElementType> elements;
-            auto jsonArray = json[propertyName].toArray();
-            auto size = jsonArray.size();
-
-            for (int i = 0; i < size; i++) {
-                ListElementType e;
-                DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
-                elements.append(e);
-            }
-
+    	auto jsonValue = json[propertyName];
+        if (jsonValue.isArray()) {
+            auto elements = readJSONArray<ListElementType>(jsonValue);
             property.setValue(elements);
         } else {
             qWarning() << "Expected array in property " << propertyName;
@@ -913,8 +927,13 @@ public:
     template<typename ListElementType>
     void readJSONProperty(const QJsonObject &json, ModelProperty<ListElementType> &property, const char *propertyName) const
     {
-        Q_ASSERT(false);
-        // TODO
+    	auto jsonValue = json[propertyName];
+        if (jsonValue.isArray()) {
+            auto elements = readJSONArray<ListElementType>(jsonValue);
+            property.setElements(elements);
+        } else {
+            qWarning() << "Expected array in property " << propertyName;
+        }
     }
 
 
@@ -972,15 +991,34 @@ public:
     template<typename ListElementType>
     void initWidget(ModelProperty<ListElementType> &property, const QString &propertyName)
     {
-        Q_ASSERT(false);
-        // TODO
+        auto widget = new ListPropertyWidget<ListElementType>(propertyName);
+
+        typedef typename DummyUIDesc<ListElementType>::PanelType ElementPanelType;
+        auto widgetForNewElement = new ElementPanelType("New");
+        widgetForNewElement->init();
+        widget->setValueWidget(widgetForNewElement);
+
+        QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
+                    auto v = property.asList();
+                    ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value()); // ensure structs are cloned to get a new ID
+                    v.append(clone);
+                    property.setElements(v);
+                });
+
+        addWidget(*widget);
+
+        connect(property.owner(), property.signal(), this, [this]() {
+                    if (m_autoSaveEnabled) {
+                        saveJSONSnapshot();
+                    }
+                });
+
     }
 
 
     template<typename ListElementType>
     void initWidget(ListProperty<ListElementType> &property, const QString &propertyName)
     {
-
         auto widget = new ListPropertyWidget<ListElementType>(propertyName);
 
         typedef typename DummyUIDesc<ListElementType>::PanelType ElementPanelType;

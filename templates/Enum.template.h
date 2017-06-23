@@ -61,6 +61,17 @@ template <> inline QString toString(const {{enum|fullyQualifiedCppName}}& v) {
     return s;
 }
 
+inline void assignFromString(const QString &s, {{enum|fullyQualifiedCppName}}& v)
+{
+    {% for member in enum.members %}
+	if (s == "{{member}}")
+		v = {{enum|fullyQualifiedCppName}}::{{member}};
+    else
+    {% endfor %}
+	qFatal("No enum value matching string");
+}
+
+
 inline QTextStream &operator <<(QTextStream &outStream, const {{enum|fullyQualifiedCppName}}& f) {
     outStream << toString(f);
     return outStream;
