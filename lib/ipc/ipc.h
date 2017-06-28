@@ -154,7 +154,7 @@ struct StreamWriteFunction
     IPCMessage &m_msg;
 
     template<typename T>
-    void operator()(T && t)
+    void operator()(T &&t)
     {
         m_msg << t;
     }
@@ -309,8 +309,7 @@ template<typename Type> QString generateDBusSignature() {
 }
 */
 
-enum class IPCHandlingResult
-{
+enum class IPCHandlingResult {
     OK,
     INVALID
 };
@@ -614,16 +613,16 @@ public:
                 qWarning() << "Registering Proxy";
                 auto successPropertyChangeSignal =
                         bus().connect(m_serviceName, m_objectPath, m_interfaceName,
-                        IPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME,
-                        this, SLOT(onPropertiesChanged(
-                                const QDBusMessage &)));
+                                IPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME,
+                                this, SLOT(onPropertiesChanged(
+                                    const QDBusMessage&)));
                 assert(successPropertyChangeSignal);
 
                 auto successSignalTriggeredSignal =
                         bus().connect(m_serviceName, m_objectPath, m_interfaceName,
-                        IPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME,
-                        this, SLOT(onSignalTriggered(
-                                const QDBusMessage &)));
+                                IPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME,
+                                this, SLOT(onSignalTriggered(
+                                    const QDBusMessage&)));
                 assert(successSignalTriggeredSignal);
 
                 requestPropertyValues();

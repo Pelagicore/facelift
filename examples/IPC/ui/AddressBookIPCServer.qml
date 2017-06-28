@@ -28,7 +28,6 @@ Item {
 
     // This object is used to register our model object on the bus
     AddressBookIPCAdapter {
-//        objectPath: "/abook/viewmodel"
         service: viewModel
     }
 

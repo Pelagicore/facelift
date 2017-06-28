@@ -88,7 +88,7 @@ public:
             finishInit();
         }
 
-		void writeJsonValues(QJsonObject& jsonObject) const override {
+		void savePropertyValues(QJsonObject& jsonObject) const override {
 			Q_UNUSED(jsonObject);
 			{% for property in interface.properties %}
 
@@ -100,7 +100,7 @@ public:
 			{% endfor %}
 		}
 
-		void loadJsonValues(const QJsonObject& jsonObject) override {
+		void loadPropertyValues(const QJsonObject& jsonObject) override {
 			Q_UNUSED(jsonObject);
 			{% for property in interface.properties %}
 			{% if property.type.is_interface -%}

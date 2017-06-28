@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QtQml>
+#include "ipc.h"
 
 {% for interface in module.interfaces %}
 #include "{{interface|fullyQualifiedPath}}IPC.h"

@@ -29,8 +29,9 @@ public:
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
     virtual QObject * provider() {
+    	Q_ASSERT(m_provider != nullptr);
         qWarning() << "Accessing private provider implementation object";
-        return nullptr;
+        return m_provider;
     }
 
     Q_PROPERTY(QString implementationID READ implementationID CONSTANT)
@@ -42,18 +43,26 @@ public:
     /**
      *
      */
-    template<typename FrontendType, typename InterfaceType>
-    void synchronizeInterfaceProperty(QPointer<FrontendType> &p, InterfaceType *i)
+    template<typename QMLFrontendType, typename InterfaceType>
+    void synchronizeInterfaceProperty(QPointer<QMLFrontendType> &p, InterfaceType *i)
     {
         if (p.isNull() || (p->m_provider.data() != i)) {
             if (i != nullptr) {
-                p = new FrontendType(i);
+                p = new QMLFrontendType(i);
                 p->init(*i);
+                p->setProvider(i);
             } else {
                 p = nullptr;
             }
         }
     }
+
+    void setProvider(QObject* provider) {
+    	m_provider = provider;
+    }
+
+private:
+    QObject *m_provider = nullptr;
 
 };
 
@@ -67,12 +76,7 @@ public:
         QMLType(parent)
     {
         this->init(m_provider);
-    }
-
-    QObject *provider()
-    {
-        qWarning() << "Accessing private provider implementation object";
-        return m_provider.impl();
+        this->setProvider(&m_provider);
     }
 
     virtual const QString &implementationID()
@@ -86,7 +90,7 @@ public:
 
 template<typename ProviderType>
 void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion =
-            ProviderType::VERSION_MAJOR,
+        ProviderType::VERSION_MAJOR,
         int minorVersion = ProviderType::VERSION_MINOR)
 {
     ProviderType::registerTypes(uri);
@@ -204,6 +208,6 @@ public:
     }
 
 private:
-    ElementGetterFunction m_elementGetter;
+    ElementGetterFunction m_elementGetter = nullptr;
 
 };

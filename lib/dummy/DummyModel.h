@@ -37,21 +37,23 @@
 
 #include <tuple>
 
+#include <QFileSystemWatcher>
+
 namespace detail {
 template<typename Model, typename F, typename Tuple, bool Done, int Total, int ... N>
 struct call_impl
 {
-    static void call_method(Model *obj, F f, Tuple && t)
+    static void call_method(Model *obj, F f, Tuple &&t)
     {
         call_impl<Model, F, Tuple, Total == 1 + sizeof ... (N), Total, N ..., sizeof ... (N)>::call_method(obj, f,
-                    std::forward<Tuple>(t));
+                std::forward<Tuple>(t));
     }
 };
 
 template<typename Model, typename F, typename Tuple, int Total, int ... N>
 struct call_impl<Model, F, Tuple, true, Total, N ...>
 {
-    static void call_method(Model *obj, F f, Tuple && t)
+    static void call_method(Model *obj, F f, Tuple &&t)
     {
         (obj->*f)(std::get<N>(std::forward<Tuple>(t)) ...);
     }
@@ -60,11 +62,11 @@ struct call_impl<Model, F, Tuple, true, Total, N ...>
 
 // user invokes this
 template<typename Model, typename F, typename Tuple>
-void call_method(Model *obj, F f, Tuple && t)
+void call_method(Model *obj, F f, Tuple &&t)
 {
     typedef typename std::decay<Tuple>::type ttype;
     detail::call_impl<Model, F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call_method(
-            obj, f, std::forward<Tuple>(t));
+        obj, f, std::forward<Tuple>(t));
 }
 
 
@@ -79,7 +81,7 @@ inline void readJSONSimple(const QJsonValue &json, Type &value)
 template<typename Type>
 inline Type fromString(const QString &s)
 {
-	Q_UNUSED(s);
+    Q_UNUSED(s);
     Q_ASSERT(false);
     return {};
 }
@@ -195,8 +197,8 @@ public:
         }
 
         QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
-                    m_listener();
-                });
+            m_listener();
+        });
 
     }
 
@@ -225,8 +227,8 @@ public:
     {
         widget->setChecked(initialValue);
         QObject::connect(widget, &QCheckBox::stateChanged, this, [this]() {
-                    m_listener();
-                });
+            m_listener();
+        });
     }
 
     QCheckBox *widget = nullptr;
@@ -254,8 +256,8 @@ public:
     {
         widget->setValue(initialValue);
         QObject::connect(widget, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this]() {
-                    m_listener();
-                });
+            m_listener();
+        });
     }
 
     QSpinBox *widget = nullptr;
@@ -283,8 +285,8 @@ public:
     {
         widget->setText(initialValue);
         QObject::connect(widget, &QTextEdit::textChanged, [this]() {
-                    m_listener();
-                });
+            m_listener();
+        });
     }
 
     QTextEdit *widget = nullptr;
@@ -442,11 +444,11 @@ public:
 
         widget->init(v);
         widget->setListener([this, widget, &v]() {
-                    v = widget->value();
-                    if (m_listener) {
-                        m_listener();
-                    }
-                });
+            v = widget->value();
+            if (m_listener) {
+                m_listener();
+            }
+        });
 
         if (widget != nullptr) {
             m_layout->addWidget(widget);
@@ -533,10 +535,10 @@ inline QWidget *createWidget(ListProperty<ListElementType> &t, const QString &pr
     auto widget = new ListPropertyWidget<ListElementType>(propertyName);
 
     QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&t]() {
-                typename ListElementType::FieldTupleTypes values;
-                random_tuple(values);
-                t.addElement(ListElementType(values));
-            });
+        typename ListElementType::FieldTupleTypes values;
+        random_tuple(values);
+        t.addElement(ListElementType(values));
+    });
 
     return widget;
 }
@@ -655,8 +657,9 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::v
 class DummyModelBase :
     public QObject
 {
-
     Q_OBJECT
+
+    static constexpr const char *AUTOSAVE_JSON_FIELD = "autosave";
 
 protected:
     DummyModelBase(QObject *parent) :
@@ -666,8 +669,105 @@ protected:
 
     virtual ~DummyModelBase();
 
-    void initUi();
+    void init(const QString &interfaceName);
 
+    QString getModelPersistenceFolder() const
+    {
+        auto path = QDir::currentPath() + QStringLiteral("/models/");
+        return path;
+    }
+
+    QString getJSONSnapshotFilePath() const
+    {
+        QString path = getModelPersistenceFolder() + m_interfaceName + ".snapshot";
+        return path;
+    }
+
+    QString getSettingsFilePath() const
+    {
+        QString path = getModelPersistenceFolder() + m_interfaceName + ".settings";
+        return path;
+    }
+
+    QJsonDocument loadJSONFile(const QString &filePath, bool &success)
+    {
+        QFile jsonFile(filePath);
+        success = jsonFile.open(QFile::ReadOnly);
+        if (success) {
+            QJsonDocument jsonDoc = QJsonDocument().fromJson(jsonFile.readAll());
+            qDebug() << "Loaded JSON file " << jsonFile.fileName();
+            return jsonDoc;
+        } else {
+            qWarning() << "Can't load JSON file " << jsonFile.fileName();
+        }
+
+        return QJsonDocument();
+    }
+
+    void saveSettings() const
+    {
+        QJsonObject settings;
+        settings[AUTOSAVE_JSON_FIELD] = m_autoSaveEnabled;
+        writeToFile(settings, getSettingsFilePath());
+    }
+
+    void writeToFile(const QJsonObject &jsonObject, const QString &filePath) const
+    {
+        QJsonDocument doc(jsonObject);
+        QFile jsonFile(filePath);
+        QDir folder = QFileInfo(filePath).absoluteDir();
+        if (!folder.mkpath(folder.path())) {
+            qWarning() << "Can't create folder " << folder;
+        }
+
+        auto success = jsonFile.open(QFile::WriteOnly);
+        if (success) {
+            jsonFile.write(doc.toJson());
+            qDebug() << "JSON file written to " << jsonFile.fileName() << " : " << doc.toJson();
+        } else {
+            qWarning() << "Can't save JSON file " << jsonFile.fileName();
+        }
+    }
+
+    virtual void saveJSONSnapshot() const = 0;
+
+    virtual void loadJSONSnapshot() = 0;
+
+    void addWidget(PropertyWidget &widget)
+    {
+        QPalette pal;
+        m_oddWidget = !m_oddWidget;
+        pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
+        widget.setPalette(pal);
+        ui->controlsLayout->addWidget(&widget);
+        m_widgets.append(&widget);
+    }
+
+    void addPropertyWidget(PropertyBase &property, PropertyWidget &widget)
+    {
+    	qDebug() << "Added property widget" << property.name();
+        addWidget(widget);
+        // TODO : the connection fails for some reason
+        QObject::connect(property.owner(), property.signal(), this, &DummyModelBase::onPropertyValueChanged);
+        QObject::connect(property.owner(), property.signal(), [this] () {
+        	onPropertyValueChanged();
+        });
+    }
+
+    Q_SLOT void onPropertyValueChanged() {
+    	Q_ASSERT(false);
+        if (m_autoSaveEnabled) {
+             saveJSONSnapshot();
+         }
+    }
+
+    void appendLog(QString textToAppend)
+    {
+        QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
+        ui->logLabel->setPlainText(text);
+    }
+
+private:
     Ui_DummyModelPanel *ui = nullptr;
 
     QWidget *m_window = nullptr;
@@ -676,6 +776,10 @@ protected:
     bool m_oddWidget = true;
 
     QList<PropertyWidget *> m_widgets;
+
+    QFileSystemWatcher m_fileSystemWatcher;
+
+    QString m_interfaceName;
 
 };
 
@@ -698,9 +802,9 @@ public:
         return singleton;
     }
 
+
 private:
     Ui::DummyModelsMainWindow *ui;
-
 };
 
 
@@ -720,31 +824,7 @@ public:
 
     void init()
     {
-        initUi();
-        m_window->setWindowTitle(TypeName::INTERFACE_NAME);
-
-        loadSettings();
-        if (m_autoSaveEnabled) {
-            loadJSONSnapshot();
-        }
-
-        ui->autoSaveCheckBox->setChecked(m_autoSaveEnabled);
-
-        QObject::connect(ui->saveSnapshotButton, &QPushButton::clicked, [this]() {
-                    saveJSONSnapshot();
-                });
-        QObject::connect(ui->loadSnapshotButton, &QPushButton::clicked, [this]() {
-                    loadJSONSnapshot();
-                });
-        QObject::connect(ui->clearLogButton, &QPushButton::clicked, [this]() {
-                    ui->logLabel->setText("");
-                });
-
-        QObject::connect(ui->autoSaveCheckBox, &QCheckBox::stateChanged, [this]() {
-                    m_autoSaveEnabled = ui->autoSaveCheckBox->isChecked();
-                    saveSettings();
-                });
-
+        DummyModelBase::init(TypeName::INTERFACE_NAME);
     }
 
     void finishInit()
@@ -752,104 +832,25 @@ public:
         DummyModelControlWindow::instance().addModel(*this);
     }
 
-    void addWidget(PropertyWidget &widget)
-    {
-        QPalette pal;
-        m_oddWidget = !m_oddWidget;
-        pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
-        widget.setPalette(pal);
-        ui->controlsLayout->addWidget(&widget);
-        m_widgets.append(&widget);
-    }
 
-    QString getModelPersistenceFolder() const
-    {
-        auto path = QDir::currentPath() + QStringLiteral("/models/");
-        return path;
-    }
+    virtual void savePropertyValues(QJsonObject &jsonObject) const = 0;
 
-    QString getJSONSnapshotFilePath() const
-    {
-        QString path = getModelPersistenceFolder() + TypeName::INTERFACE_NAME + ".snapshot";
-        return path;
-    }
+    virtual void loadPropertyValues(const QJsonObject &jsonObject) = 0;
 
-    QString getSettingsFilePath() const
-    {
-        QString path = getModelPersistenceFolder() + TypeName::INTERFACE_NAME + ".settings";
-        return path;
-    }
-
-    virtual void writeJsonValues(QJsonObject &jsonObject) const = 0;
-
-    virtual void loadJsonValues(const QJsonObject &jsonObject) = 0;
-
-    void writeToFile(const QJsonObject &jsonObject, const QString &filePath) const
-    {
-        QJsonDocument doc(jsonObject);
-        QFile jsonFile(filePath);
-        QDir folder = QFileInfo(filePath).absoluteDir();
-        if (!folder.mkpath(folder.path())) {
-            qWarning() << "Can't create folder " << folder;
-        }
-
-        auto success = jsonFile.open(QFile::WriteOnly);
-        if (success) {
-            jsonFile.write(doc.toJson());
-            qDebug() << "JSON snapshot written to " << jsonFile.fileName() << " : " << doc.toJson();
-        } else {
-            qWarning() << "Can't save JSON snapshot to file " << jsonFile.fileName();
-        }
-    }
-
-    void saveJSONSnapshot() const
+    void saveJSONSnapshot() const override
     {
         QJsonObject jsonObject;
-        writeJsonValues(jsonObject);
+        savePropertyValues(jsonObject);
         writeToFile(jsonObject, getJSONSnapshotFilePath());
     }
 
-    void loadJSONSnapshot()
+    void loadJSONSnapshot() override
     {
         bool success;
         auto jsonDoc = loadJSONFile(getJSONSnapshotFilePath(), success);
         if (success) {
-            loadJsonValues(jsonDoc.object());
+            loadPropertyValues(jsonDoc.object());
         }
-    }
-
-    QJsonDocument loadJSONFile(const QString &filePath, bool &success)
-    {
-        QFile jsonFile(filePath);
-        success = jsonFile.open(QFile::ReadOnly);
-        if (success) {
-            QJsonDocument jsonDoc = QJsonDocument().fromJson(jsonFile.readAll());
-            qDebug() << "Loaded JSON file " << jsonFile.fileName();
-            return jsonDoc;
-        } else {
-            qWarning() << "Can't load JSON snapshot to file " << jsonFile.fileName();
-        }
-
-        return QJsonDocument();
-    }
-
-    static constexpr const char *AUTOSAVE_JSON_FIELD = "autosave";
-
-    void loadSettings()
-    {
-        bool success;
-        auto settingsDoc = loadJSONFile(getSettingsFilePath(), success);
-        if (success) {
-            auto settingsObject = settingsDoc.object();
-            m_autoSaveEnabled = settingsObject[AUTOSAVE_JSON_FIELD].toBool();
-        }
-    }
-
-    void saveSettings() const
-    {
-        QJsonObject settings;
-        settings[AUTOSAVE_JSON_FIELD] = m_autoSaveEnabled;
-        writeToFile(settings, getSettingsFilePath());
     }
 
     template<typename ElementType>
@@ -897,17 +898,18 @@ public:
     }
 
     template<typename ListElementType>
-    QList<ListElementType> readJSONArray(const QJsonValue &jsonValue) const {
-    	QList<ListElementType> elements;
+    QList<ListElementType> readJSONArray(const QJsonValue &jsonValue) const
+    {
+        QList<ListElementType> elements;
 
-    	Q_ASSERT(jsonValue.isArray());
-		auto jsonArray = jsonValue.toArray();
-		auto size = jsonArray.size();
-		for (int i = 0; i < size; i++) {
-			ListElementType e;
-			DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
-			elements.append(e);
-		}
+        Q_ASSERT(jsonValue.isArray());
+        auto jsonArray = jsonValue.toArray();
+        auto size = jsonArray.size();
+        for (int i = 0; i < size; i++) {
+            ListElementType e;
+            DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
+            elements.append(e);
+        }
 
         return elements;
     }
@@ -915,7 +917,7 @@ public:
     template<typename ListElementType>
     void readJSONProperty(const QJsonObject &json, ListProperty<ListElementType> &property, const char *propertyName) const
     {
-    	auto jsonValue = json[propertyName];
+        auto jsonValue = json[propertyName];
         if (jsonValue.isArray()) {
             auto elements = readJSONArray<ListElementType>(jsonValue);
             property.setValue(elements);
@@ -927,7 +929,7 @@ public:
     template<typename ListElementType>
     void readJSONProperty(const QJsonObject &json, ModelProperty<ListElementType> &property, const char *propertyName) const
     {
-    	auto jsonValue = json[propertyName];
+        auto jsonValue = json[propertyName];
         if (jsonValue.isArray()) {
             auto elements = readJSONArray<ListElementType>(jsonValue);
             property.setElements(elements);
@@ -957,9 +959,9 @@ public:
         widget->addWidget(triggerButton);
 
         QObject::connect(triggerButton, &QPushButton::clicked, [ = ]() {
-                    // Trigger signal using the parameters of the structure
-                    call_method(obj, signalPointer, widget->value().asTuple());
-                });
+            // Trigger signal using the parameters of the structure
+            call_method(obj, signalPointer, widget->value().asTuple());
+        });
 
         addWidget(*widget);
 
@@ -968,7 +970,6 @@ public:
     template<typename PropertyType>
     void initWidget(Property<PropertyType> &property, const QString &propertyName)
     {
-
         Q_UNUSED(property);
 
         typedef typename DummyUIDesc<PropertyType>::PanelType PanelType;
@@ -976,16 +977,10 @@ public:
 
         widget->init(property.value());
         widget->setListener([&property, widget]() {
-                    property = widget->value();
-                });
+            property = widget->value();
+        });
 
-        connect(property.owner(), property.signal(), this, [this]() {
-                    if (m_autoSaveEnabled) {
-                        saveJSONSnapshot();
-                    }
-                });
-
-        addWidget(*widget);
+        addPropertyWidget(property, *widget);
     }
 
     template<typename ListElementType>
@@ -999,20 +994,13 @@ public:
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
-                    auto v = property.asList();
-                    ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value()); // ensure structs are cloned to get a new ID
-                    v.append(clone);
-                    property.setElements(v);
-                });
+            auto v = property.asList();
+            ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
+            v.append(clone);
+            property.setElements(v);
+        });
 
-        addWidget(*widget);
-
-        connect(property.owner(), property.signal(), this, [this]() {
-                    if (m_autoSaveEnabled) {
-                        saveJSONSnapshot();
-                    }
-                });
-
+        addPropertyWidget(property, *widget);
     }
 
 
@@ -1027,20 +1015,13 @@ public:
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
-                    auto v = property.value();
-                    ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value()); // ensure structs are cloned to get a new ID
-                    v.append(clone);
-                    property.setValue(v);
-                });
+            auto v = property.value();
+            ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
+            v.append(clone);
+            property.setValue(v);
+        });
 
-        addWidget(*widget);
-
-        connect(property.owner(), property.signal(), this, [this]() {
-                    if (m_autoSaveEnabled) {
-                        saveJSONSnapshot();
-                    }
-                });
-
+        addPropertyWidget(property, *widget);
     }
 
     void generateToString(QTextStream &message)
@@ -1055,7 +1036,6 @@ public:
         generateToString(message, parameters ...);
     }
 
-
     template<typename ... ParameterTypes>
     void logMethodCall(const QString methodName, const ParameterTypes & ... parameters)
     {
@@ -1064,12 +1044,6 @@ public:
         generateToString(s, parameters ...);
 
         appendLog(methodName + " called with args : " + argString);
-    }
-
-    void appendLog(QString textToAppend)
-    {
-        QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
-        ui->logLabel->setPlainText(text);
     }
 
     template<typename ParameterType>

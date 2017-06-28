@@ -277,6 +277,7 @@ public:
 
     QObject *impl()
     {
+    	Q_ASSERT(this != nullptr);
         return this;
     }
 
@@ -465,7 +466,7 @@ public:
 
     const PropertyType &value() const
     {
-        auto v = (object->*getter)();
+        const auto& v = (object->*getter)();
         return v;
     }
 

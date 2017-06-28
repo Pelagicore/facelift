@@ -14,7 +14,7 @@ fi
 
 if [ "$UNCRUSTIFY_CONFIG_FILE" = "" ];
 then
-  UNCRUSTIFY_CONFIG_FILE=`dirname $0`/../uncrustify.cfg
+  UNCRUSTIFY_CONFIG_FILE=`dirname $0`/uncrustify.cfg
 fi
 
 echo Formatting with Uncrustify configuration file : $UNCRUSTIFY_CONFIG_FILE

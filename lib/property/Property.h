@@ -49,9 +49,9 @@ public:
                 m_notificationTimerEnabled = true;
 
                 QTimer::singleShot(0, m_ownerObject, [this] () {
-                            doTriggerChangeSignal();
-                            m_notificationTimerEnabled = false;
-                        });
+                    doTriggerChangeSignal();
+                    m_notificationTimerEnabled = false;
+                });
 
             }
         } else {
@@ -132,20 +132,14 @@ public:
     {
     }
 
-    /*
-        template<typename Class, typename PropertyType>
-        Property &bind(const PropertyInterface<Class, PropertyType> &property)
-        {
-            breakBinding();
-            m_getterFunction = [property] () {
-                return property.value();
-            };
-            addDependency(property);
-            reevaluate();
-
-            return *this;
-        }
-    */
+	template<typename Class, typename PropertyType>
+	Property &bind(const PropertyInterface<Class, PropertyType> &property)
+	{
+		this->bind([property] () {
+			return property.value();
+		}).connect(property.object, property.signal);
+		return *this;
+	}
 
     /**
      * Add the given property to the properties which "this" property is bound to, which means that the value of "this" property will
@@ -166,8 +160,8 @@ public:
     Property &connect(SourceType *source, void (SourceType::*changeSignal)(Args ...))
     {
         m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
-                        reevaluate();
-                    }));
+            reevaluate();
+        }));
         return *this;
     }
 
@@ -349,10 +343,11 @@ public:
 
     ElementType elementAt(int index) const
     {
-    	if (m_elementGetter != nullptr)
+        if (m_elementGetter != nullptr) {
             return m_elementGetter(index);
-    	else
-    		return m_elements[index];
+        } else {
+            return m_elements[index];
+        }
     }
 
     void setGetter(ElementGetter getter)
@@ -376,10 +371,11 @@ public:
 
     size_t size() const
     {
-    	if (m_elementGetter != nullptr)
-    		return m_size;
-    	else
-    		return m_elements.size();
+        if (m_elementGetter != nullptr) {
+            return m_size;
+        } else {
+            return m_elements.size();
+        }
     }
 
     bool isDirty() const override
@@ -392,19 +388,21 @@ public:
         m_modified = false;
     }
 
-    void setElements(const QList<ElementType>& elements) {
-    	m_elements = elements;
-    	notifyDataChanged();
+    void setElements(const QList<ElementType> &elements)
+    {
+        m_elements = elements;
+        notifyDataChanged();
     }
 
-     QList<ElementType> asList() const {
-    	QList<ElementType> list;
-    	auto elementCount = size();
-for (size_t i = 0 ; i<elementCount;i++){
-	list.append(elementAt(i));
+    QList<ElementType> asList() const
+    {
+        QList<ElementType> list;
+        auto elementCount = size();
+        for (size_t i = 0; i < elementCount; i++) {
+            list.append(elementAt(i));
 
-}
-return list;
+        }
+        return list;
     }
 
 private:

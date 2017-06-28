@@ -21,9 +21,9 @@ Item {
     	anchors.fill: parent
     	viewModel: viewModel
     }
-    
+
     AddressBookIPCProxy {
          id: viewModel
     }
-
+    
 }

@@ -21,14 +21,14 @@ void mainClient(int &argc, char * *argv)
 
     QTimer timer;
     QObject::connect(&timer, &QTimer::timeout, [&] () {
-                qWarning() << "boolProperty" << proxy.boolProperty();
-                proxy.method1();
-            });
+        qWarning() << "boolProperty" << proxy.boolProperty();
+        proxy.method1();
+    });
     timer.start(1000);
 
     QObject::connect(&proxy, &TestInterface::boolPropertyChanged, [&] () {
-                qWarning() << "boolProperty changed " << proxy.boolProperty();
-            });
+        qWarning() << "boolProperty changed " << proxy.boolProperty();
+    });
 
     app.exec();
     qDebug() << "Client exited";
@@ -47,8 +47,8 @@ void mainServer(int &argc, char * *argv)
     QTimer timer;
     timer.setInterval(1000);
     QObject::connect(&timer, &QTimer::timeout, [&] () {
-                //      svc.onPropertyValueChanged();
-            });
+        //      svc.onPropertyValueChanged();
+    });
     timer.start();
 
     qDebug() << "Server running";
