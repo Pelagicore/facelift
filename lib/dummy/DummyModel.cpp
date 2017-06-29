@@ -51,7 +51,6 @@ void DummyModelBase::init(const QString &interfaceName)
         saveSettings();
     });
 
-
 }
 
 

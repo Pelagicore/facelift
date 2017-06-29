@@ -69,20 +69,28 @@ public:
 
     virtual size_t {{property.name}}Size() = 0;
 
+    typedef bool PropertyType_{{property}};   // TODO : use actual type
+
     {% elif property.type.is_list -%}
 
     virtual const {{property|returnType}}& {{property}}() const = 0;
+
+    typedef {{property|returnType}} PropertyType_{{property}};
 
     {% elif property.type.is_interface -%}
 
     // Service property
     virtual {{property|returnType}}* {{property}}() = 0;
 
+    typedef bool PropertyType_{{property}};   // TODO : use actual type
+
     {% else %}
 
     virtual const {{property|returnType}}& {{property}}() const = 0;
 
     PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed); };
+
+    typedef {{property|returnType}} PropertyType_{{property}};
 
     {% if (not property.readonly) %}
     virtual void set{{property}}(const {{property|returnType}}& newValue) = 0;

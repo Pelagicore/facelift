@@ -137,7 +137,7 @@ public:
     {
         this->bind([property] () {
             return property.value();
-        }).connect(property.object, property.signal);
+        }).addTrigger(property.object, property.signal);
         return *this;
     }
 
@@ -146,9 +146,9 @@ public:
      * be reevaluated whenever the signal is triggered
      */
     template<typename Class, typename PropertyType>
-    Property &connect(const PropertyInterface<Class, PropertyType> &property)
+    Property &addTrigger(const PropertyInterface<Class, PropertyType> &property)
     {
-        this->connect(property.object, property.signal);
+        this->addTrigger(property.object, property.signal);
         return *this;
     }
 
@@ -157,7 +157,7 @@ public:
      * be reevaluated whenever the signal is triggered
      */
     template<typename SourceType, typename ... Args>
-    Property &connect(SourceType *source, void (SourceType::*changeSignal)(Args ...))
+    Property &addTrigger(SourceType *source, void (SourceType::*changeSignal)(Args ...))
     {
         m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
             reevaluate();
@@ -228,6 +228,20 @@ public:
     Type &operator/=(const Type &right)
     {
         return operator=(value() / right);
+    }
+
+    Type operator++(int)
+    {
+        m_value++;
+        triggerValueChangedSignal();
+        return m_value;
+    }
+
+    Type operator--(int)
+    {
+        m_value--;
+        triggerValueChangedSignal();
+        return m_value;
     }
 
 protected:

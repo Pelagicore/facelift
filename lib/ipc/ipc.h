@@ -360,7 +360,9 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructu
     static void writeDBUSSignature(QTextStream &s)
     {
         typename Type::FieldTupleTypes t;          // TODO : get rid of that tuple
+        s << "(";
         for_each_in_tuple(t, AppendDBUSSignatureFunction(s));
+        s << ")";
     }
 
     static void write(IPCMessage &msg, const Type &param)
@@ -408,6 +410,12 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::
 template<typename ElementType>
 struct IPCTypeHandler<QList<ElementType> >
 {
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "a";
+        IPCTypeHandler<ElementType>::writeDBUSSignature(s);
+    }
+
     static void write(IPCMessage &msg, const QList<ElementType> &list)
     {
         int count = list.size();
@@ -572,13 +580,13 @@ public:
         qDebug() << "Handling incoming message: " << requestMessage.toString();
 
         if (dbusMsg.interface() == INTROSPECTABLE_INTERFACE_NAME) {
+            // TODO
         } else if (dbusMsg.interface() == PROPERTIES_INTERFACE_NAME) {
+            // TODO
         } else {
             if (requestMessage.member() == GET_PROPERTIES_MESSAGE_NAME) {
                 serializePropertyValues(replyMessage);
-            } else if (requestMessage.member() == "GetAll") {
             } else {
-
                 auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
                 if (handlingResult != IPCHandlingResult::OK) {
                     replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
@@ -611,14 +619,16 @@ public:
     template<typename Type>
     void addPropertySignature(QTextStream &s, const char *propertyName) const
     {
-        appendTypeSignature<Type>();
+        s << "<property name=\"" << propertyName << "\" type=\"";
+        std::tuple<Type> dummyTuple;
+        appendTypeSignature(s, dummyTuple);
+        s << "\" access=\"read\"/>";
     }
 
     template<typename ... Args>
     void addMethodSignature(QTextStream &s, const char *methodName,
             const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
-        Q_UNUSED(argNames);
         s << "<method name=\"" << methodName << "\">";
         std::tuple<Args ...> t;  // TODO : get rid of the tuple
         appendDBUSMethodArgumentsSignature(s, t, argNames);
@@ -629,7 +639,6 @@ public:
     void addSignalSignature(QTextStream &s, const char *methodName,
             const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
-        Q_UNUSED(argNames);
         s << "<signal name=\"" << methodName << "\">";
         std::tuple<Args ...> t;  // TODO : get rid of the tuple
         appendDBUSSignalArgumentsSignature(s, t, argNames);
@@ -685,17 +694,23 @@ public:
         init();
     }
 
-    virtual void introspect(QTextStream &s) const = 0;
+    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
 
     QString introspect(const QString &path) const
     {
-        QString a;
-        QTextStream s(&a);
-        s << "<interface name=\"" << m_interfaceName << "\">";
-        introspect(s);
-        s << "</interface>";
-        qDebug() << "Introspection data " << a;
-        return a;
+        QString introspectionData;
+
+        if (path == m_objectPath) {
+            QTextStream s(&introspectionData);
+            s << "<interface name=\"" << m_interfaceName << "\">";
+            appendDBUSIntrospectionData(s);
+            s << "</interface>";
+        } else {
+            qFatal("Unknown object path");
+        }
+
+        qDebug() << "Introspection data for " << path << ":" << introspectionData;
+        return introspectionData;
     }
 
     void init()

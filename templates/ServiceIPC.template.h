@@ -12,8 +12,6 @@
 
 {{module|namespaceOpen}}
 
-
-
 class {{interface}}IPCAdapter: public IPCServiceAdapter<{{interface|fullyQualifiedCppName}}> {
 
     Q_OBJECT
@@ -28,10 +26,12 @@ public:
         setObjectPath(ServiceType::IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void introspect(QTextStream &s) const override {
+    void appendDBUSIntrospectionData(QTextStream &s) const override {
         Q_UNUSED(s);
         {% for property in interface.properties %}
-//        addPropertySignature(m_service->{{property.name}}(), "{{property.name}}");
+        {
+            addPropertySignature<{{interface|fullyQualifiedCppName}}::PropertyType_{{property.name}}>(s, "{{property.name}}");
+        }
         {% endfor %}
 
         {% for operation in interface.operations %}
@@ -75,7 +75,6 @@ public:
         }
         {% endfor %}
 
-
     }
 
     IPCHandlingResult handleMethodCallMessage(IPCMessage& requestMessage, IPCMessage& replyMessage) override {
@@ -83,9 +82,8 @@ public:
         Q_UNUSED(replyMessage); // Since we do not always have return values
         Q_UNUSED(requestMessage);
 
-        if (false) {}
         {% for operation in interface.operations %}
-        else if (requestMessage.member() == "{{operation.name}}") {
+        if (requestMessage.member() == "{{operation.name}}") {
             {% for parameter in operation.parameters %}
             {{parameter|returnType}} param_{{parameter.name}};
             requestMessage >> param_{{parameter.name}};
@@ -98,9 +96,9 @@ public:
                         param_{{parameter.name}}
                     {% endfor %}
             );
-        }
+        } else
         {% endfor %}
-        else {
+        {
             return IPCHandlingResult::INVALID;
         }
         return IPCHandlingResult::OK;
@@ -181,7 +179,7 @@ public:
         qWarning() << "TODO : handle interface properties" ;
 
             {% else %}
-		std::decay<typeof(m_{{property.name}}.value())>::type {{property.name}};
+		PropertyType_{{property.name}} {{property.name}};
 		msg >> {{property.name}};
 		m_{{property.name}}.setValue({{property.name}});
 
@@ -242,6 +240,5 @@ public:
 private:
 
 };
-
 
 {{module|namespaceClose}}

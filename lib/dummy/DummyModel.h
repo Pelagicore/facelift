@@ -105,6 +105,16 @@ inline void readJSONSimple<bool>(const QJsonValue &json, bool &value)
 }
 
 template<>
+inline void readJSONSimple<float>(const QJsonValue &json, float &value)
+{
+    if (json.isDouble()) {
+        value = json.toDouble();
+    } else {
+        qFatal("Invalid data type");
+    }
+}
+
+template<>
 inline void readJSONSimple<QString>(const QJsonValue &json, QString &value)
 {
     if (json.isString()) {
@@ -244,6 +254,7 @@ public:
         PropertyWidget(propertyName, parent)
     {
         widget = new QSpinBox();
+        widget->setMaximum(5000);
         addWidget(widget);
     }
 
@@ -261,6 +272,36 @@ public:
     }
 
     QSpinBox *widget = nullptr;
+};
+
+class FloatPropertyWidget :
+    public PropertyWidget
+{
+
+public:
+    FloatPropertyWidget(const QString &propertyName, QWidget *parent = nullptr) :
+        PropertyWidget(propertyName, parent)
+    {
+        widget = new QDoubleSpinBox();
+        widget->setMaximum(5000);
+        widget->setSingleStep(0.1);
+        addWidget(widget);
+    }
+
+    float value() const
+    {
+        return widget->value();
+    }
+
+    void init(float initialValue = 0)
+    {
+        widget->setValue(initialValue);
+        QObject::connect(widget, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this]() {
+            m_listener();
+        });
+    }
+
+    QDoubleSpinBox *widget = nullptr;
 };
 
 
@@ -385,7 +426,7 @@ template<>
 struct DummyUIDesc<float> :
     public DummyUIDescBase
 {
-    typedef IntegerPropertyWidget PanelType;
+    typedef FloatPropertyWidget PanelType;
 };
 
 template<>

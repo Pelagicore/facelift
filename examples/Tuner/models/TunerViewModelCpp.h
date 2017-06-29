@@ -32,7 +32,7 @@ public:
             modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
             modelStation.setstationId(station.stationId);
             return modelStation;
-        }).connect(&m_service, &TunerService::onCurrentStationChanged);
+        }).addTrigger(&m_service, &TunerService::onCurrentStationChanged);
 
         m_stationList.bind([this] () {
             QList<Station> modelStationList;
@@ -50,12 +50,12 @@ public:
             }
             qDebug() << modelStationList;
             return modelStationList;
-        }).connect(&m_service, &TunerService::onStationListChanged).connect(&m_service,
+        }).addTrigger(&m_service, &TunerService::onStationListChanged).addTrigger(&m_service,
                 &TunerService::onCurrentStationChanged);
 
         m_enable_AF.bind([this] () {
             return m_service.rdsSettings().af;
-        }).connect(&m_service, &TunerService::onRDSettingsChanged);
+        }).addTrigger(&m_service, &TunerService::onRDSettingsChanged);
 
     }
 
