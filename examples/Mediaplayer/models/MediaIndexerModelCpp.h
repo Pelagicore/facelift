@@ -18,13 +18,13 @@ public:
     {
         m_files.setSize(m_service.files().size());
         m_files.setGetter([this](int index) {
-                    const auto &files = m_service.files();
-                    MediaFile file;
-                    file.settitle(files[index].title);
-                    file.setartist(files[index].artist);
-                    file.seturl(files[index].url);
-                    return file;
-                });
+            const auto &files = m_service.files();
+            MediaFile file;
+            file.settitle(files[index].title);
+            file.setartist(files[index].artist);
+            file.seturl(files[index].url);
+            return file;
+        });
 
         connect(&m_service, &MediaIndexerService::filesChanged, this, &MediaIndexerModelCpp::onFilesChanged);
     }

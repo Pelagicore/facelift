@@ -29,7 +29,7 @@ public:
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
     virtual QObject * provider() {
-    	Q_ASSERT(m_provider != nullptr);
+        Q_ASSERT(m_provider != nullptr);
         qWarning() << "Accessing private provider implementation object";
         return m_provider;
     }
@@ -57,8 +57,9 @@ public:
         }
     }
 
-    void setProvider(QObject* provider) {
-    	m_provider = provider;
+    void setProvider(QObject *provider)
+    {
+        m_provider = provider;
     }
 
 private:

@@ -18,6 +18,7 @@
 #include <QDBusVirtualObject>
 #include <QDBusAbstractInterface>
 #include <QDBusInterface>
+#include <QDBusServiceWatcher>
 
 #include "Model.h"
 
@@ -117,6 +118,11 @@ public:
         return m_message.signature();
     }
 
+    bool isReplyMessage() const
+    {
+        return (m_message.type() == QDBusMessage::ReplyMessage);
+    }
+
 private:
     QDBusMessage &msg()
     {
@@ -127,6 +133,8 @@ private:
 
     size_t m_readPos = 0;
 };
+
+
 
 struct StreamReadFunction
 {
@@ -160,6 +168,8 @@ struct StreamWriteFunction
     }
 };
 
+
+
 template<size_t I = 0, typename Func, typename ... Ts>
 typename std::enable_if<I == sizeof ... (Ts)>::type
 for_each_in_tuple(std::tuple<Ts ...> &, Func)
@@ -178,6 +188,10 @@ for_each_in_tuple(std::tuple<Ts ...> &tpl, Func func)
 template<typename Type, typename Enable = void>
 struct IPCTypeHandler
 {
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "i";
+    }
 
     static void write(IPCMessage &msg, const Type &v)
     {
@@ -191,9 +205,163 @@ struct IPCTypeHandler
 
 };
 
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if<I == sizeof ... (Ts)>::type
+appendTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
+{
+    Q_UNUSED(s);
+    Q_UNUSED(t);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if < I<sizeof ... (Ts)>::type
+appendTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
+{
+    typedef typeof (std::get<I>(t)) Type;
+    IPCTypeHandler<Type>::writeDBUSSignature(s);
+    appendTypeSignature<I + 1>(s, t);
+}
+
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if<I == sizeof ... (Ts)>::type
+appendDBUSMethodArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    Q_UNUSED(s);
+    Q_UNUSED(t);
+    Q_UNUSED(argNames);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if < I<sizeof ... (Ts)>::type
+appendDBUSMethodArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    typedef typeof (std::get<I>(t)) Type;
+    s << "<arg name=\"" << argNames[I] << "\" type=\"";
+    IPCTypeHandler<Type>::writeDBUSSignature(s);
+    s << "\" direction=\"in\"/>";
+    appendDBUSMethodArgumentsSignature<I + 1>(s, t, argNames);
+}
+
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if<I == sizeof ... (Ts)>::type
+appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    Q_UNUSED(s);
+    Q_UNUSED(t);
+    Q_UNUSED(argNames);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if < I<sizeof ... (Ts)>::type
+appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    typedef typeof (std::get<I>(t)) Type;
+    s << "<arg name=\"" << argNames[I] << "\" type=\"";
+    IPCTypeHandler<Type>::writeDBUSSignature(s);
+    s << "\"/>";
+    appendDBUSSignalArgumentsSignature<I + 1>(s, t, argNames);
+}
+
+
+struct AppendDBUSSignatureFunction
+{
+    AppendDBUSSignatureFunction(QTextStream &s) :
+        s(s)
+    {
+    }
+
+    QTextStream &s;
+
+    template<typename T>
+    void operator()(T &&t)
+    {
+        Q_UNUSED(t);
+        typedef typename std::decay<T>::type TupleType;
+        std::tuple<TupleType> dummyTuple;
+        appendTypeSignature(s, dummyTuple);
+    }
+};
+
+template<>
+struct IPCTypeHandler<float>
+{
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "d";
+    }
+
+    static void write(IPCMessage &msg, const float &v)
+    {
+        msg.writeSimple((double)v);
+    }
+
+    static void read(IPCMessage &msg, float &v)
+    {
+        double d;
+        msg.readNextParameter(d);
+        v = d;
+    }
+
+};
+
+
+template<>
+struct IPCTypeHandler<bool>
+{
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "b";
+    }
+
+    static void write(IPCMessage &msg, const bool &v)
+    {
+        msg.writeSimple(v);
+    }
+
+    static void read(IPCMessage &msg, bool &v)
+    {
+        msg.readNextParameter(v);
+    }
+
+};
+
+
+template<>
+struct IPCTypeHandler<QString>
+{
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "s";
+    }
+
+    static void write(IPCMessage &msg, const QString &v)
+    {
+        msg.writeSimple(v);
+    }
+
+    static void read(IPCMessage &msg, QString &v)
+    {
+        msg.readNextParameter(v);
+    }
+
+};
+
 template<typename Type>
 struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
 {
+
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        typename Type::FieldTupleTypes t;          // TODO : get rid of that tuple
+        for_each_in_tuple(t, AppendDBUSSignatureFunction(s));
+    }
 
     static void write(IPCMessage &msg, const Type &param)
     {
@@ -218,6 +386,10 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructu
 template<typename Type>
 struct IPCTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
 {
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "i";
+    }
 
     static void write(IPCMessage &msg, const Type &param)
     {
@@ -236,7 +408,6 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::
 template<typename ElementType>
 struct IPCTypeHandler<QList<ElementType> >
 {
-
     static void write(IPCMessage &msg, const QList<ElementType> &list)
     {
         int count = list.size();
@@ -277,15 +448,28 @@ IPCMessage &operator>>(IPCMessage &msg, Type &v)
 }
 
 
-template<typename Type>
-static QString getTypeSignature()
+
+/*
+template<typename First = void>
+void appendTypeSignature(QTextStream& s)
 {
-    IPCMessage msg;
+}
+
+
+template<typename First, typename ... Ts>
+typename std::enable_if<0 == sizeof ... (Ts)>::type appendTypeSignature(QTextStream& s)
+{
+
+        IPCMessage msg;
     Type t = {};
     msg << t;
     qDebug() << msg.toString();
     return msg.signature();
+
+//    func(std::get<I>(tpl));
+    appendTypeSignature<Ts ...>(s);
 }
+*/
 
 /*
 struct AppendSignatureFunction {
@@ -327,7 +511,8 @@ public:
     static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
     static constexpr const char *SIGNAL_TRIGGERED_SIGNAL_NAME = "SignalTriggered";
     static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "SetProperty";
-    static constexpr const char *INTROSPECT_MESSAGE_NAME = "org.freedesktop.DBus.Introspectable";
+    static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
+    static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
 
     Q_PROPERTY(QObject * service READ service WRITE setService)
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
@@ -386,10 +571,14 @@ public:
 
         qDebug() << "Handling incoming message: " << requestMessage.toString();
 
-        if (dbusMsg.interface() != INTROSPECT_MESSAGE_NAME) {
+        if (dbusMsg.interface() == INTROSPECTABLE_INTERFACE_NAME) {
+        } else if (dbusMsg.interface() == PROPERTIES_INTERFACE_NAME) {
+        } else {
             if (requestMessage.member() == GET_PROPERTIES_MESSAGE_NAME) {
                 serializePropertyValues(replyMessage);
+            } else if (requestMessage.member() == "GetAll") {
             } else {
+
                 auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
                 if (handlingResult != IPCHandlingResult::OK) {
                     replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
@@ -422,21 +611,29 @@ public:
     template<typename Type>
     void addPropertySignature(QTextStream &s, const char *propertyName) const
     {
-        qDebug();
-        s << "signature " << getTypeSignature<Type>() << " " << propertyName;
-        qDebug();
+        appendTypeSignature<Type>();
     }
 
     template<typename ... Args>
-    void addMethodSignature(QTextStream &s, const char *methodName) const
+    void addMethodSignature(QTextStream &s, const char *methodName,
+            const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
-
+        Q_UNUSED(argNames);
         s << "<method name=\"" << methodName << "\">";
-
-        qDebug() << "Signature " << getTypeSignature<int>();
-
+        std::tuple<Args ...> t;  // TODO : get rid of the tuple
+        appendDBUSMethodArgumentsSignature(s, t, argNames);
         s << "</method>";
-        qDebug();
+    }
+
+    template<typename ... Args>
+    void addSignalSignature(QTextStream &s, const char *methodName,
+            const std::array<const char *, sizeof ... (Args)> &argNames) const
+    {
+        Q_UNUSED(argNames);
+        s << "<signal name=\"" << methodName << "\">";
+        std::tuple<Args ...> t;  // TODO : get rid of the tuple
+        appendDBUSSignalArgumentsSignature(s, t, argNames);
+        s << "</signal>";
     }
 
     virtual void connectSignals() = 0;
@@ -494,11 +691,10 @@ public:
     {
         QString a;
         QTextStream s(&a);
-        qDebug() << "PPPPPP " << path;
-        s << "<interface name=\"" << "org.qtproject.QtDBus.MyObject" << "\">";
+        s << "<interface name=\"" << m_interfaceName << "\">";
         introspect(s);
         s << "</interface>";
-        qDebug() << " " << a;
+        qDebug() << "Introspection data " << a;
         return a;
     }
 
@@ -530,6 +726,10 @@ class IPCRequestHandler
 {
 
 public:
+    virtual ~IPCRequestHandler()
+    {
+    }
+
     virtual void deserializePropertyValues(IPCMessage &msg) = 0;
     virtual void deserializeSignal(IPCMessage &msg) = 0;
 
@@ -610,6 +810,10 @@ public:
         if (!m_alreadyInitialized && m_enabled) {
             if ((m_serviceName != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
+                m_busWatcher.addWatchedService(m_serviceName);
+
+                connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &IPCProxyBinder::onServiceAvailable);
+
                 qWarning() << "Registering Proxy";
                 auto successPropertyChangeSignal =
                         bus().connect(m_serviceName, m_objectPath, m_interfaceName,
@@ -632,6 +836,11 @@ public:
         }
     }
 
+    void onServiceAvailable()
+    {
+        requestPropertyValues();
+    }
+
     IPCProxyBinder(QObject *parent = nullptr) :
         QObject(parent), m_busConnection(QDBusConnection::sessionBus())
     {
@@ -642,7 +851,11 @@ public:
         IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName,
                 IPCServiceAdapterBase::GET_PROPERTIES_MESSAGE_NAME);
         auto replyMessage = msg.call(m_busConnection);
-        m_serviceObject->deserializePropertyValues(replyMessage);
+        if (replyMessage.isReplyMessage()) {
+            m_serviceObject->deserializePropertyValues(replyMessage);
+        } else {
+            qWarning() << "Service not yet available";
+        }
     }
 
     template<typename ... Args>
@@ -676,6 +889,7 @@ private:
 
     IPCRequestHandler *m_serviceObject = nullptr;
 
+    QDBusServiceWatcher m_busWatcher;
 };
 
 

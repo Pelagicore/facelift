@@ -51,8 +51,8 @@ public:
         m_timer.start(3000);
 
         m_isLoaded.bind([this] () {
-                    return !(m_timer.remainingTime() > 0);
-                }).connect(&m_timer, &QTimer::timeout);
+            return !(m_timer.remainingTime() > 0);
+        }).connect(&m_timer, &QTimer::timeout);
 
         m_subService = &m_subInterface;
     }

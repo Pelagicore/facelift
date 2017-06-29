@@ -16,6 +16,6 @@ class AddressBookModelPlugin :
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface")
 
-public :
-        void registerTypes(const char *uri) override;
+public:
+    void registerTypes(const char *uri) override;
 };

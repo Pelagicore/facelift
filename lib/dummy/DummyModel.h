@@ -745,20 +745,21 @@ protected:
 
     void addPropertyWidget(PropertyBase &property, PropertyWidget &widget)
     {
-    	qDebug() << "Added property widget" << property.name();
+        qDebug() << "Added property widget" << property.name();
         addWidget(widget);
         // TODO : the connection fails for some reason
         QObject::connect(property.owner(), property.signal(), this, &DummyModelBase::onPropertyValueChanged);
         QObject::connect(property.owner(), property.signal(), [this] () {
-        	onPropertyValueChanged();
+            onPropertyValueChanged();
         });
     }
 
-    Q_SLOT void onPropertyValueChanged() {
-    	Q_ASSERT(false);
+    Q_SLOT void onPropertyValueChanged()
+    {
+        Q_ASSERT(false);
         if (m_autoSaveEnabled) {
-             saveJSONSnapshot();
-         }
+            saveJSONSnapshot();
+        }
     }
 
     void appendLog(QString textToAppend)

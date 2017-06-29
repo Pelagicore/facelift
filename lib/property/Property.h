@@ -132,14 +132,14 @@ public:
     {
     }
 
-	template<typename Class, typename PropertyType>
-	Property &bind(const PropertyInterface<Class, PropertyType> &property)
-	{
-		this->bind([property] () {
-			return property.value();
-		}).connect(property.object, property.signal);
-		return *this;
-	}
+    template<typename Class, typename PropertyType>
+    Property &bind(const PropertyInterface<Class, PropertyType> &property)
+    {
+        this->bind([property] () {
+            return property.value();
+        }).connect(property.object, property.signal);
+        return *this;
+    }
 
     /**
      * Add the given property to the properties which "this" property is bound to, which means that the value of "this" property will

@@ -11,8 +11,7 @@ class MediaIndexerService :
     Q_OBJECT
 
 public:
-    enum class MediaType
-    {
+    enum class MediaType {
         Audio,
         Video
     };

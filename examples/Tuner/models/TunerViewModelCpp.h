@@ -17,45 +17,45 @@ public:
     {
         m_currentStation.bind([this] () {
 
-                    auto station = m_service.currentStation();
+            auto station = m_service.currentStation();
 
-                    // Update our station index
-                    for (int i = 0; i < m_stationList.value().size(); i++) {
-                        if (m_stationList.value()[i].stationId() == station.stationId) {
-                            m_currentStationIndex = i;
-                        }
-                    }
+            // Update our station index
+            for (int i = 0; i < m_stationList.value().size(); i++) {
+                if (m_stationList.value()[i].stationId() == station.stationId) {
+                    m_currentStationIndex = i;
+                }
+            }
 
-                    Station modelStation;
-                    modelStation.setfrequency(station.frequency);
-                    modelStation.setname(station.name);
-                    modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
-                    modelStation.setstationId(station.stationId);
-                    return modelStation;
-                }).connect(&m_service, &TunerService::onCurrentStationChanged);
+            Station modelStation;
+            modelStation.setfrequency(station.frequency);
+            modelStation.setname(station.name);
+            modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
+            modelStation.setstationId(station.stationId);
+            return modelStation;
+        }).connect(&m_service, &TunerService::onCurrentStationChanged);
 
         m_stationList.bind([this] () {
-                    QList<Station> modelStationList;
+            QList<Station> modelStationList;
 
-                    for (const auto &station: m_service.stationList()) {
-                        Station modelStation;
-                        qDebug() << station.name;
-                        qDebug() << station.stationId;
-                        modelStation.setname(station.name);
-                        modelStation.setstationId(station.stationId);
-                        modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
-                        modelStation.setisPlaying(m_service.currentStation().stationId == station.stationId);
-                        modelStationList.push_back(modelStation);
-                        qDebug() << modelStation;
-                    }
-                    qDebug() << modelStationList;
-                    return modelStationList;
-                }).connect(&m_service, &TunerService::onStationListChanged).connect(&m_service,
+            for (const auto &station: m_service.stationList()) {
+                Station modelStation;
+                qDebug() << station.name;
+                qDebug() << station.stationId;
+                modelStation.setname(station.name);
+                modelStation.setstationId(station.stationId);
+                modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
+                modelStation.setisPlaying(m_service.currentStation().stationId == station.stationId);
+                modelStationList.push_back(modelStation);
+                qDebug() << modelStation;
+            }
+            qDebug() << modelStationList;
+            return modelStationList;
+        }).connect(&m_service, &TunerService::onStationListChanged).connect(&m_service,
                 &TunerService::onCurrentStationChanged);
 
         m_enable_AF.bind([this] () {
-                    return m_service.rdsSettings().af;
-                }).connect(&m_service, &TunerService::onRDSettingsChanged);
+            return m_service.rdsSettings().af;
+        }).connect(&m_service, &TunerService::onRDSettingsChanged);
 
     }
 

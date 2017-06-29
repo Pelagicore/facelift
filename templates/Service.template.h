@@ -46,7 +46,7 @@ public:
 
     static constexpr const char* INTERFACE_NAME = "{{interface}}";
     static constexpr const char* IPC_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
-    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
+    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
 
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};

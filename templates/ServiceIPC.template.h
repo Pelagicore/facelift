@@ -35,6 +35,12 @@ public:
         {% endfor %}
 
         {% for operation in interface.operations %}
+        {
+    		std::array<const char*, {{ operation.parameters.__len__() }} > argumentNames = {
+    	            {% for parameter in operation.parameters %}
+    	                "{{parameter}}",
+    	            {% endfor %}
+    		};
 
             addMethodSignature<
             {% set comma = joiner(",") %}
@@ -42,15 +48,34 @@ public:
                 {{ comma() }}
                 {{parameter|returnType}}
             {% endfor %}
-            >(s, "{{operation.name}}"
-            {% for parameter in operation.parameters %}
-                ",{{parameter.name}}"
-
-            {% endfor %}
+            >(s, "{{operation.name}}", argumentNames
 
             );
-
+        }
         {% endfor %}
+
+        // signals
+        {% for signal in interface.signals %}
+        {
+		std::array<const char*, {{ signal.parameters.__len__() }} > argumentNames = {
+	            {% for parameter in signal.parameters %}
+	                "{{parameter}}",
+	            {% endfor %}
+		};
+
+        addSignalSignature<
+        {% set comma = joiner(",") %}
+        {% for parameter in signal.parameters %}
+            {{ comma() }}
+            {{parameter|returnType}}
+        {% endfor %}
+        >(s, "{{signal.name}}", argumentNames
+
+        );
+        }
+        {% endfor %}
+
+
     }
 
     IPCHandlingResult handleMethodCallMessage(IPCMessage& requestMessage, IPCMessage& replyMessage) override {
@@ -89,8 +114,8 @@ public:
         {% endfor %}
 
         // signals
-        {% for event in interface.signals %}
-        connect(m_service, &{{interface}}::{{event}}, this, &{{interface}}IPCAdapter::{{event}});
+        {% for signal in interface.signals %}
+        connect(m_service, &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
         {% endfor %}
 
     }
