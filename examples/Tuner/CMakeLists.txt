@@ -11,3 +11,4 @@ target_link_libraries(TunerModelPlugin TunerGenerated)
 target_include_directories(TunerModelPlugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Tuner)
 
 add_example_script(tuner ui/TunerApp.qml)
+add_example_script(tunerdummy ui/TunerAppWithDummy.qml)

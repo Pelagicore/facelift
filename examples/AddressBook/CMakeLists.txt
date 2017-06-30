@@ -11,3 +11,4 @@ target_link_libraries(AddressBookModelPlugin AddressBookGenerated)
 target_include_directories(AddressBookModelPlugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/AddressBook)
 
 add_example_script(addressbook ui/AddressBookApp.qml)
+add_example_script(addressbook-dummy ui/AddressBookDummyApp.qml)

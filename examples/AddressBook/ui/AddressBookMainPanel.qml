@@ -155,9 +155,9 @@ Item {
             }
 
             Button {
-                text: "Test"
+                text: "Private method"
                 onClicked: {
-                    viewModel.subService.doSomething();
+                    viewModel.provider.privateMethod();
                 }
             }
 

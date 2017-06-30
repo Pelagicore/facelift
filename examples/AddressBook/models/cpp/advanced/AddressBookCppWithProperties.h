@@ -24,10 +24,16 @@ class AddressBookCppWithProperties :
     Q_OBJECT
 
 public:
+    // This property is not defined as part of the public interface (IDL), but it can be accessed via the "provider" property
     Q_PROPERTY(QString privateProperty READ privateProperty CONSTANT)
     QString privateProperty() const
     {
         return "This property is a private property of the interface implementation, accessible via the \"provider\" property";
+    }
+
+    // This method is not defined as part of the public interface (IDL), but it can be called via the "provider" property
+    Q_INVOKABLE void privateMethod() {
+    	qDebug() << "privateMethod called !";
     }
 
     class SubInterfaceImpl :

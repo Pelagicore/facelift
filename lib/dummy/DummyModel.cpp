@@ -21,7 +21,13 @@ void DummyModelBase::init(const QString &interfaceName)
     m_window->resize(600, 800);
     m_window->show();
 
-    m_fileSystemWatcher.addPath(interfaceName);
+    enableFileWatch();
+
+    connect(&m_fileSystemWatcher, &QFileSystemWatcher::fileChanged, this,
+            [this] () {
+        loadJSONSnapshot();
+        enableFileWatch();
+    });
 
     bool success;
     auto settingsDoc = loadJSONFile(getSettingsFilePath(), success);

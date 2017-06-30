@@ -37,7 +37,7 @@ public:
     void init(const char *name, QObject *ownerObject, void (ServiceType::*changeSignal)())
     {
         m_ownerObject = ownerObject;
-        m_ownerSignal = (ChangeSignal) changeSignal;
+        m_ownerSignal = static_cast<ChangeSignal>(changeSignal);
         m_name = name;
     }
 
@@ -70,14 +70,14 @@ public:
         return m_ownerObject;
     }
 
-    ChangeSignal signal() const
-    {
-        return m_ownerSignal;
-    }
-
     const char *name() const
     {
         return m_name;
+    }
+
+    ChangeSignal signalPointer() const
+    {
+        return m_ownerSignal;
     }
 
 protected:
@@ -88,12 +88,12 @@ protected:
 private:
     void doTriggerChangeSignal()
     {
-        if (signal() != nullptr) {
+        if (signalPointer() != nullptr) {
             if (isDirty()) {
                 qDebug() << "Property" << name() << ": Triggering notification";
                 // Trigger the signal
                 clean();
-                (m_ownerObject->*signal())();
+                (m_ownerObject->*signalPointer())();
             }
         } else {
             qFatal("init() has not been called");
@@ -108,7 +108,6 @@ private:
     bool m_asynchronousNotification = true;
 
 };
-
 
 /**
  * This template helper class wraps a value and a "value changed" signal which should be triggered whenever the value is changed.
@@ -425,5 +424,22 @@ private:
     size_t m_size = 0;
 
     bool m_modified = false;
+
+};
+
+
+template<typename InterfaceType>
+struct PropertyConnector
+{
+
+    typedef void (InterfaceType::*ChangeSignal)();
+
+    template<typename Param1, typename Param2>
+    static QMetaObject::Connection connect(const PropertyBase &property, Param1 *context, const Param2 &p2)
+    {
+        auto signal = static_cast<ChangeSignal>(property.signalPointer());
+        auto source = static_cast<InterfaceType *>(property.owner());
+        return QObject::connect(source, signal, context, p2);
+    }
 
 };
