@@ -89,13 +89,18 @@ public:
             requestMessage >> param_{{parameter.name}};
             {% endfor %}
 
-            m_service->{{operation.name}}(
+        	{% if (operation.hasReturnValue) %} auto returnValue = {% endif %}
+
+             m_service->{{operation.name}}(
                     {% set comma = joiner(",") %}
                     {% for parameter in operation.parameters %}
                         {{ comma() }}
                         param_{{parameter.name}}
                     {% endfor %}
             );
+
+         	{% if (operation.hasReturnValue) %} replyMessage << returnValue; {% endif %}
+
         } else
         {% endfor %}
         {
@@ -219,11 +224,22 @@ public:
             {{parameter|returnType}} {{parameter.name}}
             {% endfor %}
     ) override {
+    	{% if (operation.hasReturnValue) %}
+    	{{operation|returnType}} returnValue;
+        sendMethodCallWithReturn("{{operation.name}}", returnValue
+                {% for parameter in operation.parameters %}
+                , {{parameter.name}}
+                {% endfor %}
+                );
+        return returnValue;
+        {% else %}
         sendMethodCall("{{operation.name}}"
                 {% for parameter in operation.parameters %}
                 , {{parameter.name}}
                 {% endfor %}
                 );
+
+        {% endif %}
     }
 
     {% endfor %}

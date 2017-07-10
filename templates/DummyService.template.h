@@ -40,6 +40,12 @@ public:
                  , {{parameter.name}}
                 {% endfor %}
         );
+
+    	{% if (operation.hasReturnValue) %}
+        {{operation|returnType}} returnValue = {};
+        return returnValue;
+        {% endif %}
+
     }
     {% endfor %}
 

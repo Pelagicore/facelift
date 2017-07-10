@@ -27,7 +27,7 @@ public:
     {{interface}}QMLImplementationFrontend();
 
     {% for operation in interface.operations %}
-    void {{operation.name}}(
+    {{operation|returnType}} {{operation.name}}(
             {% set comma = joiner(",") %}
             {% for parameter in operation.parameters %}
             {{ comma() }}
@@ -63,7 +63,7 @@ public:
 
     {% for operation in interface.operations %}
 
-    inline void {{operation.name}}(
+    inline {{operation|returnType}} {{operation.name}}(
         {% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}
         {{ comma() }}
@@ -205,7 +205,7 @@ inline QObject* {{interface}}QMLImplementationFrontend::impl() {
 }
 
 {% for operation in interface.operations %}
-inline void {{interface}}QMLImplementationFrontend::{{operation.name}}(
+inline {{operation|returnType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
     {% set comma = joiner(",") %}
     {% for parameter in operation.parameters %}
     {{ comma() }}

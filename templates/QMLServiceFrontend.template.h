@@ -145,7 +145,7 @@ public:
         {% endfor %}
     ) {
     	Q_ASSERT(m_provider);
-        m_provider->{{operation}}(
+        return m_provider->{{operation}}(
                 {% set comma = joiner(",") %}
                 {% for parameter in operation.parameters %}
                 {{ comma() }}

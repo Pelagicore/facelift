@@ -456,51 +456,6 @@ IPCMessage &operator>>(IPCMessage &msg, Type &v)
 }
 
 
-
-/*
-template<typename First = void>
-void appendTypeSignature(QTextStream& s)
-{
-}
-
-
-template<typename First, typename ... Ts>
-typename std::enable_if<0 == sizeof ... (Ts)>::type appendTypeSignature(QTextStream& s)
-{
-
-        IPCMessage msg;
-    Type t = {};
-    msg << t;
-    qDebug() << msg.toString();
-    return msg.signature();
-
-//    func(std::get<I>(tpl));
-    appendTypeSignature<Ts ...>(s);
-}
-*/
-
-/*
-struct AppendSignatureFunction {
-
-    AppendSignatureFunction(QString& signature) : m_signature(signature) {
-    }
-
-    template<typename T>
-    void operator ()(T& t) {
-        IPCTypeHandler<T>::appendSignature(m_signature);
-    }
-
-    QString& m_signature;
-};
-
-
-template<typename Type> QString generateDBusSignature() {
-    QString signature;
-//    IPCTypeHandler<Type>::appendSignature(signature);
-    return signature;
-}
-*/
-
 enum class IPCHandlingResult {
     OK,
     INVALID
@@ -879,7 +834,13 @@ public:
         IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, StreamWriteFunction(msg));
-        return msg.call(m_busConnection);
+        auto replyMessage = msg.call(m_busConnection);
+        if (replyMessage.isReplyMessage()) {
+        } else {
+            qWarning() << "Error message received";
+            Q_ASSERT(false);
+        }
+        return replyMessage;
     }
 
     QDBusConnection &bus()
@@ -922,9 +883,18 @@ public:
     }
 
     template<typename ... Args>
-    IPCMessage sendMethodCall(const char *methodName, const Args & ... args)
+    void sendMethodCall(const char *methodName, const Args & ... args)
     {
-        return m_ipcBinder.sendMethodCall(methodName, args ...);
+        auto msg = m_ipcBinder.sendMethodCall(methodName, args ...);
+    }
+
+    template<typename ReturnType, typename ... Args>
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
+    {
+        auto msg = m_ipcBinder.sendMethodCall(methodName, args ...);
+        if (msg.isReplyMessage()) {
+            IPCTypeHandler<ReturnType>::read(msg, returnValue);
+        }
     }
 
     IPCProxyBinder *ipc()
