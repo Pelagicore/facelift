@@ -1,3 +1,26 @@
+# Motivation
+
+This software has been created in order to help solving problems which are typically arising when developing complex UI software using the Qt/QML framework. This kind of system is typically designed in such a way that some C++ code exposes functionality to the QML engine. The typical challenges are the following:
+ - The complexity of the code written in QML/JS tends to increase, which results in both maintenance and performance issues.
+ - Exposing C++ interfaces to the QML engine requires writing large portions of boilerplate code, which typically results in inconsistencies in a project involving a large number of developers if this boilerplate code is written by hand.
+ - Interfaces exposed to the code written in QML/JS code are typically spread over a large number of C++ classes.
+ - Testing the code written in QML/JS code independently from the rest of the system is hard because of its dependency to the code written in C++.
+ - Some of the interfaces might need to be available via an IPC, which is the case in a multi-process UI design.
+
+# Requirements
+
+This is a list of requirements which have been taken into account when designing this component:
+ - Interfaces are defined using the QFace IDL
+ - Interfaces can be implemented in C++
+ - Interfaces can be implemented in QML/JS
+ - C++ interface implementations should be clean from any hack required by the interfacing to QML (no use of variants, qabstractitemmodel, integer instead of enum, etc...)
+ - The interface exposed to the UI code should be completely defined using the IDL.
+ - The interface implementation details should not be visible to the UI code. Exceptions to that rule should be easily identifiable.
+ - The framework should be able to produce proxy and adapter classes which enable an interface implementation to be accessible via an IPC channel.
+ - A proxy class should implement the exact same interface as the object implementing the actual interface.
+ - Proxy classes should be usable from both c++ and from QML code.
+ - Proxy classes should use direct calls when the server object happens to be running in the same process as the proxy.
+
 # QMLCppAPI
 
 Project folder structure:

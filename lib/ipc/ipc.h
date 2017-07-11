@@ -650,9 +650,8 @@ public:
                 m_alreadyInitialized = m_busConnection.registerVirtualObject(m_objectPath, this);
                 if (m_alreadyInitialized) {
                     connectSignals();
-                }
-                else {
-                	qCritical() << "Could no register service at object path" << m_objectPath;
+                } else {
+                    qCritical() << "Could no register service at object path" << m_objectPath;
                 }
 
             }

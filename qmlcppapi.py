@@ -135,6 +135,7 @@ def run_generation(input, output):
             log.debug('process interface %s' % interface)
             ctx.update({'interface': interface})
             generator.write('api/{{path}}/{{interface}}.h', 'Service.template.h', ctx)
+            generator.write('api/{{path}}/{{interface}}Wrapper.h', 'ServiceWrapper.template.h', ctx)
             generator.write('api/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx)
             generator.write('api/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx)
             generator.write('api/{{path}}/{{interface}}QML.h', 'QMLServiceImplementation.template.h', ctx)
