@@ -898,14 +898,13 @@ public:
 
     void init()
     {
-        DummyModelBase::init(TypeName::INTERFACE_NAME);
+        DummyModelBase::init(TypeName::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
     void finishInit()
     {
         DummyModelControlWindow::instance().addModel(*this);
     }
-
 
     virtual void savePropertyValues(QJsonObject &jsonObject) const = 0;
 

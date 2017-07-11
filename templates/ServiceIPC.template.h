@@ -18,12 +18,14 @@ class {{interface}}IPCAdapter: public IPCServiceAdapter<{{interface|fullyQualifi
 
 public:
 
+    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
+
     Q_PROPERTY(QObject* service READ service WRITE setService)
 
     typedef {{interface|fullyQualifiedCppName}} ServiceType;
 
     {{interface}}IPCAdapter() {
-        setObjectPath(ServiceType::IPC_SINGLETON_OBJECT_PATH);
+        setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
     void appendDBUSIntrospectionData(QTextStream &s) const override {
@@ -170,7 +172,7 @@ public:
     Q_PROPERTY(IPCProxyBinder* ipc READ ipc CONSTANT)
 
     {{interface}}IPCProxy(QObject* parent = nullptr) : IPCProxy<{{interface}}PropertyAdapter>(parent) {
-        ipc()->setObjectPath({{interface}}PropertyAdapter::IPC_SINGLETON_OBJECT_PATH);
+        ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
 
     void deserializePropertyValues(IPCMessage& msg) override {

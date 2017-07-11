@@ -461,6 +461,37 @@ enum class IPCHandlingResult {
     INVALID
 };
 
+
+class InterfaceManager
+{
+
+public:
+    void registerInterface(QString id, QObject &object)
+    {
+        Q_ASSERT(!m_registry.contains(id));
+        m_registry.insert(id, &object);
+    }
+
+    QObject *getInterface(QString id)
+    {
+        if (m_registry.contains(id)) {
+            return m_registry[id];
+        } else {
+            return nullptr;
+        }
+    }
+
+    static InterfaceManager &instance()
+    {
+        static InterfaceManager registry;
+        return registry;
+    }
+
+private:
+    QMap<QString, QObject *> m_registry;
+
+};
+
 class IPCServiceAdapterBase :
     public QDBusVirtualObject
 {
@@ -604,6 +635,30 @@ public:
     virtual IPCHandlingResult handleMethodCallMessage(IPCMessage &requestMessage, IPCMessage &replyMessage) = 0;
     virtual void serializePropertyValues(IPCMessage &replyMessage) = 0;
 
+    void init(QObject *service)
+    {
+        //        qDebug() << "m_interfaceName:" << m_interfaceName << " objectPath:" << m_objectPath << " service:" << m_service;
+        if (!m_alreadyInitialized && m_enabled) {
+            if ((service != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
+
+                qWarning() << "Registering serviceName " << m_serviceName;
+                auto success = m_busConnection.registerService(m_serviceName);
+                Q_ASSERT(success);
+
+                qDebug() << "Registering IPC object at " << m_objectPath;
+                InterfaceManager::instance().registerInterface(m_objectPath, *service);
+                m_alreadyInitialized = m_busConnection.registerVirtualObject(m_objectPath, this);
+                if (m_alreadyInitialized) {
+                    connectSignals();
+                }
+                else {
+                	qCritical() << "Could no register service at object path" << m_objectPath;
+                }
+
+            }
+        }
+    }
+
 protected:
     bool m_enabled = true;
 
@@ -613,7 +668,12 @@ protected:
     QString m_introspectionData;
 
     QString m_serviceName = DEFAULT_SERVICE_NAME;
+
+    bool m_alreadyInitialized = false;
+
 };
+
+
 
 
 template<typename ServiceType>
@@ -624,7 +684,7 @@ class IPCServiceAdapter :
 public:
     IPCServiceAdapter()
     {
-        setInterfaceName(ServiceType::IPC_INTERFACE_NAME);
+        setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
     QObject *service() const
@@ -645,11 +705,15 @@ public:
             }
         }
         Q_ASSERT(m_service != nullptr);
-
         init();
     }
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
+
+    void init() override
+    {
+        IPCServiceAdapterBase::init(m_service);
+    }
 
     QString introspect(const QString &path) const
     {
@@ -661,34 +725,15 @@ public:
             appendDBUSIntrospectionData(s);
             s << "</interface>";
         } else {
-            qFatal("Unknown object path");
+            qFatal("Wrong object path");
         }
 
         qDebug() << "Introspection data for " << path << ":" << introspectionData;
         return introspectionData;
     }
 
-    void init()
-    {
-        //        qDebug() << "m_interfaceName:" << m_interfaceName << " objectPath:" << m_objectPath << " service:" << m_service;
-        if (!m_alreadyInitialized && m_enabled) {
-            if ((m_service != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
-
-                qWarning() << "Registering serviceName " << m_serviceName;
-                auto success = m_busConnection.registerService(m_serviceName);
-                Q_ASSERT(success);
-
-                m_alreadyInitialized = m_busConnection.registerVirtualObject(m_objectPath, this);
-                qWarning() << "Registering IPC object at " << m_objectPath << " successful: " << m_alreadyInitialized;
-                Q_ASSERT(m_alreadyInitialized);
-                connectSignals();
-            }
-        }
-    }
-
 protected:
     ServiceType *m_service = nullptr;
-    bool m_alreadyInitialized = false;
 
 };
 
@@ -708,7 +753,6 @@ public:
 class IPCProxyBinder :
     public QObject
 {
-
     Q_OBJECT
 
 public:
@@ -878,7 +922,7 @@ public:
     IPCProxy(QObject *parent = nullptr) :
         Type(parent)
     {
-        m_ipcBinder.setInterfaceName(Type::IPC_INTERFACE_NAME);
+        m_ipcBinder.setInterfaceName(Type::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
     }
 

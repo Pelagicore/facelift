@@ -47,7 +47,6 @@ class {{class}}QMLFrontend : public QMLFrontendBase {
 public:
 
     static constexpr const char* INTERFACE_NAME = "{{interface}}";
-    static constexpr const char* IPC_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
 
     {{class}}QMLFrontend(QObject* parent = nullptr) :
     	QMLFrontendBase(parent) {
