@@ -16,43 +16,58 @@ import QtQuick.Controls 1.2
  * QML Implementation of the AddressBook model API
  */
 AddressBookImplementation {
+    id: root
 
     isLoaded: false
     implementationID: "QML model"
 
-    property int nextIndex: 0
     property string privateProperty: "This property is not defined in the public interface, but accessible via the \"provider\" property"
+
+    currentContact: Contact {
+        name: "------"
+        number: "------"
+    }
 
     Timer {
         interval: 4000
         running: true
-        repeat: false
         onTriggered: {
             isLoaded = true
         }
     }
 
+    Contact {
+        id: contact
+        property int index: 0
+        name: "New contact " + index
+        number: "089 4892"
+    }
+
     selectContact: function(contactId) {
         print("Select contact with ID " + contactId);
-        if (contacts.elementExists(contactId))
+        if (contacts.elementExists(contactId)) {
             currentContact = contacts.elementById(contactId);
+        }
     }
 
     createNewContact: function() {
         if (contacts.size() < 5) {
-	        var contact = AddressbookModule.createContact();
-	        contact.name = "New contact " + nextIndex++ ;
-	        contact.number = "089 4892";
-	        var elementID = contacts.addElement(contact);
-            contactCreated(contact);
+	        var newContact = contacts.addCloneOf(contact);
+            contactCreated(newContact);
+            currentContact = contacts.elementById(newContact.id);
+	        contact.index++;
 	    }
 	    else {
             contactCreationFailed(FailureReason.Full);
-	    } 
+	    }
     }
 
-    updateContact: function() {
+    updateContact: function(contactID, contact) {
         print("Not implemented"); // TODO
+    }
+
+    deleteContact: function(contactID) {
+        contacts.removeElementByID(contactID)
     }
 
 }

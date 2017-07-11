@@ -32,8 +32,9 @@ public:
     }
 
     // This method is not defined as part of the public interface (IDL), but it can be called via the "provider" property
-    Q_INVOKABLE void privateMethod() {
-    	qDebug() << "privateMethod called !";
+    Q_INVOKABLE void privateMethod()
+    {
+        qDebug() << "privateMethod called !";
     }
 
     class SubInterfaceImpl :

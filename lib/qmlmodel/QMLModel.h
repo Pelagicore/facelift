@@ -141,11 +141,12 @@ public:
         return property().value();
     }
 
-    void addElement(ElementType element)
+    ElementType addElement(ElementType element)
     {
         auto list = m_property->value();
         list.append(element);
         m_property->setValue(list);
+        return list[list.size() - 1];
     }
 
     bool elementExists(ModelElementID elementId) const
@@ -167,6 +168,18 @@ public:
             }
         }
         return nullptr;
+    }
+
+    void removeElementByID(ModelElementID elementId)
+    {
+        auto list = m_property->value();
+        for (const auto &element : list) {
+            if (element.id() == elementId) {
+                list.removeAll(element);
+                m_property->setValue(list);
+                break;
+            }
+        }
     }
 
     int elementIndexById(ModelElementID elementId) const
@@ -195,5 +208,55 @@ template<typename ElementType>
 class QMLImplListProperty :
     public TQMLImplListProperty<ElementType>
 {
+
+};
+
+
+class StructQMLWrapperBase :
+    public QObject
+{
+
+    Q_OBJECT
+
+public:
+    StructQMLWrapperBase(QObject *parent = nullptr) : QObject(parent)
+    {
+        m_id.init("id", this, &StructQMLWrapperBase::idChanged);
+    }
+
+    Q_PROPERTY(int uid READ id WRITE setId NOTIFY idChanged)
+
+    Q_SIGNAL void idChanged();
+
+    ModelElementID id() const
+    {
+        return m_id.value();
+    }
+
+    void setId(int id)
+    {
+        m_id = id;
+        ;
+    }
+
+    Q_SIGNAL void onAnyFieldChanged();
+
+protected:
+    Property<int> m_id;
+
+};
+
+template<typename StructType>
+class StructQMLWrapper :
+    public StructQMLWrapperBase
+{
+
+public:
+    StructQMLWrapper(QObject *parent = nullptr) : StructQMLWrapperBase(parent)
+    {
+    }
+
+protected:
+    StructType m_data;
 
 };

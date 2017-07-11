@@ -175,7 +175,7 @@ Item {
             target: viewModel
 
             onContactCreated : {
-                showPopup("Contact created !")
+                showPopup("Contact created : " + contact.name)
             }
 
             onContactDeleted : {

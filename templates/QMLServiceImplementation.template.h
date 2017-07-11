@@ -122,6 +122,38 @@ public:
 
     {% elif property.type.is_interface -%}
 
+    {% elif property.type.is_struct -%}
+
+    Q_PROPERTY({{property|returnType}}QMLWrapper* {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+    {{property|returnType}}QMLWrapper* {{property.name}}() const {
+        return m_{{property.name}};
+    }
+
+    void set{{property.name}}({{property|returnType}}QMLWrapper* value) {
+    	if (m_{{property.name}}.data() != value) {
+			m_{{property.name}} = value;
+			sync{{property.name}}();
+			if (m_{{property.name}} != nullptr) {
+				QObject::connect(m_{{property.name}},&StructQMLWrapperBase::onAnyFieldChanged, this , &{{interface}}QMLImplementation::sync{{property.name}});
+			}
+			emit {{property.name}}Changed();
+//			qDebug() << "-----" << value->gadget();
+    	}
+    }
+
+    void sync{{property.name}}() {
+        checkInterface();
+        {{property|returnType}} value;
+        if (m_{{property.name}} != nullptr) {
+        	value = m_{{property.name}}->gadget();
+        }
+        interface().m_{{property.name}} = value;
+    }
+
+    QPointer<{{property|returnType}}QMLWrapper> m_{{property.name}} = nullptr;
+
+    Q_SIGNAL void {{property.name}}Changed();
+
     // TODO
     {% else %}
       Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}})
@@ -135,37 +167,42 @@ public:
           interface().m_{{property.name}} = value;
       }
 
-      Q_PROPERTY(QJSValue set{{property.name}} READ set{{property.name}}JSFunction WRITE setset{{property.name}}JSFunction)
-
-      void setset{{property.name}}JSFunction(QJSValue v) {
-          m_set{{property.name}} = v;
-      }
-
-      QJSValue set{{property.name}}JSFunction() const {
-          return m_set{{property.name}};
-      }
-
-      QJSValue m_set{{property.name}};
-
-
-      void requestSet{{property.name}}(const {{property|returnType}}& value) {
-          checkInterface();
-          QJSValueList args;
-
-          QQmlEngine* engine = qmlEngine(this);
-          args.append(toJSValue(value, engine));
-
-          if(m_set{{property.name}}.isCallable())
-          {
-        	  m_set{{property.name}}.call(args);
-          }
-          else
-          {
-              qWarning() << "set{{property.name}} method is not set or not callable";
-          }
-
-      }
     {% endif %}
+
+	{% if (not property.readonly) %}
+
+    Q_PROPERTY(QJSValue set{{property.name}} READ set{{property.name}}JSFunction WRITE setset{{property.name}}JSFunction)
+
+    void setset{{property.name}}JSFunction(QJSValue v) {
+        m_set{{property.name}} = v;
+    }
+
+    QJSValue set{{property.name}}JSFunction() const {
+        return m_set{{property.name}};
+    }
+
+    QJSValue m_set{{property.name}};
+
+
+    void requestSet{{property.name}}(const {{property|returnType}}& value) {
+        checkInterface();
+        QJSValueList args;
+
+        QQmlEngine* engine = qmlEngine(this);
+        args.append(toJSValue(value, engine));
+
+        if (m_set{{property.name}}.isCallable())
+        {
+      	  m_set{{property.name}}.call(args);
+        }
+        else
+        {
+            qWarning() << "set{{property.name}} method is not set or not callable";
+        }
+
+    }
+    {% endif %}
+
     {% endfor %}
 
     {{interface}}QMLImplementation() {
@@ -212,7 +249,7 @@ inline {{operation|returnType}} {{interface}}QMLImplementationFrontend::{{operat
     {{parameter|returnType}} {{parameter.name}}
     {% endfor %}
 ) {
-    m_impl->{{operation.name}}(
+    return m_impl->{{operation.name}}(
             {% set comma = joiner(",") %}
             {% for parameter in operation.parameters %}
             {{ comma() }}

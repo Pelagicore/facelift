@@ -101,6 +101,70 @@ public:
 };
 
 
+class {{struct.name}}QMLWrapper : public StructQMLWrapper<{{struct.name}}>
+{
+    Q_OBJECT
+
+public:
+
+    {{struct.name}}QMLWrapper(QObject* parent = nullptr) : StructQMLWrapper(parent)
+    {
+    	init();
+    }
+
+    {{struct.name}}QMLWrapper({{struct.name}} value, QObject* parent = nullptr) : StructQMLWrapper(parent)
+    {
+    	{% for field in struct.fields %}
+    	m_{{field.name}} = value.m_{{field.name}};
+    	{% endfor %}
+    	m_id = value.id();
+    	init();
+    }
+
+    void init() {
+    	{% for field in struct.fields %}
+        m_{{field.name}}.init("{{field.name}}", this, &{{struct.name}}QMLWrapper::{{field.name}}Changed);
+        QObject::connect(this, &{{struct.name}}QMLWrapper::{{field.name}}Changed, this, &StructQMLWrapperBase::onAnyFieldChanged);
+    	{% endfor %}
+    }
+
+{% for field in struct.fields %}
+
+	{% set QmlType=field|returnType %}
+	{% if field.type.is_enum %}
+		{% set QmlType=QmlType + "Gadget::Type" %}
+	{% endif %}
+
+    Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
+
+    Q_SIGNAL void {{field}}Changed();
+
+    {{field|returnType}} {{field.name}}() const {
+        return m_{{field.name}}.value();
+    }
+
+    void set{{field.name}}({{field|returnType}} value) {
+        m_{{field.name}} = value;
+    }
+
+    Property<{{field|returnType}}> m_{{field.name}};
+
+{% endfor %}
+
+    Q_PROPERTY({{struct | fullyQualifiedCppName}} gadget READ gadget)
+
+    {{struct.name}} gadget() const {
+    	{{struct.name}} s;
+    	{% for field in struct.fields %}
+    	s.m_{{field.name}} = m_{{field.name}}.value();
+    	{% endfor %}
+    	s.setId(id());
+    	return s;
+    }
+
+};
+
+
 class QMLImplListProperty{{struct}} : public TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
 
     Q_OBJECT
@@ -116,14 +180,26 @@ public:
         return false;
     }
 
-    Q_INVOKABLE void addElement({{struct | fullyQualifiedCppName}} element) {
-    	TQMLImplListProperty::addElement(element);
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}} addElement({{struct | fullyQualifiedCppName}} element) {
+    	return TQMLImplListProperty::addElement(element);
     }
 
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementById(int elementId) const {
+    Q_INVOKABLE void removeElementByID(int elementId) {
+    	return TQMLImplListProperty::removeElementByID(elementId);
+    }
+
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}} addCloneOf({{struct | fullyQualifiedCppName}}QMLWrapper* element) {
+    	return TQMLImplListProperty::addElement(element->gadget().clone());
+    }
+
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}}QMLWrapper* elementById(int elementId) const {
         auto element = TQMLImplListProperty::elementById(elementId);
-        Q_ASSERT(element != nullptr);
-        return *element;
+
+        if (element != nullptr) {
+        	return new {{struct | fullyQualifiedCppName}}QMLWrapper(*element);  // This instance will owned by the QML engine
+        }
+        else
+        	return nullptr;
     }
 
     Q_INVOKABLE int elementIndexById(int elementId) const {

@@ -49,6 +49,7 @@ void {{class}}::registerQmlTypes(const char* uri, int majorVersion, int minorVer
     Q_UNUSED(uri);
 
     {% for struct in module.structs %}
+    qmlRegisterType<{{struct}}QMLWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
     {% endfor %}
 
     qmlRegisterSingletonType<{{class}}>(uri, majorVersion, minorVersion, "{{class}}", {{class}}_singletontype_provider);
