@@ -24,6 +24,21 @@ class AddressBookCppWithProperties :
     Q_OBJECT
 
 public:
+    AddressBookCppWithProperties(QObject *parent = nullptr) :
+        AddressBookPropertyAdapter(parent)
+    {
+        setImplementationID("C++ model implemented with properties");
+
+        m_timer.setSingleShot(true);
+        m_timer.start(3000);
+
+        m_isLoaded.bind([this] () {
+            return !(m_timer.remainingTime() > 0);
+        }).addTrigger(&m_timer, &QTimer::timeout);
+
+        m_subService = &m_subInterface;
+    }
+
     // This property is not defined as part of the public interface (IDL), but it can be accessed via the "provider" property
     Q_PROPERTY(QString privateProperty READ privateProperty CONSTANT)
     QString privateProperty() const
@@ -46,23 +61,6 @@ public:
         }
     };
 
-    SubInterfaceImpl m_subInterface;
-
-
-    AddressBookCppWithProperties(QObject *parent = nullptr) :
-        AddressBookPropertyAdapter(parent)
-    {
-        setImplementationID("C++ model implemented with properties");
-
-        m_timer.setSingleShot(true);
-        m_timer.start(3000);
-
-        m_isLoaded.bind([this] () {
-            return !(m_timer.remainingTime() > 0);
-        }).addTrigger(&m_timer, &QTimer::timeout);
-
-        m_subService = &m_subInterface;
-    }
 
     void selectContact(int contactId) override
     {
@@ -140,6 +138,8 @@ public:
 
     }
 
+private:
     QTimer m_timer;
+    SubInterfaceImpl m_subInterface;
 
 };

@@ -40,6 +40,15 @@ void mainServer(int &argc, char * *argv)
 {
     QApplication app(argc, argv);
 
+    TestStruct2 s;
+    s.seti(TestEnum::E3);
+    auto byteArray = s.serialize();
+
+    TestStruct2 o;
+    o.deserialize(byteArray);
+
+    Q_ASSERT(s == o);
+
     TestInterfaceDummy testInterface;
     TestInterfaceIPCAdapter svc;
     svc.setService(&testInterface);

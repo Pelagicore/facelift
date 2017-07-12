@@ -21,6 +21,7 @@
 #include <QDBusServiceWatcher>
 
 #include "Model.h"
+#include "../utils.h"
 
 class IPCMessage
 {
@@ -136,55 +137,6 @@ private:
 
 
 
-struct StreamReadFunction
-{
-    StreamReadFunction(IPCMessage &msg) :
-        m_msg(msg)
-    {
-    }
-
-    IPCMessage &m_msg;
-
-    template<typename T>
-    void operator()(T &t)
-    {
-        m_msg >> t;
-    }
-};
-
-struct StreamWriteFunction
-{
-    StreamWriteFunction(IPCMessage &msg) :
-        m_msg(msg)
-    {
-    }
-
-    IPCMessage &m_msg;
-
-    template<typename T>
-    void operator()(T &&t)
-    {
-        m_msg << t;
-    }
-};
-
-
-
-template<size_t I = 0, typename Func, typename ... Ts>
-typename std::enable_if<I == sizeof ... (Ts)>::type
-for_each_in_tuple(std::tuple<Ts ...> &, Func)
-{
-}
-
-template<size_t I = 0, typename Func, typename ... Ts>
-typename std::enable_if < I<sizeof ... (Ts)>::type
-for_each_in_tuple(std::tuple<Ts ...> &tpl, Func func)
-{
-    func(std::get<I>(tpl));
-    for_each_in_tuple<I + 1>(tpl, func);
-}
-
-
 template<typename Type, typename Enable = void>
 struct IPCTypeHandler
 {
@@ -208,7 +160,7 @@ struct IPCTypeHandler
 
 template<size_t I = 0, typename ... Ts>
 typename std::enable_if<I == sizeof ... (Ts)>::type
-appendTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
+appendDBUSTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
 {
     Q_UNUSED(s);
     Q_UNUSED(t);
@@ -216,11 +168,11 @@ appendTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
 
 template<size_t I = 0, typename ... Ts>
 typename std::enable_if < I<sizeof ... (Ts)>::type
-appendTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
+appendDBUSTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
 {
     typedef typeof (std::get<I>(t)) Type;
     IPCTypeHandler<Type>::writeDBUSSignature(s);
-    appendTypeSignature<I + 1>(s, t);
+    appendDBUSTypeSignature<I + 1>(s, t);
 }
 
 
@@ -285,7 +237,7 @@ struct AppendDBUSSignatureFunction
         Q_UNUSED(t);
         typedef typename std::decay<T>::type TupleType;
         std::tuple<TupleType> dummyTuple;
-        appendTypeSignature(s, dummyTuple);
+        appendDBUSTypeSignature(s, dummyTuple);
     }
 };
 
@@ -367,8 +319,7 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructu
 
     static void write(IPCMessage &msg, const Type &param)
     {
-        auto tupleCopy = param.asTuple();
-        for_each_in_tuple(tupleCopy, StreamWriteFunction(msg));
+        for_each_in_tuple_const(param.asTuple(), StreamWriteFunction<IPCMessage>(msg));
         param.id();
         msg << param.id();
     }
@@ -376,7 +327,7 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructu
     static void read(IPCMessage &msg, Type &param)
     {
         typename Type::FieldTupleTypes tuple;
-        for_each_in_tuple(tuple, StreamReadFunction(msg));
+        for_each_in_tuple(tuple, StreamReadFunction<IPCMessage>(msg));
         param.setValue(tuple);
         ModelElementID id;
         msg.readNextParameter(id);
@@ -598,7 +549,7 @@ public:
         IPCMessage msg(m_objectPath, m_interfaceName, SIGNAL_TRIGGERED_SIGNAL_NAME);
         msg << signalName;
         auto argTuple = std::make_tuple(args ...);
-        for_each_in_tuple(argTuple, StreamWriteFunction(msg));
+        for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
         msg.send(m_busConnection);
     }
 
@@ -607,7 +558,7 @@ public:
     {
         s << "<property name=\"" << propertyName << "\" type=\"";
         std::tuple<Type> dummyTuple;
-        appendTypeSignature(s, dummyTuple);
+        appendDBUSTypeSignature(s, dummyTuple);
         s << "\" access=\"read\"/>";
     }
 
@@ -876,7 +827,7 @@ public:
     {
         IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
-        for_each_in_tuple(argTuple, StreamWriteFunction(msg));
+        for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
         auto replyMessage = msg.call(m_busConnection);
         if (replyMessage.isReplyMessage()) {
         } else {

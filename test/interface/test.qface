@@ -26,6 +26,7 @@ interface TestInterface {
     readonly list<bool> boolListProperty;
     readonly list<string> stringListProperty;
     readonly list<TestStruct> structListProperty;
+    
     string method1();
     void method2(int intParam, bool boolParam);
 

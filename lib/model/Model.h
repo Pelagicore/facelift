@@ -18,6 +18,9 @@
 
 #include <array>
 
+#include "../utils.h"
+
+
 #define STRINGIFY_(x) # x
 #define STRINGIFY(x) STRINGIFY_(x)
 
@@ -140,6 +143,18 @@ struct ModelTypeTraits<EnumType, typename std::enable_if<std::is_enum<EnumType>:
 };
 
 
+struct BinarySeralizer
+{
+    BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
+    {
+    }
+    BinarySeralizer(const QByteArray &array) : stream(array)
+    {
+    }
+    QDataStream stream;
+};
+
+
 template<typename ... FieldTypes>
 class TModelStructure :
     public ModelStructure
@@ -190,6 +205,20 @@ public:
         QVariant v;
         toVariant(m_values, v, role);
         return v;
+    }
+
+    QByteArray serialize() const
+    {
+        QByteArray array;
+        BinarySeralizer ds(array);
+        ds << *this;
+        return array;
+    }
+
+    void deserialize(const QByteArray &array)
+    {
+        BinarySeralizer ds(array);
+        ds >> *this;
     }
 
     void setValue(FieldTupleTypes value)
@@ -252,6 +281,122 @@ protected:
     FieldTupleTypes m_values = {};
 
 };
+
+
+
+
+template<typename Type, typename Enable = void>
+struct BinarySerializationTypeHandler
+{
+    static void write(BinarySeralizer &msg, const Type &v)
+    {
+        msg.stream << v;
+    }
+
+    static void read(BinarySeralizer &msg, Type &v)
+    {
+        msg.stream >> v;
+    }
+};
+
+
+template<typename Type>
+BinarySeralizer &operator<<(BinarySeralizer &msg, const Type &v)
+{
+    BinarySerializationTypeHandler<Type>::write(msg, v);
+    return msg;
+}
+
+
+template<typename Type>
+BinarySeralizer &operator>>(BinarySeralizer &msg, Type &v)
+{
+    BinarySerializationTypeHandler<Type>::read(msg, v);
+    return msg;
+}
+
+template<typename Type>
+struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
+{
+    static void write(BinarySeralizer &msg, const Type &param)
+    {
+        auto tupleCopy = param.asTuple();
+        for_each_in_tuple(tupleCopy, StreamWriteFunction<BinarySeralizer>(msg));
+        param.id();
+        msg << param.id();
+    }
+
+    static void read(BinarySeralizer &msg, Type &param)
+    {
+        typename Type::FieldTupleTypes tuple;
+        for_each_in_tuple(tuple, StreamReadFunction<BinarySeralizer>(msg));
+        param.setValue(tuple);
+        ModelElementID id;
+        msg >> id;
+        param.setId(id);
+    }
+
+};
+
+template<typename Type>
+struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+{
+    static void write(BinarySeralizer &msg, const Type &param)
+    {
+        msg << static_cast<int>(param);
+    }
+
+    static void read(BinarySeralizer &msg, Type &param)
+    {
+        int i;
+        msg >> i;
+        param = static_cast<Type>(i);
+    }
+};
+
+
+template<typename ElementType>
+struct BinarySerializationTypeHandler<QList<ElementType> >
+{
+    static void write(BinarySeralizer &msg, const QList<ElementType> &list)
+    {
+        int count = list.size();
+        msg << count;
+        for (const auto &e : list) {
+            BinarySerializationTypeHandler<ElementType>::write(msg, e);
+        }
+    }
+
+    static void read(BinarySeralizer &msg, QList<ElementType> &list)
+    {
+        list.clear();
+        int count;
+        msg >> count;
+        for (int i = 0; i < count; i++) {
+            ElementType e;
+            BinarySerializationTypeHandler<ElementType>::read(msg, e);
+            list.append(e);
+        }
+    }
+
+};
+
+
+template<typename ... FieldTypes>
+BinarySeralizer &operator<<(BinarySeralizer &stream, const TModelStructure<FieldTypes ...> &s)
+{
+    for_each_in_tuple_const(s.asTuple(), StreamWriteFunction<BinarySeralizer>(stream));
+    return stream;
+}
+
+
+template<typename ... FieldTypes>
+BinarySeralizer &operator>>(BinarySeralizer &stream, TModelStructure<FieldTypes ...> &s)
+{
+    for_each_in_tuple(s.asTuple(), StreamReadFunction<BinarySeralizer>(stream));
+    return stream;
+}
+
 
 class InterfaceBase :
     public QObject
@@ -369,7 +514,6 @@ public:
     template<typename ModelImplClass>
     static ModelImplClass *createComponent(QQmlEngine *engine, InterfaceType *frontend)
     {
-
         auto path = modelImplementationFilePath();
 
         // Save the reference to the frontend which we are currently creating, so that the QML model implementation is able

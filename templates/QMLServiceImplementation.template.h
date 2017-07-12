@@ -134,7 +134,7 @@ public:
 			m_{{property.name}} = value;
 			sync{{property.name}}();
 			if (m_{{property.name}} != nullptr) {
-				QObject::connect(m_{{property.name}},&StructQMLWrapperBase::onAnyFieldChanged, this , &{{interface}}QMLImplementation::sync{{property.name}});
+				QObject::connect(m_{{property.name}},&{{property|returnType}}QMLWrapper::anyFieldChanged, this , &{{interface}}QMLImplementation::sync{{property.name}});
 			}
 			emit {{property.name}}Changed();
 //			qDebug() << "-----" << value->gadget();

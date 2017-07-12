@@ -33,6 +33,11 @@ public:
 
     static const FieldNames FIELD_NAMES;
 
+    static const QString& classID() {
+    	static auto id = QStringLiteral("{{struct|fullyQualifiedName}}");
+    	return id;
+    }
+
     Q_PROPERTY(int id READ id CONSTANT)   // This seems to be necessary even if the base class already contains an "id" property. TODO : clarify
 
     {{struct.name}}()
@@ -82,7 +87,7 @@ public:
 
     Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
 
-    {{field|returnType}} {{field.name}}() const {
+    const {{field|returnType}}& {{field.name}}() const {
         return m_{{field.name}};
     }
 
@@ -93,12 +98,34 @@ public:
 
 {% endfor %}
 
-public:
+private:
 {% for field in struct.fields %}
     {{field|returnType}}& m_{{field}};
 {% endfor %}
 
 };
+
+
+{{module|namespaceClose}}
+
+inline QTextStream &operator <<(QTextStream &outStream, const {{struct|fullyQualifiedCppName}}& f) {
+    outStream << f.toString();
+    return outStream;
+}
+
+inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f) {
+	QString s;
+	QTextStream stream(&s);
+	stream << f;
+	d << s;
+    return d;
+}
+
+Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list properties
+Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
+
+{{module|namespaceOpen}}
+
 
 
 class {{struct.name}}QMLWrapper : public StructQMLWrapper<{{struct.name}}>
@@ -107,24 +134,27 @@ class {{struct.name}}QMLWrapper : public StructQMLWrapper<{{struct.name}}>
 
 public:
 
+    Q_PROPERTY(QString classID READ classID CONSTANT)
+
+    static const QString& classID() {
+    	return {{struct|fullyQualifiedCppName}}::classID();
+    }
+
     {{struct.name}}QMLWrapper(QObject* parent = nullptr) : StructQMLWrapper(parent)
     {
     	init();
     }
 
-    {{struct.name}}QMLWrapper({{struct.name}} value, QObject* parent = nullptr) : StructQMLWrapper(parent)
+    {{struct.name}}QMLWrapper(const {{struct.name}}& value, QObject* parent = nullptr) : StructQMLWrapper(parent)
     {
-    	{% for field in struct.fields %}
-    	m_{{field.name}} = value.m_{{field.name}};
-    	{% endfor %}
-    	m_id = value.id();
+    	fromGadget(value);
     	init();
     }
 
     void init() {
     	{% for field in struct.fields %}
         m_{{field.name}}.init("{{field.name}}", this, &{{struct.name}}QMLWrapper::{{field.name}}Changed);
-        QObject::connect(this, &{{struct.name}}QMLWrapper::{{field.name}}Changed, this, &StructQMLWrapperBase::onAnyFieldChanged);
+        QObject::connect(this, &{{struct.name}}QMLWrapper::{{field.name}}Changed, this, &{{struct.name}}QMLWrapper::anyFieldChanged);
     	{% endfor %}
     }
 
@@ -135,11 +165,11 @@ public:
 		{% set QmlType=QmlType + "Gadget::Type" %}
 	{% endif %}
 
-    Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
+    Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}} NOTIFY {{field}}Changed)
 
     Q_SIGNAL void {{field}}Changed();
 
-    {{field|returnType}} {{field.name}}() const {
+    const {{field|returnType}}& {{field.name}}() const {
         return m_{{field.name}}.value();
     }
 
@@ -156,11 +186,32 @@ public:
     {{struct.name}} gadget() const {
     	{{struct.name}} s;
     	{% for field in struct.fields %}
-    	s.m_{{field.name}} = m_{{field.name}}.value();
+    	s.set{{field.name}}(m_{{field.name}}.value());
     	{% endfor %}
     	s.setId(id());
     	return s;
     }
+
+    void fromGadget(const {{struct | fullyQualifiedCppName}}& gadget) {
+    	{% for field in struct.fields %}
+    	m_{{field.name}} = gadget.{{field.name}}();
+    	{% endfor %}
+    	m_id = gadget.id();
+    }
+
+    Q_PROPERTY(QByteArray serialized READ serialized WRITE setSerialized NOTIFY anyFieldChanged)
+
+    QByteArray serialized() const {
+    	return gadget().serialize();
+    }
+
+    void setSerialized(const QByteArray& array) {
+    	{{struct | fullyQualifiedCppName}} v;
+    	v.deserialize(array);
+    	fromGadget(v);
+    }
+
+    Q_SIGNAL void anyFieldChanged();
 
 };
 
@@ -222,19 +273,4 @@ class QMLImplListProperty<{{struct | fullyQualifiedCppName}}> : public {{module|
 };
 
 
-inline QTextStream &operator <<(QTextStream &outStream, const {{struct|fullyQualifiedCppName}}& f) {
-    outStream << f.toString();
-    return outStream;
-}
-
-inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f) {
-	QString s;
-	QTextStream stream(&s);
-	stream << f;
-	d << s;
-    return d;
-}
-
-Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list properties
-Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 

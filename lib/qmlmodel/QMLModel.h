@@ -236,10 +236,7 @@ public:
     void setId(int id)
     {
         m_id = id;
-        ;
     }
-
-    Q_SIGNAL void onAnyFieldChanged();
 
 protected:
     Property<int> m_id;
