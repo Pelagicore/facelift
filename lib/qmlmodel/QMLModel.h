@@ -25,7 +25,14 @@ struct QMLModelTypeHandler
     {
         return engine->toScriptValue(v);
     }
+
+    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        v = engine->fromScriptValue<Type>(value);
+    }
+
 };
+
 
 template<typename StructType>
 struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
@@ -34,6 +41,12 @@ struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<M
     {
         return structToJSValue(f, engine);
     }
+
+    static void fromJSValue(StructType &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        v = engine->fromScriptValue<StructType>(value);
+    }
+
 };
 
 
@@ -44,23 +57,43 @@ struct QMLModelTypeHandler<EnumType, typename std::enable_if<std::is_enum<EnumTy
     {
         return enumToJSValue(v, engine);
     }
+
+    static void fromJSValue(EnumType &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        v = engine->fromScriptValue<EnumType>(value);
+    }
+
 };
 
 
 template<typename ListElementType>
 struct QMLModelTypeHandler<QList<ListElementType> >
 {
-    static QJSValue toJSValue(const QList<ListElementType> &v, QQmlEngine *engine)
+    typedef QList<ListElementType> Type;
+    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
     {
         Q_ASSERT(false);
         return enumToJSValue(v, engine);
     }
+
+    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        v = engine->fromScriptValue<Type>(value);
+    }
+
 };
 
 template<typename Type>
 QJSValue toJSValue(const Type &v, QQmlEngine *engine)
 {
     return QMLModelTypeHandler<Type>::toJSValue(v, engine);
+}
+
+
+template<typename Type>
+void fromJSValue(Type &v, const QJSValue &jsValue, QQmlEngine *engine)
+{
+    QMLModelTypeHandler<Type>::fromJSValue(v, jsValue, engine);
 }
 
 

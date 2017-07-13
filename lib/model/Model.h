@@ -462,6 +462,14 @@ public:
         m_interface = interface;
     }
 
+    QJSValue& checkMethod(QJSValue& method, const char* methodName) {
+    	if (!method.isCallable()) {
+    		qFatal("Method not callable : %s", qPrintable(methodName));
+    	}
+
+		return method;
+    }
+
     InterfaceBase *m_interface = nullptr;
 };
 

@@ -161,6 +161,15 @@ Item {
                 }
             }
 
+            Button {
+                text: "test method"
+                onClicked: {
+                    var contact = Module.createContact();
+                    print(contact)
+                    var returnContact = viewModel.testMethod(contact);
+                    print("return value : " + returnContact)
+                }
+            }
         }
 
         Timer {

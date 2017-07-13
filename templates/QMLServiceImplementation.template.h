@@ -73,11 +73,10 @@ public:
     }
 
     void initProvider(Provider* provider) {
-
+    	Q_UNUSED(provider);
         {% for property in interface.properties %}
         QObject::connect(provider, &Provider::{{property}}Changed, this, &ThisType::{{property}}Changed);
         {% endfor %}
-
     }
 
     {% for operation in interface.operations %}
@@ -89,6 +88,7 @@ public:
         {{parameter|returnType}} {{parameter.name}}
         {% endfor %}
     ) {
+
         QJSValueList args;
 
         QQmlEngine* engine = qmlEngine(this);
@@ -99,14 +99,16 @@ public:
         args.append(toJSValue({{parameter.name}}, engine));
         {% endfor %}
 
-        if (m_{{operation}}.isCallable())
-        {
-            m_{{operation}}.call(args);
-        }
-        else
-        {
-            qWarning() << "{{operation}} method is not set or not callable";
-        }
+    	{% if (operation.hasReturnValue) %} {{operation|returnType}} returnValue; {% endif %}
+
+    	auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
+		{% if (operation.hasReturnValue) %}
+		fromJSValue(returnValue, jsReturnValue, engine);
+		{% endif %}
+
+        {% if (operation.hasReturnValue) %}
+        return returnValue;
+        {% endif %}
     }
 
     Q_PROPERTY(QJSValue {{operation.name}} READ {{operation.name}}JSFunction WRITE set{{operation.name}}JSFunction)

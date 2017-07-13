@@ -25,6 +25,8 @@ interface AddressBook {
     void deleteContact(int contactId);
     void updateContact(int contactId, Contact contact);
 
+    Contact testMethod(Contact contact);
+
     signal contactCreated(Contact contact);
     signal contactCreationFailed(FailureReason reason);
     signal contactDeleted(Contact contact);

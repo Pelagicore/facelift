@@ -26,14 +26,15 @@ interface TestInterface {
     readonly list<bool> boolListProperty;
     readonly list<string> stringListProperty;
     readonly list<TestStruct> structListProperty;
-    
+
     string method1();
-    void method2(int intParam, bool boolParam);
+    TestStruct2 method2(int intParam, bool boolParam);
+    TestEnum method3();
+    list<TestEnum> method4();
 
     signal event1(TestStruct p);
     signal eventEnum(TestEnum p);
     signal eventInt(int p);
-
 
 }
 
