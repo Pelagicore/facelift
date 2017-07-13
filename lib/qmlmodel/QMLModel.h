@@ -87,7 +87,7 @@ protected:
     {
     }
 
-    QMLModelImplementationType *m_impl;
+    QMLModelImplementationType *m_impl = nullptr;
 
 };
 

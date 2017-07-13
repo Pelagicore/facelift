@@ -20,6 +20,9 @@
 
 {{module|namespaceOpen}}
 
+/**
+ * {{struct.name}} gadget
+ */
 class {{struct.name}} : public TModelStructure<
 {% for field in struct.fields %}
     {{ comma() }}
@@ -127,7 +130,9 @@ Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 {{module|namespaceOpen}}
 
 
-
+/**
+ * A QObject wrapper of a {{struct.name}}, which is suitable from instantiation from QML, for example
+ */
 class {{struct.name}}QMLWrapper : public StructQMLWrapper<{{struct.name}}>
 {
     Q_OBJECT
@@ -147,7 +152,7 @@ public:
 
     {{struct.name}}QMLWrapper(const {{struct.name}}& value, QObject* parent = nullptr) : StructQMLWrapper(parent)
     {
-    	fromGadget(value);
+    	assignFromGadget(value);
     	init();
     }
 
@@ -192,7 +197,7 @@ public:
     	return s;
     }
 
-    void fromGadget(const {{struct | fullyQualifiedCppName}}& gadget) {
+    void assignFromGadget(const {{struct | fullyQualifiedCppName}}& gadget) {
     	{% for field in struct.fields %}
     	m_{{field.name}} = gadget.{{field.name}}();
     	{% endfor %}
@@ -208,7 +213,7 @@ public:
     void setSerialized(const QByteArray& array) {
     	{{struct | fullyQualifiedCppName}} v;
     	v.deserialize(array);
-    	fromGadget(v);
+    	assignFromGadget(v);
     }
 
     Q_SIGNAL void anyFieldChanged();

@@ -17,12 +17,14 @@ class {{interface}}QMLImplementation;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{interface}}QMLImplementationFrontend: public {{interface}}PropertyAdapter, public QMLModelImplementationFrontend<{{interface}}QMLImplementation> {
+class {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter, public QMLModelImplementationFrontend<{{interface}}QMLImplementation> {
 
     Q_OBJECT
 
 public:
     typedef {{interface}}QMLImplementation QMLImplementationModelType;
+
+    {{interface}}QMLImplementationFrontend({{interface}}QMLImplementation* qmlImpl);
 
     {{interface}}QMLImplementationFrontend();
 
@@ -53,13 +55,30 @@ public:
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{interface}}QMLImplementation: public ModelQMLImplementation<{{interface}}QMLImplementationFrontend> {
+class {{interface}}QMLImplementation : public ModelQMLImplementation<{{interface}}QMLImplementationFrontend> {
 
     Q_OBJECT
 
 public:
 
     static constexpr const char* QML_NAME = "{{interface}}Implementation";
+
+    typedef {{interface}}QMLImplementationFrontend Provider;
+    typedef {{interface}}QMLImplementation ThisType;
+
+    Q_PROPERTY(QObject* provider READ provider CONSTANT)
+
+    {{interface}}QMLImplementationFrontend* createFrontend() override {
+    	return new {{interface}}QMLImplementationFrontend(this);
+    }
+
+    void initProvider(Provider* provider) {
+
+        {% for property in interface.properties %}
+        QObject::connect(provider, &Provider::{{property}}Changed, this, &ThisType::{{property}}Changed);
+        {% endfor %}
+
+    }
 
     {% for operation in interface.operations %}
 
@@ -80,7 +99,7 @@ public:
         args.append(toJSValue({{parameter.name}}, engine));
         {% endfor %}
 
-        if(m_{{operation}}.isCallable())
+        if (m_{{operation}}.isCallable())
         {
             m_{{operation}}.call(args);
         }
@@ -105,9 +124,13 @@ public:
     {% endfor %}
 
     {% for property in interface.properties %}
+    Q_SIGNAL void {{property}}Changed();
+    {% endfor %}
+
+    {% for property in interface.properties %}
 
     {% if property.type.is_list -%}
-    Q_PROPERTY(QObject* {{property.name}} READ {{property.name}})
+    Q_PROPERTY(QObject* {{property.name}} READ {{property.name}} NOTIFY {{property.name}}Changed)
 
     QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
 
@@ -118,9 +141,10 @@ public:
     }
 
     {% elif property.type.is_model %}
-    // TODO
+    // TODO : model
 
     {% elif property.type.is_interface -%}
+    // TODO : interface
 
     {% elif property.type.is_struct -%}
 
@@ -152,11 +176,8 @@ public:
 
     QPointer<{{property|returnType}}QMLWrapper> m_{{property.name}} = nullptr;
 
-    Q_SIGNAL void {{property.name}}Changed();
-
-    // TODO
     {% else %}
-      Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}})
+      Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
       const {{property|returnType}}& {{property.name}}() const {
           checkInterface();
           return interface().m_{{property.name}};
@@ -232,6 +253,10 @@ public:
     {% endfor %}
 
 };
+
+inline {{interface}}QMLImplementationFrontend::{{interface}}QMLImplementationFrontend({{interface}}QMLImplementation* qmlImpl) : {{interface}}PropertyAdapter(qmlImpl) {
+    m_impl = qmlImpl;
+}
 
 inline {{interface}}QMLImplementationFrontend::{{interface}}QMLImplementationFrontend() {
     m_impl = {{interface}}QMLImplementation::createComponent<{{interface}}QMLImplementation>(qmlEngine(), this);

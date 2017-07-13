@@ -482,11 +482,21 @@ public:
         return s_modelImplementationFilePath;
     }
 
+    virtual void initProvider(InterfaceType *provider) = 0;
+
     void retrieveFrontend()
     {
         m_interface = retrieveFrontendUnderConstruction();
+        if (m_interface == nullptr) {
+            m_interface = createFrontend();
+        }
+
+        Q_ASSERT(m_interface);
+        initProvider(m_interface);
         setInterface(m_interface);
     }
+
+    virtual InterfaceType *createFrontend() = 0;
 
     static void registerTypes(const char *theURI)
     {
@@ -499,7 +509,6 @@ public:
 
     static InterfaceType *retrieveFrontendUnderConstruction()
     {
-        Q_ASSERT(frontendUnderConstruction() != nullptr);
         auto instance = frontendUnderConstruction();
         frontendUnderConstruction() = nullptr;
         return instance;
@@ -545,6 +554,11 @@ private:
     }
 
 protected:
+    InterfaceType *provider() const
+    {
+        return m_interface;
+    }
+
     InterfaceType *m_interface = nullptr;
 
 };

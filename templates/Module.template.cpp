@@ -60,6 +60,8 @@ void {{class}}::registerQmlTypes(const char* uri, int majorVersion, int minorVer
 
     {% for interface in module.interfaces %}
     {
+        registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri, "{{interface.name}}QML");
+
         QString path = STRINGIFY(QML_MODEL_LOCATION) "/{{interface|fullyQualifiedPath}}.qml";
 
         if (QFile::exists(path)) {
