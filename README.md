@@ -21,7 +21,7 @@ This is a list of requirements which have been taken into account when designing
  - Proxy classes should be usable from both c++ and from QML code.
  - Proxy classes should use direct calls when the server object happens to be running in the same process as the proxy.
 
-# QMLCppAPI
+# FaceLift
 
 Project folder structure:
  - lib : contains the C++ library which the generated code relies on

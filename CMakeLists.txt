@@ -1,4 +1,4 @@
-project(QmlCppAPI)
+project(FaceLift)
 
 cmake_minimum_required(VERSION 3.1)
 
@@ -7,7 +7,7 @@ option(ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 
-include("cmake/QMLCppAPIConfig.cmake")
+include("cmake/FaceLiftConfig.cmake")
 
 # No undefined symbol allowed in our shared libraries
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
