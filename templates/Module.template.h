@@ -33,7 +33,7 @@ class {{interface}};
 class {{class}} : public QObject {
     Q_OBJECT
 public:
-    {{class}}(QObject *parent=0);
+    {{class}}();
 
 {% for struct in module.structs %}
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} create{{struct}}();

@@ -15,6 +15,7 @@
 #include <QQuickItem>
 #include <QQmlEngine>
 #include <QJSValue>
+#include <QTimer>
 
 #include <array>
 
@@ -60,10 +61,6 @@ private:
 
 };
 
-template<typename Type>
-inline const QList<Type> &validValues()
-{
-}
 
 template<typename Type>
 inline QVariant toVariant(const Type &v)
@@ -274,7 +271,9 @@ protected:
         Q_UNUSED(names);
         QString s;
         QTextStream outStream(&s);
+        outStream << "{";
         toString__(m_values, names, outStream);
+        outStream << "}";
         return s;
     }
 
@@ -397,11 +396,47 @@ BinarySeralizer &operator>>(BinarySeralizer &stream, TModelStructure<FieldTypes 
     return stream;
 }
 
+template<typename InterfaceType, typename PropertyType>
+using PropertyGetter = const PropertyType &(*)();
+
+class InterfaceBase;
+
+namespace QMLCppApi {
+
+class ServiceRegistry :
+    public QObject
+{
+    Q_OBJECT
+
+public:
+    static ServiceRegistry &instance()
+    {
+        static ServiceRegistry reg;
+        return reg;
+    }
+
+    virtual ~ServiceRegistry();
+
+    void registerObject(InterfaceBase *i);
+
+    const QList<InterfaceBase *> objects() const
+    {
+        return m_objects;
+    }
+
+    Q_SIGNAL void objectRegistered(InterfaceBase *object);
+
+private:
+    QList<InterfaceBase *> m_objects;
+
+};
+
+}
+
 
 class InterfaceBase :
     public QObject
 {
-
     Q_OBJECT
 
 public:
@@ -426,9 +461,25 @@ public:
         return this;
     }
 
+    void init(const QString &interfaceName)
+    {
+        m_interfaceName = interfaceName;
+        QMLCppApi::ServiceRegistry::instance().registerObject(this);
+    }
+
+    const QString &interfaceID()
+    {
+        return m_interfaceName;
+    }
+
 private:
     QString m_implementationID = "Undefined";
+    QString m_interfaceName;
+
 };
+
+
+
 
 
 class ModelQMLImplementationBase :
@@ -462,12 +513,13 @@ public:
         m_interface = interface;
     }
 
-    QJSValue& checkMethod(QJSValue& method, const char* methodName) {
-    	if (!method.isCallable()) {
-    		qFatal("Method not callable : %s", qPrintable(methodName));
-    	}
+    QJSValue &checkMethod(QJSValue &method, const char *methodName)
+    {
+        if (!method.isCallable()) {
+            qFatal("Method not callable : %s", qPrintable(methodName));
+        }
 
-		return method;
+        return method;
     }
 
     InterfaceBase *m_interface = nullptr;
@@ -642,6 +694,28 @@ public:
 
 };
 
+template<typename Class, typename PropertyType>
+class ModelPropertyInterface
+{
+
+public:
+    ModelPropertyInterface()
+    {
+    }
+};
+
+
+template<typename Class, typename PropertyType>
+class ServicePropertyInterface
+{
+
+public:
+    ServicePropertyInterface()
+    {
+    }
+};
+
+
 class ServiceWrapperBase
 {
 
@@ -699,5 +773,22 @@ protected:
 
 private:
     QPointer<WrappedType> m_wrapped;
+
+};
+
+class ModuleBase
+    //: public QObject
+{
+
+    //	Q_OBJECT
+
+public:
+    ModuleBase()
+    //	: QObject(parent)
+    {
+        //		Q_UNUSED(parent);
+    }
+
+    virtual ~ModuleBase();
 
 };

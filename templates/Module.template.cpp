@@ -21,8 +21,8 @@ QObject* {{class}}_singletontype_provider(QQmlEngine*, QJSEngine*)
       return new {{class}}();
 }
 
-{{class}}::{{class}}(QObject *parent)
-    : QObject(parent)
+{{class}}::{{class}}()
+    : QObject()
 {
 }
 

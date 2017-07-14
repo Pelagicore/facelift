@@ -10,3 +10,25 @@
 
 ModelElementID ModelStructure::s_nextID = 0;
 constexpr int ModelStructure::ROLE_ID;
+
+namespace QMLCppApi {
+
+ServiceRegistry::~ServiceRegistry()
+{
+}
+
+void ServiceRegistry::registerObject(InterfaceBase *i)
+{
+    m_objects.append(i);
+
+    // Notify later since our object is not yet fully constructed at this point in time
+    QTimer::singleShot(0, [this, i] () {
+            objectRegistered(i);
+        });
+}
+
+}
+
+ModuleBase::~ModuleBase()
+{
+}

@@ -7,9 +7,6 @@
 
 #pragma once
 
-#include "widgets.h"
-
-
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -27,6 +24,8 @@
 #include <tuple>
 
 #include <QFileSystemWatcher>
+#include "ControlWidgets.h"
+
 
 
 
@@ -88,366 +87,6 @@ inline void readJSONSimple<QString>(const QJsonValue &json, QString &value)
 
 
 
-template<typename EnumType>
-class EnumerationPropertyWidget :
-    public PropertyWidget<EnumType>
-{
-
-public:
-    EnumerationPropertyWidget(EnumType &value, const QString &propertyName, QWidget *parent = nullptr) :
-        PropertyWidget<EnumType>(value, propertyName, parent)
-    {
-        widget = new QComboBox();
-        this->addWidget(widget);
-        auto values = validValues<EnumType>();
-        for (auto &v : values) {
-            widget->addItem(toString(v), static_cast<int>(v));
-        }
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        auto values = validValues<EnumType>();
-        for (int i = 0; i < values.size(); i++) {
-            if (this->value() == values[i]) {
-                widget->setCurrentIndex(i);
-            }
-        }
-    }
-
-    void init()
-    {
-        QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
-            int index = widget->currentIndex();
-            this->updateValue(validValues<EnumType>()[index]);
-        });
-    }
-
-private:
-    QComboBox *widget = nullptr;
-};
-
-
-class BooleanPropertyWidget :
-    public PropertyWidget<bool>
-{
-
-public:
-    BooleanPropertyWidget(bool &value, const QString &propertyName, QWidget *parent = nullptr) :
-        PropertyWidget(value, propertyName, parent)
-    {
-        widget = new QCheckBox();
-        addWidget(widget);
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        widget->setChecked(value());
-    }
-
-    void init()
-    {
-        QObject::connect(widget, &QCheckBox::stateChanged, this, [this]() {
-            updateValue(widget->isChecked());
-        });
-    }
-
-private:
-    QCheckBox *widget = nullptr;
-};
-
-
-class IntegerPropertyWidget :
-    public PropertyWidget<int>
-{
-
-public:
-    IntegerPropertyWidget(int &value, const QString &propertyName, QWidget *parent = nullptr) :
-        PropertyWidget(value, propertyName, parent)
-    {
-        widget = new QSpinBox();
-        widget->setMaximum(5000);
-        this->addWidget(widget);
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        widget->setValue(value());
-    }
-
-    void init()
-    {
-        QObject::connect(widget, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this]() {
-            updateValue(widget->value());
-        });
-    }
-
-private:
-    QSpinBox *widget = nullptr;
-};
-
-class FloatPropertyWidget :
-    public PropertyWidget<float>
-{
-
-public:
-    FloatPropertyWidget(float &value, const QString &propertyName, QWidget *parent = nullptr) :
-        PropertyWidget(value, propertyName, parent)
-    {
-        widget = new QDoubleSpinBox();
-        widget->setMaximum(5000);
-        widget->setSingleStep(0.1);
-        addWidget(widget);
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        widget->setValue(value());
-    }
-
-    void init()
-    {
-        QObject::connect(widget, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this]() {
-            updateValue(widget->value());
-        });
-    }
-
-private:
-    QDoubleSpinBox *widget = nullptr;
-};
-
-
-class StringPropertyWidget :
-    public PropertyWidget<QString>
-{
-
-public:
-    StringPropertyWidget(QString &value, const QString &propertyName, QWidget *parent = nullptr) :
-        PropertyWidget(value, propertyName, parent)
-    {
-        widget = new QTextEdit();
-        addWidget(widget);
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        widget->setText(value());
-    }
-
-    void init()
-    {
-        QObject::connect(widget, &QTextEdit::textChanged, [this]() {
-            updateValue(widget->toPlainText());
-        });
-    }
-
-private:
-    QTextEdit *widget = nullptr;
-};
-
-
-template<typename ElementType>
-class ListPropertyWidget :
-    public PropertyWidget<QList<ElementType> >
-{
-
-public:
-    ListPropertyWidget(QList<ElementType> &value, const QString &propertyName, QWidget *parent = nullptr) :
-        PropertyWidget<QList<ElementType> >(value, propertyName, parent)
-    {
-        addCreateNewElementButton();
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        Q_ASSERT(false);
-    }
-
-    void setValueWidget(QWidget *widget)
-    {
-        this->addWidget(widget);
-    }
-
-    void addCreateNewElementButton()
-    {
-        createNewElementButton = new QPushButton("Create new element");
-        this->addWidget(createNewElementButton);
-    }
-
-    QPushButton *createNewElementButton = nullptr;
-
-};
-
-
-template<typename ElementType>
-class SimpleListPropertyWidget :
-    public ListPropertyWidget<ElementType>
-{
-
-public:
-    SimpleListPropertyWidget(const QString &propertyName, QWidget *parent = nullptr) :
-        ListPropertyWidget<ElementType>(propertyName, parent)
-    {
-    }
-
-    void init()
-    {
-    }
-
-    QList<ElementType> value() const
-    {
-        Q_ASSERT(false);
-        return QList<ElementType>();
-    }
-
-};
-
-struct DummyUIDescBase
-{
-
-    template<typename Type>
-    static Type clone(const Type &v)
-    {
-        return v;
-    }
-
-};
-
-template<typename Type, typename Sfinae = void>
-struct DummyUIDesc :
-    public DummyUIDescBase
-{
-    typedef PropertyWidget<Type> PanelType;
-};
-
-
-template<typename ListElementType>
-struct DummyUIDesc<QList<ListElementType> > :
-    public DummyUIDescBase
-{
-    typedef SimpleListPropertyWidget<ListElementType> PanelType;
-};
-
-template<>
-struct DummyUIDesc<bool> :
-    public DummyUIDescBase
-{
-    typedef BooleanPropertyWidget PanelType;
-};
-
-template<>
-struct DummyUIDesc<int> :
-    public DummyUIDescBase
-{
-    typedef IntegerPropertyWidget PanelType;
-};
-
-template<>
-struct DummyUIDesc<float> :
-    public DummyUIDescBase
-{
-    typedef FloatPropertyWidget PanelType;
-};
-
-template<>
-struct DummyUIDesc<QString> :
-    public DummyUIDescBase
-{
-    typedef StringPropertyWidget PanelType;
-};
-
-template<typename EnumType>
-struct DummyUIDesc<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
-{
-    typedef EnumerationPropertyWidget<EnumType> PanelType;
-};
-
-
-template<typename StructType>
-class StructurePropertyWidget :
-    public PropertyWidget<StructType>
-{
-    typedef std::array<const char *, StructType::FieldCount> FieldNames;
-    typedef typename StructType::FieldTupleTypes FieldTypes;
-
-public:
-    StructurePropertyWidget(StructType &value, const QString &propertyName, FieldNames fieldNames = StructType::FIELD_NAMES,
-            QWidget *parent = nullptr) :
-        PropertyWidget<StructType>(value, propertyName, parent)
-    {
-        auto widget = new QWidget();
-        m_layout = new QVBoxLayout();
-        widget->setLayout(m_layout);
-        this->addWidget(widget);
-        create_widget_panel(fieldNames);
-    }
-
-    template<std::size_t I = 0>
-    inline typename std::enable_if<I == std::tuple_size<FieldTypes>::value>::type
-    create_widget_panel(const FieldNames &fieldNames)
-    {
-        Q_UNUSED(fieldNames);
-    }
-
-    template<std::size_t I = 0>
-    inline typename std::enable_if < I<std::tuple_size<FieldTypes>::value>::type
-    create_widget_panel(const FieldNames &fieldNames)
-    {
-        typedef typename std::tuple_element<I, FieldTypes>::type FieldType;
-        createPanelForField<FieldType, I>(fieldNames[I]);
-        create_widget_panel<I + 1>(fieldNames);
-    }
-
-    template<typename FieldType, std::size_t I>
-    void createPanelForField(const char *fieldName)
-    {
-        typedef typename DummyUIDesc<FieldType>::PanelType PanelType;
-        auto &fieldValue = std::get<I>(this->value().asTuple());
-        auto widget = new PanelType(fieldValue, fieldName);
-        widget->init();
-
-        // forward value change signal to parent
-        QObject::connect(widget, &PanelType::valueChanged, this, &PropertyWidgetBase::valueChanged);
-
-        m_layout->addWidget(widget);
-        m_childPanels.push_back(widget);
-    }
-
-    void refreshWidgetFromValue() override
-    {
-        for (const auto &widget: m_childPanels) {
-            widget->refreshWidgetFromValue();
-        }
-    }
-
-    void init()
-    {
-    }
-
-    void add(PropertyWidgetBase *child)
-    {
-        m_layout->addWidget(child);
-    }
-
-private:
-    QList<PropertyWidgetBase *> m_childPanels;
-    QVBoxLayout *m_layout;
-
-};
-
-
-template<typename StructType>
-struct DummyUIDesc<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
-{
-    typedef StructurePropertyWidget<StructType> PanelType;
-
-    static StructType clone(const StructType &v)
-    {
-        return v.clone();
-    }
-
-};
-
 template<typename Type>
 inline void assignRandomValue(Type &t)
 {
@@ -507,20 +146,6 @@ inline QTextStream &operator<<(QTextStream &outStream, const QList<ElementType> 
     //    outStream << toString(f);
     return outStream;
 }
-
-
-template<typename Type, typename Sfinae = void>
-struct ToStringDesc
-{
-
-    static void appendToString(QTextStream &s, const Type &value)
-    {
-        s << value;
-    }
-
-};
-
-
 
 template<typename Type, typename Enable = void>
 struct DummyModelTypeHandler
@@ -889,7 +514,7 @@ public:
 
 
     template<typename ... ParameterTypes>
-    void initSignal(QString signalName,
+    void addSignalWidget(QString signalName,
             const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName *obj,
             void (TypeName::*signalPointer)(ParameterTypes ...))
     {
@@ -915,24 +540,13 @@ public:
 
     }
 
-    //    template <typename PropertyType>
-    void addPropertyWidget(PropertyBase &property, PropertyWidgetBase &widget)
-    {
-        qDebug() << "Added property widget" << property.name();
-        addWidget(widget);
-
-        PropertyConnector<TypeName>::connect(property, this, [this] () {
-            onPropertyValueChanged();
-        });
-    }
-
 
     template<typename PropertyType>
-    void initWidget(Property<PropertyType> &property, const QString &propertyName)
+    void addPropertyWidget(Property<PropertyType> &property, const QString &propertyName)
     {
         Q_UNUSED(property);
 
-        typedef typename DummyUIDesc<PropertyType>::PanelType PanelType;
+        typedef typename TypeToWidget<PropertyType>::PanelType PanelType;
         auto widget = new PanelType(*new PropertyType(), propertyName);
 
         widget->init();
@@ -948,50 +562,48 @@ public:
             widget->setValue(property.value());
         });
 
-        widget->setValue(property.value());
-
-        addPropertyWidget(property, *widget);
+        addPropertyWidget_(property, *widget);
     }
 
     template<typename ListElementType>
-    void initWidget(ModelProperty<ListElementType> &property, const QString &propertyName)
+    void addPropertyWidget(ModelProperty<ListElementType> &property, const QString &propertyName)
     {
         auto widget = new ListPropertyWidget<ListElementType>(*(new QList<ListElementType>()), propertyName);
 
-        typedef typename DummyUIDesc<ListElementType>::PanelType ElementPanelType;
+        typedef typename TypeToWidget<ListElementType>::PanelType ElementPanelType;
         auto widgetForNewElement = new ElementPanelType(*new ListElementType(), "New");
         widgetForNewElement->init();
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
             auto v = property.asList();
-            ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
+            ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
             v.append(clone);
             property.setElements(v);
         });
 
-        addPropertyWidget(property, *widget);
+        addPropertyWidget_(property, *widget);
     }
 
 
     template<typename ListElementType>
-    void initWidget(ListProperty<ListElementType> &property, const QString &propertyName)
+    void addPropertyWidget(ListProperty<ListElementType> &property, const QString &propertyName)
     {
         auto widget = new ListPropertyWidget<ListElementType>(*(new QList<ListElementType>()), propertyName);
 
-        typedef typename DummyUIDesc<ListElementType>::PanelType ElementPanelType;
+        typedef typename TypeToWidget<ListElementType>::PanelType ElementPanelType;
         auto widgetForNewElement = new ElementPanelType(*new ListElementType(), "New");
         widgetForNewElement->init();
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
             auto v = property.value();
-            ListElementType clone = DummyUIDesc<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
+            ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
             v.append(clone);
             property.setValue(v);
         });
 
-        addPropertyWidget(property, *widget);
+        addPropertyWidget_(property, *widget);
     }
 
     void generateToString(QTextStream &message)
@@ -1002,13 +614,16 @@ public:
     template<typename FirstParameterTypes, typename ... ParameterTypes>
     void generateToString(QTextStream &message, const FirstParameterTypes &firstParameter, const ParameterTypes & ... parameters)
     {
-        ToStringDesc<FirstParameterTypes>::appendToString(message, firstParameter);
+        message << firstParameter << ", ";
         generateToString(message, parameters ...);
     }
 
     template<typename ... ParameterTypes>
-    void logMethodCall(const QString methodName, const ParameterTypes & ... parameters)
+    void logMethodCall(const QString methodName, const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames,
+            const ParameterTypes & ... parameters)
     {
+        Q_UNUSED(parameterNames);
+
         QString argString;
         QTextStream s(&argString);
         generateToString(s, parameters ...);
@@ -1020,6 +635,17 @@ public:
     void logSetterCall(const QString propertyName, const ParameterType &value)
     {
         appendLog(propertyName + " setter called with value : " + toString(value));
+    }
+
+private:
+    void addPropertyWidget_(PropertyBase &property, PropertyWidgetBase &widget)
+    {
+        qDebug() << "Added property widget" << property.name();
+        addWidget(widget);
+
+        PropertyConnector<TypeName>::connect(property, this, [this] () {
+            onPropertyValueChanged();
+        });
     }
 
 };

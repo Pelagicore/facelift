@@ -31,6 +31,7 @@ interface TestInterface {
     TestStruct2 method2(int intParam, bool boolParam);
     TestEnum method3();
     list<TestEnum> method4();
+    list<TestStruct> method5();
 
     signal event1(TestStruct p);
     signal eventEnum(TestEnum p);

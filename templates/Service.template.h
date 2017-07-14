@@ -51,9 +51,7 @@ public:
 
     typedef {{class}}QMLFrontend QMLFrontendType;
 
-    {{class}}(QObject* parent = nullptr) :
-		InterfaceBase(parent) {
-    }
+    {{class}}(QObject* parent = nullptr);
 
     static void registerTypes(const char* uri) {
         Q_UNUSED( uri);
@@ -69,11 +67,7 @@ public:
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    {% elif property.type.is_list -%}
-
-    virtual const {{property|returnType}}& {{property}}() const = 0;
-
-    typedef {{property|returnType}} PropertyType_{{property}};
+    ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}> {{property}}Property() { return ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}>(); };
 
     {% elif property.type.is_interface -%}
 
@@ -81,6 +75,8 @@ public:
     virtual {{property|returnType}}* {{property}}() = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
+
+    ServicePropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return ServicePropertyInterface<{{class}}, {{property|returnType}}>(); };
 
     {% else %}
 

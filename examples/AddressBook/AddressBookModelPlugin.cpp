@@ -11,7 +11,9 @@
 #include "addressbook/Module.h"
 #include "addressbook/ModuleIPC.h"
 #include "addressbook/ModuleDummy.h"
+#include "addressbook/ModuleMonitor.h"
 #include "addressbook/AddressBookIPC.h"
+#include "addressbook/AddressBookMonitor.h"
 
 #include "models/cpp/advanced/AddressBookCppWithProperties.h"
 #include "models/cpp/AddressBookCpp.h"
@@ -20,20 +22,21 @@ using namespace addressbook;
 
 void AddressBookModelPlugin::registerTypes(const char *uri)
 {
-
     // Register the generated types
-    addressbook::Module::registerTypes();
-    addressbook::Module::registerQmlTypes(uri);
+    Module::registerTypes();
+    Module::registerQmlTypes(uri);
 
     // We register the IPC adapters/proxies so that we can use our interfaces across process boundaries
-    addressbook::ModuleIPC::registerQmlTypes(uri);
+    ModuleIPC::registerQmlTypes(uri);
 
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here
     registerQmlComponent<AddressBookCppWithProperties>(uri);
     //    registerQmlComponent<AddressBookCpp>(uri);
 
+    ModuleMonitor::registerTypes();
+
     // Register the dummy implementations
-    addressbook::ModuleDummy::registerQmlTypes(uri);
+    ModuleDummy::registerQmlTypes(uri);
 
 }

@@ -105,3 +105,8 @@ void call_method(Model *obj, F f, Tuple &&t)
         obj, f, std::forward<Tuple>(t));
 }
 
+
+template<typename Type>
+inline const QList<Type> &validValues()
+{
+}

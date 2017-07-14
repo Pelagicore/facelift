@@ -1,15 +1,26 @@
+{% set class = 'Module' %}
 /****************************************************************************
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{interface}}.h"
+#pragma once
+
+#include <QtQml>
+
+{% for interface in module.interfaces %}
+#include "{{interface|fullyQualifiedPath}}Monitor.h"
+{% endfor %}
 
 {{module|namespaceOpen}}
 
-{{interface}}::{{interface}}(QObject* parent) :
-	InterfaceBase(parent) {
-	init({{interface}}::FULLY_QUALIFIED_INTERFACE_NAME);
-}
+class {{class}}Monitor {
+
+public:
+
+    static void registerTypes();
+
+};
 
 {{module|namespaceClose}}
+

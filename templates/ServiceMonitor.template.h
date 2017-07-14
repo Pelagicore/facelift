@@ -18,10 +18,12 @@ class {{interface}}Monitor : public ServiceMonitor<{{interface}}> {
 
     Q_OBJECT
 
-	typedef {{interface}} ProviderType;
-
 public:
-    {{interface}}Monitor(ProviderType& provider): ServiceMonitor(provider) {
+    {{interface}}Monitor(ProviderType_& provider): ServiceMonitor(provider) {
+
+        {% for property in interface.properties %}
+        addProperty(provider.{{property}}Property(), "{{property}}");
+        {% endfor %}
     }
 
     private:

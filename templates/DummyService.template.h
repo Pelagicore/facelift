@@ -34,9 +34,14 @@ public:
             {% endfor %}
 ) override {
 
-        m_dummy.logMethodCall("{{operation}}"
-                {% for parameter in operation.parameters %}
 
+        m_dummy.logMethodCall("{{operation}}",
+        		{
+					{% for parameter in operation.parameters %}
+					"{{parameter}}",
+					{% endfor %}
+				}
+                {% for parameter in operation.parameters %}
                  , {{parameter.name}}
                 {% endfor %}
         );
@@ -69,23 +74,20 @@ public:
 			{% if property.type.is_interface -%}
 			// TODO : support interface property type
 			{% else %}
-            initWidget(m_adapter.m_{{property.name}}, "{{property.name}}");
+			addPropertyWidget(m_adapter.m_{{property.name}}, "{{property.name}}");
             {% endif %}
             {% endfor %}
 
-
             {% for event in interface.signals %}
-            initSignal<
+            addSignalWidget<
 			            {% set comma = joiner(",") %}
 			            {% for parameter in event.parameters %}
 			            {{ comma() }}
 			            {{parameter|returnType}}
 			            {% endfor %}
 			    >("{{event.name}}", {
-			            {% set comma = joiner(",") %}
 			            {% for parameter in event.parameters %}
-			            {{ comma() }}
-			            "{{parameter}}"
+			            "{{parameter}}",
 			            {% endfor %}
 			    }, &adapter, &{{class}}::{{event.name}});
 

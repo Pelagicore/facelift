@@ -130,6 +130,8 @@ def run_generation(input, output):
         generator.write('api/{{path}}/Module.h', 'Module.template.h', ctx)
         generator.write('api/{{path}}/Module.cpp', 'Module.template.cpp', ctx)
         generator.write('ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx)
+        generator.write('dummy/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx)
+        generator.write('dummy/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx)
         generator.write('dummy/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx)
         for interface in module.interfaces:
             log.debug('process interface %s' % interface)

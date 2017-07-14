@@ -45,9 +45,11 @@ void DummyModelBase::init(const QString &interfaceName)
     QObject::connect(ui->saveSnapshotButton, &QPushButton::clicked, [this]() {
         saveJSONSnapshot();
     });
+
     QObject::connect(ui->loadSnapshotButton, &QPushButton::clicked, [this]() {
         loadJSONSnapshot();
     });
+
     QObject::connect(ui->clearLogButton, &QPushButton::clicked, [this]() {
         ui->logLabel->setText("");
     });
