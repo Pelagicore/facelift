@@ -8,6 +8,7 @@ function(add_library_simple LIBRARY_NAME)
         target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endfunction()
 
+add_subdirectory(common)
 add_subdirectory(model)
 add_subdirectory(property)
 add_subdirectory(qmlmodel)

@@ -18,7 +18,7 @@
 
 #include <array>
 
-#include "../utils.h"
+#include "utils.h"
 
 
 #define STRINGIFY_(x) # x

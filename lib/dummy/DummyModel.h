@@ -7,18 +7,8 @@
 
 #pragma once
 
-#include <QMainWindow>
-#include <QApplication>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QCheckBox>
-#include <QSpinBox>
-#include <QTextEdit>
-#include <QPushButton>
-#include <QPalette>
-#include <QDir>
-#include <QComboBox>
-#include <QScrollArea>
+#include "widgets.h"
+
 
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -38,35 +28,6 @@
 
 #include <QFileSystemWatcher>
 
-namespace detail {
-template<typename Model, typename F, typename Tuple, bool Done, int Total, int ... N>
-struct call_impl
-{
-    static void call_method(Model *obj, F f, Tuple &&t)
-    {
-        call_impl<Model, F, Tuple, Total == 1 + sizeof ... (N), Total, N ..., sizeof ... (N)>::call_method(obj, f,
-                std::forward<Tuple>(t));
-    }
-};
-
-template<typename Model, typename F, typename Tuple, int Total, int ... N>
-struct call_impl<Model, F, Tuple, true, Total, N ...>
-{
-    static void call_method(Model *obj, F f, Tuple &&t)
-    {
-        (obj->*f)(std::get<N>(std::forward<Tuple>(t)) ...);
-    }
-};
-}
-
-// user invokes this
-template<typename Model, typename F, typename Tuple>
-void call_method(Model *obj, F f, Tuple &&t)
-{
-    typedef typename std::decay<Tuple>::type ttype;
-    detail::call_impl<Model, F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call_method(
-        obj, f, std::forward<Tuple>(t));
-}
 
 
 template<typename Type>
@@ -123,91 +84,6 @@ inline void readJSONSimple<QString>(const QJsonValue &json, QString &value)
     }
 }
 
-
-class PropertyWidgetBase :
-    public QWidget
-{
-    Q_OBJECT
-
-public:
-    PropertyWidgetBase(const QString &propertyName, QWidget *parent = nullptr) :
-        QWidget(parent)
-    {
-        m_propertyName = propertyName;
-
-        m_layout = new QHBoxLayout();
-        setLayout(m_layout);
-
-        m_propertyNameLabel = new QLabel();
-        m_layout->addWidget(m_propertyNameLabel);
-        setPropertyName(propertyName);
-        setAutoFillBackground(true);
-    }
-
-    void addWidget(QWidget *widget)
-    {
-        m_layout->addWidget(widget);
-    }
-
-    void setPropertyName(const QString &propertyName)
-    {
-        m_propertyNameLabel->setText(propertyName);
-    }
-
-    const QString &propertyName() const
-    {
-        return m_propertyName;
-    }
-
-    Q_SIGNAL void valueChanged();
-
-    virtual void refreshWidgetFromValue() = 0;
-
-private:
-    QHBoxLayout *m_layout;
-    QLabel *m_propertyNameLabel;
-    QString m_propertyName;
-};
-
-
-template<typename PropertyType>
-class PropertyWidget :
-    public PropertyWidgetBase
-{
-
-public:
-    using PropertyWidgetBase::addWidget;
-    using PropertyWidgetBase::valueChanged;
-
-    PropertyWidget(PropertyType &value, const QString &propertyName, QWidget *parent = nullptr) : PropertyWidgetBase(propertyName,
-                parent),
-        m_value(value)
-    {
-    }
-
-    void setValue(PropertyType value)
-    {
-        m_value = value;
-        refreshWidgetFromValue();
-    }
-
-    PropertyType &value()
-    {
-        return m_value;
-    }
-
-protected:
-    // called to update the value and trigger change signal
-    void updateValue(PropertyType value)
-    {
-        m_value = value;
-        valueChanged();
-    }
-
-private:
-    PropertyType &m_value;
-
-};
 
 
 

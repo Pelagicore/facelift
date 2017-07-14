@@ -141,6 +141,7 @@ def run_generation(input, output):
             generator.write('api/{{path}}/{{interface}}QML.h', 'QMLServiceImplementation.template.h', ctx)
             generator.write('api/{{path}}/{{interface}}QMLFrontend.h', 'QMLServiceFrontend.template.h', ctx)
             generator.write('dummy/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx)
+            generator.write('dummy/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx)
             generator.write('ipc/{{path}}/{{interface}}IPC.h', 'ServiceIPC.template.h', ctx)
         for enum in module.enums:
             ctx.update({'enum': enum})

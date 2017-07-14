@@ -21,7 +21,7 @@
 #include <QDBusServiceWatcher>
 
 #include "Model.h"
-#include "../utils.h"
+#include "utils.h"
 
 class IPCMessage
 {
