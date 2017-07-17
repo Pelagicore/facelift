@@ -152,6 +152,8 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
     add_library(${LIBRARY_NAME} INTERFACE)
     target_link_libraries(${LIBRARY_NAME} INTERFACE ${LIBRARY_NAME}_api ${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_ipc)
 
+    install(TARGETS ${LIBRARY_NAME}_api ${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_ipc DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
 endfunction()
 
 function(set_qface_qml_service_implementation_path LIBRARY_NAME PATH)

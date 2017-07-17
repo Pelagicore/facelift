@@ -153,3 +153,12 @@ private:
     ProviderType &m_provider;
 
 };
+
+
+class ModuleMonitorBase {
+
+public:
+
+	static bool isEnabled();
+
+};

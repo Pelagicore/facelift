@@ -26,8 +26,11 @@ void ServiceMonitorBase::init(const QString &interfaceName)
 
 }
 
-
 ServiceMonitorBase::~ServiceMonitorBase()
 {
     delete(m_window);
+}
+
+bool ModuleMonitorBase::isEnabled() {
+	return (getenv("FACELIFT_ENABLE_MONITOR") != nullptr);
 }

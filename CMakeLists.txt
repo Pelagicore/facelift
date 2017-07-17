@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.1)
 
 option(ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
 
+include(GNUInstallDirs)    # for standard installation locations
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 

@@ -1,11 +1,12 @@
 
 function(add_library_simple LIBRARY_NAME)
-        file(GLOB_RECURSE CPP_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-        file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-        qt5_wrap_cpp(MOCS ${HEADER_FILES} TARGET ${LIBRARY_NAME})
-        add_library(${LIBRARY_NAME} SHARED ${CPP_SOURCE_FILES} ${MOCS})
-        target_link_libraries(${LIBRARY_NAME} Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Widgets )
-        target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    file(GLOB_RECURSE CPP_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+    file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+    qt5_wrap_cpp(MOCS ${HEADER_FILES} TARGET ${LIBRARY_NAME})
+    add_library(${LIBRARY_NAME} SHARED ${CPP_SOURCE_FILES} ${MOCS})
+    target_link_libraries(${LIBRARY_NAME} Qt5::Core Qt5::Qml Qt5::Quick Qt5::Gui Qt5::Qml Qt5::Quick Qt5::Widgets )
+    target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    install(TARGETS ${LIBRARY_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endfunction()
 
 add_subdirectory(common)
