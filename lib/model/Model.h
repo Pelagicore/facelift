@@ -434,6 +434,9 @@ private:
 }
 
 
+/**
+ * Base interface which every interface inherits from
+ */
 class InterfaceBase :
     public QObject
 {
@@ -737,6 +740,9 @@ protected:
 
 };
 
+/**
+ *
+ */
 template<typename WrappedType>
 class ServiceWrapper :
     public WrappedType, public ServiceWrapperBase

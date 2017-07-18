@@ -1,0 +1,15 @@
+
+module mypackage 1.0;
+
+interface MyInterface {
+
+    // the counter property
+    readonly int counter;
+
+    // This method resets the value of the counter
+    void resetCounter();
+
+    // This signal is triggered when the counter has been reset 
+    signal counterReset();
+
+}

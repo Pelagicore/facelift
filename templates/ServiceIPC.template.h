@@ -151,11 +151,9 @@ public:
                     {{parameter|returnType}} {{parameter.name}}
                     {% endfor %}
         ) {
-            sendSignal("{{event}}",
-            {% set comma = joiner(",") %}
+            sendSignal("{{event}}"
             {% for parameter in event.parameters %}
-                {{ comma() }}
-                {{parameter.name}}
+                , {{parameter.name}}
                 {% endfor %}
             );
         }

@@ -38,6 +38,8 @@ void DummyModelBase::init(const QString &interfaceName)
 
     ui->autoSaveCheckBox->setChecked(m_autoSaveEnabled);
 
+    ui->snapshotPath->setText(getJSONSnapshotFilePath());
+
     if (m_autoSaveEnabled) {
         loadJSONSnapshot();
     }
