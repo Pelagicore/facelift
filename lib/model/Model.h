@@ -483,20 +483,22 @@ private:
 
 
 
-
-
 class ModelQMLImplementationBase :
-    public QQuickItem
-	// TODO : change to QObject
+    public QObject
 {
 
     Q_OBJECT
 
 public:
+
+	// We set a default property so that we can have children QML elements in our QML implementations, such as Timer
+	Q_PROPERTY(QQmlListProperty<QObject> childItems READ childItems)
+	Q_CLASSINFO("DefaultProperty", "childItems")
+
     Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID)
 
     ModelQMLImplementationBase(QQuickItem *parent = nullptr) :
-        QQuickItem(parent)
+	    QObject(parent)
     {
     }
 
@@ -526,6 +528,12 @@ public:
         return method;
     }
 
+    QQmlListProperty<QObject> childItems() {
+    	return QQmlListProperty<QObject>(this, m_children);
+    }
+
+private:
+    QList<QObject *> m_children;
     InterfaceBase *m_interface = nullptr;
 };
 
