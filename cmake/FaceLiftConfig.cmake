@@ -1,9 +1,9 @@
 
-find_package(Qt5Widgets ${QtVersion})
-find_package(Qt5Core ${QtVersion})
-find_package(Qt5Qml ${QtVersion})
-find_package(Qt5Quick ${QtVersion})
-find_package(Qt5DBus ${QtVersion})
+find_package(Qt5Widgets ${QtVersion} REQUIRED)
+find_package(Qt5Core ${QtVersion} REQUIRED)
+find_package(Qt5Qml ${QtVersion} REQUIRED)
+find_package(Qt5Quick ${QtVersion} REQUIRED)
+find_package(Qt5DBus ${QtVersion} REQUIRED)
 
 set(QFACE_SOURCE_LOCATION ${CMAKE_CURRENT_LIST_DIR}/..)
 set(QFACE_BASE_LOCATION ${QFACE_SOURCE_LOCATION}/qface)

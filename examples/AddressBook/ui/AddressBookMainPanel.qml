@@ -76,7 +76,9 @@ Item {
                 target: tableView.selection
                 onSelectionChanged: tableView.selection.forEach(function(rowIndex) {
                     var elementID = tableView.model[rowIndex].id;
-                    viewModel.selectContact(elementID);
+                    if (viewModel.currentContact.id != elementID) {
+                        viewModel.selectContact(elementID);
+                    }
                 });
             }
 

@@ -487,6 +487,7 @@ private:
 
 class ModelQMLImplementationBase :
     public QQuickItem
+	// TODO : change to QObject
 {
 
     Q_OBJECT

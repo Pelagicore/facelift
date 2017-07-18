@@ -62,12 +62,6 @@ AddressBookImplementation {
 	    }
     }
 
-    testMethod: function(contact) {
-       print("contact");
-       contact.name = "Reeeeturn"
-       return contact;
-    }
-
     updateContact: function(contactID, contact) {
         print("Not implemented"); // TODO
     }

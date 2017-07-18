@@ -70,8 +70,8 @@ Item {
                 delegate: Button {
                     text: modelData.name + (modelData.isPlaying ? "* " : "")
                     onClicked: {
-                        viewModel.setCurrentStation(modelData)
-                        print("Clicked " + modelData.name + " id " + modelData.stationId)
+                        var station = modelData
+                        viewModel.setCurrentStation(station)
                     }
                 }
 
