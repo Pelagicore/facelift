@@ -95,8 +95,6 @@ private:
                 clean();
                 (m_ownerObject->*signalPointer())();
             }
-        } else {
-            qFatal("init() has not been called");
         }
     }
 
@@ -105,7 +103,7 @@ private:
 
     bool m_notificationTimerEnabled = false;
     const char *m_name = nullptr;
-    bool m_asynchronousNotification = true;
+    bool m_asynchronousNotification = false;
 
 };
 

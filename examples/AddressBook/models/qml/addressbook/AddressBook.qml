@@ -47,6 +47,7 @@ AddressBookImplementation {
         print("Select contact with ID " + contactId);
         if (contacts.elementExists(contactId)) {
             currentContact = contacts.elementById(contactId);
+            print("Selected contact with ID " + contactId);
         }
     }
 
@@ -67,7 +68,10 @@ AddressBookImplementation {
     }
 
     deleteContact: function(contactID) {
-        contacts.removeElementByID(contactID)
+        if (contacts.elementExists(contactID)) {
+	        contactDeleted(contacts.removeElementByID(contactID));
+	        selectContact(contacts.elementAt(0).id);
+        }
     }
 
 }

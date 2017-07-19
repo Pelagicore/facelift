@@ -240,7 +240,7 @@ public:
     	return TQMLImplListProperty::addElement(element);
     }
 
-    Q_INVOKABLE void removeElementByID(int elementId) {
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}} removeElementByID(int elementId) {
     	return TQMLImplListProperty::removeElementByID(elementId);
     }
 
