@@ -7,6 +7,8 @@
  */
 
 #include "DummyModel.h"
+#include "ui_dummymodelsmainwindow.h"
+#include "ui_dummymodelpanel.h"
 
 
 void DummyModelBase::init(const QString &interfaceName)
@@ -61,6 +63,23 @@ void DummyModelBase::init(const QString &interfaceName)
         saveSettings();
     });
 
+}
+
+
+void DummyModelBase::addWidget(PropertyWidgetBase &widget)
+{
+    QPalette pal;
+    m_oddWidget = !m_oddWidget;
+    pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
+    widget.setPalette(pal);
+    ui->controlsLayout->addWidget(&widget);
+    m_widgets.append(&widget);
+}
+
+void DummyModelBase::appendLog(QString textToAppend)
+{
+    QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
+    ui->logLabel->setPlainText(text);
 }
 
 

@@ -1,15 +1,14 @@
 
-find_package(Qt5Widgets ${QtVersion} REQUIRED)
-find_package(Qt5Core ${QtVersion} REQUIRED)
-find_package(Qt5Qml ${QtVersion} REQUIRED)
-find_package(Qt5Quick ${QtVersion} REQUIRED)
-find_package(Qt5DBus ${QtVersion} REQUIRED)
+include(GNUInstallDirs)    # for standard installation locations
 
-set(QFACE_SOURCE_LOCATION ${CMAKE_CURRENT_LIST_DIR}/..)
-set(QFACE_BASE_LOCATION ${QFACE_SOURCE_LOCATION}/qface)
-set(CODEGEN_LOCATION ${QFACE_SOURCE_LOCATION})
+if(NOT DEFINED CODEGEN_LOCATION)
+    set(CODEGEN_EXECUTABLE_FOLDER ${CMAKE_CURRENT_LIST_DIR}/${CODEGEN_RELATIVE_PATH})
+	set(QFACE_BASE_LOCATION ${CODEGEN_EXECUTABLE_FOLDER}/facelift/qface)
+	set(CODEGEN_LOCATION ${CODEGEN_EXECUTABLE_FOLDER}/facelift-codegen.py)
+endif()
 
 message("QFace generator : ${QFACE_BASE_LOCATION}")
+message("Code generator executable : ${CODEGEN_LOCATION}")
 
 function(qface_check_return_code ERROR_CODE)
     if(NOT "${ERROR_CODE}" STREQUAL "0")
@@ -115,7 +114,7 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
-    execute_process(COMMAND ${CODEGEN_LOCATION}/qmlcppapi.py
+    execute_process(COMMAND ${CODEGEN_LOCATION}
         ${INTERFACE_FOLDER} ${WORK_PATH}
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
@@ -130,21 +129,21 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
     # Get the list of generated files
     file(GLOB_RECURSE GENERATED_FILES ${API_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE GENERATED_FILES_HEADERS ${API_OUTPUT_PATH}/*.h)
-    qt5_wrap_cpp(API_GENERATED_FILES_HEADERS_MOCS ${GENERATED_FILES_HEADERS})
+    qt5_wrap_cpp(API_GENERATED_FILES_HEADERS_MOCS ${GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_api)
     qface_add_aggregator_library(${LIBRARY_NAME}_api "${GENERATED_FILES};${GENERATED_FILES_HEADERS};${API_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_api ModelLib QMLModelLib PropertyLib)
     target_include_directories(${LIBRARY_NAME}_api PUBLIC ${API_OUTPUT_PATH})
 
     file(GLOB_RECURSE DUMMY_GENERATED_FILES ${DUMMY_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE DUMMY_GENERATED_FILES_HEADERS ${DUMMY_OUTPUT_PATH}/*.h)
-    qt5_wrap_cpp(DUMMY_GENERATED_FILES_HEADERS_MOCS ${DUMMY_GENERATED_FILES_HEADERS})
+    qt5_wrap_cpp(DUMMY_GENERATED_FILES_HEADERS_MOCS ${DUMMY_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_dummy)
     qface_add_aggregator_library(${LIBRARY_NAME}_dummy "${DUMMY_GENERATED_FILES};${DUMMY_GENERATED_FILES_HEADERS};${DUMMY_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_api DummyModelLib)
     target_include_directories(${LIBRARY_NAME}_dummy PUBLIC ${DUMMY_OUTPUT_PATH} ${Qt5Qml_PRIVATE_INCLUDE_DIRS})
 
     file(GLOB_RECURSE IPC_GENERATED_FILES ${IPC_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE IPC_GENERATED_FILES_HEADERS ${IPC_OUTPUT_PATH}/*.h)
-    qt5_wrap_cpp(IPC_GENERATED_FILES_HEADERS_MOCS ${IPC_GENERATED_FILES_HEADERS})
+    qt5_wrap_cpp(IPC_GENERATED_FILES_HEADERS_MOCS ${IPC_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_ipc)
     qface_add_aggregator_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_api IPCLib)
     target_include_directories(${LIBRARY_NAME}_ipc PUBLIC ${IPC_OUTPUT_PATH})
@@ -161,5 +160,3 @@ function(set_qface_qml_service_implementation_path LIBRARY_NAME PATH)
         COMPILE_DEFINITIONS "QML_MODEL_LOCATION=${PATH}"
     )
 endfunction()
-
-add_subdirectory(${QFACE_SOURCE_LOCATION}/lib qface_lib)

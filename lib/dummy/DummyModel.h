@@ -14,9 +14,6 @@
 #include "Model.h"
 #include "Property.h"
 
-#include "ui_dummymodelsmainwindow.h"
-#include "ui_dummymodelpanel.h"
-
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -233,7 +230,7 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::v
 
 };
 
-
+class Ui_DummyModelPanel;
 
 class DummyModelBase :
     public QObject
@@ -319,16 +316,6 @@ protected:
 
     virtual void loadJSONSnapshot() = 0;
 
-    void addWidget(PropertyWidgetBase &widget)
-    {
-        QPalette pal;
-        m_oddWidget = !m_oddWidget;
-        pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
-        widget.setPalette(pal);
-        ui->controlsLayout->addWidget(&widget);
-        m_widgets.append(&widget);
-    }
-
     void onPropertyValueChanged()
     {
         if (m_autoSaveEnabled) {
@@ -336,11 +323,9 @@ protected:
         }
     }
 
-    void appendLog(QString textToAppend)
-    {
-        QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
-        ui->logLabel->setPlainText(text);
-    }
+    void addWidget(PropertyWidgetBase &widget);
+
+    void appendLog(QString textToAppend);
 
 private:
     Ui_DummyModelPanel *ui = nullptr;
@@ -358,6 +343,9 @@ private:
 
 };
 
+namespace Ui {
+class DummyModelsMainWindow;
+}
 
 class DummyModelControlWindow :
     public QMainWindow
@@ -379,7 +367,7 @@ public:
 
 
 private:
-    Ui::DummyModelsMainWindow *ui;
+    Ui::DummyModelsMainWindow *ui = nullptr;
 };
 
 

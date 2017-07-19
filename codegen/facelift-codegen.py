@@ -15,7 +15,7 @@ import yaml
 
 here = Path(__file__).dirname()
 
-logging.config.dictConfig(yaml.load(open(here / 'qface/log.yaml')))
+logging.config.dictConfig(yaml.load(open(here / 'facelift/facelift-log.yaml')))
 log = logging.getLogger(__name__)
 
 
@@ -108,7 +108,7 @@ def requiredQMLInclude(symbol):
 
 def run_generation(input, output):
     system = FileSystem.parse(input)
-    generator = Generator(search_path=Path(here / 'templates'))
+    generator = Generator(search_path=Path(here / 'facelift/templates'))
     generator.register_filter('returnType', returnType)
     generator.register_filter('parameterType', parameterType)
     generator.register_filter('nestedType', nestedType)

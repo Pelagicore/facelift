@@ -12,7 +12,6 @@
 
 #include "ControlWidgets.h"
 
-#include "ui_servicemonitorpanel.h"
 
 class ServiceMonitorBase;
 
@@ -66,6 +65,8 @@ private:
 };
 
 
+class Ui_ServiceMonitorPanel;
+
 class ServiceMonitorBase :
     public QObject
 {
@@ -82,15 +83,7 @@ public:
 
     virtual ~ServiceMonitorBase();
 
-    void addWidget(PropertyWidgetBase &widget)
-    {
-        QPalette pal;
-        m_oddWidget = !m_oddWidget;
-        pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
-        widget.setPalette(pal);
-        ui->controlsLayout->addWidget(&widget);
-        m_widgets.append(&widget);
-    }
+    void addWidget(PropertyWidgetBase &widget);
 
 private:
     Ui_ServiceMonitorPanel *ui = nullptr;

@@ -7,6 +7,7 @@
 
 
 #include "ServiceMonitor.h"
+#include "ui_servicemonitorpanel.h"
 
 void ServiceMonitorBase::init(const QString &interfaceName)
 {
@@ -29,6 +30,17 @@ void ServiceMonitorBase::init(const QString &interfaceName)
 ServiceMonitorBase::~ServiceMonitorBase()
 {
     delete(m_window);
+}
+
+
+void ServiceMonitorBase::addWidget(PropertyWidgetBase &widget)
+{
+	QPalette pal;
+	m_oddWidget = !m_oddWidget;
+	pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
+	widget.setPalette(pal);
+	ui->controlsLayout->addWidget(&widget);
+	m_widgets.append(&widget);
 }
 
 bool ModuleMonitorBase::isEnabled() {

@@ -8,7 +8,10 @@
 #pragma once
 
 #include "assert.h"
+#include "stddef.h"
+#include <tuple>
 
+#include <QList>
 
 template<typename StreamType>
 struct StreamReadFunction
