@@ -1,4 +1,4 @@
-project(Facelift)
+project(facelift)
 
 cmake_minimum_required(VERSION 3.1)
 
@@ -12,5 +12,5 @@ install(FILES facelift-codegen.py DESTINATION ${CMAKE_INSTALL_BINDIR}
 
 file(RELATIVE_PATH CODEGEN_RELATIVE_PATH /${CMAKE_CONFIG_INSTALLATION_PATH} /${CMAKE_INSTALL_BINDIR})
 
-configure_file(FaceliftConfig-codegen.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/FaceliftConfig-codegen.cmake @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FaceliftConfig-codegen.cmake DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})
+configure_file(faceliftConfig-codegen.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/faceliftConfig-codegen.cmake @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/faceliftConfig-codegen.cmake DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})

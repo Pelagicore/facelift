@@ -1,22 +1,26 @@
 
 include(GNUInstallDirs)    # for standard installation locations
 
-if(NOT DEFINED CODEGEN_LOCATION)
-    set(CODEGEN_EXECUTABLE_FOLDER ${CMAKE_CURRENT_LIST_DIR}/${CODEGEN_RELATIVE_PATH})
-	set(QFACE_BASE_LOCATION ${CODEGEN_EXECUTABLE_FOLDER}/facelift/qface)
-	set(CODEGEN_LOCATION ${CODEGEN_EXECUTABLE_FOLDER}/facelift-codegen.py)
+get_property(CODEGEN_LOCATION_DEFINED GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+
+if(CODEGEN_LOCATION_DEFINED)
+else()
+    message("NOT DEFINED")
+    set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_LIST_DIR}/${CODEGEN_RELATIVE_PATH})
 endif()
 
-message("QFace generator : ${QFACE_BASE_LOCATION}")
-message("Code generator executable : ${CODEGEN_LOCATION}")
+get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+message("CODEGEN_LOCATION : ${CODEGEN_LOCATION}")
 
-function(qface_check_return_code ERROR_CODE)
+
+function(facelift_check_return_code ERROR_CODE)
     if(NOT "${ERROR_CODE}" STREQUAL "0")
         message(FATAL_ERROR "Failed")
     endif()
 endfunction()
 
-function(qface_add_aggregator_library LIB_NAME FILE_LIST_)
+
+function(facelift_add_aggregator_library LIB_NAME FILE_LIST_)
     set(FILE_INDEX "0")
     set(FILE_LIST ${FILE_LIST_})
     set(AGGREGATED_FILE_LIST "")
@@ -62,7 +66,7 @@ function(qface_add_aggregator_library LIB_NAME FILE_LIST_)
 
     add_library(${LIB_NAME} SHARED ${AGGREGATED_FILE_LIST})
 
-    # Add dummy target to ensure that MOC files are generated before before building the library
+    # Add dummy target to ensure that MOC files are generated before building the library
     add_custom_target(${LIB_NAME}_dummyTarget DEPENDS ${FILE_LIST_})
     add_dependencies(${LIB_NAME} ${LIB_NAME}_dummyTarget)
 
@@ -71,7 +75,7 @@ endfunction()
 
 
 # Copy the content of FOLDER_SOURCE into FOLDER_DESTINATION, without overwriting files which already have the same content
-function(qface_synchronize_folders FOLDER_SOURCE FOLDER_DESTINATION)
+function(facelift_synchronize_folders FOLDER_SOURCE FOLDER_DESTINATION)
 
     file(GLOB_RECURSE SOURCE_FILES RELATIVE ${FOLDER_SOURCE} ${FOLDER_SOURCE}/*)
     foreach(FILE_PATH ${SOURCE_FILES})
@@ -99,13 +103,19 @@ function(qface_synchronize_folders FOLDER_SOURCE FOLDER_DESTINATION)
 endfunction()
 
 
-function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
+function(facelift_add_package LIBRARY_NAME INTERFACE_FOLDER)
+
+    get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+    set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/facelift/qface)
+
+    message("QFace location : ${QFACE_BASE_LOCATION}")
+    message("Facelift code generator executable : ${CODEGEN_LOCATION}")
 
     set(ENV{PYTHONPATH} "ENV{PYTHONPATH}:${QFACE_BASE_LOCATION}")
 
-    set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/qface_generated_tmp)
+    set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
 
-    set(OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/qface_generated/${LIBRARY_NAME})
+    set(OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})
     set(API_OUTPUT_PATH ${OUTPUT_PATH}/api)
     set(DUMMY_OUTPUT_PATH ${OUTPUT_PATH}/dummy)
     set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
@@ -114,14 +124,14 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
-    execute_process(COMMAND ${CODEGEN_LOCATION}
+    execute_process(COMMAND ${CODEGEN_LOCATION}/facelift-codegen.py
         ${INTERFACE_FOLDER} ${WORK_PATH}
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
     )
-    qface_check_return_code(${CODEGEN_RETURN_CODE})
+    facelift_check_return_code(${CODEGEN_RETURN_CODE})
 
-    qface_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
+    facelift_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
 
     # Delete work folder
     file(REMOVE_RECURSE ${WORK_PATH})
@@ -130,21 +140,21 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
     file(GLOB_RECURSE GENERATED_FILES ${API_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE GENERATED_FILES_HEADERS ${API_OUTPUT_PATH}/*.h)
     qt5_wrap_cpp(API_GENERATED_FILES_HEADERS_MOCS ${GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_api)
-    qface_add_aggregator_library(${LIBRARY_NAME}_api "${GENERATED_FILES};${GENERATED_FILES_HEADERS};${API_GENERATED_FILES_HEADERS_MOCS}")
+    facelift_add_aggregator_library(${LIBRARY_NAME}_api "${GENERATED_FILES};${GENERATED_FILES_HEADERS};${API_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_api ModelLib QMLModelLib PropertyLib)
     target_include_directories(${LIBRARY_NAME}_api PUBLIC ${API_OUTPUT_PATH})
 
     file(GLOB_RECURSE DUMMY_GENERATED_FILES ${DUMMY_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE DUMMY_GENERATED_FILES_HEADERS ${DUMMY_OUTPUT_PATH}/*.h)
     qt5_wrap_cpp(DUMMY_GENERATED_FILES_HEADERS_MOCS ${DUMMY_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_dummy)
-    qface_add_aggregator_library(${LIBRARY_NAME}_dummy "${DUMMY_GENERATED_FILES};${DUMMY_GENERATED_FILES_HEADERS};${DUMMY_GENERATED_FILES_HEADERS_MOCS}")
+    facelift_add_aggregator_library(${LIBRARY_NAME}_dummy "${DUMMY_GENERATED_FILES};${DUMMY_GENERATED_FILES_HEADERS};${DUMMY_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_api DummyModelLib)
     target_include_directories(${LIBRARY_NAME}_dummy PUBLIC ${DUMMY_OUTPUT_PATH} ${Qt5Qml_PRIVATE_INCLUDE_DIRS})
 
     file(GLOB_RECURSE IPC_GENERATED_FILES ${IPC_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE IPC_GENERATED_FILES_HEADERS ${IPC_OUTPUT_PATH}/*.h)
     qt5_wrap_cpp(IPC_GENERATED_FILES_HEADERS_MOCS ${IPC_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_ipc)
-    qface_add_aggregator_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
+    facelift_add_aggregator_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_api IPCLib)
     target_include_directories(${LIBRARY_NAME}_ipc PUBLIC ${IPC_OUTPUT_PATH})
 
@@ -155,7 +165,8 @@ function(add_qface_package LIBRARY_NAME INTERFACE_FOLDER)
 
 endfunction()
 
-function(set_qface_qml_service_implementation_path LIBRARY_NAME PATH)
+
+function(facelift_set_qml_implementation_path LIBRARY_NAME PATH)
     set_target_properties(${LIBRARY_NAME}_api PROPERTIES
         COMPILE_DEFINITIONS "QML_MODEL_LOCATION=${PATH}"
     )
