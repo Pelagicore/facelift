@@ -50,6 +50,13 @@ In addition, since no deb package is available for it, you need to install the a
 $ pip3 install antlr4-python3-runtime
 ```
 
+MacOS/brew
+
+$ brew install qt5 python3
+
+$ pip3 install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog
+
+
 # Build
 
 We use QFace as a submodule, which you need to fetch using the following command line:
