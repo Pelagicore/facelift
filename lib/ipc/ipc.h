@@ -23,6 +23,8 @@
 #include "Model.h"
 #include "utils.h"
 
+#include "ipc-config.h"
+
 class IPCMessage
 {
 
@@ -413,24 +415,56 @@ enum class IPCHandlingResult {
 };
 
 
-class InterfaceManager
+class DBusManager
 {
 
 public:
-    void registerInterface(QString id, QObject &object)
+    DBusManager();
+
+    static DBusManager &instance()
     {
-        Q_ASSERT(!m_registry.contains(id));
-        m_registry.insert(id, &object);
+        static DBusManager i;
+        return i;
     }
 
-    QObject *getInterface(QString id)
+    bool isDBusConnected() const
     {
-        if (m_registry.contains(id)) {
-            return m_registry[id];
-        } else {
-            return nullptr;
-        }
+        return m_dbusConnected;
     }
+
+    bool registerServiceName(const QString &serviceName)
+    {
+        auto success = m_busConnection.registerService(serviceName);
+        Q_ASSERT(success);
+        return success;
+    }
+
+    QDBusConnection &connection()
+    {
+        return m_busConnection;
+    }
+
+private:
+    QDBusConnection m_busConnection;
+    bool m_dbusConnected;
+};
+
+class IPCServiceAdapterBase;
+
+class InterfaceManager :
+    public QObject
+{
+    Q_OBJECT
+
+public:
+    void registerAdapter(QString id, IPCServiceAdapterBase &object);
+
+    IPCServiceAdapterBase *getAdapter(QString id);
+
+    void onObjectDestroyed(QObject *object);
+
+    Q_SIGNAL void adapterDestroyed(IPCServiceAdapterBase *adapter);
+    Q_SIGNAL void adapterAvailable(IPCServiceAdapterBase *adapter);
 
     static InterfaceManager &instance()
     {
@@ -439,7 +473,7 @@ public:
     }
 
 private:
-    QMap<QString, QObject *> m_registry;
+    QMap<QString, IPCServiceAdapterBase *> m_registry;
 
 };
 
@@ -480,7 +514,7 @@ public:
     virtual void setService(QObject *service) = 0;
 
     IPCServiceAdapterBase(QObject *parent = nullptr) :
-        QDBusVirtualObject(parent), m_busConnection(QDBusConnection::sessionBus())
+        QDBusVirtualObject(parent)
     {
     }
 
@@ -540,7 +574,7 @@ public:
     {
         IPCMessage msg(m_objectPath, m_interfaceName, PROPERTIES_CHANGED_SIGNAL_NAME);
         serializePropertyValues(msg);
-        msg.send(m_busConnection);
+        msg.send(dbusManager().connection());
     }
 
     template<typename ... Args>
@@ -550,7 +584,7 @@ public:
         msg << signalName;
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
-        msg.send(m_busConnection);
+        msg.send(dbusManager().connection());
     }
 
     template<typename Type>
@@ -592,31 +626,37 @@ public:
         if (!m_alreadyInitialized && m_enabled) {
             if ((service != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
-                qWarning() << "Registering serviceName " << m_serviceName;
-                auto success = m_busConnection.registerService(m_serviceName);
-                Q_ASSERT(success);
+                if (dbusManager().isDBusConnected()) {
+                    qWarning() << "Registering serviceName " << m_serviceName;
 
-                qDebug() << "Registering IPC object at " << m_objectPath;
-                InterfaceManager::instance().registerInterface(m_objectPath, *service);
-                m_alreadyInitialized = m_busConnection.registerVirtualObject(m_objectPath, this);
-                if (m_alreadyInitialized) {
-                    connectSignals();
-                } else {
-                    qCritical() << "Could no register service at object path" << m_objectPath;
+                    auto success = DBusManager::instance().registerServiceName(m_serviceName);
+                    Q_ASSERT(success);
+
+                    qDebug() << "Registering IPC object at " << m_objectPath;
+                    m_alreadyInitialized = dbusManager().connection().registerVirtualObject(m_objectPath, this);
+                    if (m_alreadyInitialized) {
+                        connectSignals();
+                    } else {
+                        qCritical() << "Could no register service at object path" << m_objectPath;
+                    }
                 }
 
+                InterfaceManager::instance().registerAdapter(m_objectPath, *this);
             }
         }
+    }
+
+    DBusManager &dbusManager()
+    {
+        return DBusManager::instance();
     }
 
 protected:
     bool m_enabled = true;
 
-    QDBusConnection m_busConnection;
     QString m_interfaceName = "";
     QString m_objectPath = "";
     QString m_introspectionData;
-
     QString m_serviceName = DEFAULT_SERVICE_NAME;
 
     bool m_alreadyInitialized = false;
@@ -625,19 +665,19 @@ protected:
 
 
 
-
 template<typename ServiceType>
 class IPCServiceAdapter :
     public IPCServiceAdapterBase
 {
-
 public:
+    typedef ServiceType TheServiceType;
+
     IPCServiceAdapter()
     {
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
-    QObject *service() const
+    ServiceType *service() const
     {
         return m_service;
     }
@@ -683,7 +723,7 @@ public:
     }
 
 protected:
-    ServiceType *m_service = nullptr;
+    QPointer<ServiceType> m_service;
 
 };
 
@@ -774,31 +814,48 @@ public:
         if (!m_alreadyInitialized && m_enabled) {
             if ((m_serviceName != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
-                m_busWatcher.addWatchedService(m_serviceName);
+                if (manager().isDBusConnected()) {
 
-                connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &IPCProxyBinder::onServiceAvailable);
+                    m_busWatcher.addWatchedService(m_serviceName);
+                    connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &IPCProxyBinder::onServiceAvailable);
 
-                qWarning() << "Registering Proxy";
-                auto successPropertyChangeSignal =
-                        bus().connect(m_serviceName, m_objectPath, m_interfaceName,
-                                IPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME,
-                                this, SLOT(onPropertiesChanged(
-                                    const QDBusMessage&)));
-                assert(successPropertyChangeSignal);
+                    qWarning() << "Registering Proxy";
+                    auto successPropertyChangeSignal =
+                            connection().connect(m_serviceName, m_objectPath, m_interfaceName,
+                                    IPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME,
+                                    this, SLOT(onPropertiesChanged(
+                                        const QDBusMessage&)));
+                    assert(successPropertyChangeSignal);
 
-                auto successSignalTriggeredSignal =
-                        bus().connect(m_serviceName, m_objectPath, m_interfaceName,
-                                IPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME,
-                                this, SLOT(onSignalTriggered(
-                                    const QDBusMessage&)));
-                assert(successSignalTriggeredSignal);
+                    auto successSignalTriggeredSignal =
+                            connection().connect(m_serviceName, m_objectPath, m_interfaceName,
+                                    IPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME,
+                                    this, SLOT(onSignalTriggered(
+                                        const QDBusMessage&)));
+                    assert(successSignalTriggeredSignal);
 
-                requestPropertyValues();
+                    requestPropertyValues();
+
+                }
+
+                QObject::connect(
+                    &InterfaceManager::instance(), &InterfaceManager::adapterAvailable, this,
+                    &IPCProxyBinder::onLocalAdapterAvailable);
 
                 m_alreadyInitialized = true;
+
             }
         }
     }
+
+    void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
+    {
+        if (adapter->objectPath() == this->objectPath()) {
+            localAdapterAvailable(adapter);
+        }
+    }
+
+    Q_SIGNAL void localAdapterAvailable(IPCServiceAdapterBase *adapter);
 
     void onServiceAvailable()
     {
@@ -806,7 +863,7 @@ public:
     }
 
     IPCProxyBinder(QObject *parent = nullptr) :
-        QObject(parent), m_busConnection(QDBusConnection::sessionBus())
+        QObject(parent)
     {
     }
 
@@ -814,7 +871,7 @@ public:
     {
         IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName,
                 IPCServiceAdapterBase::GET_PROPERTIES_MESSAGE_NAME);
-        auto replyMessage = msg.call(m_busConnection);
+        auto replyMessage = msg.call(connection());
         if (replyMessage.isReplyMessage()) {
             m_serviceObject->deserializePropertyValues(replyMessage);
         } else {
@@ -828,7 +885,7 @@ public:
         IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
-        auto replyMessage = msg.call(m_busConnection);
+        auto replyMessage = msg.call(connection());
         if (replyMessage.isReplyMessage()) {
         } else {
             qWarning() << "Error message received";
@@ -837,9 +894,14 @@ public:
         return replyMessage;
     }
 
-    QDBusConnection &bus()
+    QDBusConnection &connection()
     {
-        return m_busConnection;
+        return manager().connection();
+    }
+
+    DBusManager &manager()
+    {
+        return DBusManager::instance();
     }
 
     void setHandler(IPCRequestHandler *handler)
@@ -852,7 +914,6 @@ private:
     bool m_alreadyInitialized = false;
     bool m_enabled = true;
 
-    QDBusConnection m_busConnection;
     QString m_interfaceName;
     QString m_objectPath;
     QString m_serviceName = IPCServiceAdapterBase::DEFAULT_SERVICE_NAME;
@@ -863,17 +924,39 @@ private:
 };
 
 
-template<typename Type>
+template<typename Type, typename IPCAdapterType>
 class IPCProxy :
     public Type, protected IPCRequestHandler
 {
 
 public:
+    typedef typename IPCAdapterType::TheServiceType InterfaceType;
+
     IPCProxy(QObject *parent = nullptr) :
         Type(parent)
     {
         m_ipcBinder.setInterfaceName(Type::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
+
+        QObject::connect(&m_ipcBinder, &IPCProxyBinder::localAdapterAvailable, this, &IPCProxy::onLocalAdapterAvailable);
+    }
+
+    void onLocalAdapterAvailable(IPCServiceAdapterBase *a)
+    {
+        auto adapter = qobject_cast<IPCAdapterType *>(a);
+        if (adapter != nullptr) {
+            m_localAdapter = adapter;
+        }
+
+        if (localInterface() != nullptr) {
+            bindLocalService(localInterface());
+        }
+    }
+
+    virtual void bindLocalService(InterfaceType *service) = 0;
+
+    void loadPropertiesFrom(typename IPCAdapterType::TheServiceType &adapter)
+    {
     }
 
     template<typename ... Args>
@@ -896,7 +979,17 @@ public:
         return &m_ipcBinder;
     }
 
+    InterfaceType *localInterface()
+    {
+        if (m_localAdapter) {
+            return m_localAdapter->service();
+        } else {
+            return nullptr;
+        }
+    }
+
 private:
+    QPointer<IPCAdapterType> m_localAdapter = nullptr;
     IPCProxyBinder m_ipcBinder;
 
 };

@@ -161,35 +161,52 @@ public:
 
 };
 
-class {{interface}}IPCProxy : public IPCProxy<{{interface}}PropertyAdapter> {
+class {{interface}}IPCProxy : public IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter> {
 
     Q_OBJECT
 
 public:
 
+	typedef {{interface}}IPCAdapter IPCAdapterType;
+
     Q_PROPERTY(IPCProxyBinder* ipc READ ipc CONSTANT)
 
-    {{interface}}IPCProxy(QObject* parent = nullptr) : IPCProxy<{{interface}}PropertyAdapter>(parent) {
+    {{interface}}IPCProxy(QObject* parent = nullptr) : IPCProxy<{{interface}}PropertyAdapter, IPCAdapterType>(parent) {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
 
     void deserializePropertyValues(IPCMessage& msg) override {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
-        {% if property.type.is_model -%}
+        	{% if property.type.is_model -%}
 
         qFatal("Model not supported");
-        {% elif property.type.is_interface -%}
+        	{% elif property.type.is_interface -%}
 //        qFatal("Property of interface type not supported");
         qWarning() << "TODO : handle interface properties" ;
 
-            {% else %}
+        	{% else %}
 		PropertyType_{{property.name}} {{property.name}};
 		msg >> {{property.name}};
 		m_{{property.name}}.setValue({{property.name}});
 
             {% endif %}
         {% endfor %}
+    }
+
+    void bindLocalService({{interface}} * service) override {
+    	Q_UNUSED(service);
+
+    	// Bind all properties
+        {% for property in interface.properties %}
+    	m_{{property.name}}.bind(service->{{property.name}}Property());
+        {% endfor %}
+
+        // Forward all signals
+        {% for signal in interface.signals %}
+    	QObject::connect(service, &InterfaceType::{{signal.name}}, this, &InterfaceType::{{signal.name}});
+        {% endfor %}
+
     }
 
     void deserializeSignal(IPCMessage& msg) override {
@@ -224,6 +241,8 @@ public:
             {{parameter|returnType}} {{parameter.name}}
             {% endfor %}
     ) override {
+    	if (localInterface() == nullptr)
+    	{
     	{% if (operation.hasReturnValue) %}
     	{{operation|returnType}} returnValue;
         sendMethodCallWithReturn("{{operation.name}}", returnValue
@@ -238,11 +257,19 @@ public:
                 , {{parameter.name}}
                 {% endfor %}
                 );
-
         {% endif %}
-    }
+    	}
 
+    	  	else return localInterface()->{{operation.name}}(
+            		{% set comma = joiner(",") %}
+    	  			{% for parameter in operation.parameters %}
+    	  			{{ comma() }} {{parameter.name}}
+                    {% endfor %}
+         );
+
+    }
     {% endfor %}
+
 
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}

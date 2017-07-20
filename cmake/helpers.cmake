@@ -22,7 +22,7 @@ function(facelift_add_qml_plugin PLUGIN_NAME URI PLUGIN_MAJOR_VERSION PLUGIN_MIN
     install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
     file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${URI}\nplugin ${PLUGIN_NAME}\ntypeinfo plugins.qmltypes")
 
-    if (ENABLE_QMLPLUGINDUMP)
+    if (FACELIFT_ENABLE_QMLPLUGINDUMP)
         add_custom_command(
             OUTPUT  ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
             COMMAND ${_qt5Core_install_prefix}/bin/qmlplugindump -noinstantiate ${URI} ${PLUGIN_MAJOR_VERSION}.${PLUGIN_MINOR_VERSION} ${CMAKE_BINARY_DIR}/imports > ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes

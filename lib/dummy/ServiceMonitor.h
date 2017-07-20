@@ -148,10 +148,10 @@ private:
 };
 
 
-class ModuleMonitorBase {
+class ModuleMonitorBase
+{
 
 public:
-
-	static bool isEnabled();
+    static bool isEnabled();
 
 };

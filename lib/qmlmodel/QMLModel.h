@@ -205,11 +205,11 @@ public:
 
     ElementType removeElementByID(ModelElementID elementId)
     {
-    	ElementType returnValue;
+        ElementType returnValue;
         auto list = m_property->value();
         for (const auto &element : list) {
             if (element.id() == elementId) {
-            	returnValue = element;
+                returnValue = element;
                 list.removeAll(element);
                 m_property->setValue(list);
                 break;

@@ -10,10 +10,12 @@
 
 #include "models/cpp/MyInterfaceCppImplementation.h"
 #include "mypackage/Module.h"
-#include "mypackage/ModuleIPC.h"
 #include "mypackage/ModuleMonitor.h"
 #include "mypackage/ModuleDummy.h"
 
+#ifdef FACELIFT_ENABLE_IPC
+#include "mypackage/ModuleIPC.h"
+#endif
 
 using namespace mypackage;
 
@@ -23,8 +25,10 @@ void MyPackagePlugin::registerTypes(const char *uri)
     Module::registerTypes();
     Module::registerQmlTypes(uri);
 
+#ifdef FACELIFT_ENABLE_IPC
     // We register the IPC adapters/proxies so that we can use our interfaces across process boundaries
     ModuleIPC::registerQmlTypes(uri);
+#endif
 
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here

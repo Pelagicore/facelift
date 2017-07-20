@@ -2,16 +2,27 @@ project(facelift)
 
 cmake_minimum_required(VERSION 3.2)
 
-option(ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
-option(ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
-
 include(GNUInstallDirs)    # for standard installation locations
+
+if(NOT DEFINED FACELIFT_ENABLE_IPC)
+    message("Detecting if QtDBus is available")
+    find_package(Qt5DBus)
+endif()
+
+option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
+option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
+option(FACELIFT_ENABLE_IPC "Enable IPC support" ${Qt5DBus_FOUND})
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Qml REQUIRED)
 find_package(Qt5Quick REQUIRED)
-find_package(Qt5DBus REQUIRED)
+
+if (FACELIFT_ENABLE_IPC)
+    message("IPC is enabled => we need Qt5DBus")
+    find_package(Qt5DBus REQUIRED)
+    add_definitions(-DFACELIFT_ENABLE_IPC)
+endif()
 
 set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
@@ -22,15 +33,17 @@ set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_SOURCE_DI
 
 include("cmake/faceliftConfig-functions.cmake")
 
-# No undefined symbol allowed in our shared libraries
-#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+# No undefined symbol allowed in our shared libraries when using GCC
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/helpers.cmake)
 
-if(ENABLE_CODEGEN)
+if(FACELIFT_ENABLE_CODEGEN)
     add_subdirectory(codegen)
 endif()
 

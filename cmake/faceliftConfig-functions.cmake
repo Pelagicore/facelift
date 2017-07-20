@@ -107,9 +107,10 @@ function(facelift_add_package LIBRARY_NAME INTERFACE_FOLDER)
 
     get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
     set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/facelift/qface)
-
+    set(CODEGEN_EXECUTABLE_LOCATION ${CODEGEN_LOCATION}/facelift-codegen.py)
+    
     message("QFace location : ${QFACE_BASE_LOCATION}")
-    message("Facelift code generator executable : ${CODEGEN_LOCATION}")
+    message("Facelift code generator executable : ${CODEGEN_EXECUTABLE_LOCATION}")
 
     set(ENV{PYTHONPATH} "ENV{PYTHONPATH}:${QFACE_BASE_LOCATION}")
 
@@ -124,7 +125,7 @@ function(facelift_add_package LIBRARY_NAME INTERFACE_FOLDER)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
-    execute_process(COMMAND ${CODEGEN_LOCATION}/facelift-codegen.py
+    execute_process(COMMAND ${CODEGEN_EXECUTABLE_LOCATION}
         ${INTERFACE_FOLDER} ${WORK_PATH}
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
@@ -151,17 +152,22 @@ function(facelift_add_package LIBRARY_NAME INTERFACE_FOLDER)
     target_link_libraries(${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_api DummyModelLib)
     target_include_directories(${LIBRARY_NAME}_dummy PUBLIC ${DUMMY_OUTPUT_PATH} ${Qt5Qml_PRIVATE_INCLUDE_DIRS})
 
-    file(GLOB_RECURSE IPC_GENERATED_FILES ${IPC_OUTPUT_PATH}/*.*)
-    file(GLOB_RECURSE IPC_GENERATED_FILES_HEADERS ${IPC_OUTPUT_PATH}/*.h)
-    qt5_wrap_cpp(IPC_GENERATED_FILES_HEADERS_MOCS ${IPC_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_ipc)
-    facelift_add_aggregator_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
-    target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_api IPCLib)
-    target_include_directories(${LIBRARY_NAME}_ipc PUBLIC ${IPC_OUTPUT_PATH})
+    set(GENERATED_LIBRARIES ${LIBRARY_NAME}_api ${LIBRARY_NAME}_dummy)
+
+	if(FACELIFT_ENABLE_IPC)
+	message("HHHH")
+	    file(GLOB_RECURSE IPC_GENERATED_FILES ${IPC_OUTPUT_PATH}/*.*)
+	    file(GLOB_RECURSE IPC_GENERATED_FILES_HEADERS ${IPC_OUTPUT_PATH}/*.h)
+	    qt5_wrap_cpp(IPC_GENERATED_FILES_HEADERS_MOCS ${IPC_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_ipc)
+	    facelift_add_aggregator_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
+	    target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_api IPCLib)
+	    target_include_directories(${LIBRARY_NAME}_ipc PUBLIC ${IPC_OUTPUT_PATH})
+	    set(GENERATED_LIBRARIES ${GENERATED_LIBRARIES} ${LIBRARY_NAME}_ipc)
+	endif()
 
     add_library(${LIBRARY_NAME} INTERFACE)
-    target_link_libraries(${LIBRARY_NAME} INTERFACE ${LIBRARY_NAME}_api ${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_ipc)
-
-    install(TARGETS ${LIBRARY_NAME}_api ${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_ipc DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    target_link_libraries(${LIBRARY_NAME} INTERFACE ${GENERATED_LIBRARIES})
+    install(TARGETS ${GENERATED_LIBRARIES} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 endfunction()
 

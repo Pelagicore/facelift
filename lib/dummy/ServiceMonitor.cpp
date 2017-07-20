@@ -35,14 +35,15 @@ ServiceMonitorBase::~ServiceMonitorBase()
 
 void ServiceMonitorBase::addWidget(PropertyWidgetBase &widget)
 {
-	QPalette pal;
-	m_oddWidget = !m_oddWidget;
-	pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
-	widget.setPalette(pal);
-	ui->controlsLayout->addWidget(&widget);
-	m_widgets.append(&widget);
+    QPalette pal;
+    m_oddWidget = !m_oddWidget;
+    pal.setColor(QPalette::Background, m_oddWidget ? Qt::lightGray : Qt::gray);
+    widget.setPalette(pal);
+    ui->controlsLayout->addWidget(&widget);
+    m_widgets.append(&widget);
 }
 
-bool ModuleMonitorBase::isEnabled() {
-	return (getenv("FACELIFT_ENABLE_MONITOR") != nullptr);
+bool ModuleMonitorBase::isEnabled()
+{
+    return (getenv("FACELIFT_ENABLE_MONITOR") != nullptr);
 }

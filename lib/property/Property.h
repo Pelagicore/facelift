@@ -282,6 +282,14 @@ class ServiceProperty :
 {
 
 public:
+    template<typename Class, typename PropertyType>
+    ServiceProperty &bind(const ServicePropertyInterface<Class, PropertyType> &property)
+    {
+        Q_UNUSED(property);
+        // TODO : implement
+        return *this;
+    }
+
     using Property<Type *>::operator=;
 
 };
@@ -350,6 +358,14 @@ public:
 
     ModelProperty()
     {
+    }
+
+    template<typename Class, typename PropertyType>
+    ModelProperty &bind(const ModelPropertyInterface<Class, PropertyType> &property)
+    {
+        Q_UNUSED(property);
+        // TODO : implement
+        return *this;
     }
 
     ElementType elementAt(int index) const
@@ -429,7 +445,6 @@ private:
 template<typename InterfaceType>
 struct PropertyConnector
 {
-
     typedef void (InterfaceType::*ChangeSignal)();
 
     template<typename Param1, typename Param2>

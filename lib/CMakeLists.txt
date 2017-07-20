@@ -27,7 +27,11 @@ add_subdirectory(common)
 add_subdirectory(model)
 add_subdirectory(property)
 add_subdirectory(qmlmodel)
-add_subdirectory(ipc)
+
+if(FACELIFT_ENABLE_IPC)
+    add_subdirectory(ipc)
+endif()
+
 add_subdirectory(dummy)
 
 install(EXPORT ${PROJECT_NAME}Config DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})

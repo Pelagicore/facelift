@@ -460,7 +460,6 @@ public:
 
     QObject *impl()
     {
-        Q_ASSERT(this != nullptr);
         return this;
     }
 
@@ -490,15 +489,14 @@ class ModelQMLImplementationBase :
     Q_OBJECT
 
 public:
-
-	// We set a default property so that we can have children QML elements in our QML implementations, such as Timer
-	Q_PROPERTY(QQmlListProperty<QObject> childItems READ childItems)
-	Q_CLASSINFO("DefaultProperty", "childItems")
+    // We set a default property so that we can have children QML elements in our QML implementations, such as Timer
+    Q_PROPERTY(QQmlListProperty<QObject> childItems READ childItems)
+    Q_CLASSINFO("DefaultProperty", "childItems")
 
     Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID)
 
     ModelQMLImplementationBase(QQuickItem *parent = nullptr) :
-	    QObject(parent)
+        QObject(parent)
     {
     }
 
@@ -528,8 +526,9 @@ public:
         return method;
     }
 
-    QQmlListProperty<QObject> childItems() {
-    	return QQmlListProperty<QObject>(this, m_children);
+    QQmlListProperty<QObject> childItems()
+    {
+        return QQmlListProperty<QObject>(this, m_children);
     }
 
 private:
@@ -720,7 +719,7 @@ public:
 template<typename Class, typename PropertyType>
 class ServicePropertyInterface
 {
-
+    // TODO : implement
 public:
     ServicePropertyInterface()
     {
