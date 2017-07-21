@@ -61,6 +61,7 @@ private:
 
 };
 
+namespace facelift {
 
 template<typename Type>
 inline QVariant toVariant(const Type &v)
@@ -100,6 +101,8 @@ template<>
 inline QString toString(const QString &v)
 {
     return v;
+}
+
 }
 
 template<typename Type, typename Sfinae = void>
@@ -259,7 +262,7 @@ protected:
     inline typename std::enable_if < I<sizeof ... (Tp), void>::type
     toString__(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
     {
-        outStream << names[I] << "=" << toString(std::get<I>(t));
+        outStream << names[I] << "=" << facelift::toString(std::get<I>(t));
         if (I != FieldCount) {
             outStream << ", ";
         }

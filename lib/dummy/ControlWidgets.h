@@ -123,7 +123,7 @@ public:
         this->addWidget(widget);
         auto values = validValues<EnumType>();
         for (auto &v : values) {
-            widget->addItem(toString(v), static_cast<int>(v));
+            widget->addItem(facelift::toString(v), static_cast<int>(v));
         }
     }
 

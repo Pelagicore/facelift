@@ -225,7 +225,7 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::v
 
     static void writeJSON(QJsonValue &json, const Type &value)
     {
-        json = toString(value);
+        json = facelift::toString(value);
     }
 
 };
@@ -622,7 +622,7 @@ public:
     template<typename ParameterType>
     void logSetterCall(const QString propertyName, const ParameterType &value)
     {
-        appendLog(propertyName + " setter called with value : " + toString(value));
+        appendLog(propertyName + " setter called with value : " + facelift::toString(value));
     }
 
 private:

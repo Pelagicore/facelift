@@ -47,6 +47,8 @@ template<> inline const QList<{{enum|fullyQualifiedCppName}}>& validValues<{{enu
     return values;
 }
 
+namespace facelift {
+
 template <> inline QString toString(const {{enum|fullyQualifiedCppName}}& v) {
     const char* s = "Invalid";
     switch(v) {
@@ -61,6 +63,8 @@ template <> inline QString toString(const {{enum|fullyQualifiedCppName}}& v) {
     return s;
 }
 
+}
+
 inline void assignFromString(const QString &s, {{enum|fullyQualifiedCppName}}& v)
 {
     {% for member in enum.members %}
@@ -73,6 +77,6 @@ inline void assignFromString(const QString &s, {{enum|fullyQualifiedCppName}}& v
 
 
 inline QTextStream &operator <<(QTextStream &outStream, const {{enum|fullyQualifiedCppName}}& f) {
-    outStream << toString(f);
+    outStream << facelift::toString(f);
     return outStream;
 }
