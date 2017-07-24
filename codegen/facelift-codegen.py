@@ -75,6 +75,13 @@ def returnType(symbol):
     return returnTypeFromSymbol(symbol.type)
 
 
+def cppBool(b):
+    if b:
+        return "true"
+    else:
+        return "false"
+
+
 def nestedType(symbol):
     return symbol.type.nested
 
@@ -110,6 +117,7 @@ def run_generation(input, output):
     system = FileSystem.parse(input)
     generator = Generator(search_path=Path(here / 'facelift/templates'))
     generator.register_filter('returnType', returnType)
+    generator.register_filter('cppBool', cppBool)
     generator.register_filter('parameterType', parameterType)
     generator.register_filter('nestedType', nestedType)
     generator.register_filter('requiredInclude', requiredInclude)

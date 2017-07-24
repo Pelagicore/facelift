@@ -220,7 +220,7 @@ public:
         }
         else
         {
-            qWarning() << "set{{property.name}} method is not set or not callable";
+            qFatal("set{{property.name}} method is not set or not callable");
         }
 
     }

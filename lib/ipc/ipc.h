@@ -484,7 +484,7 @@ class IPCServiceAdapterBase :
     Q_OBJECT
 
 public:
-    static constexpr const char *DEFAULT_SERVICE_NAME = "qface.ipc";
+    static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.ipc";
 
     static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
     static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
@@ -588,12 +588,12 @@ public:
     }
 
     template<typename Type>
-    void addPropertySignature(QTextStream &s, const char *propertyName) const
+    void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly) const
     {
         s << "<property name=\"" << propertyName << "\" type=\"";
         std::tuple<Type> dummyTuple;
         appendDBUSTypeSignature(s, dummyTuple);
-        s << "\" access=\"read\"/>";
+        s << "\" access=\"" << (isReadonly ? "read" : "readwrite") << "\"/>";
     }
 
     template<typename ... Args>

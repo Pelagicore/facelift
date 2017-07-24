@@ -32,7 +32,9 @@ public:
         Q_UNUSED(s);
         {% for property in interface.properties %}
         {
-            addPropertySignature<{{interface|fullyQualifiedCppName}}::PropertyType_{{property.name}}>(s, "{{property.name}}");
+            addPropertySignature<{{interface|fullyQualifiedCppName}}::PropertyType_{{property.name}}>(s, "{{property.name}}"
+            , {{ property.readonly | cppBool }}
+            );
         }
         {% endfor %}
 
@@ -84,8 +86,10 @@ public:
         Q_UNUSED(replyMessage); // Since we do not always have return values
         Q_UNUSED(requestMessage);
 
+        const auto& member = requestMessage.member();
+
         {% for operation in interface.operations %}
-        if (requestMessage.member() == "{{operation.name}}") {
+        if (member == "{{operation.name}}") {
             {% for parameter in operation.parameters %}
             {{parameter|returnType}} param_{{parameter.name}};
             requestMessage >> param_{{parameter.name}};
@@ -93,7 +97,7 @@ public:
 
         	{% if (operation.hasReturnValue) %} auto returnValue = {% endif %}
 
-             m_service->{{operation.name}}(
+            m_service->{{operation.name}}(
                     {% set comma = joiner(",") %}
                     {% for parameter in operation.parameters %}
                         {{ comma() }}
@@ -105,6 +109,19 @@ public:
 
         } else
         {% endfor %}
+
+        {% for property in interface.properties %}
+    	{% if (not property.readonly) %}
+        if (member == "set{{property.name}}") {
+            {{property|returnType}} value;
+            requestMessage >> value;
+            m_service->set{{property.name}}(value);
+        } else
+    	{% endif %}
+        {% endfor %}
+
+
+
         {
             return IPCHandlingResult::INVALID;
         }

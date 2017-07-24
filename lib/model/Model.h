@@ -38,6 +38,8 @@ public:
 
     //    Q_PROPERTY(int id READ id CONSTANT)
 
+    Q_PROPERTY(QByteArray serialized READ serialize WRITE deserialize)
+
     ModelElementID id() const
     {
         return m_id;
@@ -52,6 +54,10 @@ public:
     {
         m_id = id;
     }
+
+    virtual QByteArray serialize() const = 0;
+
+    virtual void deserialize(const QByteArray&) = 0;
 
 protected:
     ModelElementID m_id;
@@ -207,7 +213,7 @@ public:
         return v;
     }
 
-    QByteArray serialize() const
+    QByteArray serialize() const override
     {
         QByteArray array;
         BinarySeralizer ds(array);
@@ -215,7 +221,7 @@ public:
         return array;
     }
 
-    void deserialize(const QByteArray &array)
+    void deserialize(const QByteArray &array) override
     {
         BinarySeralizer ds(array);
         ds >> *this;
