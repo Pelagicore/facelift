@@ -677,12 +677,12 @@ public:
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
-    ServiceType *service() const
+    ServiceType *service() const override
     {
         return m_service;
     }
 
-    void setService(QObject *service)
+    void setService(QObject *service) override
     {
         m_service = qobject_cast<ServiceType *>(service);
         if (m_service == nullptr) {
@@ -705,7 +705,7 @@ public:
         IPCServiceAdapterBase::init(m_service);
     }
 
-    QString introspect(const QString &path) const
+    QString introspect(const QString &path) const override
     {
         QString introspectionData;
 
@@ -954,10 +954,6 @@ public:
     }
 
     virtual void bindLocalService(InterfaceType *service) = 0;
-
-    void loadPropertiesFrom(typename IPCAdapterType::TheServiceType &adapter)
-    {
-    }
 
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... args)

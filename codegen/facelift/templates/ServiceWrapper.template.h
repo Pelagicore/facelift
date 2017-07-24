@@ -41,7 +41,7 @@ public:
 
     {% elif property.type.is_list -%}
 
-    const {{property|returnType}}& {{property}}() const {
+    const {{property|returnType}}& {{property}}() const override {
     	return wrapped()->{{property}}();
     }
 
@@ -54,7 +54,7 @@ public:
 
     {% else %}
 
-    const {{property|returnType}}& {{property}}() const {
+    const {{property|returnType}}& {{property}}() const override {
     	return wrapped()->{{property}}();
     }
 

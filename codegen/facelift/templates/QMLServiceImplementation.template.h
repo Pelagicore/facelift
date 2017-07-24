@@ -72,7 +72,7 @@ public:
     	return new {{interface}}QMLImplementationFrontend(this);
     }
 
-    void initProvider(Provider* provider) {
+    void initProvider(Provider* provider) override {
     	Q_UNUSED(provider);
         {% for property in interface.properties %}
         QObject::connect(provider, &Provider::{{property}}Changed, this, &ThisType::{{property}}Changed);

@@ -290,7 +290,7 @@ public:
 
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}
-    virtual void set{{property}}(const {{property|returnType}}& newValue) {
+    void set{{property}}(const {{property|returnType}}& newValue) override {
 		sendMethodCall("set{{property}}", newValue);
     }
         {% endif %}

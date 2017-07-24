@@ -57,7 +57,7 @@ public:
 
     virtual QByteArray serialize() const = 0;
 
-    virtual void deserialize(const QByteArray&) = 0;
+    virtual void deserialize(const QByteArray &) = 0;
 
 protected:
     ModelElementID m_id;
