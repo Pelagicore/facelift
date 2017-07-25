@@ -5,10 +5,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "test/TestInterfaceDummy.h"
-#include "test/TestInterfaceIPC.h"
+#include "facelift/test/TestInterfaceDummy.h"
+#include "facelift/test/TestInterfaceIPC.h"
 
-using namespace test;
+using namespace facelift::test;
 
 void mainClient(int &argc, char * *argv)
 {

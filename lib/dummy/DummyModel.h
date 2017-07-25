@@ -23,7 +23,7 @@
 #include <QFileSystemWatcher>
 #include "ControlWidgets.h"
 
-
+#include "QMLFrontend.h"
 
 
 template<typename Type>
@@ -636,4 +636,30 @@ private:
         });
     }
 
+};
+
+class DummyModuleBase
+{
+
+public:
+    static bool isTypeRegistered(const QString &fullyQualifiedTypeName, int majorVersion, int minorVersion);
+
+    template<typename DummyInterfaceType>
+    static void registerQmlComponentIfNotAlready(const char *uri)
+    {
+
+        QString fullyQualifiedTypeName = uri;
+        fullyQualifiedTypeName += "/";
+        fullyQualifiedTypeName += DummyInterfaceType::INTERFACE_NAME;
+
+        // We register the dummy under the "real" name only if nothing is yet registered
+        if (isTypeRegistered(fullyQualifiedTypeName, DummyInterfaceType::VERSION_MAJOR, DummyInterfaceType::VERSION_MINOR)) {
+            qDebug() << "Registering dummy type for interface " << fullyQualifiedTypeName;
+            registerQmlComponent<DummyInterfaceType>(uri, DummyInterfaceType::INTERFACE_NAME);
+        } else {
+            qDebug() << "QML type already registered : " << fullyQualifiedTypeName << " => not registering dummy implementation";
+        }
+
+
+    }
 };

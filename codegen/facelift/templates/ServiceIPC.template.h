@@ -42,7 +42,7 @@ public:
         {
     		std::array<const char*, {{ operation.parameters.__len__() }} > argumentNames = {
     	            {% for parameter in operation.parameters %}
-    	                "{{parameter}}",
+    	            "{{parameter}}",
     	            {% endfor %}
     		};
 
@@ -63,7 +63,7 @@ public:
         {
 		std::array<const char*, {{ signal.parameters.__len__() }} > argumentNames = {
 	            {% for parameter in signal.parameters %}
-	                "{{parameter}}",
+	            {"{{parameter}}"},
 	            {% endfor %}
 		};
 

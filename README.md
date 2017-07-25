@@ -54,8 +54,7 @@ MacOS/brew
 
 $ brew install qt5 python3
 
-$ pip3 install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog
-
+$ pip3 install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog path.py
 
 # Build
 

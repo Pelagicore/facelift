@@ -1,5 +1,5 @@
 
-facelift_add_package(AddressBookGenerated ${CMAKE_CURRENT_SOURCE_DIR}/interface)
+facelift_add_package(AddressBookGenerated "addressbook" ${CMAKE_CURRENT_SOURCE_DIR}/interface)
 
 facelift_set_qml_implementation_path(AddressBookGenerated "${CMAKE_CURRENT_SOURCE_DIR}/models/qml")
 

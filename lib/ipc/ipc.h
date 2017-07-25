@@ -434,6 +434,7 @@ public:
 
     bool registerServiceName(const QString &serviceName)
     {
+        qDebug() << "Registering serviceName " << serviceName;
         auto success = m_busConnection.registerService(serviceName);
         Q_ASSERT(success);
         return success;
@@ -627,7 +628,6 @@ public:
             if ((service != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
                 if (dbusManager().isDBusConnected()) {
-                    qWarning() << "Registering serviceName " << m_serviceName;
 
                     auto success = DBusManager::instance().registerServiceName(m_serviceName);
                     Q_ASSERT(success);

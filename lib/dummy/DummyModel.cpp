@@ -10,6 +10,8 @@
 #include "ui_dummymodelsmainwindow.h"
 #include "ui_dummymodelpanel.h"
 
+#include <private/qqmlmetatype_p.h>
+
 
 void DummyModelBase::init(const QString &interfaceName)
 {
@@ -95,4 +97,9 @@ DummyModelControlWindow::DummyModelControlWindow()
     ui->setupUi(this);
     resize(300, 400);
     show();
+}
+
+bool DummyModuleBase::isTypeRegistered(const QString &fullyQualifiedTypeName, int majorVersion, int minorVersion)
+{
+    return (QQmlMetaType::qmlType(fullyQualifiedTypeName, majorVersion, minorVersion) == nullptr);
 }

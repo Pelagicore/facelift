@@ -6,7 +6,7 @@
  *   Please see the LICENSE file for details. 
  */
 
-module test 1.0;
+module facelift.test 1.0;
 
 interface TestInterface2 {
     void doSomething();

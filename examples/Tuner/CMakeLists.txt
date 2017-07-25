@@ -1,5 +1,5 @@
 
-facelift_add_package(TunerGenerated ${CMAKE_CURRENT_SOURCE_DIR}/interface)
+facelift_add_package(TunerGenerated tuner ${CMAKE_CURRENT_SOURCE_DIR}/interface)
 
 facelift_set_qml_implementation_path(TunerGenerated "${CMAKE_CURRENT_SOURCE_DIR}/models/qml")
 

@@ -1,4 +1,5 @@
 
+
 set(HEADERS_INSTALLATION_LOCATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 function(add_library_simple LIBRARY_NAME)
@@ -8,9 +9,9 @@ function(add_library_simple LIBRARY_NAME)
     qt5_wrap_cpp(MOCS ${HEADER_FILES} TARGET ${LIBRARY_NAME})
     add_library(${LIBRARY_NAME} SHARED ${CPP_SOURCE_FILES} ${MOCS})
     target_link_libraries(${LIBRARY_NAME} Qt5::Core Qt5::Qml Qt5::Quick Qt5::Quick)
-    target_include_directories(${LIBRARY_NAME} 
+    target_include_directories(${LIBRARY_NAME}
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-               $<INSTALL_INTERFACE:${HEADERS_INSTALLATION_LOCATION}>  # <prefix>/include/mylib
+               $<INSTALL_INTERFACE:${HEADERS_INSTALLATION_LOCATION}>
     )
 
     install(TARGETS ${LIBRARY_NAME} EXPORT ${PROJECT_NAME}Config DESTINATION ${CMAKE_INSTALL_LIBDIR})

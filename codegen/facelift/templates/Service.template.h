@@ -45,6 +45,7 @@ class {{class}} : public InterfaceBase {
 public:
 
 	static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
+	static constexpr const char* INTERFACE_NAME = "{{interface}}";
 
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
