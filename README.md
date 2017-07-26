@@ -1,6 +1,6 @@
 # Motivation
 
-This software has been created in order to help solving problems which are typically arising when developing complex UI software using the Qt/QML framework. This kind of system is typically designed in such a way that some C++ code exposes functionality to the QML engine. The typical challenges are the following:
+This software has been created in order to help solving problems which are typically arising when developing complex UI software using the Qt/QML framework. This kind of system is usually designed in such a way that some C++ code exposes functionality to the QML engine. The typical challenges are the following:
  - The complexity of the code written in QML/JS tends to increase, which results in both maintenance and performance issues.
  - Exposing C++ interfaces to the QML engine requires writing pretty large portions of boilerplate code, which typically results in inconsistencies in a project involving a large number of developers if this boilerplate code is written by hand.
  - Interfaces exposed to the code written in QML/JS code are typically spread over a large number of C++ classes.
@@ -13,11 +13,11 @@ This is a list of requirements which have been taken into account when designing
  - Interfaces are defined using the QFace IDL
  - Interfaces can be implemented in C++
  - Interfaces can be implemented in QML/JS
- - C++ interface implementations should be clean from any hack required by the interfacing to QML (no use of variants, qabstractitemmodel, integer instead of enum, etc...)
+ - C++ interface implementations should be clean from any hack required by the interfacing to QML (no wrapping of data into QVariant, no need to implement a QAbstractItemModel, no use of integer instead of enum, etc...)
  - The interface exposed to the UI code should be completely defined using the IDL. Interface implementation details should not be visible to the UI code. Exceptions to that rule should be easily identifiable.
  - The framework should be able to produce proxy and adapter classes which enable an interface implementation to be accessible via an IPC channel.
  - A proxy class should implement the exact same interface as the object implementing the actual interface.
- - Proxy classes should be usable from both c++ and from QML code.
+ - Proxy classes should be usable from both C++ and from QML code.
  - Proxy classes should use direct calls when the server object happens to be running in the same process as the proxy.
 
 # FaceLift
@@ -32,14 +32,14 @@ Project folder structure:
          - models : contains various implementations of the model interfaces
          - ui : contains the UI code of the application
 
-## Dependencies
+# Dependencies
 
 * Cmake >= 3.1
 * Python 3 (for qface)
 * Qt >= 5.5
 * Antlr4 python3 runtime
 
-Ubuntu/Debian packages:
+# Ubuntu/Debian
 The required packages can be installed using the following commands:
 ```
 $ sudo apt-get install python3-click python3-path python3-pip python3-jinja2 python3-yaml cmake qtdeclarative5-dev qml-module-qtquick-controls qtdeclarative5-private-dev
@@ -50,11 +50,11 @@ In addition, since no deb package is available for it, you need to install the a
 $ pip3 install antlr4-python3-runtime
 ```
 
-MacOS/brew
-
+# MacOS/brew
+```
 $ brew install qt5 python3
-
 $ pip3 install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog path.py
+```
 
 # Build
 
@@ -80,8 +80,13 @@ CCACHE can greatly improve build time in some situations. Configure the project 
 $ CC="ccache gcc" CXX="ccache g++" cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/lib/cmake .. && make
 ```
 
-Start the example application with:
+# Examples
+
+Multiple example applications are provided, which are normally built together with the package itself. Each example has a corresponding launch script which you can use to start the example.
+For example:
+```
 $ ./examples/launch-addressbook.sh
+```
 
 ## License and Copyright
 
