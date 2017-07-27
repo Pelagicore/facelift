@@ -451,12 +451,6 @@ class InterfaceBase :
 {
     Q_OBJECT
 
-
-
-//	add ready property
-
-
-
 public:
     InterfaceBase(QObject *parent = nullptr) :
         QObject(parent)
@@ -472,6 +466,13 @@ public:
     {
         return m_implementationID;
     }
+
+    virtual bool ready() const
+    {
+        return true;
+    }
+
+    Q_SIGNAL void readyChanged();
 
     QObject *impl()
     {

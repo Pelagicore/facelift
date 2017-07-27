@@ -14,6 +14,8 @@
 #include <QtQml>
 #include <functional>
 
+#include "Model.h"
+
 
 class QMLFrontendBase :
     public QObject
@@ -33,6 +35,14 @@ public:
         qWarning() << "Accessing private provider implementation object";
         return m_provider;
     }
+
+    Q_PROPERTY(bool ready READ ready NOTIFY readyChanged)
+    bool ready() const
+    {
+        return m_provider->ready();
+    }
+
+    Q_SIGNAL void readyChanged();
 
     Q_PROPERTY(QString implementationID READ implementationID CONSTANT)
     virtual const QString &implementationID() {
@@ -57,13 +67,14 @@ public:
         }
     }
 
-    void setProvider(QObject *provider)
+    void setProvider(InterfaceBase *provider)
     {
         m_provider = provider;
+        connect(provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
     }
 
 private:
-    QObject *m_provider = nullptr;
+    InterfaceBase *m_provider = nullptr;
 
 };
 
@@ -78,6 +89,10 @@ public:
     {
         this->init(m_provider);
         this->setProvider(&m_provider);
+    }
+
+    virtual ~TQMLFrontend()
+    {
     }
 
     virtual const QString &implementationID()

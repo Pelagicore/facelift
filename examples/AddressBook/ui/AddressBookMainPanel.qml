@@ -231,11 +231,21 @@ Item {
         }
     }
 
+    Rectangle {
+        anchors.fill: parent
+        color: "red"
+        visible: !viewModel.ready
+
+        Label {
+            anchors.centerIn: parent
+            text: "Unavailable"
+        }
+    }
+
     function showPopup(text) {
         popupText.text = text
         popupVisible = true;
         hidePopupTimer.restart();
     }
-
 
 }

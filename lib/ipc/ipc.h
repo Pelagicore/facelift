@@ -499,11 +499,11 @@ public:
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
-	Q_SIGNAL void destroyed(IPCServiceAdapterBase* adapter);
+    Q_SIGNAL void destroyed(IPCServiceAdapterBase *adapter);
 
     ~IPCServiceAdapterBase()
     {
-    	destroyed(this);
+        destroyed(this);
     }
 
     bool enabled() const
@@ -744,6 +744,7 @@ public:
 
     virtual void deserializePropertyValues(IPCMessage &msg) = 0;
     virtual void deserializeSignal(IPCMessage &msg) = 0;
+    virtual void setReady(bool ready) = 0;
 
 };
 
@@ -757,6 +758,12 @@ public:
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
     Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
+
+    IPCProxyBinder(QObject *parent = nullptr) :
+        QObject(parent)
+    {
+        m_busWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration);
+    }
 
     bool enabled() const
     {
@@ -822,11 +829,10 @@ public:
             if ((m_serviceName != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
                 if (manager().isDBusConnected()) {
-
                     m_busWatcher.addWatchedService(m_serviceName);
+                    m_busWatcher.setConnection(connection());
                     connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &IPCProxyBinder::onServiceAvailable);
 
-                    qWarning() << "Registering Proxy";
                     auto successPropertyChangeSignal =
                             connection().connect(m_serviceName, m_objectPath, m_interfaceName,
                                     IPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME,
@@ -842,7 +848,6 @@ public:
                     assert(successSignalTriggeredSignal);
 
                     requestPropertyValues();
-
                 }
 
                 QObject::connect(
@@ -869,11 +874,6 @@ public:
         requestPropertyValues();
     }
 
-    IPCProxyBinder(QObject *parent = nullptr) :
-        QObject(parent)
-    {
-    }
-
     void requestPropertyValues()
     {
         IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName,
@@ -881,6 +881,7 @@ public:
         auto replyMessage = msg.call(connection());
         if (replyMessage.isReplyMessage()) {
             m_serviceObject->deserializePropertyValues(replyMessage);
+            m_serviceObject->setReady(true);
         } else {
             qWarning() << "Service not yet available";
         }
@@ -948,6 +949,19 @@ public:
         QObject::connect(&m_ipcBinder, &IPCProxyBinder::localAdapterAvailable, this, &IPCProxy::onLocalAdapterAvailable);
     }
 
+    bool ready() const override
+    {
+        return m_ready;
+    }
+
+    void setReady(bool ready) override
+    {
+        if (m_ready != ready) {
+            m_ready = ready;
+            this->readyChanged();
+        }
+    }
+
     void onLocalAdapterAvailable(IPCServiceAdapterBase *a)
     {
         auto adapter = qobject_cast<IPCAdapterType *>(a);
@@ -957,6 +971,7 @@ public:
 
         if (localInterface() != nullptr) {
             bindLocalService(localInterface());
+            this->setReady(true);
         }
     }
 
@@ -994,5 +1009,6 @@ public:
 private:
     QPointer<IPCAdapterType> m_localAdapter = nullptr;
     IPCProxyBinder m_ipcBinder;
+    bool m_ready = false;
 
 };

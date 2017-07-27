@@ -32,7 +32,7 @@ void MyPackagePlugin::registerTypes(const char *uri)
 
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here
-        registerQmlComponent<MyInterfaceCppImplementation>(uri);
+    registerQmlComponent<MyInterfaceCppImplementation>(uri);
     //    registerQmlComponent<AddressBookCpp>(uri);
 
     ModuleMonitor::registerTypes();

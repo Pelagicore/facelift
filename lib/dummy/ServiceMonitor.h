@@ -79,7 +79,7 @@ public:
     {
     }
 
-    void init(const QString &interfaceName);
+    void init(InterfaceBase &service, const QString &interfaceName);
 
     virtual ~ServiceMonitorBase();
 
@@ -88,11 +88,8 @@ public:
 private:
     Ui_ServiceMonitorPanel *ui = nullptr;
     QWidget *m_window = nullptr;
-
     bool m_oddWidget = true;
-
     QList<PropertyWidgetBase *> m_widgets;
-
     QString m_interfaceName;
 
 };
@@ -108,7 +105,7 @@ public:
 
     ServiceMonitor(ProviderType &provider) : ServiceMonitorBase(&provider), m_provider(provider)
     {
-        ServiceMonitorBase::init(ProviderType::FULLY_QUALIFIED_INTERFACE_NAME);
+        ServiceMonitorBase::init(provider, ProviderType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
     template<typename PropertyType>

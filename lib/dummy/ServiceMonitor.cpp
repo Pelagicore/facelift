@@ -9,7 +9,7 @@
 #include "ServiceMonitor.h"
 #include "ui_servicemonitorpanel.h"
 
-void ServiceMonitorBase::init(const QString &interfaceName)
+void ServiceMonitorBase::init(InterfaceBase &service, const QString &interfaceName)
 {
     m_interfaceName = interfaceName;
 
@@ -21,8 +21,13 @@ void ServiceMonitorBase::init(const QString &interfaceName)
     m_window->resize(600, 800);
     m_window->show();
 
-    QObject::connect(ui->clearLogButton, &QPushButton::clicked, [this]() {
+    QObject::connect(ui->clearLogButton, &QPushButton::clicked, this, [this]() {
         ui->logLabel->setText("");
+    });
+
+    ui->readyCheckBox->setChecked(service.ready());
+    QObject::connect(&service, &InterfaceBase::readyChanged, this, [this, &service]() {
+        ui->readyCheckBox->setChecked(service.ready());
     });
 
 }
