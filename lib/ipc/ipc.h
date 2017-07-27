@@ -462,7 +462,7 @@ public:
 
     IPCServiceAdapterBase *getAdapter(QString id);
 
-    void onObjectDestroyed(QObject *object);
+    void onAdapterDestroyed(IPCServiceAdapterBase *object);
 
     Q_SIGNAL void adapterDestroyed(IPCServiceAdapterBase *adapter);
     Q_SIGNAL void adapterAvailable(IPCServiceAdapterBase *adapter);
@@ -498,6 +498,13 @@ public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
+
+	Q_SIGNAL void destroyed(IPCServiceAdapterBase* adapter);
+
+    ~IPCServiceAdapterBase()
+    {
+    	destroyed(this);
+    }
 
     bool enabled() const
     {

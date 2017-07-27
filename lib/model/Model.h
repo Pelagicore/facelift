@@ -451,6 +451,12 @@ class InterfaceBase :
 {
     Q_OBJECT
 
+
+
+//	add ready property
+
+
+
 public:
     InterfaceBase(QObject *parent = nullptr) :
         QObject(parent)

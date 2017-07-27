@@ -215,7 +215,7 @@ function(facelift_import_package LIBRARY_NAME QFACE_MODULE_NAME)
     facelift_load_variables()
     facelift_module_to_libname(NAME ${QFACE_MODULE_NAME})
 
-    find_package(${NAME}FaceLiftPackages)
+    find_package(${NAME}FaceLiftPackages REQUIRED)
 
     set(${LIBRARY_NAME} ${NAME}_api PARENT_SCOPE)
 

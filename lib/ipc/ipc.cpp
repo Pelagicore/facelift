@@ -15,7 +15,7 @@ void InterfaceManager::registerAdapter(QString id, IPCServiceAdapterBase &adapte
 
     if (!m_registry.contains(id)) {
         m_registry.insert(id, &adapter);
-        QObject::connect(&adapter, &QObject::destroyed, this, &InterfaceManager::onObjectDestroyed);
+        QObject::connect(&adapter, &IPCServiceAdapterBase::destroyed, this, &InterfaceManager::onAdapterDestroyed);
         adapterAvailable(&adapter);
     } else {
         qWarning() << "Object path already used " << adapter.objectPath();
@@ -31,10 +31,8 @@ IPCServiceAdapterBase *InterfaceManager::getAdapter(QString id)
     }
 }
 
-void InterfaceManager::onObjectDestroyed(QObject *object)
+void InterfaceManager::onAdapterDestroyed(IPCServiceAdapterBase *adapter)
 {
-    auto adapter = qobject_cast<IPCServiceAdapterBase *>(object);
-    Q_ASSERT(adapter != nullptr);
     m_registry.remove(adapter->objectPath());
     adapterDestroyed(adapter);
 }
