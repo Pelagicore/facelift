@@ -97,7 +97,6 @@ public:
 
     {% endfor %}
 
-
     {% for operation in interface.operations %}
     virtual {{operation|returnType}} {{operation}}(
         {% set comma = joiner(",") %}
@@ -107,7 +106,6 @@ public:
         {% endfor %}
     ) = 0;
     {% endfor %}
-
 
     {% for event in interface.signals %}
     Q_SIGNAL void {{event}}(

@@ -70,6 +70,13 @@ private:
 namespace facelift {
 
 template<typename Type>
+inline int qRegisterMetaType()
+{
+    auto r = ::qRegisterMetaType<Type>();
+    return r;
+}
+
+template<typename Type>
 inline QVariant toVariant(const Type &v)
 {
     return v;
@@ -410,7 +417,7 @@ using PropertyGetter = const PropertyType &(*)();
 
 class InterfaceBase;
 
-namespace QMLCppApi {
+namespace facelift {
 
 class ServiceRegistry :
     public QObject
@@ -469,7 +476,7 @@ public:
 
     virtual bool ready() const
     {
-        return true;
+        return m_ready;
     }
 
     Q_SIGNAL void readyChanged();
@@ -482,7 +489,7 @@ public:
     void init(const QString &interfaceName)
     {
         m_interfaceName = interfaceName;
-        QMLCppApi::ServiceRegistry::instance().registerObject(this);
+        facelift::ServiceRegistry::instance().registerObject(this);
     }
 
     const QString &interfaceID()
@@ -490,9 +497,22 @@ public:
         return m_interfaceName;
     }
 
+protected:
+    friend class ModelQMLImplementationBase;
+
+    void setReady(bool ready)
+    {
+        if (m_ready != ready) {
+            m_ready = ready;
+            readyChanged();
+        }
+    }
+
 private:
     QString m_implementationID = "Undefined";
     QString m_interfaceName;
+
+    bool m_ready = true;
 
 };
 
@@ -509,12 +529,28 @@ public:
     Q_PROPERTY(QQmlListProperty<QObject> childItems READ childItems)
     Q_CLASSINFO("DefaultProperty", "childItems")
 
-    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID)
-
     ModelQMLImplementationBase(QQuickItem *parent = nullptr) :
         QObject(parent)
     {
     }
+
+    Q_PROPERTY(bool ready READ ready WRITE setReady NOTIFY readyChanged)
+
+    void setReady(bool ready)
+    {
+        Q_ASSERT(m_interface != nullptr);
+        m_interface->setReady(ready);
+    }
+
+    bool ready() const
+    {
+        Q_ASSERT(m_interface != nullptr);
+        return m_interface->ready();
+    }
+
+    Q_SIGNAL void readyChanged();
+
+    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID)
 
     void setImplementationID(const QString &id)
     {
@@ -530,6 +566,7 @@ public:
 
     void setInterface(InterfaceBase *interface)
     {
+        connect(interface, &InterfaceBase::readyChanged, this, &ModelQMLImplementationBase::readyChanged);
         m_interface = interface;
     }
 
@@ -807,18 +844,10 @@ private:
 };
 
 class ModuleBase
-    //: public QObject
 {
-
-    //	Q_OBJECT
-
 public:
     ModuleBase()
-    //	: QObject(parent)
     {
-        //		Q_UNUSED(parent);
     }
-
-    virtual ~ModuleBase();
 
 };

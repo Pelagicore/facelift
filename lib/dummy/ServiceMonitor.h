@@ -34,7 +34,7 @@ public:
 
     ServiceMonitorManager()
     {
-        connect(&QMLCppApi::ServiceRegistry::instance(), &QMLCppApi::ServiceRegistry::objectRegistered, this,
+        connect(&facelift::ServiceRegistry::instance(), &facelift::ServiceRegistry::objectRegistered, this,
                 &ServiceMonitorManager::onObjectRegistered, Qt::DirectConnection);
     }
 

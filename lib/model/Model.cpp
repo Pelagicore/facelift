@@ -11,7 +11,7 @@
 ModelElementID ModelStructure::s_nextID = 0;
 constexpr int ModelStructure::ROLE_ID;
 
-namespace QMLCppApi {
+namespace facelift {
 
 ServiceRegistry::~ServiceRegistry()
 {
@@ -27,8 +27,4 @@ void ServiceRegistry::registerObject(InterfaceBase *i)
         });
 }
 
-}
-
-ModuleBase::~ModuleBase()
-{
 }

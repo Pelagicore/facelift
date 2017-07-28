@@ -36,7 +36,7 @@ QObject* {{class}}_singletontype_provider(QQmlEngine*, QJSEngine*)
 void {{class}}::registerTypes()
 {
     {% for enum in module.enums %}
-    qRegisterMetaType<{{enum|fullyQualifiedCppName}}>();
+    facelift::qRegisterMetaType<{{enum|fullyQualifiedCppName}}>();
     {% endfor %}
 
     {% for struct in module.structs %}

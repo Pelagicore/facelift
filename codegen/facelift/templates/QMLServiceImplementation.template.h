@@ -81,7 +81,7 @@ public:
 
     {% for operation in interface.operations %}
 
-    inline {{operation|returnType}} {{operation.name}}(
+    {{operation|returnType}} {{operation.name}}(
         {% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}
         {{ comma() }}
@@ -160,7 +160,7 @@ public:
 			m_{{property.name}} = value;
 			sync{{property.name}}();
 			if (m_{{property.name}} != nullptr) {
-				QObject::connect(m_{{property.name}},&{{property|returnType}}QMLWrapper::anyFieldChanged, this , &{{interface}}QMLImplementation::sync{{property.name}});
+				QObject::connect(m_{{property.name}}, &{{property|returnType}}QMLWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}});
 			}
 			emit {{property.name}}Changed();
 //			qDebug() << "-----" << value->gadget();
@@ -179,13 +179,19 @@ public:
     QPointer<{{property|returnType}}QMLWrapper> m_{{property.name}} = nullptr;
 
     {% else %}
-      Q_PROPERTY({{property|returnType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-      const {{property|returnType}}& {{property.name}}() const {
+
+		{% set QmlType=property|returnType %}
+		{% if property.type.is_enum %}
+			{% set QmlType=QmlType + "Gadget::Type" %}
+		{% endif %}
+
+      Q_PROPERTY({{QmlType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+      const {{QmlType}}& {{property.name}}() const {
           checkInterface();
           return interface().m_{{property.name}};
       }
 
-      void set{{property.name}}(const {{property|returnType}}& value) {
+      void set{{property.name}}(const {{QmlType}}& value) {
           checkInterface();
           interface().m_{{property.name}} = value;
       }

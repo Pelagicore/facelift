@@ -142,7 +142,7 @@ public:
 
     }
 
-    void serializePropertyValues(IPCMessage& msg) override {
+    void serializeSpecificPropertyValues(IPCMessage& msg) override {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
@@ -192,7 +192,7 @@ public:
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void deserializePropertyValues(IPCMessage& msg) override {
+    void deserializeSpecificPropertyValues(IPCMessage& msg) override {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
         	{% if property.type.is_model -%}

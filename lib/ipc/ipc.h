@@ -22,6 +22,7 @@
 
 #include "Model.h"
 #include "utils.h"
+#include "Property.h"
 
 #include "ipc-config.h"
 
@@ -409,6 +410,16 @@ IPCMessage &operator>>(IPCMessage &msg, Type &v)
 }
 
 
+template<typename Type>
+IPCMessage &operator>>(IPCMessage &msg, Property<Type> &property)
+{
+    Type v;
+    IPCTypeHandler<Type>::read(msg, v);
+    property.setValue(v);
+    return msg;
+}
+
+
 enum class IPCHandlingResult {
     OK,
     INVALID
@@ -626,10 +637,18 @@ public:
 
     virtual void connectSignals() = 0;
     virtual IPCHandlingResult handleMethodCallMessage(IPCMessage &requestMessage, IPCMessage &replyMessage) = 0;
-    virtual void serializePropertyValues(IPCMessage &replyMessage) = 0;
 
-    void init(QObject *service)
+    void serializePropertyValues(IPCMessage &replyMessage)
     {
+        replyMessage << m_service->ready();
+        serializeSpecificPropertyValues(replyMessage);
+    }
+
+    virtual void serializeSpecificPropertyValues(IPCMessage &replyMessage) = 0;
+
+    void init(InterfaceBase *service)
+    {
+        m_service = service;
         //        qDebug() << "m_interfaceName:" << m_interfaceName << " objectPath:" << m_objectPath << " service:" << m_service;
         if (!m_alreadyInitialized && m_enabled) {
             if ((service != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
@@ -642,6 +661,7 @@ public:
                     qDebug() << "Registering IPC object at " << m_objectPath;
                     m_alreadyInitialized = dbusManager().connection().registerVirtualObject(m_objectPath, this);
                     if (m_alreadyInitialized) {
+                        connect(service, &InterfaceBase::readyChanged, this, &IPCServiceAdapterBase::onPropertyValueChanged);
                         connectSignals();
                     } else {
                         qCritical() << "Could no register service at object path" << m_objectPath;
@@ -659,15 +679,15 @@ public:
     }
 
 protected:
-    bool m_enabled = true;
-
     QString m_interfaceName = "";
     QString m_objectPath = "";
     QString m_introspectionData;
     QString m_serviceName = DEFAULT_SERVICE_NAME;
 
-    bool m_alreadyInitialized = false;
+    InterfaceBase *m_service = nullptr;
 
+    bool m_enabled = true;
+    bool m_alreadyInitialized = false;
 };
 
 
@@ -744,7 +764,7 @@ public:
 
     virtual void deserializePropertyValues(IPCMessage &msg) = 0;
     virtual void deserializeSignal(IPCMessage &msg) = 0;
-    virtual void setReady(bool ready) = 0;
+    virtual void setServiceRegistered(bool isRegistered) = 0;
 
 };
 
@@ -881,7 +901,7 @@ public:
         auto replyMessage = msg.call(connection());
         if (replyMessage.isReplyMessage()) {
             m_serviceObject->deserializePropertyValues(replyMessage);
-            m_serviceObject->setReady(true);
+            m_serviceObject->setServiceRegistered(true);
         } else {
             qWarning() << "Service not yet available";
         }
@@ -946,18 +966,32 @@ public:
         m_ipcBinder.setInterfaceName(Type::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
 
+        m_serviceReady.init("ready", this, &InterfaceBase::readyChanged);
+
         QObject::connect(&m_ipcBinder, &IPCProxyBinder::localAdapterAvailable, this, &IPCProxy::onLocalAdapterAvailable);
+    }
+
+    virtual void deserializeSpecificPropertyValues(IPCMessage &msg) = 0;
+
+    void deserializePropertyValues(IPCMessage &msg) override
+    {
+        msg >> m_serviceReady;
+        deserializeSpecificPropertyValues(msg);
     }
 
     bool ready() const override
     {
-        return m_ready;
+        if (localInterface() != nullptr) {
+            return localInterface()->ready();
+        }
+        return m_serviceReady;
     }
 
-    void setReady(bool ready) override
+    void setServiceRegistered(bool isRegistered) override
     {
-        if (m_ready != ready) {
-            m_ready = ready;
+        bool oldReady = ready();
+        m_serviceRegistered = isRegistered;
+        if (ready() != oldReady) {
             this->readyChanged();
         }
     }
@@ -997,7 +1031,7 @@ public:
         return &m_ipcBinder;
     }
 
-    InterfaceType *localInterface()
+    InterfaceType *localInterface() const
     {
         if (m_localAdapter) {
             return m_localAdapter->service();
@@ -1009,6 +1043,7 @@ public:
 private:
     QPointer<IPCAdapterType> m_localAdapter = nullptr;
     IPCProxyBinder m_ipcBinder;
-    bool m_ready = false;
+    bool m_serviceRegistered = false;
+    Property<bool> m_serviceReady;
 
 };
