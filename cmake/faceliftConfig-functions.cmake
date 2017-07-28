@@ -11,14 +11,6 @@ endif()
 get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
 message("CODEGEN_LOCATION : ${CODEGEN_LOCATION}")
 
-
-function(facelift_check_return_code ERROR_CODE)
-    if(NOT "${ERROR_CODE}" STREQUAL "0")
-        message(FATAL_ERROR "Failed")
-    endif()
-endfunction()
-
-
 function(facelift_add_aggregator_library LIB_NAME FILE_LIST_)
     set(FILE_INDEX "0")
     set(FILE_LIST ${FILE_LIST_})
@@ -146,8 +138,14 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
     )
-    facelift_check_return_code(${CODEGEN_RETURN_CODE})
-
+    
+    if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
+        message("Facelift failed executing following command in: ${QFACE_BASE_LOCATION}/qface")
+        message("${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_FOLDER} ${WORK_PATH}")
+        message("    ${CODEGEN_RETURN_CODE}")
+        message(FATAL_ERROR "Facelift failed.")
+    endif()
+    
     facelift_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
 
     # Delete work folder
