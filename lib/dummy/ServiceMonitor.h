@@ -9,9 +9,9 @@
 
 #include <QObject>
 #include <QMap>
+#include <QListWidgetItem>
 
 #include "ControlWidgets.h"
-
 
 class ServiceMonitorBase;
 
@@ -23,19 +23,40 @@ ServiceMonitorBase *monitorFactory(InterfaceBase *provider)
     return new Type(*p);
 }
 
-class ServiceMonitorManager :
-    public QObject
-{
+class Ui_ServiceMonitorManagerWindow;
 
+class ServiceMonitorManager :
+    public QAbstractTableModel
+{
     Q_OBJECT
 
 public:
     typedef ServiceMonitorBase * (*FactoryFuntion)(InterfaceBase *);
 
-    ServiceMonitorManager()
+    ServiceMonitorManager();
+
+    int rowCount(const QModelIndex &parent) const override
     {
-        connect(&facelift::ServiceRegistry::instance(), &facelift::ServiceRegistry::objectRegistered, this,
-                &ServiceMonitorManager::onObjectRegistered, Qt::DirectConnection);
+        if (parent.column() > 0) {
+            return 0;
+        }
+        auto count = facelift::ServiceRegistry::instance().objects().count();
+        return count;
+    }
+
+    int columnCount(const QModelIndex &parent) const override
+    {
+        return 2;
+    }
+
+    QVariant data(const QModelIndex &index, int role) const override
+    {
+        auto i = facelift::ServiceRegistry::instance().objects()[index.row()];
+        if (index.column() == 1) {
+            return i->implementationID();
+        } else {
+            return i->interfaceID();
+        }
     }
 
     static ServiceMonitorManager &instance()
@@ -44,6 +65,8 @@ public:
         return manager;
     }
 
+    void show();
+
     template<typename MonitorType>
     void registerMonitorType()
     {
@@ -51,7 +74,7 @@ public:
         m_factories.insert(MonitorType::ProviderType_::FULLY_QUALIFIED_INTERFACE_NAME, f);
     }
 
-    void onObjectRegistered(InterfaceBase *object)
+    void createMonitor(InterfaceBase *object)
     {
         auto interfaceID = object->interfaceID();
         if (m_factories.count(interfaceID) != 0) {
@@ -59,9 +82,14 @@ public:
         }
     }
 
+    void refreshList();
+
+    void onItemActivated(const QModelIndex &index);
+
 private:
     QMap<QString, FactoryFuntion> m_factories;
-
+    Ui_ServiceMonitorManagerWindow *ui = nullptr;
+    QMainWindow *m_window = nullptr;
 };
 
 
@@ -147,7 +175,6 @@ private:
 
 class ModuleMonitorBase
 {
-
 public:
     static bool isEnabled();
 

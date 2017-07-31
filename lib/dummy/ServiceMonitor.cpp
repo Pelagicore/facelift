@@ -8,6 +8,9 @@
 
 #include "ServiceMonitor.h"
 #include "ui_servicemonitorpanel.h"
+#include "ui_servicemonitormanagerwindow.h"
+
+#include <QRegExp>
 
 void ServiceMonitorBase::init(InterfaceBase &service, const QString &interfaceName)
 {
@@ -48,7 +51,53 @@ void ServiceMonitorBase::addWidget(PropertyWidgetBase &widget)
     m_widgets.append(&widget);
 }
 
+
 bool ModuleMonitorBase::isEnabled()
 {
     return (getenv("FACELIFT_ENABLE_MONITOR") != nullptr);
+}
+
+
+ServiceMonitorManager::ServiceMonitorManager()
+{
+    // Our object might be intanciated from another thread so we move it back to the main thread
+    moveToThread(QApplication::instance()->thread());
+    QTimer::singleShot(0, Qt::TimerType::CoarseTimer, this, &ServiceMonitorManager::show);
+}
+
+
+void ServiceMonitorManager::show()
+{
+    m_window = new QMainWindow();
+    ui = new Ui_ServiceMonitorManagerWindow();
+    ui->setupUi(m_window);
+
+    m_window->setWindowTitle("Service monitor manager");
+    m_window->resize(600, 800);
+    m_window->show();
+
+    connect(ui->interfaceList, &QListView::activated, this, &ServiceMonitorManager::onItemActivated);
+
+    connect(&facelift::ServiceRegistry::instance(), &facelift::ServiceRegistry::objectRegistered, this,
+            &ServiceMonitorManager::refreshList, Qt::DirectConnection);
+    connect(&facelift::ServiceRegistry::instance(), &facelift::ServiceRegistry::objectDeregistered, this,
+            &ServiceMonitorManager::refreshList, Qt::DirectConnection);
+
+    ui->interfaceList->setModel(this);
+
+}
+
+
+void ServiceMonitorManager::onItemActivated(const QModelIndex &index)
+{
+    int rowIdex = index.row();
+    auto s = facelift::ServiceRegistry::instance().objects()[rowIdex];
+    createMonitor(s);
+}
+
+
+void ServiceMonitorManager::refreshList()
+{
+    beginResetModel();
+    endResetModel();
 }

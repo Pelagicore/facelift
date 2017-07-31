@@ -445,6 +445,7 @@ public:
     }
 
     Q_SIGNAL void objectRegistered(InterfaceBase *object);
+    Q_SIGNAL void objectDeregistered(InterfaceBase *object);
 
 private:
     QList<InterfaceBase *> m_objects;
