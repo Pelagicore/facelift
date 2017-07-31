@@ -969,6 +969,8 @@ public:
         m_serviceReady.init("ready", this, &InterfaceBase::readyChanged);
 
         QObject::connect(&m_ipcBinder, &IPCProxyBinder::localAdapterAvailable, this, &IPCProxy::onLocalAdapterAvailable);
+
+        this->setImplementationID("IPC Proxy");
     }
 
     virtual void deserializeSpecificPropertyValues(IPCMessage &msg) = 0;

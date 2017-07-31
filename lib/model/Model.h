@@ -174,6 +174,10 @@ class TModelStructure :
 {
 
 public:
+    virtual ~TModelStructure()
+    {
+    }
+
     typedef std::tuple<FieldTypes ...> FieldTupleTypes;
     static constexpr size_t FieldCount = sizeof ... (FieldTypes);
 
@@ -519,7 +523,7 @@ private:
 
 
 class ModelQMLImplementationBase :
-    public QObject
+    public QObject, public QQmlParserStatus
 {
 
     Q_OBJECT
@@ -529,7 +533,7 @@ public:
     Q_PROPERTY(QQmlListProperty<QObject> childItems READ childItems)
     Q_CLASSINFO("DefaultProperty", "childItems")
 
-    ModelQMLImplementationBase(QQuickItem *parent = nullptr) :
+    ModelQMLImplementationBase(QObject *parent = nullptr) :
         QObject(parent)
     {
     }
@@ -550,24 +554,30 @@ public:
 
     Q_SIGNAL void readyChanged();
 
-    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID)
+    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID NOTIFY implementationIDChanged)
 
     void setImplementationID(const QString &id)
     {
-        Q_ASSERT(m_interface != nullptr);
-        m_interface->setImplementationID(id);
+        m_implementationID = id;
+        assignImplementationID();
     }
 
     const QString &implementationID() const
     {
+        return m_implementationID;
         Q_ASSERT(m_interface != nullptr);
         return m_interface->implementationID();
     }
 
+    Q_SIGNAL void implementationIDChanged();
+
     void setInterface(InterfaceBase *interface)
     {
-        connect(interface, &InterfaceBase::readyChanged, this, &ModelQMLImplementationBase::readyChanged);
         m_interface = interface;
+        connect(interface, &InterfaceBase::readyChanged, this, &ModelQMLImplementationBase::readyChanged);
+
+        assignImplementationID();
+        connect(this, &QObject::objectNameChanged, this, &ModelQMLImplementationBase::assignImplementationID);
     }
 
     QJSValue &checkMethod(QJSValue &method, const char *methodName)
@@ -584,9 +594,34 @@ public:
         return QQmlListProperty<QObject>(this, m_children);
     }
 
+    void classBegin() override
+    {
+    }
+
+    void componentComplete() override
+    {
+        assignImplementationID();
+    }
+
+    void assignImplementationID()
+    {
+        Q_ASSERT(m_interface != nullptr);
+        QString id;
+        QTextStream s(&id);
+
+        s << "QML implementation - " << metaObject()->className();
+        if (!objectName().isEmpty()) {
+            s << ", name = " << objectName();
+        }
+        s << "" << this;
+
+        m_interface->setImplementationID(id);
+    }
+
 private:
     QList<QObject *> m_children;
     InterfaceBase *m_interface = nullptr;
+    QString m_implementationID;
 };
 
 template<typename InterfaceType>
@@ -595,7 +630,7 @@ class ModelQMLImplementation :
 {
 
 public:
-    ModelQMLImplementation(QQuickItem *parent = nullptr) :
+    ModelQMLImplementation(QObject *parent = nullptr) :
         ModelQMLImplementationBase(parent)
     {
     }
@@ -616,6 +651,7 @@ public:
         }
 
         Q_ASSERT(m_interface);
+
         initProvider(m_interface);
         setInterface(m_interface);
     }
@@ -758,6 +794,7 @@ public:
 
 };
 
+
 template<typename Class, typename PropertyType>
 class ModelPropertyInterface
 {
@@ -766,6 +803,7 @@ public:
     ModelPropertyInterface()
     {
     }
+
 };
 
 
@@ -777,6 +815,7 @@ public:
     ServicePropertyInterface()
     {
     }
+
 };
 
 

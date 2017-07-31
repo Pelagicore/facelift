@@ -17,7 +17,7 @@ void ServiceMonitorBase::init(InterfaceBase &service, const QString &interfaceNa
     ui = new Ui_ServiceMonitorPanel();
     ui->setupUi(m_window);
 
-    m_window->setWindowTitle(interfaceName + " - Monitor");
+    m_window->setWindowTitle(interfaceName + " - Monitor - " + service.implementationID());
     m_window->resize(600, 800);
     m_window->show();
 
