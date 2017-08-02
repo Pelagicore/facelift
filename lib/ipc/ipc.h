@@ -876,12 +876,17 @@ public:
 
                 m_alreadyInitialized = true;
 
+                auto localAdapter = InterfaceManager::instance().getAdapter(this->objectPath());
+                if (localAdapter != nullptr) {
+                    onLocalAdapterAvailable(localAdapter);
+                }
             }
         }
     }
 
     void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
     {
+        qDebug() << "Local server found for " << objectPath();
         if (adapter->objectPath() == this->objectPath()) {
             localAdapterAvailable(adapter);
         }
@@ -903,7 +908,7 @@ public:
             m_serviceObject->deserializePropertyValues(replyMessage);
             m_serviceObject->setServiceRegistered(true);
         } else {
-            qWarning() << "Service not yet available";
+            qWarning() << "Service not yet available : " << m_objectPath;
         }
     }
 
@@ -914,9 +919,10 @@ public:
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
         auto replyMessage = msg.call(connection());
-        if (replyMessage.isReplyMessage()) {
-        } else {
-            qWarning() << "Error message received";
+        if (!replyMessage.isReplyMessage()) {
+            qWarning() << "Error message received when calling method " << methodName << " on service at path: " <<
+                m_objectPath <<
+                "This likely indicates that the server you are trying to access is not available yet";
             Q_ASSERT(false);
         }
         return replyMessage;
