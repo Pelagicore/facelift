@@ -276,7 +276,6 @@ public:
                 );
         {% endif %}
     	}
-
     	  	else return localInterface()->{{operation.name}}(
             		{% set comma = joiner(",") %}
     	  			{% for parameter in operation.parameters %}
@@ -291,7 +290,11 @@ public:
     {% for property in interface.properties %}
     	{% if (not property.readonly) %}
     void set{{property}}(const {{property|returnType}}& newValue) override {
-		sendMethodCall("set{{property}}", newValue);
+    	if (localInterface() == nullptr) {
+            sendMethodCall("set{{property}}", newValue);
+        } else {
+            localInterface()->set{{property}}(newValue);
+        }
     }
         {% endif %}
     {% endfor %}

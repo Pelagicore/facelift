@@ -886,8 +886,8 @@ public:
 
     void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
     {
-        qDebug() << "Local server found for " << objectPath();
         if (adapter->objectPath() == this->objectPath()) {
+            qWarning() << "Local server found for " << objectPath();
             localAdapterAvailable(adapter);
         }
     }

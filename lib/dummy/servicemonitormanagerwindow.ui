@@ -6,17 +6,23 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>502</width>
-    <height>330</height>
+    <width>529</width>
+    <height>453</height>
    </rect>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="0" column="0" colspan="2">
+   <item row="0" column="0">
     <widget class="QTableView" name="interfaceList">
-     <property name="maximumSize">
+     <property name="minimumSize">
       <size>
-       <width>484</width>
-       <height>192</height>
+       <width>400</width>
+       <height>400</height>
+      </size>
+     </property>
+     <property name="baseSize">
+      <size>
+       <width>400</width>
+       <height>400</height>
       </size>
      </property>
     </widget>

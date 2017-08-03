@@ -11,14 +11,13 @@
 
 void InterfaceManager::registerAdapter(QString id, IPCServiceAdapterBase &adapter)
 {
-    Q_ASSERT(!m_registry.contains(id));
-
     if (!m_registry.contains(id)) {
         m_registry.insert(id, &adapter);
         QObject::connect(&adapter, &IPCServiceAdapterBase::destroyed, this, &InterfaceManager::onAdapterDestroyed);
         adapterAvailable(&adapter);
     } else {
-        qWarning() << "Object path already used " << adapter.objectPath();
+        qWarning() << "Can't register new object at path:" << id << "Previously registered object:" << m_registry[id]->service();
+        Q_ASSERT(false);
     }
 }
 
