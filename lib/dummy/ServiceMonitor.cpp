@@ -12,6 +12,8 @@
 
 #include <QRegExp>
 
+namespace facelift {
+
 void ServiceMonitorBase::init(InterfaceBase &service, const QString &interfaceName)
 {
     m_interfaceName = interfaceName;
@@ -25,13 +27,13 @@ void ServiceMonitorBase::init(InterfaceBase &service, const QString &interfaceNa
     m_window->show();
 
     QObject::connect(ui->clearLogButton, &QPushButton::clicked, this, [this]() {
-        ui->logLabel->setText("");
-    });
+            ui->logLabel->setText("");
+        });
 
     ui->readyCheckBox->setChecked(service.ready());
     QObject::connect(&service, &InterfaceBase::readyChanged, this, [this, &service]() {
-        ui->readyCheckBox->setChecked(service.ready());
-    });
+            ui->readyCheckBox->setChecked(service.ready());
+        });
 
 }
 
@@ -100,4 +102,6 @@ void ServiceMonitorManager::refreshList()
 {
     beginResetModel();
     endResetModel();
+}
+
 }

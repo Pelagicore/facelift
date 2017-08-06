@@ -8,10 +8,11 @@
 
 #include "Model.h"
 
+namespace facelift {
+
 ModelElementID ModelStructure::s_nextID = 0;
 constexpr int ModelStructure::ROLE_ID;
 
-namespace facelift {
 
 ServiceRegistry::~ServiceRegistry()
 {

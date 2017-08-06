@@ -12,6 +12,7 @@
 
 #include <private/qqmlmetatype_p.h>
 
+namespace facelift {
 
 void DummyModelBase::init(const QString &interfaceName)
 {
@@ -29,9 +30,9 @@ void DummyModelBase::init(const QString &interfaceName)
 
     connect(&m_fileSystemWatcher, &QFileSystemWatcher::fileChanged, this,
             [this] () {
-        loadJSONSnapshot();
-        enableFileWatch();
-    });
+            loadJSONSnapshot();
+            enableFileWatch();
+        });
 
     bool success;
     auto settingsDoc = loadJSONFile(getSettingsFilePath(), success);
@@ -49,21 +50,21 @@ void DummyModelBase::init(const QString &interfaceName)
     }
 
     QObject::connect(ui->saveSnapshotButton, &QPushButton::clicked, [this]() {
-        saveJSONSnapshot();
-    });
+            saveJSONSnapshot();
+        });
 
     QObject::connect(ui->loadSnapshotButton, &QPushButton::clicked, [this]() {
-        loadJSONSnapshot();
-    });
+            loadJSONSnapshot();
+        });
 
     QObject::connect(ui->clearLogButton, &QPushButton::clicked, [this]() {
-        ui->logLabel->setText("");
-    });
+            ui->logLabel->setText("");
+        });
 
     QObject::connect(ui->autoSaveCheckBox, &QCheckBox::stateChanged, [this]() {
-        m_autoSaveEnabled = ui->autoSaveCheckBox->isChecked();
-        saveSettings();
-    });
+            m_autoSaveEnabled = ui->autoSaveCheckBox->isChecked();
+            saveSettings();
+        });
 
 }
 
@@ -102,4 +103,6 @@ DummyModelControlWindow::DummyModelControlWindow()
 bool DummyModuleBase::isTypeRegistered(const QString &fullyQualifiedTypeName, int majorVersion, int minorVersion)
 {
     return (QQmlMetaType::qmlType(fullyQualifiedTypeName, majorVersion, minorVersion) == nullptr);
+}
+
 }

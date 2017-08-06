@@ -18,7 +18,7 @@
 
 /**
  */
-class {{class}}Wrapper : public ServiceWrapper<{{class}}>  {
+class {{class}}Wrapper : public facelift::ServiceWrapper<{{class}}>  {
 
     Q_OBJECT
 

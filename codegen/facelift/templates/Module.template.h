@@ -1,18 +1,9 @@
-{% set class = 'Module' %}
 /****************************************************************************
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
 #pragma once
-
-{{module|namespaceOpen}}
-
-{% for interface in module.interfaces %}
-class {{interface}};
-{% endfor %}
-
-{{module|namespaceClose}}
 
 #include <QObject>
 
@@ -30,10 +21,10 @@ class {{interface}};
 
 {{module|namespaceOpen}}
 
-class {{class}} : public QObject {
+class Module : public QObject {
     Q_OBJECT
 public:
-    {{class}}();
+	Module();
 
 {% for struct in module.structs %}
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} create{{struct}}();

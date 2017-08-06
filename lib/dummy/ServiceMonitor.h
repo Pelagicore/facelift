@@ -13,6 +13,12 @@
 
 #include "ControlWidgets.h"
 
+
+class Ui_ServiceMonitorPanel;
+class Ui_ServiceMonitorManagerWindow;
+
+namespace facelift {
+
 class ServiceMonitorBase;
 
 template<typename Type>
@@ -23,7 +29,6 @@ ServiceMonitorBase *monitorFactory(InterfaceBase *provider)
     return new Type(*p);
 }
 
-class Ui_ServiceMonitorManagerWindow;
 
 class ServiceMonitorManager :
     public QAbstractTableModel
@@ -93,8 +98,6 @@ private:
 };
 
 
-class Ui_ServiceMonitorPanel;
-
 class ServiceMonitorBase :
     public QObject
 {
@@ -147,8 +150,8 @@ public:
 
         // Update the GUI if the value is changed in the property
         connect(&m_provider, property.signal, this, [property, widget]() {
-            widget->setValue(property.value());
-        });
+                widget->setValue(property.value());
+            });
 
         addWidget(*widget);
     }
@@ -179,3 +182,5 @@ public:
     static bool isEnabled();
 
 };
+
+}

@@ -1,4 +1,3 @@
-{% set class = 'Module' %}
 /****************************************************************************
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
@@ -16,24 +15,24 @@
 
 {{module|namespaceOpen}}
 
-QObject* {{class}}_singletontype_provider(QQmlEngine*, QJSEngine*)
+QObject* Module_singletontype_provider(QQmlEngine*, QJSEngine*)
 {
-      return new {{class}}();
+      return new Module();
 }
 
-{{class}}::{{class}}()
+Module::Module()
     : QObject()
 {
 }
 
 {% for struct in module.structs %}
-{{struct|fullyQualifiedCppName}} {{class}}::create{{struct}}()
+{{struct|fullyQualifiedCppName}} Module::create{{struct}}()
 {
     return {{struct|fullyQualifiedCppName}}();
 }
 {% endfor %}
 
-void {{class}}::registerTypes()
+void Module::registerTypes()
 {
     {% for enum in module.enums %}
     facelift::qRegisterMetaType<{{enum|fullyQualifiedCppName}}>();
@@ -44,15 +43,15 @@ void {{class}}::registerTypes()
     {% endfor %}
 }
 
-void {{class}}::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
+void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
 {
     Q_UNUSED(uri);
 
     {% for struct in module.structs %}
-    qmlRegisterType<{{struct}}QMLWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
+    ::qmlRegisterType<{{struct}}QMLWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
     {% endfor %}
 
-    qmlRegisterSingletonType<{{class}}>(uri, majorVersion, minorVersion, "{{class}}", {{class}}_singletontype_provider);
+    qmlRegisterSingletonType<Module>(uri, majorVersion, minorVersion, "Module", Module_singletontype_provider);
 
     {% for enum in module.enums %}
     qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
@@ -60,14 +59,14 @@ void {{class}}::registerQmlTypes(const char* uri, int majorVersion, int minorVer
 
     {% for interface in module.interfaces %}
     {
-        registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri, "{{interface.name}}QML");
+    	facelift::registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri, "{{interface.name}}QML");
 
         QString path = STRINGIFY(QML_MODEL_LOCATION) "/{{interface|fullyQualifiedPath}}.qml";
 
         if (QFile::exists(path)) {
             qDebug() << "Registering QML service implementation : " << path;
             {{interface}}QMLImplementation::modelImplementationFilePath() = path;
-            registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri);
+            facelift::registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri);
         }
     }
     {% endfor %}

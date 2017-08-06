@@ -40,7 +40,7 @@
 /**
  * This is the class registered as a QML component for the {{interface}} interface
  */
-class {{class}}QMLFrontend : public QMLFrontendBase {
+class {{class}}QMLFrontend : public facelift::QMLFrontendBase {
 
     Q_OBJECT
 
@@ -49,7 +49,7 @@ public:
     static constexpr const char* INTERFACE_NAME = "{{interface}}";
 
     {{class}}QMLFrontend(QObject* parent = nullptr) :
-    	QMLFrontendBase(parent) {
+    	facelift::QMLFrontendBase(parent) {
     }
 
     void init({{class}}& provider) {
@@ -59,7 +59,7 @@ public:
 
         {% if property.type.is_model -%}
         m_{{property}}Model.init(m_provider, &{{class}}::{{property}}Changed, &{{class}}::{{property.name}}Size, &{{class}}::{{property.name}}ElementAt);
-        connect(m_provider, &{{class}}::{{property}}Changed, &m_{{property}}Model, &ModelListModel<{{property|nestedType|fullyQualifiedCppName}}>::notifyModelChanged);
+        connect(m_provider, &{{class}}::{{property}}Changed, &m_{{property}}Model, &facelift::ModelListModel<{{property|nestedType|fullyQualifiedCppName}}>::notifyModelChanged);
         {% endif %}
 
         {% endfor %}
@@ -79,7 +79,7 @@ public:
     	return &m_{{property}}Model;
     }
 
-    ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
+    facelift::ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
 
     {% elif property.type.is_list -%}
     Q_PROPERTY(QList<QVariant> {{property}} READ {{property}} NOTIFY {{property.name}}Changed)   // Exposing QList<ActualType> to QML does not seem to work

@@ -11,7 +11,7 @@ endif()
 get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
 message("CODEGEN_LOCATION : ${CODEGEN_LOCATION}")
 
-function(facelift_add_aggregator_library LIB_NAME FILE_LIST_)
+function(facelift_add_unity_library LIB_NAME FILE_LIST_)
     set(FILE_INDEX "0")
     set(FILE_LIST ${FILE_LIST_})
     set(AGGREGATED_FILE_LIST "")
@@ -37,12 +37,12 @@ function(facelift_add_aggregator_library LIB_NAME FILE_LIST_)
 
         # Generate an aggregator unit content
         set(FILE_CONTENT "")
-        set(FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}_aggregated_${FILE_INDEX}.cpp)
+        set(FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}_unity_${FILE_INDEX}.cpp)
         foreach(SRC_FILE ${FILES})
             set(FILE_CONTENT "${FILE_CONTENT}#include \"${SRC_FILE}\"\n")
         endforeach()
 
-        # To avoid unnecessary recompiles, check if it is really necessary to rewrite the aggregator file
+        # To avoid unnecessary recompiles, check if it is really necessary to rewrite the unity file
         if(EXISTS ${FILE_NAME})
             file(READ ${FILE_NAME} OLD_FILE_CONTENT)
         endif()
@@ -109,8 +109,6 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     facelift_load_variables()
     facelift_module_to_libname(LIBRARY_NAME ${QFACE_MODULE_NAME})
 
-    message("LIBRARY_NAME : ${LIBRARY_NAME}")
-
     set(GENERATED_HEADERS_INSTALLATION_LOCATION ${FACELIFT_GENERATED_HEADERS_INSTALLATION_LOCATION}/${LIBRARY_NAME})
 
     get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
@@ -138,14 +136,14 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
     )
-    
+
     if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
         message("Facelift failed executing following command in: ${QFACE_BASE_LOCATION}/qface")
         message("${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_FOLDER} ${WORK_PATH}")
         message("    ${CODEGEN_RETURN_CODE}")
         message(FATAL_ERROR "Facelift failed.")
     endif()
-    
+
     facelift_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
 
     # Delete work folder
@@ -155,7 +153,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     file(GLOB_RECURSE GENERATED_FILES ${API_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE GENERATED_FILES_HEADERS ${API_OUTPUT_PATH}/*.h)
     qt5_wrap_cpp(API_GENERATED_FILES_HEADERS_MOCS ${GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_api)
-    facelift_add_aggregator_library(${LIBRARY_NAME}_api "${GENERATED_FILES};${GENERATED_FILES_HEADERS};${API_GENERATED_FILES_HEADERS_MOCS}")
+    facelift_add_unity_library(${LIBRARY_NAME}_api "${GENERATED_FILES};${GENERATED_FILES_HEADERS};${API_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_api ModelLib QMLModelLib PropertyLib)
     target_include_directories(${LIBRARY_NAME}_api
         PUBLIC $<BUILD_INTERFACE:${API_OUTPUT_PATH}>
@@ -165,7 +163,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     file(GLOB_RECURSE DUMMY_GENERATED_FILES ${DUMMY_OUTPUT_PATH}/*.*)
     file(GLOB_RECURSE DUMMY_GENERATED_FILES_HEADERS ${DUMMY_OUTPUT_PATH}/*.h)
     qt5_wrap_cpp(DUMMY_GENERATED_FILES_HEADERS_MOCS ${DUMMY_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_dummy)
-    facelift_add_aggregator_library(${LIBRARY_NAME}_dummy "${DUMMY_GENERATED_FILES};${DUMMY_GENERATED_FILES_HEADERS};${DUMMY_GENERATED_FILES_HEADERS_MOCS}")
+    facelift_add_unity_library(${LIBRARY_NAME}_dummy "${DUMMY_GENERATED_FILES};${DUMMY_GENERATED_FILES_HEADERS};${DUMMY_GENERATED_FILES_HEADERS_MOCS}")
     target_link_libraries(${LIBRARY_NAME}_dummy ${LIBRARY_NAME}_api DummyModelLib)
     target_include_directories(${LIBRARY_NAME}_dummy
         PUBLIC $<BUILD_INTERFACE:${DUMMY_OUTPUT_PATH}>
@@ -178,7 +176,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
 	    file(GLOB_RECURSE IPC_GENERATED_FILES ${IPC_OUTPUT_PATH}/*.*)
 	    file(GLOB_RECURSE IPC_GENERATED_FILES_HEADERS ${IPC_OUTPUT_PATH}/*.h)
 	    qt5_wrap_cpp(IPC_GENERATED_FILES_HEADERS_MOCS ${IPC_GENERATED_FILES_HEADERS} TARGET ${LIBRARY_NAME}_ipc)
-	    facelift_add_aggregator_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
+	    facelift_add_unity_library(${LIBRARY_NAME}_ipc "${IPC_GENERATED_FILES};${IPC_GENERATED_FILES_HEADERS};${IPC_GENERATED_FILES_HEADERS_MOCS}")
 	    target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_api IPCLib)
 
         target_include_directories(${LIBRARY_NAME}_ipc
@@ -198,6 +196,11 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     export(TARGETS ${GENERATED_LIBRARIES} ${TARGET_NAME} FILE ${LIBRARY_NAME}FaceLiftPackagesConfig.cmake)
 
     install(DIRECTORY ${OUTPUT_PATH}/ DESTINATION ${GENERATED_HEADERS_INSTALLATION_LOCATION})
+
+    # Add a dummy target to make the QFace files visible in the IDE
+    file(GLOB_RECURSE QFACE_FILES ${INTERFACE_FOLDER}/*.qface)
+    add_custom_target(FaceliftPackage_${LIBRARY_NAME} SOURCES ${QFACE_FILES})
+    message("QFACE FILES ${QFACE_FILES}")
 
 endfunction()
 

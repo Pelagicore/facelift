@@ -5,7 +5,7 @@
 void ModuleMonitor::registerTypes()
 {
 	if (isEnabled()) {
-		auto & serviceMonitorManager = ServiceMonitorManager::instance();
+		auto & serviceMonitorManager = facelift::ServiceMonitorManager::instance();
 
 		{% for interface in module.interfaces %}
 		serviceMonitorManager.registerMonitorType<{{interface}}Monitor>();

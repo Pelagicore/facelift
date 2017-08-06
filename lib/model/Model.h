@@ -27,6 +27,8 @@
 
 typedef int ModelElementID;
 
+namespace facelift {
+
 class ModelStructure
 {
 public:
@@ -67,56 +69,54 @@ private:
 
 };
 
-namespace facelift {
 
 template<typename Type>
-inline int qRegisterMetaType()
+QString enumToString(const Type &v)
 {
-    auto r = ::qRegisterMetaType<Type>();
-    return r;
-}
-
-template<typename Type>
-inline QVariant toVariant(const Type &v)
-{
-    return v;
-}
-
-template<typename Type>
-inline QVariant toVariant(const QList<Type> &v)
-{
-    Q_ASSERT(false);
-    Q_UNUSED(v);
-    return "";
-}
-
-template<typename Type>
-inline QString toString(const Type &v)
-{
-    Q_UNUSED(v);
     Q_ASSERT(false);
     return "Unknown";
 }
 
-template<>
-inline QString toString(const int &v)
-{
-    return QString::number(v);
-}
 
-template<>
-inline QString toString(const bool &v)
+struct BinarySeralizer
 {
-    return v ? "true" : "false";
-}
+    BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
+    {
+    }
+    BinarySeralizer(const QByteArray &array) : stream(array)
+    {
+    }
+    QDataStream stream;
+};
 
-template<>
-inline QString toString(const QString &v)
+struct BinarySerializationTypeHandlerBase
 {
-    return v;
-}
 
-}
+    template<typename Type>
+    static void write(BinarySeralizer &msg, const Type &v)
+    {
+        msg.stream << v;
+    }
+
+    template<typename Type>
+    static void read(BinarySeralizer &msg, Type &v)
+    {
+        msg.stream >> v;
+    }
+
+    template<typename Type>
+    static QString toString(const Type &v)
+    {
+        Q_ASSERT(false);
+        return v;
+    }
+
+};
+
+template<typename Type, typename Enable = void>
+struct BinarySerializationTypeHandler
+{
+};
 
 template<typename Type, typename Sfinae = void>
 struct ModelTypeTraits
@@ -156,16 +156,6 @@ struct ModelTypeTraits<EnumType, typename std::enable_if<std::is_enum<EnumType>:
 };
 
 
-struct BinarySeralizer
-{
-    BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
-    {
-    }
-    BinarySeralizer(const QByteArray &array) : stream(array)
-    {
-    }
-    QDataStream stream;
-};
 
 
 template<typename ... FieldTypes>
@@ -279,7 +269,8 @@ protected:
     inline typename std::enable_if < I<sizeof ... (Tp), void>::type
     toString__(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
     {
-        outStream << names[I] << "=" << facelift::toString(std::get<I>(t));
+        typedef typename std::tuple_element<I, std::tuple<Tp ...> >::type TupleElementType;
+        outStream << names[I] << "=" << BinarySerializationTypeHandler<TupleElementType>::toString(std::get<I>(t));
         if (I != FieldCount) {
             outStream << ", ";
         }
@@ -299,23 +290,6 @@ protected:
 
     FieldTupleTypes m_values = {};
 
-};
-
-
-
-
-template<typename Type, typename Enable = void>
-struct BinarySerializationTypeHandler
-{
-    static void write(BinarySeralizer &msg, const Type &v)
-    {
-        msg.stream << v;
-    }
-
-    static void read(BinarySeralizer &msg, Type &v)
-    {
-        msg.stream >> v;
-    }
 };
 
 
@@ -355,6 +329,11 @@ struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base
         param.setId(id);
     }
 
+    static QString toString(const Type &v)
+    {
+        return v.toString();
+    }
+
 };
 
 template<typename Type>
@@ -370,6 +349,54 @@ struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_enum
         int i;
         msg >> i;
         param = static_cast<Type>(i);
+    }
+
+    static QString toString(const Type &v)
+    {
+        return facelift::enumToString(v);
+    }
+
+};
+
+
+
+template<>
+struct BinarySerializationTypeHandler<bool> :
+    public BinarySerializationTypeHandlerBase
+{
+    static QString toString(const bool &v)
+    {
+        return v ? "true" : "false";
+    }
+};
+
+template<>
+struct BinarySerializationTypeHandler<int> :
+    public BinarySerializationTypeHandlerBase
+{
+    static QString toString(const int &v)
+    {
+        return QString::number(v);
+    }
+};
+
+template<>
+struct BinarySerializationTypeHandler<float> :
+    public BinarySerializationTypeHandlerBase
+{
+    static QString toString(const float &v)
+    {
+        return QString::number(v);
+    }
+};
+
+template<>
+struct BinarySerializationTypeHandler<QString> :
+    public BinarySerializationTypeHandlerBase
+{
+    static QString toString(const QString &v)
+    {
+        return v;
     }
 };
 
@@ -398,6 +425,20 @@ struct BinarySerializationTypeHandler<QList<ElementType> >
         }
     }
 
+    static QString toString(const QList<ElementType> &v)
+    {
+        QString s;
+        QTextStream str(&s);
+        str << "[ ";
+        for (const auto &element : v) {
+            BinarySerializationTypeHandler<ElementType>::toString(element);
+            str << " ,";
+        }
+        str << "]";
+        Q_ASSERT(false);
+        return s;
+    }
+
 };
 
 
@@ -421,7 +462,6 @@ using PropertyGetter = const PropertyType &(*)();
 
 class InterfaceBase;
 
-namespace facelift {
 
 class ServiceRegistry :
     public QObject
@@ -452,7 +492,7 @@ private:
 
 };
 
-}
+
 
 
 /**
@@ -727,13 +767,13 @@ protected:
 template<typename QMLType>
 void qmlRegisterType(const char *uri, const char *typeName)
 {
-    qmlRegisterType<QMLType>(uri, 1, 0, typeName);
+    ::qmlRegisterType<QMLType>(uri, 1, 0, typeName);
 }
 
 template<typename QMLType>
 void qmlRegisterType(const char *uri)
 {
-    qmlRegisterType<QMLType>(uri, QMLType::INTERFACE_NAME);
+    ::qmlRegisterType<QMLType>(uri, QMLType::INTERFACE_NAME);
 }
 
 
@@ -891,3 +931,41 @@ public:
     }
 
 };
+
+
+template<typename Type>
+inline int qRegisterMetaType()
+{
+    auto r = ::qRegisterMetaType<Type>();
+    return r;
+}
+
+/*
+template<typename Type>
+inline QVariant toVariant(const Type &v)
+{
+    return v;
+}
+
+template<typename Type>
+inline QVariant toVariant(const QList<Type> &v)
+{
+    Q_ASSERT(false);
+    Q_UNUSED(v);
+    return "";
+}
+*/
+
+template<typename Type>
+inline QString toString(const Type &v)
+{
+    return BinarySerializationTypeHandler<Type>::toString(v);
+}
+
+
+template<typename Type>
+inline const QList<Type> &validValues()
+{
+}
+
+}

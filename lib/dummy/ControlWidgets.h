@@ -23,6 +23,8 @@
 #include "utils.h"
 #include "Model.h"
 
+namespace facelift {
+
 class PropertyWidgetBase :
     public QWidget
 {
@@ -140,9 +142,9 @@ public:
     void init()
     {
         QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
-            int index = widget->currentIndex();
-            this->updateValue(validValues<EnumType>()[index]);
-        });
+                int index = widget->currentIndex();
+                this->updateValue(validValues<EnumType>()[index]);
+            });
     }
 
 private:
@@ -170,8 +172,8 @@ public:
     void init()
     {
         QObject::connect(widget, &QCheckBox::stateChanged, this, [this]() {
-            updateValue(widget->isChecked());
-        });
+                updateValue(widget->isChecked());
+            });
     }
 
 private:
@@ -200,8 +202,8 @@ public:
     void init()
     {
         QObject::connect(widget, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this]() {
-            updateValue(widget->value());
-        });
+                updateValue(widget->value());
+            });
     }
 
 private:
@@ -230,8 +232,8 @@ public:
     void init()
     {
         QObject::connect(widget, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this]() {
-            updateValue(widget->value());
-        });
+                updateValue(widget->value());
+            });
     }
 
 private:
@@ -259,8 +261,8 @@ public:
     void init()
     {
         QObject::connect(widget, &QTextEdit::textChanged, [this]() {
-            updateValue(widget->toPlainText());
-        });
+                updateValue(widget->toPlainText());
+            });
     }
 
 private:
@@ -462,3 +464,5 @@ struct TypeToWidget<StructType, typename std::enable_if<std::is_base_of<ModelStr
     }
 
 };
+
+}

@@ -12,7 +12,7 @@
 
 {{module|namespaceOpen}}
 
-class {{interface}}IPCAdapter: public IPCServiceAdapter<{{interface|fullyQualifiedCppName}}> {
+class {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}> {
 
     Q_OBJECT
 
@@ -81,7 +81,7 @@ public:
 
     }
 
-    IPCHandlingResult handleMethodCallMessage(IPCMessage& requestMessage, IPCMessage& replyMessage) override {
+    facelift::IPCHandlingResult handleMethodCallMessage(facelift::IPCMessage& requestMessage, facelift::IPCMessage& replyMessage) override {
 
         Q_UNUSED(replyMessage); // Since we do not always have return values
         Q_UNUSED(requestMessage);
@@ -123,9 +123,9 @@ public:
 
 
         {
-            return IPCHandlingResult::INVALID;
+            return facelift::IPCHandlingResult::INVALID;
         }
-        return IPCHandlingResult::OK;
+        return facelift::IPCHandlingResult::OK;
     }
 
     void connectSignals() override {
@@ -142,7 +142,7 @@ public:
 
     }
 
-    void serializeSpecificPropertyValues(IPCMessage& msg) override {
+    void serializeSpecificPropertyValues(facelift::IPCMessage& msg) override {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
@@ -178,7 +178,7 @@ public:
 
 };
 
-class {{interface}}IPCProxy : public IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter> {
+class {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter> {
 
     Q_OBJECT
 
@@ -186,13 +186,13 @@ public:
 
 	typedef {{interface}}IPCAdapter IPCAdapterType;
 
-    Q_PROPERTY(IPCProxyBinder* ipc READ ipc CONSTANT)
+    Q_PROPERTY(facelift::IPCProxyBinder* ipc READ ipc CONSTANT)
 
-    {{interface}}IPCProxy(QObject* parent = nullptr) : IPCProxy<{{interface}}PropertyAdapter, IPCAdapterType>(parent) {
+    {{interface}}IPCProxy(QObject* parent = nullptr) : facelift::IPCProxy<{{interface}}PropertyAdapter, IPCAdapterType>(parent) {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void deserializeSpecificPropertyValues(IPCMessage& msg) override {
+    void deserializeSpecificPropertyValues(facelift::IPCMessage& msg) override {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
         	{% if property.type.is_model -%}
@@ -226,7 +226,7 @@ public:
 
     }
 
-    void deserializeSignal(IPCMessage& msg) override {
+    void deserializeSignal(facelift::IPCMessage& msg) override {
 
         QString signalName;
         msg >> signalName;

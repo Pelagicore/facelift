@@ -38,18 +38,19 @@ template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {
 }
 */
 
-template<> inline const QList<{{enum|fullyQualifiedCppName}}>& validValues<{{enum|fullyQualifiedCppName}}>() {
-    static QList<{{enum|fullyQualifiedCppName}}> values = {
-    {% for member in enum.members %}
-    {{enum|fullyQualifiedCppName}}::{{member}},
-    {% endfor %}
-    };
-    return values;
-}
 
 namespace facelift {
 
-template <> inline QString toString(const {{enum|fullyQualifiedCppName}}& v) {
+template<> inline const QList<{{enum|fullyQualifiedCppName}}>& validValues<{{enum|fullyQualifiedCppName}}>() {
+	static QList<{{enum|fullyQualifiedCppName}}> values = {
+	{% for member in enum.members %}
+	{{enum|fullyQualifiedCppName}}::{{member}},
+	{% endfor %}
+	};
+	return values;
+}
+
+template <> inline QString enumToString(const {{enum|fullyQualifiedCppName}}& v) {
     const char* s = "Invalid";
     switch(v) {
     {% for member in enum.members %}

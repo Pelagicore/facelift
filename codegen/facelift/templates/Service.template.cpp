@@ -8,8 +8,8 @@
 {{module|namespaceOpen}}
 
 {{interface}}::{{interface}}(QObject* parent) :
-	InterfaceBase(parent) {
-	init({{interface}}::FULLY_QUALIFIED_INTERFACE_NAME);
+    facelift::InterfaceBase(parent) {
+    init({{interface}}::FULLY_QUALIFIED_INTERFACE_NAME);
 }
 
 {{module|namespaceClose}}

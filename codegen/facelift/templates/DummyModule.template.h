@@ -20,7 +20,7 @@
 
 {{module|namespaceOpen}}
 
-class {{class}}Dummy : public DummyModuleBase {
+class {{class}}Dummy : public facelift::DummyModuleBase {
 
 public:
 
@@ -30,8 +30,8 @@ public:
 
         {% for interface in module.interfaces %}
         {
-            registerQmlComponent<{{interface|fullyQualifiedCppName}}Dummy>(uri, "{{interface.name}}Dummy");
-            registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
+        	facelift::registerQmlComponent<{{interface|fullyQualifiedCppName}}Dummy>(uri, "{{interface.name}}Dummy");
+        	registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
         }
         {% endfor %}
     }

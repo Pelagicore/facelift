@@ -25,6 +25,13 @@
 
 #include "QMLFrontend.h"
 
+class Ui_DummyModelPanel;
+
+namespace Ui {
+class DummyModelsMainWindow;
+}
+
+namespace facelift {
 
 template<typename Type>
 inline void readJSONSimple(const QJsonValue &json, Type &value)
@@ -83,7 +90,7 @@ inline void readJSONSimple<QString>(const QJsonValue &json, QString &value)
 
 
 
-
+/*
 template<typename Type>
 inline void assignRandomValue(Type &t)
 {
@@ -94,8 +101,8 @@ inline void assignRandomValue(Type &t)
 template<>
 inline void assignRandomValue(int &t)
 {
-    static std::normal_distribution<double> normal_dist(653, 10);
-    typedef std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
+    static ::std::normal_distribution<double> normal_dist(653, 10);
+    typedef ::std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
     MyRNG rng;
     t = normal_dist(rng);
 }
@@ -106,20 +113,21 @@ inline void assignRandomValue(QString &t)
     t = "Random string";
 }
 
-template<std::size_t I = 0, typename ... Tp>
-inline typename std::enable_if<I == sizeof ... (Tp), void>::type
-random_tuple(std::tuple<Tp ...> &t)
+template<::std::size_t I = 0, typename ... Tp>
+inline typename ::std::enable_if<I == sizeof ... (Tp), void>::type
+random_tuple(::std::tuple<Tp ...> &t)
 {
     Q_UNUSED(t);
 }
 
-template<std::size_t I = 0, typename ... Tp>
-inline typename std::enable_if < I<sizeof ... (Tp), void>::type
-random_tuple(std::tuple<Tp ...> &t)
+template<::std::size_t I = 0, typename ... Tp>
+inline typename ::std::enable_if < I<sizeof ... (Tp), void>::type
+random_tuple(::std::tuple<Tp ...> &t)
 {
-    assignRandomValue(std::get<I>(t));
+    assignRandomValue(::std::get<I>(t));
     random_tuple<I + 1, Tp ...>(t);
 }
+*/
 
 template<typename ListElementType>
 inline QWidget *createWidget(ListProperty<ListElementType> &t, const QString &propertyName)
@@ -127,10 +135,10 @@ inline QWidget *createWidget(ListProperty<ListElementType> &t, const QString &pr
     auto widget = new ListPropertyWidget<ListElementType>(propertyName);
 
     QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&t]() {
-        typename ListElementType::FieldTupleTypes values;
-        random_tuple(values);
-        t.addElement(ListElementType(values));
-    });
+            typename ListElementType::FieldTupleTypes values;
+            random_tuple(values);
+            t.addElement(ListElementType(values));
+        });
 
     return widget;
 }
@@ -158,8 +166,9 @@ struct DummyModelTypeHandler
     }
 };
 
+
 template<typename Type>
-struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
+struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_base_of<ModelStructure, Type>::value>::type>
 {
 
     static void writeJSON(QJsonValue &json, const Type &value)
@@ -169,21 +178,21 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<Model
         json = subObject;
     }
 
-    template<std::size_t I = 0, typename ... Tp>
-    static typename std::enable_if<I == sizeof ... (Tp), void>::type
-    writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    template<::std::size_t I = 0, typename ... Tp>
+    static typename ::std::enable_if<I == sizeof ... (Tp), void>::type
+    writeFieldsToJson(const ::std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
         Q_UNUSED(value);
         Q_UNUSED(jsonObject);
     }
 
-    template<std::size_t I = 0, typename ... Tp>
-    static typename std::enable_if < I<sizeof ... (Tp), void>::type
-    writeFieldsToJson(const std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    template<::std::size_t I = 0, typename ... Tp>
+    static typename ::std::enable_if < I<sizeof ... (Tp), void>::type
+    writeFieldsToJson(const ::std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
         QJsonValue v;
-        typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
-        DummyModelTypeHandler<FieldType>::writeJSON(v, std::get<I>(value));
+        typedef typename ::std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
+        DummyModelTypeHandler<FieldType>::writeJSON(v, ::std::get<I>(value));
         jsonObject[Type::FIELD_NAMES[I]] = v;
         writeFieldsToJson<I + 1, Tp ...>(value, jsonObject);
     }
@@ -194,27 +203,27 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_base_of<Model
         readFieldsFromJson(value.asTuple(), subObject);
     }
 
-    template<std::size_t I = 0, typename ... Tp>
-    static typename std::enable_if<I == sizeof ... (Tp), void>::type
-    readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    template<::std::size_t I = 0, typename ... Tp>
+    static typename ::std::enable_if<I == sizeof ... (Tp), void>::type
+    readFieldsFromJson(::std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
         Q_UNUSED(value);
         Q_UNUSED(jsonObject);
     }
 
-    template<std::size_t I = 0, typename ... Tp>
-    static typename std::enable_if < I<sizeof ... (Tp), void>::type
-    readFieldsFromJson(std::tuple<Tp ...> &value, QJsonObject &jsonObject)
+    template<::std::size_t I = 0, typename ... Tp>
+    static typename ::std::enable_if < I<sizeof ... (Tp), void>::type
+    readFieldsFromJson(::std::tuple<Tp ...> &value, QJsonObject &jsonObject)
     {
-        typedef typename std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
-        DummyModelTypeHandler<FieldType>::readJSON(jsonObject[Type::FIELD_NAMES[I]], std::get<I>(value));
+        typedef typename ::std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
+        DummyModelTypeHandler<FieldType>::readJSON(jsonObject[Type::FIELD_NAMES[I]], ::std::get<I>(value));
         readFieldsFromJson<I + 1, Tp ...>(value, jsonObject);
     }
 
 };
 
 template<typename Type>
-struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_enum<Type>::value>::type>
 {
     static void readJSON(const QJsonValue &json, Type &value)
     {
@@ -229,8 +238,6 @@ struct DummyModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::v
     }
 
 };
-
-class Ui_DummyModelPanel;
 
 class DummyModelBase :
     public QObject
@@ -343,9 +350,6 @@ private:
 
 };
 
-namespace Ui {
-class DummyModelsMainWindow;
-}
 
 class DummyModelControlWindow :
     public QMainWindow
@@ -503,7 +507,7 @@ public:
 
     template<typename ... ParameterTypes>
     void addSignalWidget(QString signalName,
-            const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName *obj,
+            const ::std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName *obj,
             void (TypeName::*signalPointer)(ParameterTypes ...))
     {
         typedef TModelStructure<ParameterTypes ...> SignalParametersStruct;
@@ -520,9 +524,9 @@ public:
         widget->addWidget(triggerButton);
 
         QObject::connect(triggerButton, &QPushButton::clicked, this, [ = ]() {
-            // Trigger signal using the parameters of the structure
-            call_method(obj, signalPointer, widget->value().asTuple());
-        });
+                // Trigger signal using the parameters of the structure
+                call_method(obj, signalPointer, widget->value().asTuple());
+            });
 
         addWidget(*widget);
 
@@ -542,13 +546,13 @@ public:
 
         // Update our property if the value is changed with the GUI
         connect(widget, &PanelType::valueChanged, this, [&property, widget]() {
-            property = widget->value();
-        });
+                property = widget->value();
+            });
 
         // Update the GUI if the value is changed in the property
         PropertyConnector<TypeName>::connect(property, this, [&property, widget]() {
-            widget->setValue(property.value());
-        });
+                widget->setValue(property.value());
+            });
 
         addPropertyWidget_(property, *widget);
     }
@@ -564,11 +568,11 @@ public:
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
-            auto v = property.asList();
-            ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
-            v.append(clone);
-            property.setElements(v);
-        });
+                auto v = property.asList();
+                ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());     // ensure structs are cloned to get a new ID
+                v.append(clone);
+                property.setElements(v);
+            });
 
         addPropertyWidget_(property, *widget);
     }
@@ -585,11 +589,11 @@ public:
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
-            auto v = property.value();
-            ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());         // ensure structs are cloned to get a new ID
-            v.append(clone);
-            property.setValue(v);
-        });
+                auto v = property.value();
+                ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());     // ensure structs are cloned to get a new ID
+                v.append(clone);
+                property.setValue(v);
+            });
 
         addPropertyWidget_(property, *widget);
     }
@@ -607,7 +611,7 @@ public:
     }
 
     template<typename ... ParameterTypes>
-    void logMethodCall(const QString methodName, const std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames,
+    void logMethodCall(const QString methodName, const ::std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames,
             const ParameterTypes & ... parameters)
     {
         Q_UNUSED(parameterNames);
@@ -632,8 +636,8 @@ private:
         addWidget(widget);
 
         PropertyConnector<TypeName>::connect(property, this, [this] () {
-            onPropertyValueChanged();
-        });
+                onPropertyValueChanged();
+            });
     }
 
 };
@@ -663,3 +667,5 @@ public:
 
     }
 };
+
+}

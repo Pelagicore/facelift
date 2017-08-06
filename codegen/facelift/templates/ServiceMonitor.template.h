@@ -14,12 +14,12 @@
 /**
  * Dummy implementation of the {{class}} API
  */
-class {{interface}}Monitor : public ServiceMonitor<{{interface}}> {
+class {{interface}}Monitor : public facelift::ServiceMonitor<{{interface}}> {
 
     Q_OBJECT
 
 public:
-    {{interface}}Monitor(ProviderType_& provider): ServiceMonitor(provider) {
+    {{interface}}Monitor(ProviderType_& provider): facelift::ServiceMonitor<{{interface}}>(provider) {
 
         {% for property in interface.properties %}
         addProperty(provider.{{property}}Property(), "{{property}}");

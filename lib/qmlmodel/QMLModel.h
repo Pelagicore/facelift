@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "Property.h"
 
+namespace facelift {
 
 template<typename EnumType>
 inline QJSValue enumToJSValue(const EnumType e, QQmlEngine *engine)
@@ -293,3 +294,5 @@ protected:
     StructType m_data;
 
 };
+
+}

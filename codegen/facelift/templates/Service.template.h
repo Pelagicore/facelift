@@ -38,7 +38,7 @@ class {{class}}QMLFrontend;
 /**
  * Definition of the {{interface}} interface
  */
-class {{class}} : public InterfaceBase {
+class {{class}} : public facelift::InterfaceBase {
 
     Q_OBJECT
 
@@ -68,7 +68,7 @@ public:
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}> {{property}}Property() { return ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}>(); };
+    facelift::ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}> {{property}}Property() { return facelift::ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}>(); };
 
     {% elif property.type.is_interface -%}
 
@@ -77,13 +77,13 @@ public:
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    ServicePropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return ServicePropertyInterface<{{class}}, {{property|returnType}}>(); };
+    facelift::ServicePropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return facelift::ServicePropertyInterface<{{class}}, {{property|returnType}}>(); };
 
     {% else %}
 
     virtual const {{property|returnType}}& {{property}}() const = 0;
 
-    PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed); };
+    facelift::PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return facelift::PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed); };
 
     typedef {{property|returnType}} PropertyType_{{property}};
 

@@ -36,7 +36,7 @@ public:
     	return m_{{property.name}}.size();
     }
 
-    ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
+    facelift::ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
 
     {% elif property.type.is_list %}
 
@@ -44,7 +44,7 @@ public:
         return m_{{property.name}}.value();
     }
 
-    ListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
+    facelift::ListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
 
     {% elif property.type.is_interface -%}
 
@@ -53,7 +53,7 @@ public:
     	return m_{{property.name}}.value();
     }
 
-    ::ServiceProperty<{{property|returnType}}> m_{{property.name}};
+    facelift::ServiceProperty<{{property|returnType}}> m_{{property.name}};
 
  // TODO
 
@@ -62,7 +62,7 @@ public:
     const {{property|returnType}}& {{property}}() const override {
         return m_{{property.name}}.value();
     }
-    ::Property<{{property|returnType}}> m_{{property.name}};
+    facelift::Property<{{property|returnType}}> m_{{property.name}};
     {% endif %}
 
     {% endfor %}

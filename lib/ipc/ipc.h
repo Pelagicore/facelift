@@ -26,6 +26,8 @@
 
 #include "ipc-config.h"
 
+namespace facelift {
+
 class IPCMessage
 {
 
@@ -1055,3 +1057,5 @@ private:
     Property<bool> m_serviceReady;
 
 };
+
+}

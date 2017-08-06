@@ -65,10 +65,10 @@ public:
 
 
 
-    class Dummy : public DummyModel<{{class}}> {
+    class Dummy : public facelift::DummyModel<{{class}}> {
 
     public:
-        Dummy({{class}}PropertyAdapter& adapter) : DummyModel<{{class}}>(&adapter), m_adapter(adapter) {
+        Dummy({{class}}PropertyAdapter& adapter) : facelift::DummyModel<{{class}}>(&adapter), m_adapter(adapter) {
             init();
             {% for property in interface.properties %}
 			{% if property.type.is_interface -%}

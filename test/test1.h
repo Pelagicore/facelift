@@ -96,7 +96,7 @@ public:
         return m_property1;
     }
 
-    Property<QString> m_property1;
+    facelift::Property<QString> m_property1;
 };
 
 
@@ -115,5 +115,5 @@ public:
         return m_property2;
     }
 
-    Property<QString> m_property2;
+    facelift::Property<QString> m_property2;
 };

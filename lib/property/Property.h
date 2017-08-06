@@ -18,6 +18,7 @@
 
 #include "Model.h"
 
+namespace facelift {
 
 class PropertyBase
 {
@@ -49,9 +50,9 @@ public:
                 m_notificationTimerEnabled = true;
 
                 QTimer::singleShot(0, m_ownerObject, [this] () {
-                    doTriggerChangeSignal();
-                    m_notificationTimerEnabled = false;
-                });
+                        doTriggerChangeSignal();
+                        m_notificationTimerEnabled = false;
+                    });
 
             }
         } else {
@@ -133,8 +134,8 @@ public:
     Property &bind(const PropertyInterface<Class, PropertyType> &property)
     {
         this->bind([property] () {
-            return property.value();
-        }).addTrigger(property.object, property.signal);
+                return property.value();
+            }).addTrigger(property.object, property.signal);
         return *this;
     }
 
@@ -157,8 +158,8 @@ public:
     Property &addTrigger(SourceType *source, void (SourceType::*changeSignal)(Args ...))
     {
         m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
-            reevaluate();
-        }));
+                reevaluate();
+            }));
         return *this;
     }
 
@@ -456,3 +457,5 @@ struct PropertyConnector
     }
 
 };
+
+}

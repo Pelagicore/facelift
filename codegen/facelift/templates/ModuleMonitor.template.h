@@ -13,7 +13,7 @@
 
 {{module|namespaceOpen}}
 
-class ModuleMonitor : public ModuleMonitorBase {
+class ModuleMonitor : public facelift::ModuleMonitorBase {
 
 public:
     static void registerTypes();

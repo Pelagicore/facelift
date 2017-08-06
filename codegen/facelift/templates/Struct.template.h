@@ -23,7 +23,7 @@
 /**
  * {{struct.name}} gadget
  */
-class {{struct.name}} : public TModelStructure<
+class {{struct.name}} : public facelift::TModelStructure<
 {% for field in struct.fields %}
     {{ comma() }}
     {{field|returnType}}
@@ -95,7 +95,7 @@ public:
     }
 
     void set{{field.name}}({{field|returnType}} value) {
-//    	qDebug() << "Setting field {{field.name}} with value:"; // << value;
+//    	qDebug() << "Setting field {{field.name}} with value:" << value;
         m_{{field.name}} = value;
     }
 
@@ -133,7 +133,7 @@ Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 /**
  * A QObject wrapper of a {{struct.name}}, which is suitable from instantiation from QML, for example
  */
-class {{struct.name}}QMLWrapper : public StructQMLWrapper<{{struct.name}}>
+class {{struct.name}}QMLWrapper : public facelift::StructQMLWrapper<{{struct.name}}>
 {
     Q_OBJECT
 
@@ -182,7 +182,7 @@ public:
         m_{{field.name}} = value;
     }
 
-    Property<{{field|returnType}}> m_{{field.name}};
+    facelift::Property<{{field|returnType}}> m_{{field.name}};
 
 {% endfor %}
 
@@ -221,9 +221,11 @@ public:
 };
 
 
-class QMLImplListProperty{{struct}} : public TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
+class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
 
     Q_OBJECT
+
+	typedef facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> Base;
 
 public:
 
@@ -237,19 +239,19 @@ public:
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} addElement({{struct | fullyQualifiedCppName}} element) {
-    	return TQMLImplListProperty::addElement(element);
+    	return Base::addElement(element);
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} removeElementByID(int elementId) {
-    	return TQMLImplListProperty::removeElementByID(elementId);
+    	return Base::removeElementByID(elementId);
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} addCloneOf({{struct | fullyQualifiedCppName}}QMLWrapper* element) {
-    	return TQMLImplListProperty::addElement(element->gadget().clone());
+    	return Base::addElement(element->gadget().clone());
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}}QMLWrapper* elementById(int elementId) const {
-        auto element = TQMLImplListProperty::elementById(elementId);
+        auto element = Base::elementById(elementId);
 
         if (element != nullptr) {
         	return new {{struct | fullyQualifiedCppName}}QMLWrapper(*element);  // This instance will owned by the QML engine
@@ -259,23 +261,23 @@ public:
     }
 
     Q_INVOKABLE int elementIndexById(int elementId) const {
-        return TQMLImplListProperty::elementIndexById(elementId);
+        return Base::elementIndexById(elementId);
     }
 
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementAt(int index) const {
-        return TQMLImplListProperty::elementAt(index);
+        return Base::elementAt(index);
     }
 
 };
 
 {{module|namespaceClose}}
 
-
+namespace facelift {
 
 template<>
 class QMLImplListProperty<{{struct | fullyQualifiedCppName}}> : public {{module|fullyQualifiedCppName}}::QMLImplListProperty{{struct}} {
 
 };
 
-
+}
 

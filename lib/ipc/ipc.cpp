@@ -8,6 +8,7 @@
 
 #include "ipc.h"
 
+namespace facelift {
 
 void InterfaceManager::registerAdapter(QString id, IPCServiceAdapterBase &adapter)
 {
@@ -40,4 +41,6 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
     m_dbusConnected = m_busConnection.isConnected();
     qDebug() << (m_dbusConnected ? "" : "NOT") << "connected to DBUS";
+}
+
 }

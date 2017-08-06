@@ -109,7 +109,7 @@ private:
         m_stationList.push_back(s);
     }
 
-    Property<Station> m_currentStation;
+    facelift::Property<Station> m_currentStation;
     QVector<Station> m_stationList;
     RDSSettings m_rdsSettings;
 

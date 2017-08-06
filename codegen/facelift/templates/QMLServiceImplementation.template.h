@@ -17,7 +17,7 @@ class {{interface}}QMLImplementation;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter, public QMLModelImplementationFrontend<{{interface}}QMLImplementation> {
+class {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter, public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation> {
 
     Q_OBJECT
 
@@ -45,7 +45,7 @@ public:
     {% endfor %}
 
     static void registerTypes(const char* uri) {
-        ModelQMLImplementation<{{interface}}QMLImplementationFrontend>::registerTypes(uri);
+        facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend>::registerTypes(uri);
     }
 
     QObject* impl();
@@ -55,7 +55,7 @@ public:
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{interface}}QMLImplementation : public ModelQMLImplementation<{{interface}}QMLImplementationFrontend> {
+class {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend> {
 
     Q_OBJECT
 
@@ -96,14 +96,14 @@ public:
         Q_UNUSED(engine);
 
         {% for parameter in operation.parameters %}
-        args.append(toJSValue({{parameter.name}}, engine));
+        args.append(facelift::toJSValue({{parameter.name}}, engine));
         {% endfor %}
 
     	{% if (operation.hasReturnValue) %} {{operation|returnType}} returnValue; {% endif %}
 
     	auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
 		{% if (operation.hasReturnValue) %}
-		fromJSValue(returnValue, jsReturnValue, engine);
+		facelift::fromJSValue(returnValue, jsReturnValue, engine);
 		{% endif %}
 
         {% if (operation.hasReturnValue) %}
@@ -134,7 +134,7 @@ public:
     {% if property.type.is_list -%}
     Q_PROPERTY(QObject* {{property.name}} READ {{property.name}} NOTIFY {{property.name}}Changed)
 
-    QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
+    facelift::QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
 
 
     QObject* {{property.name}}() {
@@ -218,7 +218,7 @@ public:
         QJSValueList args;
 
         QQmlEngine* engine = qmlEngine(this);
-        args.append(toJSValue(value, engine));
+        args.append(facelift::toJSValue(value, engine));
 
         if (m_set{{property.name}}.isCallable())
         {

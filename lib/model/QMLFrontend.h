@@ -16,6 +16,7 @@
 
 #include "Model.h"
 
+namespace facelift {
 
 class QMLFrontendBase :
     public QObject
@@ -110,7 +111,7 @@ void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLF
         int minorVersion = ProviderType::VERSION_MINOR)
 {
     ProviderType::registerTypes(uri);
-    qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, majorVersion, minorVersion, name);
+    ::qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, majorVersion, minorVersion, name);
 }
 
 template<typename Type>
@@ -227,3 +228,5 @@ private:
     ElementGetterFunction m_elementGetter = nullptr;
 
 };
+
+}
