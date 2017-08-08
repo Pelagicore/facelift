@@ -447,7 +447,6 @@ public:
         json[propertyName] = toJsonArray(property.value());
     }
 
-
     template<typename ListElementType>
     void writeJSONProperty(QJsonObject &json, const ModelProperty<ListElementType> &property,
             const char *propertyName) const
@@ -529,7 +528,6 @@ public:
             });
 
         addWidget(*widget);
-
     }
 
 
@@ -543,6 +541,7 @@ public:
 
         widget->init();
         widget->setValue(property.value());
+        widget->enableEdition();
 
         // Update our property if the value is changed with the GUI
         connect(widget, &PanelType::valueChanged, this, [&property, widget]() {
@@ -561,6 +560,7 @@ public:
     void addPropertyWidget(ModelProperty<ListElementType> &property, const QString &propertyName)
     {
         auto widget = new ListPropertyWidget<ListElementType>(*(new QList<ListElementType>()), propertyName);
+        widget->enableEdition();
 
         typedef typename TypeToWidget<ListElementType>::PanelType ElementPanelType;
         auto widgetForNewElement = new ElementPanelType(*new ListElementType(), "New");
@@ -582,6 +582,7 @@ public:
     void addPropertyWidget(ListProperty<ListElementType> &property, const QString &propertyName)
     {
         auto widget = new ListPropertyWidget<ListElementType>(*(new QList<ListElementType>()), propertyName);
+        widget->enableEdition();
 
         typedef typename TypeToWidget<ListElementType>::PanelType ElementPanelType;
         auto widgetForNewElement = new ElementPanelType(*new ListElementType(), "New");
@@ -593,6 +594,11 @@ public:
                 ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());     // ensure structs are cloned to get a new ID
                 v.append(clone);
                 property.setValue(v);
+            });
+
+        // Update the GUI if the value is changed in the property
+        PropertyConnector<TypeName>::connect(property, this, [&property, widget]() {
+                widget->listContentWidget->setText(facelift::toString(property.value()));
             });
 
         addPropertyWidget_(property, *widget);
@@ -642,16 +648,15 @@ private:
 
 };
 
+
 class DummyModuleBase
 {
-
 public:
     static bool isTypeRegistered(const QString &fullyQualifiedTypeName, int majorVersion, int minorVersion);
 
     template<typename DummyInterfaceType>
     static void registerQmlComponentIfNotAlready(const char *uri)
     {
-
         QString fullyQualifiedTypeName = uri;
         fullyQualifiedTypeName += "/";
         fullyQualifiedTypeName += DummyInterfaceType::INTERFACE_NAME;
@@ -663,9 +668,8 @@ public:
         } else {
             qDebug() << "QML type already registered : " << fullyQualifiedTypeName << " => not registering dummy implementation";
         }
-
-
     }
+
 };
 
 }

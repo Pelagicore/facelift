@@ -129,17 +129,17 @@ protected:
 class QMLImplListPropertyBase :
     public QObject
 {
-
     Q_OBJECT
 
 public:
     Q_INVOKABLE virtual int size() const = 0;
 
-    Q_PROPERTY(QList<QVariant> elements READ elementsAsVariant NOTIFY elementsChanged)
+    Q_PROPERTY(QList<QVariant> content READ elementsAsVariant WRITE setElementsAsVariant NOTIFY elementsChanged)
 
     Q_SIGNAL void elementsChanged();
 
     virtual QList<QVariant> elementsAsVariant() const = 0;
+    virtual void setElementsAsVariant(const QList<QVariant> &list) = 0;
 
 };
 
@@ -154,15 +154,57 @@ public:
         return *m_property;
     }
 
-    // TODO : check why the QML engine does not seem to be able to handle the return type of this method
     QList<QVariant> elementsAsVariant() const override
     {
         return toQMLCompatibleType(elements());
     }
 
+    void onReferencedObjectChanged()
+    {
+        // TODO: check that QObject references in QVariant
+        // One of the referenced objects has emitted a change signal so we refresh our list
+        refreshList(m_assignedVariantList);
+    }
+
+    void clearConnections()
+    {
+        for (const auto &connection : m_changeSignalConnections) {
+            auto successfull = QObject::disconnect(connection);
+            Q_ASSERT(successfull);
+        }
+        m_changeSignalConnections.clear();
+    }
+
+    void refreshList(const QList<QVariant> &variantList)
+    {
+        auto list = m_property->value();
+        list.clear();
+
+        clearConnections();
+        for (const auto &var : variantList) {
+            list.append(BinarySerializationTypeHandler<ElementType>::fromVariant(var));
+
+            // Add connections so that we can react when the property of an object has changed
+            BinarySerializationTypeHandler<ElementType>::connectChangeSignals(var, this,
+                    &TQMLImplListProperty::onReferencedObjectChanged,
+                    m_changeSignalConnections);
+        }
+
+        m_property->setValue(list);
+        elementsChanged();
+    }
+
+    void setElementsAsVariant(const QList<QVariant> &variantList) override
+    {
+        m_assignedVariantList = variantList;
+        refreshList(m_assignedVariantList);
+    }
+
     void setProperty(Property<QList<ElementType> > &property)
     {
-        m_property = &property;
+        if (m_property == nullptr) {
+            m_property = &property;
+        }
     }
 
     int size() const override
@@ -175,71 +217,75 @@ public:
         return property().value();
     }
 
-    ElementType addElement(ElementType element)
-    {
-        auto list = m_property->value();
-        list.append(element);
-        m_property->setValue(list);
-        return list[list.size() - 1];
-    }
-
-    bool elementExists(ModelElementID elementId) const
-    {
-        for (const auto &element : property().value()) {
-            if (element.id() == elementId) {
-                return true;
-            }
+    /*
+        ElementType addElement(ElementType element)
+        {
+            auto list = m_property->value();
+            list.append(element);
+            m_property->setValue(list);
+            return list[list.size() - 1];
         }
-        return false;
-    }
 
-    const ElementType *elementById(ModelElementID elementId) const
-    {
-        Q_ASSERT(elementExists(elementId));
-        for (const auto &element : property().value()) {
-            if (element.id() == elementId) {
-                return &element;
+        bool elementExists(ModelElementID elementId) const
+        {
+            for (const auto &element : property().value()) {
+                if (element.id() == elementId) {
+                    return true;
+                }
             }
+            return false;
         }
-        return nullptr;
-    }
 
-    ElementType removeElementByID(ModelElementID elementId)
-    {
-        ElementType returnValue;
-        auto list = m_property->value();
-        for (const auto &element : list) {
-            if (element.id() == elementId) {
-                returnValue = element;
-                list.removeAll(element);
-                m_property->setValue(list);
-                break;
+        const ElementType *elementById(ModelElementID elementId) const
+        {
+            Q_ASSERT(elementExists(elementId));
+            for (const auto &element : property().value()) {
+                if (element.id() == elementId) {
+                    return &element;
+                }
             }
+            return nullptr;
         }
-        return returnValue;
-    }
 
-    int elementIndexById(ModelElementID elementId) const
-    {
-        auto &list = property().value();
-        for (int index = 0; index < list.size(); index++) {
-            if (list[index].id() == elementId) {
-                return index;
+        ElementType removeElementByID(ModelElementID elementId)
+        {
+            ElementType returnValue;
+            auto list = m_property->value();
+            for (const auto &element : list) {
+                if (element.id() == elementId) {
+                    returnValue = element;
+                    list.removeAll(element);
+                    m_property->setValue(list);
+                    break;
+                }
             }
+            return returnValue;
         }
-        return -1;
-    }
 
-    const ElementType &elementAt(int index) const
-    {
-        Q_ASSERT((index >= 0) && (index < size()));
-        return property().value()[index];
-    }
+        int elementIndexById(ModelElementID elementId) const
+        {
+            auto &list = property().value();
+            for (int index = 0; index < list.size(); index++) {
+                if (list[index].id() == elementId) {
+                    return index;
+                }
+            }
+            return -1;
+        }
+
+        const ElementType &elementAt(int index) const
+        {
+            Q_ASSERT((index >= 0) && (index < size()));
+            return property().value()[index];
+        }
+    */
 
 private:
     Property<QList<ElementType> > *m_property = nullptr;
-
+    QList<QVariant> m_assignedVariantList;
+    QList<QMetaObject::Connection> m_changeSignalConnections;
 };
+
 
 template<typename ElementType>
 class QMLImplListProperty :
@@ -249,16 +295,16 @@ class QMLImplListProperty :
 };
 
 
-class StructQMLWrapperBase :
+class StructQObjectWrapperBase :
     public QObject
 {
 
     Q_OBJECT
 
 public:
-    StructQMLWrapperBase(QObject *parent = nullptr) : QObject(parent)
+    StructQObjectWrapperBase(QObject *parent = nullptr) : QObject(parent)
     {
-        m_id.init("id", this, &StructQMLWrapperBase::idChanged);
+        m_id.init("id", this, &StructQObjectWrapperBase::idChanged);
     }
 
     Q_PROPERTY(int uid READ id WRITE setId NOTIFY idChanged)
@@ -280,13 +326,14 @@ protected:
 
 };
 
+
 template<typename StructType>
-class StructQMLWrapper :
-    public StructQMLWrapperBase
+class StructQObjectWrapper :
+    public StructQObjectWrapperBase
 {
 
 public:
-    StructQMLWrapper(QObject *parent = nullptr) : StructQMLWrapperBase(parent)
+    StructQObjectWrapper(QObject *parent = nullptr) : StructQObjectWrapperBase(parent)
     {
     }
 

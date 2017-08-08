@@ -47,8 +47,11 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 {
     Q_UNUSED(uri);
 
+    qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, 1, 0, "QMLImplListPropertyBase", "");
+    qmlRegisterUncreatableType<facelift::ModelStructure>(uri, 1, 0, "ModelStructure", "");
+
     {% for struct in module.structs %}
-    ::qmlRegisterType<{{struct}}QMLWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
+    ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
     {% endfor %}
 
     qmlRegisterSingletonType<Module>(uri, majorVersion, minorVersion, "Module", Module_singletontype_provider);

@@ -12,6 +12,7 @@ endif()
 option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
 option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
 option(FACELIFT_ENABLE_IPC "Enable IPC support" ${Qt5DBus_FOUND})
+option(FACELIFT_BUILD_EXAMPLE "Enable build of examples" OFF)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
@@ -48,7 +49,11 @@ if(FACELIFT_ENABLE_CODEGEN)
 endif()
 
 add_subdirectory(lib)
-add_subdirectory(examples)
+
+if(FACELIFT_BUILD_EXAMPLE)
+    add_subdirectory(examples)
+endif()
+
 add_subdirectory(test)
 
 add_subdirectory(doc)

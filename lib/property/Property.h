@@ -60,12 +60,6 @@ public:
         }
     }
 
-    virtual QString toString() const
-    {
-        Q_ASSERT(false);
-        return "";
-    }
-
     QObject *owner() const
     {
         return m_ownerObject;
@@ -86,12 +80,14 @@ protected:
 
     virtual bool isDirty() const = 0;
 
+    virtual QString toString() const = 0;
+
 private:
     void doTriggerChangeSignal()
     {
         if (signalPointer() != nullptr) {
             if (isDirty()) {
-                qDebug() << "Property" << name() << ": Triggering notification";
+                qDebug() << "Property" << name() << ": Triggering notification. New value:" << toString();
                 // Trigger the signal
                 clean();
                 (m_ownerObject->*signalPointer())();
@@ -128,6 +124,11 @@ public:
 
     Property()
     {
+    }
+
+    QString toString() const override
+    {
+        return facelift::toString(value());
     }
 
     template<typename Class, typename PropertyType>
@@ -187,7 +188,7 @@ public:
         breakBinding();
 
         m_value = right;
-        qDebug() << "Written value to property " << name();
+        qDebug() << "Written value to property " << name() << ":" << toString();
         triggerValueChangedSignal();
     }
 
@@ -431,6 +432,12 @@ public:
 
         }
         return list;
+    }
+
+    QString toString() const override
+    {
+        NOT_IMPLEMENTED();
+        return "Model";
     }
 
 private:

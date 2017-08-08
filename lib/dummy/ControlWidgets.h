@@ -123,10 +123,16 @@ public:
     {
         widget = new QComboBox();
         this->addWidget(widget);
+        widget->setEnabled(false);
         auto values = validValues<EnumType>();
         for (auto &v : values) {
             widget->addItem(facelift::toString(v), static_cast<int>(v));
         }
+    }
+
+    void enableEdition()
+    {
+        widget->setEnabled(true);
     }
 
     void refreshWidgetFromValue() override
@@ -161,7 +167,13 @@ public:
         PropertyWidget(value, propertyName, parent)
     {
         widget = new QCheckBox();
+        widget->setEnabled(false);
         addWidget(widget);
+    }
+
+    void enableEdition()
+    {
+        widget->setEnabled(true);
     }
 
     void refreshWidgetFromValue() override
@@ -190,8 +202,14 @@ public:
         PropertyWidget(value, propertyName, parent)
     {
         widget = new QSpinBox();
+        widget->setEnabled(false);
         widget->setMaximum(5000);
         this->addWidget(widget);
+    }
+
+    void enableEdition()
+    {
+        widget->setEnabled(true);
     }
 
     void refreshWidgetFromValue() override
@@ -219,9 +237,15 @@ public:
         PropertyWidget(value, propertyName, parent)
     {
         widget = new QDoubleSpinBox();
+        widget->setEnabled(false);
         widget->setMaximum(5000);
         widget->setSingleStep(0.1);
         addWidget(widget);
+    }
+
+    void enableEdition()
+    {
+        widget->setEnabled(true);
     }
 
     void refreshWidgetFromValue() override
@@ -250,7 +274,13 @@ public:
         PropertyWidget(value, propertyName, parent)
     {
         widget = new QTextEdit();
+        widget->setReadOnly(false);
         addWidget(widget);
+    }
+
+    void enableEdition()
+    {
+        widget->setReadOnly(true);
     }
 
     void refreshWidgetFromValue() override
@@ -279,12 +309,18 @@ public:
     ListPropertyWidget(QList<ElementType> &value, const QString &propertyName, QWidget *parent = nullptr) :
         PropertyWidget<QList<ElementType> >(value, propertyName, parent)
     {
+        listContentWidget = new QTextEdit();
+        this->addWidget(listContentWidget);
+    }
+
+    void enableEdition()
+    {
         addCreateNewElementButton();
     }
 
     void refreshWidgetFromValue() override
     {
-        qWarning() << "TODO";
+        listContentWidget->setText(facelift::toString(this->value()));
     }
 
     void setValueWidget(QWidget *widget)
@@ -299,6 +335,8 @@ public:
     }
 
     QPushButton *createNewElementButton = nullptr;
+
+    QTextEdit *listContentWidget = nullptr;
 
 };
 
@@ -392,11 +430,17 @@ public:
             QWidget *parent = nullptr) :
         PropertyWidget<StructType>(value, propertyName, parent)
     {
-        auto widget = new QWidget();
+        widget = new QWidget();
+        widget->setEnabled(false);
         m_layout = new QVBoxLayout();
         widget->setLayout(m_layout);
         this->addWidget(widget);
         create_widget_panel(fieldNames);
+    }
+
+    void enableEdition()
+    {
+        widget->setEnabled(true);
     }
 
     template<std::size_t I = 0>
@@ -449,6 +493,8 @@ public:
 private:
     QList<PropertyWidgetBase *> m_childPanels;
     QVBoxLayout *m_layout;
+
+    QWidget *widget = nullptr;
 
 };
 

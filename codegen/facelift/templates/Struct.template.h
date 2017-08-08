@@ -20,6 +20,8 @@
 
 {{module|namespaceOpen}}
 
+class {{struct.name}}QObjectWrapper;
+
 /**
  * {{struct.name}} gadget
  */
@@ -33,6 +35,8 @@ class {{struct.name}} : public facelift::TModelStructure<
     Q_GADGET
 
 public:
+
+	typedef {{struct.name}}QObjectWrapper QObjectWrapperType;
 
     static const FieldNames FIELD_NAMES;
 
@@ -133,7 +137,7 @@ Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 /**
  * A QObject wrapper of a {{struct.name}}, which is suitable from instantiation from QML, for example
  */
-class {{struct.name}}QMLWrapper : public facelift::StructQMLWrapper<{{struct.name}}>
+class {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
 {
     Q_OBJECT
 
@@ -145,12 +149,12 @@ public:
     	return {{struct|fullyQualifiedCppName}}::classID();
     }
 
-    {{struct.name}}QMLWrapper(QObject* parent = nullptr) : StructQMLWrapper(parent)
+    {{struct.name}}QObjectWrapper(QObject* parent = nullptr) : StructQObjectWrapper(parent)
     {
     	init();
     }
 
-    {{struct.name}}QMLWrapper(const {{struct.name}}& value, QObject* parent = nullptr) : StructQMLWrapper(parent)
+    {{struct.name}}QObjectWrapper(const {{struct.name}}& value, QObject* parent = nullptr) : StructQObjectWrapper(parent)
     {
     	assignFromGadget(value);
     	init();
@@ -158,8 +162,8 @@ public:
 
     void init() {
     	{% for field in struct.fields %}
-        m_{{field.name}}.init("{{field.name}}", this, &{{struct.name}}QMLWrapper::{{field.name}}Changed);
-        QObject::connect(this, &{{struct.name}}QMLWrapper::{{field.name}}Changed, this, &{{struct.name}}QMLWrapper::anyFieldChanged);
+        m_{{field.name}}.init("{{field.name}}", this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed);
+        QObject::connect(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, this, &{{struct.name}}QObjectWrapper::anyFieldChanged);
     	{% endfor %}
     }
 
@@ -223,12 +227,13 @@ public:
 
 class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
 
-    Q_OBJECT
+//    Q_OBJECT
 
 	typedef facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> Base;
 
 public:
 
+/*
     Q_INVOKABLE bool elementExists(int elementId) const {
         for (const auto &element : property().value()) {
             if (element.id() == elementId) {
@@ -246,15 +251,15 @@ public:
     	return Base::removeElementByID(elementId);
     }
 
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}} addCloneOf({{struct | fullyQualifiedCppName}}QMLWrapper* element) {
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}} addCloneOf({{struct | fullyQualifiedCppName}}QObjectWrapper* element) {
     	return Base::addElement(element->gadget().clone());
     }
 
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}}QMLWrapper* elementById(int elementId) const {
+    Q_INVOKABLE {{struct | fullyQualifiedCppName}}QObjectWrapper* elementById(int elementId) const {
         auto element = Base::elementById(elementId);
 
         if (element != nullptr) {
-        	return new {{struct | fullyQualifiedCppName}}QMLWrapper(*element);  // This instance will owned by the QML engine
+        	return new {{struct | fullyQualifiedCppName}}QObjectWrapper(*element);  // This instance will owned by the QML engine
         }
         else
         	return nullptr;
@@ -267,7 +272,7 @@ public:
     Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementAt(int index) const {
         return Base::elementAt(index);
     }
-
+*/
 };
 
 {{module|namespaceClose}}

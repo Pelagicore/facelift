@@ -40,8 +40,8 @@ interface TestInterface {
 }
 
 struct TestStruct {
-    string s
-    int i
+    string aString
+    int anInt
 }
 
 enum TestEnum {

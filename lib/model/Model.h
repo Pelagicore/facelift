@@ -73,8 +73,8 @@ private:
 template<typename Type>
 QString enumToString(const Type &v)
 {
-    Q_ASSERT(false);
-    return "Unknown";
+    NOT_IMPLEMENTED();
+    return "\"No string representation\"";
 }
 
 
@@ -107,8 +107,19 @@ struct BinarySerializationTypeHandlerBase
     template<typename Type>
     static QString toString(const Type &v)
     {
-        Q_ASSERT(false);
+        NOT_IMPLEMENTED();
         return v;
+    }
+
+    template<typename ReceiverType, typename Function>
+    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
+            QList<QMetaObject::Connection> &connections)
+    {
+        // nothing to connect for most of the types
+        Q_UNUSED(variant);
+        Q_UNUSED(receiver);
+        Q_UNUSED(function);
+        Q_UNUSED(connections);
     }
 
 };
@@ -116,6 +127,12 @@ struct BinarySerializationTypeHandlerBase
 template<typename Type, typename Enable = void>
 struct BinarySerializationTypeHandler
 {
+    static QString toString(const Type &v)
+    {
+        Q_UNUSED(v);
+        return "Unknown";
+    }
+
 };
 
 template<typename Type, typename Sfinae = void>
@@ -130,6 +147,7 @@ struct ModelTypeTraits
         Q_UNUSED(variant);
         variant = toVariant(value);
     }
+
 };
 
 
@@ -329,12 +347,41 @@ struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base
         param.setId(id);
     }
 
+    static Type fromVariant(const QVariant &variant)
+    {
+        Type v;
+        typedef typename Type::QObjectWrapperType QObjectWrapperType;
+
+        if (variant.canConvert<QObjectWrapperType *>()) {
+            auto qobjectWrapper = variant.value<QObjectWrapperType *>();
+            v = qobjectWrapper->gadget();               // TODO : check how to react on changes in the wrapper QObject
+        } else if (variant.canConvert<Type>()) {
+            v = variant.value<Type>();
+        } else {
+            qFatal("Bad argument");
+        }
+
+        return v;
+    }
+
+    template<typename ReceiverType, typename Function>
+    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
+            QList<QMetaObject::Connection> &connections)
+    {
+        typedef typename Type::QObjectWrapperType QObjectWrapperType;
+        if (variant.canConvert<QObjectWrapperType *>()) {
+            auto qobjectWrapper = variant.value<QObjectWrapperType *>();
+            connections.append(QObject::connect(qobjectWrapper, &QObjectWrapperType::anyFieldChanged, receiver, function));
+        }
+    }
+
     static QString toString(const Type &v)
     {
         return v.toString();
     }
 
 };
+
 
 template<typename Type>
 struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
@@ -356,6 +403,11 @@ struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_enum
         return facelift::enumToString(v);
     }
 
+    static Type fromVariant(const QVariant &variant)
+    {
+        return static_cast<Type>(variant.toInt());
+    }
+
 };
 
 
@@ -368,7 +420,14 @@ struct BinarySerializationTypeHandler<bool> :
     {
         return v ? "true" : "false";
     }
+
+    static bool fromVariant(const QVariant &variant)
+    {
+        return variant.toBool();
+    }
+
 };
+
 
 template<>
 struct BinarySerializationTypeHandler<int> :
@@ -378,7 +437,14 @@ struct BinarySerializationTypeHandler<int> :
     {
         return QString::number(v);
     }
+
+    static int fromVariant(const QVariant &variant)
+    {
+        return variant.toInt();
+    }
+
 };
+
 
 template<>
 struct BinarySerializationTypeHandler<float> :
@@ -388,7 +454,13 @@ struct BinarySerializationTypeHandler<float> :
     {
         return QString::number(v);
     }
+
+    static float fromVariant(const QVariant &variant)
+    {
+        return variant.toFloat();
+    }
 };
+
 
 template<>
 struct BinarySerializationTypeHandler<QString> :
@@ -398,6 +470,12 @@ struct BinarySerializationTypeHandler<QString> :
     {
         return v;
     }
+
+    static QString fromVariant(const QVariant &variant)
+    {
+        return variant.toString();
+    }
+
 };
 
 
@@ -431,11 +509,10 @@ struct BinarySerializationTypeHandler<QList<ElementType> >
         QTextStream str(&s);
         str << "[ ";
         for (const auto &element : v) {
-            BinarySerializationTypeHandler<ElementType>::toString(element);
-            str << " ,";
+            str << BinarySerializationTypeHandler<ElementType>::toString(element);
+            str << ", ";
         }
         str << "]";
-        Q_ASSERT(false);
         return s;
     }
 
@@ -950,11 +1027,39 @@ inline QVariant toVariant(const Type &v)
 template<typename Type>
 inline QVariant toVariant(const QList<Type> &v)
 {
-    Q_ASSERT(false);
+    NOT_IMPLEMENTED();
     Q_UNUSED(v);
     return "";
 }
 */
+
+template<typename Type>
+struct BinarySerializationTypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
+{
+    static void write(BinarySeralizer &msg, const Type &param)
+    {
+        NOT_IMPLEMENTED();
+    }
+
+    static void read(BinarySeralizer &msg, Type &param)
+    {
+        NOT_IMPLEMENTED();
+    }
+
+    static Type *fromVariant(const QVariant &variant)
+    {
+        NOT_IMPLEMENTED();
+        return nullptr;
+    }
+
+    static QString toString(const Type *v)
+    {
+        auto s = (size_t)(v);
+        return QString::number(s);
+    }
+
+};
+
 
 template<typename Type>
 inline QString toString(const Type &v)

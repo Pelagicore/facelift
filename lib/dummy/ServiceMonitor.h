@@ -51,11 +51,13 @@ public:
 
     int columnCount(const QModelIndex &parent) const override
     {
+        Q_UNUSED(parent);
         return 2;
     }
 
     QVariant data(const QModelIndex &index, int role) const override
     {
+        Q_UNUSED(role);
         auto i = facelift::ServiceRegistry::instance().objects()[index.row()];
         if (index.column() == 1) {
             return i->implementationID();

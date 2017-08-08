@@ -13,6 +13,8 @@
 
 #include <QList>
 
+#define NOT_IMPLEMENTED() qFatal("Not implemented yet")
+
 namespace facelift {
 
 template<typename StreamType>

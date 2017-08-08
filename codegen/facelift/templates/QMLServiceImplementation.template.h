@@ -132,12 +132,12 @@ public:
     {% for property in interface.properties %}
 
     {% if property.type.is_list -%}
-    Q_PROPERTY(QObject* {{property.name}} READ {{property.name}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY(facelift::QMLImplListPropertyBase* {{property.name}} READ {{property.name}} NOTIFY {{property.name}}Changed)
 
     facelift::QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
 
 
-    QObject* {{property.name}}() {
+    facelift::QMLImplListPropertyBase* {{property.name}}() {
     	m_{{property.name}}QMLProperty.setProperty(interface().m_{{property.name}});
         return &m_{{property.name}}QMLProperty;
     }
@@ -150,17 +150,17 @@ public:
 
     {% elif property.type.is_struct -%}
 
-    Q_PROPERTY({{property|returnType}}QMLWrapper* {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-    {{property|returnType}}QMLWrapper* {{property.name}}() const {
+    Q_PROPERTY({{property|returnType}}QObjectWrapper* {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+    {{property|returnType}}QObjectWrapper* {{property.name}}() const {
         return m_{{property.name}};
     }
 
-    void set{{property.name}}({{property|returnType}}QMLWrapper* value) {
+    void set{{property.name}}({{property|returnType}}QObjectWrapper* value) {
     	if (m_{{property.name}}.data() != value) {
 			m_{{property.name}} = value;
 			sync{{property.name}}();
 			if (m_{{property.name}} != nullptr) {
-				QObject::connect(m_{{property.name}}, &{{property|returnType}}QMLWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}});
+				QObject::connect(m_{{property.name}}, &{{property|returnType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}});
 			}
 			emit {{property.name}}Changed();
 //			qDebug() << "-----" << value->gadget();
@@ -176,7 +176,7 @@ public:
         interface().m_{{property.name}} = value;
     }
 
-    QPointer<{{property|returnType}}QMLWrapper> m_{{property.name}} = nullptr;
+    QPointer<{{property|returnType}}QObjectWrapper> m_{{property.name}} = nullptr;
 
     {% else %}
 
