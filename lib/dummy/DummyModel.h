@@ -168,7 +168,7 @@ struct DummyModelTypeHandler
 
 
 template<typename Type>
-struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_base_of<ModelStructure, Type>::value>::type>
+struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_base_of<StructureBase, Type>::value>::type>
 {
 
     static void writeJSON(QJsonValue &json, const Type &value)
@@ -509,7 +509,7 @@ public:
             const ::std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames, TypeName *obj,
             void (TypeName::*signalPointer)(ParameterTypes ...))
     {
-        typedef TModelStructure<ParameterTypes ...> SignalParametersStruct;
+        typedef Structure<ParameterTypes ...> SignalParametersStruct;
 
         // Create a new structure type containing the signal arguments
         typedef StructurePropertyWidget<SignalParametersStruct> PanelType;

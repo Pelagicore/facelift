@@ -25,7 +25,7 @@ class {{struct.name}}QObjectWrapper;
 /**
  * {{struct.name}} gadget
  */
-class {{struct.name}} : public facelift::TModelStructure<
+class {{struct.name}} : public facelift::Structure<
 {% for field in struct.fields %}
     {{ comma() }}
     {{field|returnType}}

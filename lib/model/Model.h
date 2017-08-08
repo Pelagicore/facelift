@@ -29,7 +29,7 @@ typedef int ModelElementID;
 
 namespace facelift {
 
-class ModelStructure
+class StructureBase
 {
 public:
     Q_GADGET
@@ -47,9 +47,12 @@ public:
         return m_id;
     }
 
-    ModelStructure()
+    StructureBase()
     {
         m_id = s_nextID++;
+    }
+
+    virtual ~StructureBase() {
     }
 
     void setId(ModelElementID id)
@@ -152,7 +155,7 @@ struct ModelTypeTraits
 
 
 template<typename StructType>
-struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
+struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<StructureBase, StructType>::value>::type>
 {
     typedef bool IsStruct;
 
@@ -177,12 +180,12 @@ struct ModelTypeTraits<EnumType, typename std::enable_if<std::is_enum<EnumType>:
 
 
 template<typename ... FieldTypes>
-class TModelStructure :
-    public ModelStructure
+class Structure :
+    public StructureBase
 {
 
 public:
-    virtual ~TModelStructure()
+    virtual ~Structure()
     {
     }
 
@@ -251,13 +254,13 @@ public:
         m_values = value;
     }
 
-    void copyFrom(const TModelStructure &other)
+    void copyFrom(const Structure &other)
     {
         setValue(other.m_values);
         m_id = other.id();
     }
 
-    bool operator==(const TModelStructure &right) const
+    bool operator==(const Structure &right) const
     {
         return (m_values == right.m_values);
     }
@@ -327,7 +330,7 @@ BinarySeralizer &operator>>(BinarySeralizer &msg, Type &v)
 }
 
 template<typename Type>
-struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
+struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
 {
     static void write(BinarySeralizer &msg, const Type &param)
     {
@@ -520,7 +523,7 @@ struct BinarySerializationTypeHandler<QList<ElementType> >
 
 
 template<typename ... FieldTypes>
-BinarySeralizer &operator<<(BinarySeralizer &stream, const TModelStructure<FieldTypes ...> &s)
+BinarySeralizer &operator<<(BinarySeralizer &stream, const Structure<FieldTypes ...> &s)
 {
     for_each_in_tuple_const(s.asTuple(), StreamWriteFunction<BinarySeralizer>(stream));
     return stream;
@@ -528,7 +531,7 @@ BinarySeralizer &operator<<(BinarySeralizer &stream, const TModelStructure<Field
 
 
 template<typename ... FieldTypes>
-BinarySeralizer &operator>>(BinarySeralizer &stream, TModelStructure<FieldTypes ...> &s)
+BinarySeralizer &operator>>(BinarySeralizer &stream, Structure<FieldTypes ...> &s)
 {
     for_each_in_tuple(s.asTuple(), StreamReadFunction<BinarySeralizer>(stream));
     return stream;

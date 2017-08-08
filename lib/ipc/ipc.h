@@ -311,7 +311,7 @@ struct IPCTypeHandler<QString>
 };
 
 template<typename Type>
-struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<ModelStructure, Type>::value>::type>
+struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
 {
 
     static void writeDBUSSignature(QTextStream &s)

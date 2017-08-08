@@ -36,7 +36,7 @@ struct QMLModelTypeHandler
 
 
 template<typename StructType>
-struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
+struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<StructureBase, StructType>::value>::type>
 {
     static QJSValue toJSValue(const StructType &f, QQmlEngine *engine)
     {

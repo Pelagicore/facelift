@@ -500,7 +500,7 @@ private:
 
 
 template<typename StructType>
-struct TypeToWidget<StructType, typename std::enable_if<std::is_base_of<ModelStructure, StructType>::value>::type>
+struct TypeToWidget<StructType, typename std::enable_if<std::is_base_of<StructureBase, StructType>::value>::type>
 {
     typedef StructurePropertyWidget<StructType> PanelType;
 

@@ -10,8 +10,8 @@
 
 namespace facelift {
 
-ModelElementID ModelStructure::s_nextID = 0;
-constexpr int ModelStructure::ROLE_ID;
+ModelElementID StructureBase::s_nextID = 0;
+constexpr int StructureBase::ROLE_ID;
 
 
 ServiceRegistry::~ServiceRegistry()
