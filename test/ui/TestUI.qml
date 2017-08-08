@@ -26,20 +26,20 @@ Item {
 
         enumProperty: TestEnum.E2
 
-        stringListProperty.content: [ "string1", "string2" ]
-        intListProperty.content: [ 8, anInt ]
-        structListProperty.content: [ testStructIntance1 ]
+        stringListProperty: [ "string1", "string2" ]
+        intListProperty: [ 8, anInt ]
+        structListProperty: [ testStructIntance1 ]
 
         Component.onCompleted: {
             enumProperty = TestEnum.E3
         }
         
         function addNewItem() {
-            var content = testInterface.structListProperty.content
+            var content = testInterface.structListProperty
             var newItem = Module.createTestStruct()
             newItem.aString = "IIIIIII"
             content.push(newItem)
-            testInterface.structListProperty.content = content
+            testInterface.structListProperty = content
         }
 
         Timer {

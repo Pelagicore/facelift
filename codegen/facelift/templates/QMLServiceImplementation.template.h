@@ -76,6 +76,11 @@ public:
     	Q_UNUSED(provider);
         {% for property in interface.properties %}
         QObject::connect(provider, &Provider::{{property}}Changed, this, &ThisType::{{property}}Changed);
+
+        {% if property.type.is_list -%}
+        m_{{property.name}}QMLProperty.setProperty(interface().m_{{property.name}});
+        {% endif %}
+
         {% endfor %}
     }
 
@@ -132,14 +137,19 @@ public:
     {% for property in interface.properties %}
 
     {% if property.type.is_list -%}
-    Q_PROPERTY(facelift::QMLImplListPropertyBase* {{property.name}} READ {{property.name}} NOTIFY {{property.name}}Changed)
+
+
+    Q_PROPERTY(QList<QVariant> {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
 
     facelift::QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
 
 
-    facelift::QMLImplListPropertyBase* {{property.name}}() {
-    	m_{{property.name}}QMLProperty.setProperty(interface().m_{{property.name}});
-        return &m_{{property.name}}QMLProperty;
+    QList<QVariant> {{property.name}}() {
+        return m_{{property.name}}QMLProperty.elementsAsVariant();
+    }
+
+    void set{{property.name}}(QList<QVariant> v) {
+        return m_{{property.name}}QMLProperty.setElementsAsVariant(v);
     }
 
     {% elif property.type.is_model %}
