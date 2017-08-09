@@ -8,6 +8,3 @@ if(FACELIFT_ENABLE_IPC)
     add_subdirectory(ipc)
 endif()
 
-add_subdirectory(plugin)
-
-add_example_script(test ui/TestUI.qml)

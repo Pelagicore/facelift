@@ -1,2 +1,3 @@
 - Fix object path setting on proxy object
-- Fix writable list properties
+- Add IPC support for properties of "service" type
+- Fix non readonly lists in QML models

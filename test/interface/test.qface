@@ -14,28 +14,30 @@ interface TestInterface2 {
 
 interface TestInterface {
 
-    readonly TestInterface2 ttt;
-
     readonly bool boolProperty;
     readonly TestEnum enumProperty;
     TestEnum writableEnumProperty;
     int intProperty;
     TestStruct structProperty;
     TestStruct2 structProperty2;
+
     readonly list<int> intListProperty;
     readonly list<bool> boolListProperty;
-    readonly list<string> stringListProperty;
+
+    list<string> stringListProperty;
+
     readonly list<TestStruct> structListProperty;
 
     string method1();
     TestStruct2 method2(int intParam, bool boolParam);
     TestEnum method3();
-    list<TestEnum> method4();
+    list<TestEnum> method4(TestStruct2 s);
     list<TestStruct> method5();
 
     signal event1(TestStruct p);
     signal eventEnum(TestEnum p);
     signal eventInt(int p);
+    signal eventBoolAndStruct(bool p, TestStruct p);
 
 }
 

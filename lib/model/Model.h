@@ -52,7 +52,8 @@ public:
         m_id = s_nextID++;
     }
 
-    virtual ~StructureBase() {
+    virtual ~StructureBase()
+    {
     }
 
     void setId(ModelElementID id)
@@ -92,7 +93,7 @@ struct BinarySeralizer
     QDataStream stream;
 };
 
-struct BinarySerializationTypeHandlerBase
+struct TypeHandlerBase
 {
 
     template<typename Type>
@@ -128,7 +129,7 @@ struct BinarySerializationTypeHandlerBase
 };
 
 template<typename Type, typename Enable = void>
-struct BinarySerializationTypeHandler
+struct TypeHandler
 {
     static QString toString(const Type &v)
     {
@@ -291,7 +292,7 @@ protected:
     toString__(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
     {
         typedef typename std::tuple_element<I, std::tuple<Tp ...> >::type TupleElementType;
-        outStream << names[I] << "=" << BinarySerializationTypeHandler<TupleElementType>::toString(std::get<I>(t));
+        outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
         if (I != FieldCount) {
             outStream << ", ";
         }
@@ -317,7 +318,7 @@ protected:
 template<typename Type>
 BinarySeralizer &operator<<(BinarySeralizer &msg, const Type &v)
 {
-    BinarySerializationTypeHandler<Type>::write(msg, v);
+    TypeHandler<Type>::write(msg, v);
     return msg;
 }
 
@@ -325,12 +326,12 @@ BinarySeralizer &operator<<(BinarySeralizer &msg, const Type &v)
 template<typename Type>
 BinarySeralizer &operator>>(BinarySeralizer &msg, Type &v)
 {
-    BinarySerializationTypeHandler<Type>::read(msg, v);
+    TypeHandler<Type>::read(msg, v);
     return msg;
 }
 
 template<typename Type>
-struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
+struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
 {
     static void write(BinarySeralizer &msg, const Type &param)
     {
@@ -387,7 +388,7 @@ struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_base
 
 
 template<typename Type>
-struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
 {
     static void write(BinarySeralizer &msg, const Type &param)
     {
@@ -416,8 +417,8 @@ struct BinarySerializationTypeHandler<Type, typename std::enable_if<std::is_enum
 
 
 template<>
-struct BinarySerializationTypeHandler<bool> :
-    public BinarySerializationTypeHandlerBase
+struct TypeHandler<bool> :
+    public TypeHandlerBase
 {
     static QString toString(const bool &v)
     {
@@ -433,8 +434,8 @@ struct BinarySerializationTypeHandler<bool> :
 
 
 template<>
-struct BinarySerializationTypeHandler<int> :
-    public BinarySerializationTypeHandlerBase
+struct TypeHandler<int> :
+    public TypeHandlerBase
 {
     static QString toString(const int &v)
     {
@@ -450,8 +451,8 @@ struct BinarySerializationTypeHandler<int> :
 
 
 template<>
-struct BinarySerializationTypeHandler<float> :
-    public BinarySerializationTypeHandlerBase
+struct TypeHandler<float> :
+    public TypeHandlerBase
 {
     static QString toString(const float &v)
     {
@@ -466,8 +467,8 @@ struct BinarySerializationTypeHandler<float> :
 
 
 template<>
-struct BinarySerializationTypeHandler<QString> :
-    public BinarySerializationTypeHandlerBase
+struct TypeHandler<QString> :
+    public TypeHandlerBase
 {
     static QString toString(const QString &v)
     {
@@ -483,14 +484,14 @@ struct BinarySerializationTypeHandler<QString> :
 
 
 template<typename ElementType>
-struct BinarySerializationTypeHandler<QList<ElementType> >
+struct TypeHandler<QList<ElementType> >
 {
     static void write(BinarySeralizer &msg, const QList<ElementType> &list)
     {
         int count = list.size();
         msg << count;
         for (const auto &e : list) {
-            BinarySerializationTypeHandler<ElementType>::write(msg, e);
+            TypeHandler<ElementType>::write(msg, e);
         }
     }
 
@@ -501,7 +502,7 @@ struct BinarySerializationTypeHandler<QList<ElementType> >
         msg >> count;
         for (int i = 0; i < count; i++) {
             ElementType e;
-            BinarySerializationTypeHandler<ElementType>::read(msg, e);
+            TypeHandler<ElementType>::read(msg, e);
             list.append(e);
         }
     }
@@ -512,7 +513,7 @@ struct BinarySerializationTypeHandler<QList<ElementType> >
         QTextStream str(&s);
         str << "[ ";
         for (const auto &element : v) {
-            str << BinarySerializationTypeHandler<ElementType>::toString(element);
+            str << TypeHandler<ElementType>::toString(element);
             str << ", ";
         }
         str << "]";
@@ -1036,8 +1037,9 @@ inline QVariant toVariant(const QList<Type> &v)
 }
 */
 
+
 template<typename Type>
-struct BinarySerializationTypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
+struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
     static void write(BinarySeralizer &msg, const Type &param)
     {
@@ -1058,7 +1060,7 @@ struct BinarySerializationTypeHandler<Type *, typename std::enable_if<std::is_ba
     static QString toString(const Type *v)
     {
         auto s = (size_t)(v);
-        return QString::number(s);
+        return QString::number(s, 16);
     }
 
 };
@@ -1067,13 +1069,19 @@ struct BinarySerializationTypeHandler<Type *, typename std::enable_if<std::is_ba
 template<typename Type>
 inline QString toString(const Type &v)
 {
-    return BinarySerializationTypeHandler<Type>::toString(v);
+    return TypeHandler<Type>::toString(v);
 }
 
+template<typename Type>
+inline Type fromVariant(const QVariant &v)
+{
+    return TypeHandler<Type>::fromVariant(v);
+}
 
 template<typename Type>
 inline const QList<Type> &validValues()
 {
+    return QList<Type>();
 }
 
 }

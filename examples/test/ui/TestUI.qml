@@ -30,10 +30,12 @@ Item {
         intListProperty: [ 8, anInt ]
         structListProperty: [ testStructIntance1 ]
 
+        structProperty: testStructIntance1
+
         Component.onCompleted: {
             enumProperty = TestEnum.E3
         }
-        
+
         function addNewItem() {
             var content = testInterface.structListProperty
             var newItem = Module.createTestStruct()

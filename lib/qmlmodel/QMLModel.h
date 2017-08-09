@@ -73,8 +73,7 @@ struct QMLModelTypeHandler<QList<ListElementType> >
     typedef QList<ListElementType> Type;
     static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
     {
-        Q_ASSERT(false);
-        return enumToJSValue(v, engine);
+        return engine->toScriptValue(v);
     }
 
     static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
@@ -182,10 +181,10 @@ public:
 
         clearConnections();
         for (const auto &var : variantList) {
-            list.append(BinarySerializationTypeHandler<ElementType>::fromVariant(var));
+            list.append(fromVariant<ElementType>(var));
 
             // Add connections so that we can react when the property of an object has changed
-            BinarySerializationTypeHandler<ElementType>::connectChangeSignals(var, this,
+            TypeHandler<ElementType>::connectChangeSignals(var, this,
                     &TQMLImplListProperty::onReferencedObjectChanged,
                     m_changeSignalConnections);
         }
@@ -341,5 +340,62 @@ protected:
     StructType m_data;
 
 };
+
+class QObjectWrapperPointerBase
+{
+
+public:
+    void addConnection(QMetaObject::Connection connection)
+    {
+        m_connections.append(connection);
+    }
+
+    void disconnect()
+    {
+        for (const auto &connection : m_connections) {
+            auto successfull = QObject::disconnect(connection);
+            Q_ASSERT(successfull);
+        }
+        m_connections.clear();
+    }
+
+private:
+    QList<QMetaObject::Connection> m_connections;
+
+};
+
+template<typename StructQMLWrapperType>
+class QObjectWrapperPointer :
+    public QObjectWrapperPointerBase
+{
+
+public:
+    bool isSet() const
+    {
+        return !m_pointer.isNull();
+    }
+
+    void reset(StructQMLWrapperType *p)
+    {
+        disconnect();
+        m_pointer = p;
+    }
+
+    void clear()
+    {
+        disconnect();
+        m_pointer = nullptr;
+    }
+
+    StructQMLWrapperType *object() const
+    {
+        return m_pointer.data();
+    }
+
+private:
+    QPointer<StructQMLWrapperType> m_pointer;
+
+};
+
 
 }

@@ -5,3 +5,4 @@ facelift_add_qml_plugin(TestPlugin facelift.test 1 0 "${CPP_SOURCE_FILES}" "${HE
 target_link_libraries(TestPlugin TestGenerated)
 #target_include_directories(TestPlugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/AddressBook)
 
+add_example_script(test ui/TestUI.qml)

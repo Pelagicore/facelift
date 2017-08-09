@@ -144,12 +144,12 @@ public:
     facelift::QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
 
 
-    QList<QVariant> {{property.name}}() {
+    QList<QVariant> {{property.name}}() const {
         return m_{{property.name}}QMLProperty.elementsAsVariant();
     }
 
     void set{{property.name}}(QList<QVariant> v) {
-        return m_{{property.name}}QMLProperty.setElementsAsVariant(v);
+        m_{{property.name}}QMLProperty.setElementsAsVariant(v);
     }
 
     {% elif property.type.is_model %}
@@ -160,33 +160,44 @@ public:
 
     {% elif property.type.is_struct -%}
 
-    Q_PROPERTY({{property|returnType}}QObjectWrapper* {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-    {{property|returnType}}QObjectWrapper* {{property.name}}() const {
-        return m_{{property.name}};
+    // This property can contain either a {{property|returnType}} (gadget), or a {{property|returnType}}QObjectWrapper
+    Q_PROPERTY(QVariant {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+    QVariant {{property.name}}() const {
+    	if (m_{{property.name}}.isSet())
+            return QVariant::fromValue(m_{{property.name}}.object());
+    	else
+    		return QVariant::fromValue(interface().m_{{property.name}}.value());
     }
 
-    void set{{property.name}}({{property|returnType}}QObjectWrapper* value) {
-    	if (m_{{property.name}}.data() != value) {
-			m_{{property.name}} = value;
-			sync{{property.name}}();
-			if (m_{{property.name}} != nullptr) {
-				QObject::connect(m_{{property.name}}, &{{property|returnType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}});
-			}
+    void set{{property.name}}(const QVariant& var) {
+    	if (var.canConvert<{{property|returnType}}>()) {
+            interface().m_{{property.name}} = facelift::fromVariant<{{property|returnType}}>(var);
+            m_{{property.name}}.clear();
 			emit {{property.name}}Changed();
-//			qDebug() << "-----" << value->gadget();
+    	}
+    	else if (var.canConvert<{{property|returnType}}QObjectWrapper*>()) {
+    		auto value = qvariant_cast<{{property|returnType}}QObjectWrapper*>(var);
+			if (m_{{property.name}}.object() != value) {
+				m_{{property.name}}.reset(value);
+				sync{{property.name}}();
+				if (m_{{property.name}}.isSet()) {
+					m_{{property.name}}.addConnection(QObject::connect(m_{{property.name}}.object(), &{{property|returnType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}}));
+				}
+				emit {{property.name}}Changed();
+			}
     	}
     }
 
     void sync{{property.name}}() {
         checkInterface();
         {{property|returnType}} value;
-        if (m_{{property.name}} != nullptr) {
-        	value = m_{{property.name}}->gadget();
+        if (m_{{property.name}}.isSet()) {
+        	value = m_{{property.name}}.object()->gadget();
+            interface().m_{{property.name}} = value;
         }
-        interface().m_{{property.name}} = value;
     }
 
-    QPointer<{{property|returnType}}QObjectWrapper> m_{{property.name}} = nullptr;
+    facelift::QObjectWrapperPointer<{{property|returnType}}QObjectWrapper> m_{{property.name}};
 
     {% else %}
 

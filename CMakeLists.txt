@@ -13,6 +13,7 @@ option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info"
 option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
 option(FACELIFT_ENABLE_IPC "Enable IPC support" ${Qt5DBus_FOUND})
 option(FACELIFT_BUILD_EXAMPLE "Enable build of examples" OFF)
+option(FACELIFT_BUILD_TEST "Enable build of examples" OFF)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
@@ -54,7 +55,10 @@ if(FACELIFT_BUILD_EXAMPLE)
     add_subdirectory(examples)
 endif()
 
-add_subdirectory(test)
+if(FACELIFT_BUILD_TEST)
+    add_subdirectory(test)
+    add_subdirectory(examples/test)
+endif()
 
 add_subdirectory(doc)
 
@@ -62,3 +66,4 @@ file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.yaml *.
 add_custom_target(QFACE_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
 
 install(FILES cmake/faceliftConfig-functions.cmake DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})
+
