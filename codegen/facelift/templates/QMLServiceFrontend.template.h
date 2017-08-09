@@ -84,7 +84,7 @@ public:
     {% elif property.type.is_list -%}
     Q_PROPERTY(QList<QVariant> {{property}} READ {{property}} NOTIFY {{property.name}}Changed)   // Exposing QList<ActualType> to QML does not seem to work
     QList<QVariant> {{property}}() const {
-        return toQMLCompatibleType(m_provider->{{property}}());
+        return facelift::toQMLCompatibleType(m_provider->{{property}}());
     }
 
 
