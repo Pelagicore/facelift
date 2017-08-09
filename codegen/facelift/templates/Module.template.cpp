@@ -47,8 +47,8 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 {
     Q_UNUSED(uri);
 
-    qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, 1, 0, "QMLImplListPropertyBase", "");
-    qmlRegisterUncreatableType<facelift::StructureBase>(uri, 1, 0, "StructureBase", "");
+    qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, majorVersion, minorVersion, "QMLImplListPropertyBase", "");
+    qmlRegisterUncreatableType<facelift::StructureBase>(uri, majorVersion, minorVersion, "StructureBase", "");
 
     {% for struct in module.structs %}
     ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");

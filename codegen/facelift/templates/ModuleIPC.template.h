@@ -19,7 +19,7 @@ class {{class}}IPC {
 
 public:
 
-    static void registerQmlTypes(const char* uri)
+    static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}})
     {
         Q_UNUSED(uri);
 
@@ -30,7 +30,7 @@ public:
 
         {% endfor %}
 
-        ::qmlRegisterUncreatableType<facelift::IPCProxyBinder>(uri, 1, 0, "IPCProxyBinder", QStringLiteral(""));
+        ::qmlRegisterUncreatableType<facelift::IPCProxyBinder>(uri, majorVersion, minorVersion, "IPCProxyBinder", QStringLiteral(""));
     }
 
 };
