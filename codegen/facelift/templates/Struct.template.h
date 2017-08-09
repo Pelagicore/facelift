@@ -45,7 +45,7 @@ public:
     	return id;
     }
 
-    Q_PROPERTY(int id READ id WRITE setId CONSTANT)   // This seems to be necessary even if the base class already contains an "id" property. TODO : clarify
+    Q_PROPERTY(int id READ id WRITE setId)   // This seems to be necessary even if the base class already contains an "id" property. TODO : clarify
 
     {{struct.name}}()
 	{% if struct.fields %}:{% endif %}
@@ -82,7 +82,7 @@ public:
     }
 
     QString toString() const {
-        return toStringWithFields(FIELD_NAMES);
+        return toStringWithFields(classID(), FIELD_NAMES);
     }
 
 {% for field in struct.fields %}

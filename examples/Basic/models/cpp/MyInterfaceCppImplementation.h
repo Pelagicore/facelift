@@ -1,9 +1,9 @@
 #pragma once
 
-#include "mypackage/MyInterfacePropertyAdapter.h"
+#include "facelift/example/mypackage/MyInterfacePropertyAdapter.h"
 
 
-using namespace mypackage;
+using namespace facelift::example::mypackage;
 
 /**
  * C++ Implementation of the MyInterface API

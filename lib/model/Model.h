@@ -298,12 +298,11 @@ protected:
         toStringWithFields<I + 1, Tp ...>(t, names, outStream);
     }
 
-    QString toStringWithFields(const FieldNames &names) const
+    QString toStringWithFields(const QString &structName, const FieldNames &names) const
     {
-        Q_UNUSED(names);
         QString s;
         QTextStream outStream(&s);
-        outStream << "{ id=" << id();
+        outStream << structName << " { id=" << id();
         toStringWithFields(m_values, names, outStream);
         outStream << "}";
 
@@ -472,7 +471,10 @@ struct TypeHandler<QString> :
 {
     static QString toString(const QString &v)
     {
-        return v;
+        QString s("\"");
+        s += v;
+        s += "\"";
+        return s;
     }
 
     static QString fromVariant(const QVariant &variant)

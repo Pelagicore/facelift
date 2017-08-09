@@ -1,5 +1,5 @@
 
-module mypackage 1.0;
+module facelift.example.mypackage 1.0;
 
 interface MyInterface {
 

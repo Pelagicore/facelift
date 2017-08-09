@@ -223,10 +223,10 @@ function(facelift_import_package LIBRARY_NAME QFACE_MODULE_NAME)
 endfunction()
 
 
-function(facelift_set_qml_implementation_path LIBRARY_NAME PATH)
+#function(facelift_set_qml_implementation_path LIBRARY_NAME PATH)
 # TODO : fix the way QML implementations are located
 #    set_target_properties(${LIBRARY_NAME}_api PROPERTIES
 #        COMPILE_DEFINITIONS "QML_MODEL_LOCATION=${PATH}"
 #    )
-endfunction()
+#endfunction()
 

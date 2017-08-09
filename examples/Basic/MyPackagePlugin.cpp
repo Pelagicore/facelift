@@ -9,15 +9,16 @@
 #include "MyPackagePlugin.h"
 
 #include "models/cpp/MyInterfaceCppImplementation.h"
-#include "mypackage/Module.h"
-#include "mypackage/ModuleMonitor.h"
-#include "mypackage/ModuleDummy.h"
+#include "facelift/example/mypackage/Module.h"
+#include "facelift/example/mypackage/ModuleMonitor.h"
+#include "facelift/example/mypackage/ModuleDummy.h"
+#include "facelift/example/mypackage/MyInterfaceQMLImplementation.h"
 
 #ifdef FACELIFT_ENABLE_IPC
-#include "mypackage/ModuleIPC.h"
+#include "facelift/example/mypackage/ModuleIPC.h"
 #endif
 
-using namespace mypackage;
+using namespace facelift::example::mypackage;
 
 void MyPackagePlugin::registerTypes(const char *uri)
 {
@@ -34,6 +35,10 @@ void MyPackagePlugin::registerTypes(const char *uri)
     // The decision to register a dummy, QML, or C++ implementation should be taken here
     facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri);
     //    registerQmlComponent<AddressBookCpp>(uri);
+
+    MyInterfaceQMLImplementation::setModelImplementationFilePath(STRINGIFY(
+                QML_MODEL_LOCATION) "/models/qml/mypackage/MyInterface.qml");
+//    facelift::registerQmlComponent<MyInterfaceQMLImplementation::Provider>(uri);
 
     ModuleMonitor::registerTypes();
 

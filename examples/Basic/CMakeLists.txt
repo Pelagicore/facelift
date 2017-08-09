@@ -1,12 +1,14 @@
 
-facelift_add_package(MyPackageGenerated mypackage ${CMAKE_CURRENT_SOURCE_DIR}/interface)
+facelift_add_package(MyPackageGenerated facelift.example.mypackage ${CMAKE_CURRENT_SOURCE_DIR}/interface)
 
-facelift_set_qml_implementation_path(MyPackageGenerated "${CMAKE_CURRENT_SOURCE_DIR}/models/qml")
+add_definitions(-DQML_MODEL_LOCATION=${CMAKE_CURRENT_SOURCE_DIR})
+
+#facelift_set_qml_implementation_path(MyPackageGenerated "${CMAKE_CURRENT_SOURCE_DIR}/models/qml")
 
 file(GLOB_RECURSE CPP_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-facelift_add_qml_plugin(MyPackagePlugin mypackage 1 0 "${CPP_SOURCE_FILES}" "${HEADER_FILES}")
+facelift_add_qml_plugin(MyPackagePlugin facelift.example.mypackage 1 0 "${CPP_SOURCE_FILES}" "${HEADER_FILES}")
 target_link_libraries(MyPackagePlugin MyPackageGenerated)
 target_include_directories(MyPackagePlugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/MyPackage)
 

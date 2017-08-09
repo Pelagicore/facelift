@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import mypackage 1.0
+import facelift.example.mypackage 1.0
 
 /**
  * This file contains the UI code of the application.

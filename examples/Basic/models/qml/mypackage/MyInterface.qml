@@ -1,6 +1,6 @@
 import QtQml 2.2
 
-import mypackage 1.0
+import facelift.example.mypackage 1.0
 
 /**
  * QML Implementation of the MyInterface interface
@@ -11,7 +11,7 @@ MyInterfaceImplementation {
     counter: 100
 
     Timer {
-        interval: 1000
+        interval: 100
         running: true
         repeat: true
         onTriggered: {
