@@ -6,7 +6,7 @@
  *   Please see the LICENSE file for details. 
  */
 
-module addressbook 1.0;
+module facelift.example.addressbook 1.0;
 
 interface SubInterface {
     void doSomething();

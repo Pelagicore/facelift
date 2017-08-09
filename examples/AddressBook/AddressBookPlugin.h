@@ -10,7 +10,7 @@
 
 #include <QQmlExtensionPlugin>
 
-class AddressBookModelPlugin :
+class AddressBookPlugin :
     public QQmlExtensionPlugin
 {
     Q_OBJECT

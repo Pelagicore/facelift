@@ -280,7 +280,7 @@ public:
 protected:
     template<std::size_t I = 0, typename ... Tp>
     inline typename std::enable_if<I == sizeof ... (Tp), void>::type
-    toString__(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
+    toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
     {
         Q_UNUSED(t);
         Q_UNUSED(names);
@@ -289,14 +289,13 @@ protected:
 
     template<std::size_t I = 0, typename ... Tp>
     inline typename std::enable_if < I<sizeof ... (Tp), void>::type
-    toString__(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
+    toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
     {
         typedef typename std::tuple_element<I, std::tuple<Tp ...> >::type TupleElementType;
+        outStream << ", ";
         outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
-        if (I != FieldCount) {
-            outStream << ", ";
-        }
-        toString__<I + 1, Tp ...>(t, names, outStream);
+        //        if (I != FieldCount) {        }
+        toStringWithFields<I + 1, Tp ...>(t, names, outStream);
     }
 
     QString toStringWithFields(const FieldNames &names) const
@@ -304,9 +303,10 @@ protected:
         Q_UNUSED(names);
         QString s;
         QTextStream outStream(&s);
-        outStream << "{";
-        toString__(m_values, names, outStream);
+        outStream << "{ id=" << id();
+        toStringWithFields(m_values, names, outStream);
         outStream << "}";
+
         return s;
     }
 
@@ -755,6 +755,11 @@ public:
     ModelQMLImplementation(QObject *parent = nullptr) :
         ModelQMLImplementationBase(parent)
     {
+    }
+
+    static void setModelImplementationFilePath(QString path)
+    {
+        modelImplementationFilePath() = path;
     }
 
     static QString &modelImplementationFilePath()

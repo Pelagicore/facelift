@@ -229,3 +229,4 @@ function(facelift_set_qml_implementation_path LIBRARY_NAME PATH)
 #        COMPILE_DEFINITIONS "QML_MODEL_LOCATION=${PATH}"
 #    )
 endfunction()
+

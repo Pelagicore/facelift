@@ -45,7 +45,7 @@ public:
     	return id;
     }
 
-    Q_PROPERTY(int id READ id CONSTANT)   // This seems to be necessary even if the base class already contains an "id" property. TODO : clarify
+    Q_PROPERTY(int id READ id WRITE setId CONSTANT)   // This seems to be necessary even if the base class already contains an "id" property. TODO : clarify
 
     {{struct.name}}()
 	{% if struct.fields %}:{% endif %}

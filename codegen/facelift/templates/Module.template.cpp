@@ -8,7 +8,7 @@
 #include <QtQml>
 
 {% for interface in module.interfaces %}
-#include "{{interface|fullyQualifiedPath}}QML.h"
+#include "{{interface|fullyQualifiedPath}}QMLImplementation.h"
 #include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 

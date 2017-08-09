@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "addressbook/AddressBook.h"
+#include "facelift/example/addressbook/AddressBook.h"
 
-using namespace addressbook;
+using namespace facelift::example::addressbook;
 
 /**
  * C++ Implementation of the AddressBook API

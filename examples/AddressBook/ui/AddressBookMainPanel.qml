@@ -1,5 +1,5 @@
 import QtQuick 2.5
-import addressbook 1.0
+import facelift.example.addressbook 1.0
 
 import QtQuick.Controls 1.4
 

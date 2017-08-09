@@ -8,7 +8,7 @@
 
 import QtQuick 2.0
 import QtQml 2.2
-import addressbook 1.0
+import facelift.example.addressbook 1.0
 
 import QtQuick.Controls 1.2
 
@@ -23,55 +23,86 @@ AddressBookImplementation {
 
     property string privateProperty: "This property is not defined in the public interface, but accessible via the \"provider\" property"
 
-    currentContact: Contact {
-        name: "------"
-        number: "------"
-    }
+    currentContact: firstContact
+
+    contacts: [ firstContact ]
 
     Timer {
         interval: 4000
         running: true
         onTriggered: {
-            isLoaded = true
+            root.isLoaded = true
         }
     }
 
     Contact {
-        id: contact
-        property int index: 0
-        name: "New contact " + index
+        id: firstContact
+        name: "New contact 0"
         number: "089 4892"
     }
 
+    function findContactForId(contactId) {
+        var contactList = contacts;
+        for (var i = 0, len = contactList.length; i < len; i++) {
+            if (contactList[i].id == contactId) {
+                return  i;
+            }
+        }
+        print("Contact not found ID: " + contactId);
+        return -1;
+    }
+
     selectContact: function(contactId) {
-        print("Select contact with ID " + contactId);
-        if (contacts.elementExists(contactId)) {
-            currentContact = contacts.elementById(contactId);
+        var contactList = root.contacts;
+        var foundIndex = findContactForId(contactId);
+        if (foundIndex != -1) {
+            currentContact = contactList[foundIndex];
             print("Selected contact with ID " + contactId);
         }
     }
 
+    property int nextContactIndex: 1
+
     createNewContact: function() {
-        if (contacts.size() < 5) {
-	        var newContact = contacts.addCloneOf(contact);
+        var contactList = root.contacts;
+        if (contactList.length < 5) {
+            var newContact = Module.createContact();
+            newContact.name = "New contact " + nextContactIndex++;
+            newContact.number = "089 4892";
+            contactList.push(newContact);
+            root.contacts = contactList;
             contactCreated(newContact);
-            currentContact = contacts.elementById(newContact.id);
-	        contact.index++;
-	    }
-	    else {
+            currentContact = contact;
+        }
+        else {
             contactCreationFailed(FailureReason.Full);
-	    }
-    }
-
-    updateContact: function(contactID, contact) {
-        print("Not implemented"); // TODO
-    }
-
-    deleteContact: function(contactID) {
-        if (contacts.elementExists(contactID)) {
-	        contactDeleted(contacts.removeElementByID(contactID));
-	        selectContact(contacts.elementAt(0).id);
         }
     }
 
+    updateContact: function(contactId, contact) {
+        var contactList = root.contacts;
+        var foundIndex = findContactForId(contactId);
+        if (foundIndex != -1) {
+            contact.id = contactId;
+            contactList[foundIndex] = contact;
+            contacts = contactList;
+        }
+    }
+
+    deleteContact: function(contactId) {
+        var contactList = root.contacts;
+        var foundIndex = findContactForId(contactId);
+
+        if (foundIndex != -1) {
+            contactList.splice(foundIndex, 1);
+            print(contactList)
+            contactDeleted(contactList[foundIndex]);
+            contacts = contactList;
+            selectContact(contactList[0].id);
+        }
+        else {
+            print("Contact not found ID: " + contactId); // TODO
+        }
+    }
+    
 }

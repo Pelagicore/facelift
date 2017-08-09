@@ -8,11 +8,11 @@
 
 #pragma once
 
-#include "addressbook/AddressBookPropertyAdapter.h"
-#include "addressbook/SubInterfacePropertyAdapter.h"
+#include "facelift/example/addressbook/AddressBookPropertyAdapter.h"
+#include "facelift/example/addressbook/SubInterfacePropertyAdapter.h"
 
 
-using namespace addressbook;
+using namespace facelift::example::addressbook;
 
 /**
  * C++ Implementation of the AddressBook API, using the PropertyAdapter helper class
