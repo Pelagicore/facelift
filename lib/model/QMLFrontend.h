@@ -13,15 +13,15 @@
 #include <QQmlEngine>
 #include <QtQml>
 #include <functional>
+#include <QQmlParserStatus>
 
 #include "Model.h"
 
 namespace facelift {
 
 class QMLFrontendBase :
-    public QObject
+    public QObject, public QQmlParserStatus
 {
-
     Q_OBJECT
 
 public:
@@ -31,7 +31,7 @@ public:
     }
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
-    virtual QObject * provider() {
+    virtual InterfaceBase * provider() {
         Q_ASSERT(m_provider != nullptr);
         qWarning() << "Accessing private provider implementation object";
         return m_provider;
@@ -74,6 +74,15 @@ public:
         connect(provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
     }
 
+    void classBegin() override
+    {
+    }
+
+    void componentComplete() override
+    {
+        m_provider->componentCompleted();
+    }
+
 private:
     InterfaceBase *m_provider = nullptr;
 
@@ -101,6 +110,11 @@ public:
         return m_provider.implementationID();
     }
 
+    void componentComplete() override
+    {
+        m_provider.componentCompleted();  // notify anyone interested that we are ready (such as an IPC attached property)
+    }
+
     ProviderType m_provider;
 
 };
@@ -120,6 +134,7 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
     Q_UNUSED(scriptEngine);
     Q_UNUSED(engine);
     auto obj = new Type();
+    obj->componentComplete();
     qDebug() << "Singleton created" << obj;
     return obj;
 }

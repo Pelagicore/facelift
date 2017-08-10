@@ -24,11 +24,8 @@ Item {
 
     AddressBook {
         id: viewModel
-    }
-
-    // This object is used to register our model object on the bus
-    AddressBookIPCAdapter {
-        service: viewModel
+        IPC.objectPath: "/non/default/object/path"
+        IPC.enabled: true
     }
 
 }

@@ -20,11 +20,12 @@ public:
 
     static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
 
-    Q_PROPERTY(QObject* service READ service WRITE setService)
+//    Q_PROPERTY(QObject* service READ service WRITE setService)
 
     typedef {{interface|fullyQualifiedCppName}} ServiceType;
 
-    {{interface}}IPCAdapter() {
+    {{interface}}IPCAdapter(QObject* parent = nullptr) : facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>(parent)
+    {
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
@@ -178,6 +179,9 @@ public:
 
 };
 
+class {{interface}}IPCQMLFrontendType;
+
+
 class {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter> {
 
     Q_OBJECT
@@ -185,6 +189,9 @@ class {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAda
 public:
 
 	typedef {{interface}}IPCAdapter IPCAdapterType;
+
+	// override the default QMLFrontend type to add teh IPC related properties
+	typedef {{interface}}IPCQMLFrontendType QMLFrontendType;
 
     Q_PROPERTY(facelift::IPCProxyBinder* ipc READ ipc CONSTANT)
 
@@ -301,6 +308,25 @@ public:
 
 
 private:
+
+};
+
+
+class {{interface}}IPCQMLFrontendType : public {{interface}}QMLFrontend {
+
+	Q_OBJECT
+
+public:
+
+    {{interface}}IPCQMLFrontendType(QObject* parent = nullptr) : {{interface}}QMLFrontend(parent) {
+	}
+
+    Q_PROPERTY(facelift::IPCProxyBinder* ipc READ ipc CONSTANT)
+
+    facelift::IPCProxyBinder* ipc() {
+    	auto p = static_cast<{{interface}}IPCProxy*>(provider());
+    	return p->ipc();
+    }
 
 };
 

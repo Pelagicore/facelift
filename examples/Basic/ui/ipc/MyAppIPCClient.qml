@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import mypackage 1.0
+import facelift.example.mypackage 1.0
 
 
 /**
@@ -28,7 +28,7 @@ Item {
         onCounterReset: print("The counter has been reset")
 
         // The object path must match the one used by the server side. The default value is suitable if the service is a singleton
-//        objectPath: "/my/object/path"
+//        ipc.objectPath: "/my/object/path"
     }
 
 }

@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import mypackage 1.0
+import facelift.example.mypackage 1.0
 
 /**
  * Server side
@@ -18,14 +18,12 @@ Item {
         onCounterReset: {
             text.text = text.text + "\nreset"
         }
-    }
 
-    MyInterfaceIPCAdapter {
-        // This object registers our interface implementation on the IPC so that it can be accessed by other processes
-        service: myInterface
-       
-       // An object path can be set if needed. The default value is suitable if the service is a singleton
-//        objectPath: "/my/object/path"   
+        // register that object on the IPC
+        IPC.enabled: true
+
+        // An object path can be set if needed. The default value is suitable if the service is a singleton
+//        IPC.objectPath: "/my/object/path"
     }
 
 }

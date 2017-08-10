@@ -112,10 +112,7 @@ Item {
 
         }
 
-        AddressBookIPCAdapter {
-           service: impl.provider
-        }
-
+        IPC.enabled: true
     }
 
 }

@@ -24,13 +24,19 @@ public:
         Q_UNUSED(uri);
 
         {% for interface in module.interfaces %}
-        facelift::qmlRegisterType<{{interface}}IPCAdapter>(uri, "{{interface}}IPCAdapter");
+//        facelift::qmlRegisterType<{{interface}}IPCAdapter>(uri, "{{interface}}IPCAdapter");
+
+        facelift::IPCAdapterFactoryManager::registerType<{{interface}}IPCAdapter>();
 
         facelift::registerQmlComponent<{{interface}}IPCProxy>(uri, "{{interface}}IPCProxy");
 
         {% endfor %}
 
         ::qmlRegisterUncreatableType<facelift::IPCProxyBinder>(uri, majorVersion, minorVersion, "IPCProxyBinder", QStringLiteral(""));
+
+        qmlRegisterUncreatableType< facelift::IPCAttachedPropertyFactory >(uri, majorVersion, minorVersion, "IPC",
+                                                        "IPCBroker is only available via attached properties");
+
     }
 
 };

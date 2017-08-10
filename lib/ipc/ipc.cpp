@@ -43,4 +43,36 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
     qDebug() << (m_dbusConnected ? "" : "NOT") << "connected to DBUS";
 }
 
+IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject *object)
+{
+    InterfaceBase *provider = nullptr;
+
+    auto o = qobject_cast<facelift::QMLFrontendBase *>(object);
+    if (o == nullptr) {
+        auto qmlImpl = qobject_cast<facelift::ModelQMLImplementationBase *>(object);
+        if (qmlImpl != nullptr) {
+            provider = qmlImpl->interface();
+        }
+    } else {
+        provider = o->provider();
+    }
+
+    IPCServiceAdapterBase *serviceAdapter = nullptr;
+
+    if (provider != nullptr) {
+        auto interfaceID = provider->interfaceID();
+        auto factory = IPCAdapterFactoryManager::instance().getFactory(interfaceID);
+
+        if (factory != nullptr) {
+            serviceAdapter = factory(provider);
+        } else {
+            qFatal("No factory found");
+        }
+    } else {
+        qCritical() << "Can't attach IPC to object with bad type:" << object;
+    }
+
+    return serviceAdapter;
+}
+
 }

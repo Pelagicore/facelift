@@ -23,7 +23,8 @@ Item {
     }
 
     AddressBookIPCProxy {
-         id: viewModel
+        id: viewModel
+        ipc.objectPath: "/non/default/object/path"
     }
-    
+
 }

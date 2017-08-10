@@ -575,8 +575,10 @@ private:
 
 };
 
+class IPCAdapterBase
+{
 
-
+};
 
 /**
  * Base interface which every interface inherits from
@@ -625,6 +627,8 @@ public:
         return m_interfaceName;
     }
 
+    Q_SIGNAL void componentCompleted();
+
 protected:
     friend class ModelQMLImplementationBase;
 
@@ -645,11 +649,9 @@ private:
 };
 
 
-
 class ModelQMLImplementationBase :
     public QObject, public QQmlParserStatus
 {
-
     Q_OBJECT
 
 public:
@@ -725,6 +727,12 @@ public:
     void componentComplete() override
     {
         assignImplementationID();
+        m_interface->componentCompleted();
+    }
+
+    InterfaceBase *interface() const
+    {
+        return m_interface;
     }
 
     void assignImplementationID()
@@ -1092,3 +1100,6 @@ inline const QList<Type> &validValues()
 }
 
 }
+
+
+Q_DECLARE_METATYPE(facelift::InterfaceBase *)

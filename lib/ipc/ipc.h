@@ -24,6 +24,8 @@
 #include "utils.h"
 #include "Property.h"
 
+#include "QMLFrontend.h"
+
 #include "ipc-config.h"
 
 namespace facelift {
@@ -465,6 +467,7 @@ private:
 
 class IPCServiceAdapterBase;
 
+
 class InterfaceManager :
     public QObject
 {
@@ -492,7 +495,7 @@ private:
 };
 
 class IPCServiceAdapterBase :
-    public QDBusVirtualObject
+    public QDBusVirtualObject, public IPCAdapterBase
 {
 
     Q_OBJECT
@@ -507,7 +510,7 @@ public:
     static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
     static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
 
-    Q_PROPERTY(QObject * service READ service WRITE setService)
+    Q_PROPERTY(facelift::InterfaceBase * service READ service WRITE setService)
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
@@ -524,15 +527,22 @@ public:
         return m_enabled;
     }
 
+    void onProviderCompleted()
+    {
+        // The parsing of the provide is finished => all our properties are set and we are ready to register our service
+        m_complete = true;
+        init();
+    }
+
     void setEnabled(bool enabled)
     {
         m_enabled = enabled;
         init();
     }
 
-    virtual QObject *service() const = 0;
+    virtual InterfaceBase *service() const = 0;
 
-    virtual void setService(QObject *service) = 0;
+    virtual void setService(InterfaceBase *service) = 0;
 
     IPCServiceAdapterBase(QObject *parent = nullptr) :
         QDBusVirtualObject(parent)
@@ -651,8 +661,7 @@ public:
     void init(InterfaceBase *service)
     {
         m_service = service;
-        //        qDebug() << "m_interfaceName:" << m_interfaceName << " objectPath:" << m_objectPath << " service:" << m_service;
-        if (!m_alreadyInitialized && m_enabled) {
+        if (!m_alreadyInitialized && m_enabled && m_complete) {
             if ((service != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
                 if (dbusManager().isDBusConnected()) {
@@ -688,8 +697,9 @@ protected:
 
     InterfaceBase *m_service = nullptr;
 
-    bool m_enabled = true;
+    bool m_enabled = false;
     bool m_alreadyInitialized = false;
+    bool m_complete = false;
 };
 
 
@@ -701,7 +711,7 @@ class IPCServiceAdapter :
 public:
     typedef ServiceType TheServiceType;
 
-    IPCServiceAdapter()
+    IPCServiceAdapter(QObject *parent) : IPCServiceAdapterBase(parent)
     {
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
@@ -711,7 +721,7 @@ public:
         return m_service;
     }
 
-    void setService(QObject *service) override
+    void setService(InterfaceBase *service) override
     {
         m_service = qobject_cast<ServiceType *>(service);
         if (m_service == nullptr) {
@@ -724,6 +734,7 @@ public:
             }
         }
         Q_ASSERT(m_service != nullptr);
+        QObject::connect(m_service, &InterfaceBase::componentCompleted, this, &IPCServiceAdapter::onProviderCompleted);
         init();
     }
 
@@ -845,12 +856,21 @@ public:
         init();
     }
 
+    void onComponentCompleted()
+    {
+        m_componentCompleted = true;
+        init();
+    }
+
     void init()
     {
-        if (!m_alreadyInitialized && m_enabled) {
+        if (!m_alreadyInitialized && m_enabled && m_componentCompleted) {
             if ((m_serviceName != nullptr) && !m_interfaceName.isEmpty() && !m_objectPath.isEmpty()) {
 
                 if (manager().isDBusConnected()) {
+
+                    qDebug() << "Initializing IPC proxy. objectPath:" << m_objectPath;
+
                     m_busWatcher.addWatchedService(m_serviceName);
                     m_busWatcher.setConnection(connection());
                     connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &IPCProxyBinder::onServiceAvailable);
@@ -953,6 +973,7 @@ private:
     QString m_interfaceName;
     QString m_objectPath;
     QString m_serviceName = IPCServiceAdapterBase::DEFAULT_SERVICE_NAME;
+    bool m_componentCompleted = false;
 
     IPCRequestHandler *m_serviceObject = nullptr;
 
@@ -977,6 +998,7 @@ public:
         m_serviceReady.init("ready", this, &InterfaceBase::readyChanged);
 
         QObject::connect(&m_ipcBinder, &IPCProxyBinder::localAdapterAvailable, this, &IPCProxy::onLocalAdapterAvailable);
+        QObject::connect(this, &InterfaceBase::componentCompleted, &m_ipcBinder, &IPCProxyBinder::onComponentCompleted);
 
         this->setImplementationID("IPC Proxy");
     }
@@ -1058,4 +1080,89 @@ private:
 
 };
 
+
+class IPCAdapterFactoryManager
+{
+public:
+    typedef IPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
+
+    static IPCAdapterFactoryManager &instance()
+    {
+        static IPCAdapterFactoryManager factory;
+        return factory;
+    }
+
+    template<typename AdapterType>
+    static IPCServiceAdapterBase *createInstance(InterfaceBase *i)
+    {
+        auto adapter = new AdapterType(i);
+        adapter->setService(i);
+        qDebug() << "Created adapter for interface " << i->interfaceID();
+        return adapter;
+    }
+
+    template<typename AdapterType>
+    static void registerType()
+    {
+        auto &i = instance();
+        const auto &typeID = AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME;
+        Q_ASSERT(!i.m_factories.contains(typeID));
+        i.m_factories.insert(typeID, &IPCAdapterFactoryManager::createInstance<AdapterType>);
+    }
+
+    IPCAdapterFactory getFactory(const QString &typeID) const
+    {
+        if (m_factories.contains(typeID)) {
+            return m_factories[typeID];
+        } else {
+            return nullptr;
+        }
+    }
+
+private:
+    QMap<QString, IPCAdapterFactory> m_factories;
+
+};
+
+class IPCAdapterAttachedType :
+    public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath NOTIFY objectPathChanged)
+public:
+    IPCAdapterAttachedType(QObject *parent) : QObject(parent)
+    {
+    }
+
+    Q_SIGNAL void objectPathChanged();
+
+    const QString &objectPath() const
+    {
+        return m_objectPath;
+    }
+
+    void setObjectPath(const QString &objectPath)
+    {
+        m_objectPath = objectPath;
+    }
+
+private:
+    QString m_objectPath;
+
+};
+
+
+class IPCAttachedPropertyFactory :
+    public QObject
+{
+    Q_OBJECT
+
+public:
+    static IPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
+
+};
+
 }
+
+
+QML_DECLARE_TYPEINFO(facelift::IPCAttachedPropertyFactory, QML_HAS_ATTACHED_PROPERTIES)
