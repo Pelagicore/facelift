@@ -436,11 +436,7 @@ class DBusManager
 public:
     DBusManager();
 
-    static DBusManager &instance()
-    {
-        static DBusManager i;
-        return i;
-    }
+    static DBusManager &instance();
 
     bool isDBusConnected() const
     {
@@ -483,11 +479,7 @@ public:
     Q_SIGNAL void adapterDestroyed(IPCServiceAdapterBase *adapter);
     Q_SIGNAL void adapterAvailable(IPCServiceAdapterBase *adapter);
 
-    static InterfaceManager &instance()
-    {
-        static InterfaceManager registry;
-        return registry;
-    }
+    static InterfaceManager &instance();
 
 private:
     QMap<QString, IPCServiceAdapterBase *> m_registry;

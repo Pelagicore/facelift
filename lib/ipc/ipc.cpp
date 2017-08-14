@@ -37,11 +37,25 @@ void InterfaceManager::onAdapterDestroyed(IPCServiceAdapterBase *adapter)
     adapterDestroyed(adapter);
 }
 
+InterfaceManager &InterfaceManager::instance()
+{
+    static InterfaceManager registry;
+    return registry;
+}
+
+
 DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
     m_dbusConnected = m_busConnection.isConnected();
     qDebug() << (m_dbusConnected ? "" : "NOT") << "connected to DBUS";
 }
+
+DBusManager &DBusManager::instance()
+{
+    static DBusManager i;
+    return i;
+}
+
 
 IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject *object)
 {
