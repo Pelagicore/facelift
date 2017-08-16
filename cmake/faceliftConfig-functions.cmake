@@ -3,6 +3,10 @@ include(GNUInstallDirs)    # for standard installation locations
 
 get_property(CODEGEN_LOCATION_DEFINED GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
 
+# TODO : use an imported executable target
+#add_executable(generator IMPORTED)
+#set_property(TARGET generator PROPERTY IMPORTED_LOCATION "/path/to/some_generator")
+ 
 if(CODEGEN_LOCATION_DEFINED)
 else()
     set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_LIST_DIR}/${CODEGEN_RELATIVE_PATH})
@@ -140,7 +144,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
         message("Facelift failed executing following command in: ${QFACE_BASE_LOCATION}/qface")
         message("${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_FOLDER} ${WORK_PATH}")
-        message("    ${CODEGEN_RETURN_CODE}")
+        message("Return code: ${CODEGEN_RETURN_CODE}")
         message(FATAL_ERROR "Facelift failed.")
     endif()
 
@@ -190,24 +194,22 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     add_library(${TARGET_NAME} INTERFACE)
     target_link_libraries(${TARGET_NAME} INTERFACE ${GENERATED_LIBRARIES})
 
-    install(TARGETS ${GENERATED_LIBRARIES} ${TARGET_NAME} EXPORT ${LIBRARY_NAME}FaceLiftPackagesConfig DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-    # This makes the project importable from the build directory
-    export(TARGETS ${GENERATED_LIBRARIES} ${TARGET_NAME} FILE ${LIBRARY_NAME}FaceLiftPackagesConfig.cmake)
-
-    install(DIRECTORY ${OUTPUT_PATH}/ DESTINATION ${GENERATED_HEADERS_INSTALLATION_LOCATION})
-
     # Add a dummy target to make the QFace files visible in the IDE
     file(GLOB_RECURSE QFACE_FILES ${INTERFACE_FOLDER}/*.qface)
     add_custom_target(FaceliftPackage_${LIBRARY_NAME} SOURCES ${QFACE_FILES})
-    message("QFACE FILES ${QFACE_FILES}")
 
 endfunction()
 
 
-function(facelift_export_package QFACE_MODULE_NAME)
-    facelift_module_to_libname(LIBRARY_NAME ${QFACE_MODULE_NAME})
-    install(EXPORT ${LIBRARY_NAME}FaceLiftPackagesConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_NAME}FaceLiftPackages)
+function(facelift_install_package LIBRARY_NAME EXPORT_NAME)
+
+    get_target_property(LIBRARIES ${LIBRARY_NAME} INTERFACE_LINK_LIBRARIES)
+
+    foreach(LIB ${LIBRARIES})
+         install(TARGETS ${LIB} EXPORT ${EXPORT_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endforeach()
+    install(TARGETS ${LIBRARY_NAME} EXPORT ${EXPORT_NAME})
+
 endfunction()
 
 
