@@ -62,8 +62,8 @@ endif()
 
 add_subdirectory(doc)
 
-file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.yaml *.qdl)
-add_custom_target(QFACE_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
+file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.qface)
+add_custom_target(FACELIFT_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
 
 install(FILES cmake/faceliftConfig-functions.cmake DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})
 

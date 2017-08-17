@@ -66,7 +66,7 @@ public:
     {
         qDebug() << "Sending IPC message : " << toString();
         bool successful = connection.send(m_message);
-        assert(successful);
+        Q_ASSERT(successful);
     }
 
     QString member() const
@@ -443,12 +443,11 @@ public:
         return m_dbusConnected;
     }
 
-    bool registerServiceName(const QString &serviceName)
+    void registerServiceName(const QString &serviceName)
     {
         qDebug() << "Registering serviceName " << serviceName;
         auto success = m_busConnection.registerService(serviceName);
         Q_ASSERT(success);
-        return success;
     }
 
     QDBusConnection &connection()
@@ -658,8 +657,7 @@ public:
 
                 if (dbusManager().isDBusConnected()) {
 
-                    auto success = DBusManager::instance().registerServiceName(m_serviceName);
-                    Q_ASSERT(success);
+                    DBusManager::instance().registerServiceName(m_serviceName);
 
                     qDebug() << "Registering IPC object at " << m_objectPath;
                     m_alreadyInitialized = dbusManager().connection().registerVirtualObject(m_objectPath, this);
@@ -667,7 +665,7 @@ public:
                         connect(service, &InterfaceBase::readyChanged, this, &IPCServiceAdapterBase::onPropertyValueChanged);
                         connectSignals();
                     } else {
-                        qCritical() << "Could no register service at object path" << m_objectPath;
+                        qFatal("Could no register service at object path '%s'", qPrintable(m_objectPath));
                     }
                 }
 
@@ -722,7 +720,7 @@ public:
             if (qmlFrontend != nullptr) {
                 m_service = qmlFrontend->m_provider;
             } else {
-                qWarning() << "Bad service type : " << service;
+                qFatal("Bad service type : '%s'", qPrintable(facelift::toString(service)));
             }
         }
         Q_ASSERT(m_service != nullptr);
@@ -872,14 +870,14 @@ public:
                                     IPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME,
                                     this, SLOT(onPropertiesChanged(
                                         const QDBusMessage&)));
-                    assert(successPropertyChangeSignal);
+                    Q_ASSERT(successPropertyChangeSignal);
 
                     auto successSignalTriggeredSignal =
                             connection().connect(m_serviceName, m_objectPath, m_interfaceName,
                                     IPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME,
                                     this, SLOT(onSignalTriggered(
                                         const QDBusMessage&)));
-                    assert(successSignalTriggeredSignal);
+                    Q_ASSERT(successSignalTriggeredSignal);
 
                     requestPropertyValues();
                 }
@@ -901,7 +899,7 @@ public:
     void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
     {
         if (adapter->objectPath() == this->objectPath()) {
-            qWarning() << "Local server found for " << objectPath();
+            qDebug() << "Local server found for " << objectPath();
             localAdapterAvailable(adapter);
         }
     }
@@ -922,7 +920,7 @@ public:
             m_serviceObject->deserializePropertyValues(replyMessage);
             m_serviceObject->setServiceRegistered(true);
         } else {
-            qWarning() << "Service not yet available : " << m_objectPath;
+            qDebug() << "Service not yet available : " << m_objectPath;
         }
     }
 
@@ -934,10 +932,8 @@ public:
         for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
         auto replyMessage = msg.call(connection());
         if (!replyMessage.isReplyMessage()) {
-            qWarning() << "Error message received when calling method " << methodName << " on service at path: " <<
-                m_objectPath <<
-                "This likely indicates that the server you are trying to access is not available yet";
-            Q_ASSERT(false);
+            qFatal("Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet"
+            		, qPrintable(methodName ), qPrintable(m_objectPath));
         }
         return replyMessage;
     }
