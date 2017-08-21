@@ -58,6 +58,13 @@ DBusManager &DBusManager::instance()
     return i;
 }
 
+IPCAdapterFactoryManager &IPCAdapterFactoryManager::instance()
+{
+    static IPCAdapterFactoryManager factory;
+    return factory;
+}
+
+
 
 IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject *object)
 {

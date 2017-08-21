@@ -1074,11 +1074,7 @@ class IPCAdapterFactoryManager
 public:
     typedef IPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
 
-    static IPCAdapterFactoryManager &instance()
-    {
-        static IPCAdapterFactoryManager factory;
-        return factory;
-    }
+    static IPCAdapterFactoryManager &instance();
 
     template<typename AdapterType>
     static IPCServiceAdapterBase *createInstance(InterfaceBase *i)
