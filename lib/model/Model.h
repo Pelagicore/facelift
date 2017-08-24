@@ -709,7 +709,8 @@ public:
     QJSValue &checkMethod(QJSValue &method, const char *methodName)
     {
         if (!method.isCallable()) {
-            qFatal("Method not callable : %s", qPrintable(methodName));
+            qFatal("Method \"%s\" of Facelift interface implementation \"%s\" is about to be called but it is not implemented in your QML file. "
+                    "That method MUST be implemented if it is called.", qPrintable(methodName), qPrintable(interface()->interfaceID()));
         }
 
         return method;

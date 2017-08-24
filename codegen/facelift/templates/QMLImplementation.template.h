@@ -241,15 +241,7 @@ public:
         QQmlEngine* engine = qmlEngine(this);
         args.append(facelift::toJSValue(value, engine));
 
-        if (m_set{{property.name}}.isCallable())
-        {
-      	  m_set{{property.name}}.call(args);
-        }
-        else
-        {
-            qFatal("set{{property.name}} method is not set or not callable");
-        }
-
+        checkMethod(m_set{{property.name}}, "set{{property.name}}").call(args);
     }
     {% endif %}
 
