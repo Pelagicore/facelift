@@ -31,16 +31,14 @@ namespace facelift {
 
 class StructureBase
 {
-public:
     Q_GADGET
 
 public:
+
+    // Q_PROPERTIES defined here are not visible in subclasses, for some reason (Qt bug ?)
+    
     static constexpr int ROLE_ID = 1000;
     static constexpr int ROLE_BASE = ROLE_ID + 1;
-
-    //    Q_PROPERTY(int id READ id CONSTANT)
-
-    Q_PROPERTY(QByteArray serialized READ serialize WRITE deserialize)
 
     ModelElementID id() const
     {
