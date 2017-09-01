@@ -194,6 +194,9 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     add_library(${TARGET_NAME} INTERFACE)
     target_link_libraries(${TARGET_NAME} INTERFACE ${GENERATED_LIBRARIES})
 
+    # TODO : move installation to facelift_install_package()
+    install(DIRECTORY ${OUTPUT_PATH}/ DESTINATION ${GENERATED_HEADERS_INSTALLATION_LOCATION})
+
     # Add a dummy target to make the QFace files visible in the IDE
     file(GLOB_RECURSE QFACE_FILES ${INTERFACE_FOLDER}/*.qface)
     add_custom_target(FaceliftPackage_${LIBRARY_NAME} SOURCES ${QFACE_FILES})
