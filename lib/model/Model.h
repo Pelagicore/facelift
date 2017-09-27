@@ -34,9 +34,8 @@ class StructureBase
     Q_GADGET
 
 public:
-
     // Q_PROPERTIES defined here are not visible in subclasses, for some reason (Qt bug ?)
-    
+
     static constexpr int ROLE_ID = 1000;
     static constexpr int ROLE_BASE = ROLE_ID + 1;
 

@@ -18,7 +18,7 @@ void InterfaceManager::registerAdapter(QString id, IPCServiceAdapterBase &adapte
         adapterAvailable(&adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(id),
-        		qPrintable(facelift::toString(*m_registry[id]->service())));
+                qPrintable(facelift::toString(*m_registry[id]->service())));
     }
 }
 
@@ -48,7 +48,7 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
     m_dbusConnected = m_busConnection.isConnected();
     if (!m_dbusConnected) {
-    	qCritical() << "NOT connected to DBUS";
+        qCritical() << "NOT connected to DBUS";
     }
 }
 
@@ -92,7 +92,7 @@ IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject
             qFatal("No factory found for interface '%s'", qPrintable(interfaceID));
         }
     } else {
-    	qFatal("Can't attach IPC to object with bad type: %s", object->metaObject()->className());
+        qFatal("Can't attach IPC to object with bad type: %s", object->metaObject()->className());
     }
 
     return serviceAdapter;

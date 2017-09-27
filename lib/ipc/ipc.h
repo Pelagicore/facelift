@@ -933,7 +933,8 @@ public:
         auto replyMessage = msg.call(connection());
         if (!replyMessage.isReplyMessage()) {
             qFatal("Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet"
-            		, qPrintable(methodName ), qPrintable(m_objectPath));
+                    , qPrintable(
+                        methodName), qPrintable(m_objectPath));
         }
         return replyMessage;
     }

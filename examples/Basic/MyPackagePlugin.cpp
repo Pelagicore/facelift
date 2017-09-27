@@ -38,7 +38,7 @@ void MyPackagePlugin::registerTypes(const char *uri)
 
     MyInterfaceQMLImplementation::setModelImplementationFilePath(STRINGIFY(
                 QML_MODEL_LOCATION) "/models/qml/mypackage/MyInterface.qml");
-//    facelift::registerQmlComponent<MyInterfaceQMLImplementation::Provider>(uri);
+    //    facelift::registerQmlComponent<MyInterfaceQMLImplementation::Provider>(uri);
 
     ModuleMonitor::registerTypes();
 
