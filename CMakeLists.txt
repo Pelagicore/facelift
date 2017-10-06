@@ -1,6 +1,5 @@
-project(facelift)
-
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
+project(facelift VERSION 1.0.0)
 
 include(GNUInstallDirs)    # for standard installation locations
 
@@ -33,7 +32,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 
 set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/codegen)
 
-include("cmake/faceliftConfig-functions.cmake")
+include("cmake/faceliftMacros.cmake")
 
 # No undefined symbol allowed in our shared libraries when using GCC
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -65,5 +64,10 @@ add_subdirectory(doc)
 file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.qface)
 add_custom_target(FACELIFT_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
 
-install(FILES cmake/faceliftConfig-functions.cmake DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})
+get_property(FACELIFT_CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake @ONLY)
 
+set(FACELIFT_CODEGEN_LOCATION \${CMAKE_CURRENT_LIST_DIR}/../../../bin)   # relative path of the installed code generator
+configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed @ONLY)
+
+facelift_export_project(BUILD_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake INSTALLED_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed)

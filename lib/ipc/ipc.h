@@ -26,8 +26,6 @@
 
 #include "QMLFrontend.h"
 
-#include "ipc-config.h"
-
 namespace facelift {
 
 class IPCMessage

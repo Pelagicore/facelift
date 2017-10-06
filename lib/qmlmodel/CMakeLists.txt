@@ -1,3 +1,6 @@
 
-add_library_simple(QMLModelLib)
-target_link_libraries(QMLModelLib ModelLib PropertyLib Qt5::Qml Qt5::Quick)
+facelift_add_library(QMLModelLib 
+    SOURCES QMLModel.cpp
+    HEADERS QMLModel.h
+    LINK_LIBRARIES ModelLib PropertyLib Qt5::Qml Qt5::Quick
+)

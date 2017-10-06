@@ -1,3 +1,6 @@
 
-add_library_simple(PropertyLib)
-target_link_libraries(PropertyLib ModelLib)
+facelift_add_library(PropertyLib 
+    SOURCES Property.cpp
+    HEADERS Property.h
+    LINK_LIBRARIES ModelLib
+)
