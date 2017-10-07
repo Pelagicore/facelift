@@ -287,7 +287,7 @@ function(facelift_export_project)
     set(multiValueArgs BUILD_FILES INSTALLED_FILES)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    set(CONFIG_DESTINATION_PATH "${PROJECT_BINARY_DIR}")
+    set(CONFIG_DESTINATION_PATH "${CMAKE_BINARY_DIR}")
     set(VERSION_FILE_PATH ${CONFIG_DESTINATION_PATH}/${PROJECT_NAME}ConfigVersion.cmake)
     write_basic_package_version_file(${VERSION_FILE_PATH} COMPATIBILITY SameMajorVersion)
     install(FILES ${VERSION_FILE_PATH} DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})
