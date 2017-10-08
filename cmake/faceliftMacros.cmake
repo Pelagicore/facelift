@@ -196,32 +196,41 @@ endfunction()
 
 function(facelift_add_library LIB_NAME)
 
-    set(options OPTIONAL NO_INSTALL UNITY_BUILD)
+    set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT )
     set(oneValueArgs )
-    set(multiValueArgs HEADERS HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES)
-    cmake_parse_arguments(ARGUMENTS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    set(multiValueArgs HEADERS HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    set(SOURCES ${ARGUMENTS_SOURCES})
-    foreach(SOURCE_GLOB ${ARGUMENTS_SOURCES_GLOB_RECURSE})
+    set(SOURCES ${ARGUMENT_SOURCES})
+    foreach(SOURCE_GLOB ${ARGUMENT_SOURCES_GLOB_RECURSE})
         file(GLOB_RECURSE GLOB_FILES ${SOURCE_GLOB})
         set(SOURCES ${SOURCES} ${GLOB_FILES})
     endforeach()
 
-    set(HEADERS ${ARGUMENTS_HEADERS})
-    foreach(HEADER_GLOB ${ARGUMENTS_HEADERS_GLOB_RECURSE})
+    set(HEADERS ${ARGUMENT_HEADERS})
+    foreach(HEADER_GLOB ${ARGUMENT_HEADERS_GLOB_RECURSE})
         file(GLOB_RECURSE GLOB_FILES ${HEADER_GLOB})
         set(HEADERS ${HEADERS} ${GLOB_FILES})
     endforeach()
 
+    unset(RESOURCE_FILES)
+    foreach(RESOURCE_FOLDER ${ARGUMENT_RESOURCE_FOLDERS})
+        generateQRC("${RESOURCE_FOLDER}/" "${CMAKE_CURRENT_BINARY_DIR}")
+        qt5_add_resources(RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/resources.qrc)
+        set(RESOURCE_FILES ${RESOURCE_FILES} ${RESOURCES})
+        message("HHHH ${RESOURCE_FILES}")
+    endforeach()
+
     qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} TARGET ${LIB_NAME})
 
-    if(ARGUMENTS_UI_FILES)
-        qt5_wrap_ui(UI_FILES ${ARGUMENTS_UI_FILES})
+    unset(UI_FILES)
+    if(ARGUMENT_UI_FILES)
+        qt5_wrap_ui(UI_FILES ${ARGUMENT_UI_FILES})
     endif()
 
-    set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES})
+    set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES} ${RESOURCE_FILES})
 
-    set(UNITY_BUILD ${ARGUMENTS_UNITY_BUILD})
+    set(UNITY_BUILD ${ARGUMENT_UNITY_BUILD})
     if(${AUTO_UNITY_BUILD})
         set(UNITY_BUILD ON)
     endif()
@@ -233,23 +242,27 @@ function(facelift_add_library LIB_NAME)
     add_library(${LIB_NAME} SHARED ${ALL_SOURCES})
 
     # We assume every lib links against QtCore at least
-    target_link_libraries(${LIB_NAME} Qt5::Core ${ARGUMENTS_LINK_LIBRARIES})
+    target_link_libraries(${LIB_NAME} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
 
-    if (NOT ${ARGUMENTS_NO_INSTALL})
+    if (NOT ${ARGUMENT_NO_INSTALL})
         set(INSTALL_LIB ON)
     endif()
 
-    if(NOT ARGUMENTS_PUBLIC_HEADER_BASE_PATH)
-        set(PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-    else()
-        set(PUBLIC_HEADER_BASE_PATH ${ARGUMENTS_PUBLIC_HEADER_BASE_PATH})
+    if (NOT ${ARGUMENT_NO_EXPORT})
+        set(EXPORT_LIB ON)
     endif()
 
-    if (INSTALL_LIB)
+    if(NOT ARGUMENT_PUBLIC_HEADER_BASE_PATH)
+        set(PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+    else()
+        set(PUBLIC_HEADER_BASE_PATH ${ARGUMENT_PUBLIC_HEADER_BASE_PATH})
+    endif()
+
+    get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
+
+    if (EXPORT_LIB)
 
         set(HEADERS_INSTALLATION_LOCATION ${PROJECT_NAME}/${LIB_NAME})
-
-        get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
 
         # Create the directory for the installed headers
         install(DIRECTORY DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION})
@@ -262,6 +275,18 @@ function(facelift_add_library LIB_NAME)
             install(FILES ${HEADER} DESTINATION ${ABSOLUTE_HEADER_INSTALLATION_DIR})
         endforeach()
 
+        # Set the installed headers location
+        target_include_directories(${LIB_NAME}
+            PUBLIC
+                $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
+        )
+
+    endif()
+
+
+    if(INSTALL_LIB)
+
         # Install library
         install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
@@ -273,6 +298,7 @@ function(facelift_add_library LIB_NAME)
         )
 
     endif()
+
 
 endfunction()
 
@@ -316,5 +342,58 @@ function(facelift_export_project)
     file(APPEND ${CONFIG_DESTINATION_PATH}/${PROJECT_NAME}Config.cmake.installed "include(\${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Targets.cmake)\n")
 
     install(FILES ${CONFIG_DESTINATION_PATH}/${PROJECT_NAME}Config.cmake.installed DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH} RENAME ${PROJECT_NAME}Config.cmake)
+
+endfunction()
+
+
+
+# Build and install a QML plugin
+function(facelift_add_qml_plugin PLUGIN_NAME)
+
+    set(options )
+    set(oneValueArgs URI VERSION)
+    set(multiValueArgs )
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(URI ${ARGUMENT_URI})
+
+    if(NOT ARGUMENT_VERSION)
+        # Default to version 1.0 if no version is specified
+        set(ARGUMENT_VERSION "1.0")
+    endif()
+
+    string(REPLACE "." ";" VERSION_LIST "${ARGUMENT_VERSION}")
+    list(GET VERSION_LIST 0 PLUGIN_MAJOR_VERSION)
+    list(GET VERSION_LIST 1 PLUGIN_MINOR_VERSION)
+
+    string(REPLACE "." "/" PLUGIN_PATH ${URI})
+
+    facelift_add_library(${PLUGIN_NAME} ${ARGUMENT_UNPARSED_ARGUMENTS} NO_INSTALL NO_EXPORT)
+
+    set_target_properties(${PLUGIN_NAME} PROPERTIES
+        COMPILE_DEFINITIONS "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}"
+    )
+
+    set(INSTALL_PATH imports/${PLUGIN_PATH})
+
+    set_target_properties(${PLUGIN_NAME} PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
+    )
+
+    install(TARGETS ${PLUGIN_NAME} DESTINATION ${INSTALL_PATH})
+
+    install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
+    file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${URI}\nplugin ${PLUGIN_NAME}\ntypeinfo plugins.qmltypes")
+
+    if(NOT CMAKE_CROSSCOMPILING)
+        add_custom_command(
+            OUTPUT  ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
+            COMMAND ${_qt5Core_install_prefix}/bin/qmlplugindump -noinstantiate ${URI} ${PLUGIN_MAJOR_VERSION}.${PLUGIN_MINOR_VERSION} ${CMAKE_BINARY_DIR}/imports -output ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
+            DEPENDS ${PLUGIN_NAME}
+        )
+        add_custom_target("generate_qmltypes_${PLUGIN_NAME}" ALL DEPENDS ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes)
+        install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes DESTINATION ${INSTALL_PATH})
+    endif()
 
 endfunction()
