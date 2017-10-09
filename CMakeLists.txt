@@ -42,7 +42,10 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/helpers.cmake)
+function(add_example_script NAME MAIN_QML_FILE)
+    set(QML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_QML_FILE})
+    configure_file(${PROJECT_SOURCE_DIR}/examples/launch-example.sh ${PROJECT_BINARY_DIR}/examples/launch-${NAME}.sh @ONLY)
+endfunction()
 
 if(FACELIFT_ENABLE_CODEGEN)
     add_subdirectory(codegen)

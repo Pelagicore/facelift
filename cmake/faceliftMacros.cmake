@@ -146,7 +146,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     facelift_add_library(${LIBRARY_NAME}_api 
         SOURCES_GLOB_RECURSE ${API_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${API_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES ModelLib QMLModelLib PropertyLib
+        LINK_LIBRARIES FaceliftModelLib FaceliftQMLModelLib FaceliftPropertyLib
         PUBLIC_HEADER_BASE_PATH ${API_OUTPUT_PATH}
         UNITY_BUILD
     )
@@ -154,7 +154,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     facelift_add_library(${LIBRARY_NAME}_dummy
         SOURCES_GLOB_RECURSE ${DUMMY_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${DUMMY_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES ${LIBRARY_NAME}_api DummyModelLib
+        LINK_LIBRARIES ${LIBRARY_NAME}_api FaceliftDummyModelLib
         PUBLIC_HEADER_BASE_PATH ${DUMMY_OUTPUT_PATH}
         UNITY_BUILD
     )
@@ -166,7 +166,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
         facelift_add_library(${LIBRARY_NAME}_ipc
             SOURCES_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES ${LIBRARY_NAME}_api IPCLib
+            LINK_LIBRARIES ${LIBRARY_NAME}_api FaceliftIPCLib
             PUBLIC_HEADER_BASE_PATH ${IPC_OUTPUT_PATH}
             UNITY_BUILD
         )
@@ -368,7 +368,7 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
 
     string(REPLACE "." "/" PLUGIN_PATH ${URI})
 
-    facelift_add_library(${PLUGIN_NAME} ${ARGUMENT_UNPARSED_ARGUMENTS} NO_INSTALL NO_EXPORT)
+    facelift_add_library(${PLUGIN_NAME} ${ARGUMENT_UNPARSED_ARGUMENTS} NO_INSTALL NO_EXPORT LINK_LIBRARIES Qt5::Qml)
 
     set_target_properties(${PLUGIN_NAME} PROPERTIES
         COMPILE_DEFINITIONS "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}"

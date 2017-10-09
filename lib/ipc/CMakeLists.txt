@@ -1,6 +1,6 @@
 
-facelift_add_library(IPCLib 
+facelift_add_library(FaceliftIPCLib
     SOURCES ipc.cpp
     HEADERS ipc.h
-    LINK_LIBRARIES ModelLib PropertyLib CommonLib Qt5::DBus
+    LINK_LIBRARIES FaceliftModelLib FaceliftPropertyLib FaceliftCommonLib Qt5::DBus
 )

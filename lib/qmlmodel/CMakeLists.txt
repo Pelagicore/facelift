@@ -1,6 +1,6 @@
 
-facelift_add_library(QMLModelLib 
+facelift_add_library(FaceliftQMLModelLib
     SOURCES QMLModel.cpp
     HEADERS QMLModel.h
-    LINK_LIBRARIES ModelLib PropertyLib Qt5::Qml Qt5::Quick
+    LINK_LIBRARIES FaceliftModelLib FaceliftPropertyLib Qt5::Qml Qt5::Quick
 )

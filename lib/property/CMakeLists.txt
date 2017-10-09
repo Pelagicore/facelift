@@ -1,6 +1,6 @@
 
-facelift_add_library(PropertyLib 
+facelift_add_library(FaceliftPropertyLib
     SOURCES Property.cpp
     HEADERS Property.h
-    LINK_LIBRARIES ModelLib
+    LINK_LIBRARIES FaceliftModelLib
 )
