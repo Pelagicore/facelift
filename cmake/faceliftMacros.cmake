@@ -101,19 +101,28 @@ macro(facelift_module_to_libname VAR_NAME QFACE_MODULE_NAME)
 endmacro()
 
 
+# Deprecated
 function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
+    facelift_add_interface(${TARGET_NAME} INTERFACE_DEFINITION_FOLDER ${INTERFACE_FOLDER})
+endfunction()
+
+
+function(facelift_add_interface TARGET_NAME)
+
+    set(options)
+    set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
+    set(multiValueArgs)
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     facelift_load_variables()
-    facelift_module_to_libname(LIBRARY_NAME ${QFACE_MODULE_NAME})
+    set(LIBRARY_NAME ${TARGET_NAME})
+    set(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER})
 
     set(GENERATED_HEADERS_INSTALLATION_LOCATION ${FACELIFT_GENERATED_HEADERS_INSTALLATION_LOCATION}/${LIBRARY_NAME})
 
     get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
     set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/facelift/qface)
     set(CODEGEN_EXECUTABLE_LOCATION ${CODEGEN_LOCATION}/facelift-codegen.py)
-
-    message("QFace location : ${QFACE_BASE_LOCATION}")
-    message("Facelift code generator executable : ${CODEGEN_EXECUTABLE_LOCATION}")
 
     set(ENV{PYTHONPATH} "ENV{PYTHONPATH}:${QFACE_BASE_LOCATION}")
 
@@ -126,7 +135,10 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
-    set(CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_FOLDER} ${WORK_PATH})
+    set(CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
+
+    string(REPLACE ";" " " CODEGEN_COMMAND_WITH_SPACES "${CODEGEN_COMMAND}")
+    message("Calling facelift code generator. Command:\n" ${CODEGEN_COMMAND_WITH_SPACES})
 
     execute_process(COMMAND ${CODEGEN_COMMAND}
         RESULT_VARIABLE CODEGEN_RETURN_CODE
@@ -180,7 +192,7 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
     install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets)
 
     # Add a dummy target to make the QFace files visible in the IDE
-    file(GLOB_RECURSE QFACE_FILES ${INTERFACE_FOLDER}/*.qface)
+    file(GLOB_RECURSE QFACE_FILES ${INTERFACE_DEFINITION_FOLDER}/*.qface)
     add_custom_target(FaceliftPackage_${LIBRARY_NAME} SOURCES ${QFACE_FILES})
 
 endfunction()

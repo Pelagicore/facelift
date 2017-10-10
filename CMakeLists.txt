@@ -51,7 +51,7 @@ if(FACELIFT_ENABLE_CODEGEN)
     add_subdirectory(codegen)
 endif()
 
-add_subdirectory(lib)
+add_subdirectory(src)
 
 if(FACELIFT_BUILD_EXAMPLES)
     add_subdirectory(examples)

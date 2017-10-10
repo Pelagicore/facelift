@@ -13,7 +13,6 @@ find_package(Qt5DBus REQUIRED)
 
 find_package(facelift REQUIRED)
 
-facelift_add_package(AddressBookGenerated addressbook ${CMAKE_CURRENT_SOURCE_DIR}/../../AddressBook/interface)
-
-# Export package so that other packages can import our package using "facelift_export_package"
-facelift_export_package(addressbook)
+facelift_add_interface(AddressBookInterface
+    INTERFACE_DEFINITION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../../AddressBook/interface
+)

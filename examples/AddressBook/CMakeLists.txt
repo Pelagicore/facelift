@@ -1,5 +1,7 @@
 
-facelift_add_package(AddressBookGenerated "facelift.example.addressbook" ${CMAKE_CURRENT_SOURCE_DIR}/interface)
+facelift_add_interface(AddressBookInterface
+    INTERFACE_DEFINITION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/interface
+)
 
 add_definitions(-DQML_MODEL_LOCATION=${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -9,7 +11,7 @@ facelift_add_qml_plugin(AddressBookModelPlugin
     URI facelift.example.addressbook
     SOURCES_GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
     HEADERS_GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR}/*.h
-    LINK_LIBRARIES AddressBookGenerated
+    LINK_LIBRARIES AddressBookInterface
 )
 
 add_example_script(addressbook ui/AddressBookApp.qml)
