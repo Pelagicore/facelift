@@ -196,7 +196,7 @@ endfunction()
 
 function(facelift_add_library LIB_NAME)
 
-    set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT )
+    set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE)
     set(oneValueArgs )
     set(multiValueArgs HEADERS HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -239,10 +239,21 @@ function(facelift_add_library LIB_NAME)
         facelift_add_unity_files(ALL_SOURCES "${ALL_SOURCES}")
     endif()
 
-    add_library(${LIB_NAME} SHARED ${ALL_SOURCES})
+    unset(__INTERFACE)
+    if(ARGUMENT_INTERFACE)
+        message("adding interface library : ${LIB_NAME}")
+        add_library(${LIB_NAME} INTERFACE)
+        set(__INTERFACE INTERFACE)
+    else()
+       add_library(${LIB_NAME} SHARED ${ALL_SOURCES})
+       if(NOT ALL_SOURCES)
+          # Assume we have a C type of library if no source is built
+          set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE C)
+       endif()
+    endif()
 
     # We assume every lib links against QtCore at least
-    target_link_libraries(${LIB_NAME} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
+    target_link_libraries(${LIB_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
 
     if (NOT ${ARGUMENT_NO_INSTALL})
         set(INSTALL_LIB ON)
@@ -275,12 +286,14 @@ function(facelift_add_library LIB_NAME)
             install(FILES ${HEADER} DESTINATION ${ABSOLUTE_HEADER_INSTALLATION_DIR})
         endforeach()
 
-        # Set the installed headers location
-        target_include_directories(${LIB_NAME}
-            PUBLIC
-                $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
-        )
+        if(__INTERFACE)
+        else()
+            # Set the installed headers location
+            target_include_directories(${LIB_NAME}
+                PUBLIC
+                    $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
+            )
+        endif()
 
     endif()
 
@@ -290,12 +303,14 @@ function(facelift_add_library LIB_NAME)
         # Install library
         install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-        # Set the installed headers location
-        target_include_directories(${LIB_NAME}
-            PUBLIC
-                $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
-        )
+        if(__INTERFACE)
+        else()
+            # Set the installed headers location
+            target_include_directories(${LIB_NAME}
+                PUBLIC
+                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
+            )
+        endif()
 
     endif()
 
