@@ -4,11 +4,11 @@ include(CMakePackageConfigHelpers)
 
 set(FACELIFT_ENABLE_IPC ON)    # Force IPC for now
 
-function(facelift_add_unity_files VAR_NAME FILE_LIST_)
+function(facelift_add_unity_files VAR_NAME)
     set(FILE_INDEX "0")
 
     unset(FILE_LIST)
-    foreach(FILE ${FILE_LIST_})
+    foreach(FILE ${ARGN})
         get_filename_component(ABSOLUTE_FILE "${FILE}" ABSOLUTE)
         set(FILE_LIST ${FILE_LIST} ${ABSOLUTE_FILE})
     endforeach()
@@ -124,7 +124,8 @@ function(facelift_add_interface TARGET_NAME)
     set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/facelift/qface)
     set(CODEGEN_EXECUTABLE_LOCATION ${CODEGEN_LOCATION}/facelift-codegen.py)
 
-    set(ENV{PYTHONPATH} "ENV{PYTHONPATH}:${QFACE_BASE_LOCATION}")
+    file(TO_NATIVE_PATH "${QFACE_BASE_LOCATION}" QFACE_BASE_LOCATION_NATIVE_PATH)
+    set(ENV{PYTHONPATH} "ENV{PYTHONPATH}:${QFACE_BASE_LOCATION_NATIVE_PATH}")
 
     set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
 
@@ -210,7 +211,7 @@ function(facelift_add_library LIB_NAME)
 
     set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE)
     set(oneValueArgs )
-    set(multiValueArgs HEADERS HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
+    set(multiValueArgs HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(SOURCES ${ARGUMENT_SOURCES})
@@ -218,10 +219,18 @@ function(facelift_add_library LIB_NAME)
         file(GLOB_RECURSE GLOB_FILES ${SOURCE_GLOB})
         set(SOURCES ${SOURCES} ${GLOB_FILES})
     endforeach()
+    foreach(SOURCE_GLOB ${ARGUMENT_SOURCES_GLOB})
+        file(GLOB GLOB_FILES ${SOURCE_GLOB})
+        set(SOURCES ${SOURCES} ${GLOB_FILES})
+    endforeach()
 
     set(HEADERS ${ARGUMENT_HEADERS})
     foreach(HEADER_GLOB ${ARGUMENT_HEADERS_GLOB_RECURSE})
         file(GLOB_RECURSE GLOB_FILES ${HEADER_GLOB})
+        set(HEADERS ${HEADERS} ${GLOB_FILES})
+    endforeach()
+    foreach(HEADER_GLOB ${ARGUMENT_HEADERS_GLOB})
+        file(GLOB GLOB_FILES ${HEADER_GLOB})
         set(HEADERS ${HEADERS} ${GLOB_FILES})
     endforeach()
 
