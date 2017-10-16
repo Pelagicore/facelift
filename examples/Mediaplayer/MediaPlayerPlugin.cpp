@@ -9,7 +9,6 @@
 #include "MediaPlayerPlugin.h"
 
 #include "mediaplayer/Module.h"
-#include "mediaplayer/ModuleDummy.h"
 #include "models/MediaIndexerModelCpp.h"
 
 using namespace mediaplayer;
@@ -20,7 +19,5 @@ void TunerModelPlugin::registerTypes(const char *uri)
     mediaplayer::Module::registerQmlTypes(uri);
 
     facelift::registerSingletonQmlComponent<MediaIndexerModelCpp>(uri);
-
-    mediaplayer::ModuleDummy::registerQmlTypes(uri);
 
 }

@@ -2,8 +2,6 @@
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
 
-set(FACELIFT_ENABLE_IPC ON)    # Force IPC for now
-
 function(facelift_add_unity_files VAR_NAME)
     set(FILE_INDEX "0")
 
@@ -130,9 +128,10 @@ function(facelift_add_interface TARGET_NAME)
     set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
 
     set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
-    set(API_OUTPUT_PATH ${OUTPUT_PATH}/api)
-    set(DUMMY_OUTPUT_PATH ${OUTPUT_PATH}/dummy)
+    set(TYPES_OUTPUT_PATH ${OUTPUT_PATH}/types)
+    set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
     set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
+    set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
@@ -156,41 +155,47 @@ function(facelift_add_interface TARGET_NAME)
     file(REMOVE_RECURSE ${WORK_PATH})
 
     # Get the list of generated files
-    facelift_add_library(${LIBRARY_NAME}_api 
-        SOURCES_GLOB_RECURSE ${API_OUTPUT_PATH}/*.cpp
-        HEADERS_GLOB_RECURSE ${API_OUTPUT_PATH}/*.h
+    facelift_add_library(${LIBRARY_NAME}_types
+        SOURCES_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.cpp
+        HEADERS_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.h
         LINK_LIBRARIES FaceliftModelLib FaceliftQMLModelLib FaceliftPropertyLib
-        PUBLIC_HEADER_BASE_PATH ${API_OUTPUT_PATH}
+        PUBLIC_HEADER_BASE_PATH ${TYPES_OUTPUT_PATH}
         UNITY_BUILD
     )
 
-    facelift_add_library(${LIBRARY_NAME}_dummy
-        SOURCES_GLOB_RECURSE ${DUMMY_OUTPUT_PATH}/*.cpp
-        HEADERS_GLOB_RECURSE ${DUMMY_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES ${LIBRARY_NAME}_api FaceliftDummyModelLib
-        PUBLIC_HEADER_BASE_PATH ${DUMMY_OUTPUT_PATH}
+    facelift_add_library(${LIBRARY_NAME}
+        SOURCES_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.cpp
+        HEADERS_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.h
+        LINK_LIBRARIES ${LIBRARY_NAME}_types
+        PUBLIC_HEADER_BASE_PATH ${MODULE_OUTPUT_PATH}
         UNITY_BUILD
     )
 
-    set(GENERATED_LIBRARIES ${LIBRARY_NAME}_api ${LIBRARY_NAME}_dummy)
+    if(TARGET FaceliftDesktopDevTools)
+        facelift_add_library(${LIBRARY_NAME}_desktop_dev_tools
+            SOURCES_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.cpp
+            HEADERS_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.h
+            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftDesktopDevTools
+            PUBLIC_HEADER_BASE_PATH ${DEVTOOLS_OUTPUT_PATH}
+            UNITY_BUILD
+        )
+        target_link_libraries(${LIBRARY_NAME} ${LIBRARY_NAME}_desktop_dev_tools)
+        list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_DESKTOP_TOOLS)
+    endif()
 
-	if(FACELIFT_ENABLE_IPC)
-
+    if(TARGET FaceliftIPCLib)
         facelift_add_library(${LIBRARY_NAME}_ipc
             SOURCES_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES ${LIBRARY_NAME}_api FaceliftIPCLib
+            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib
             PUBLIC_HEADER_BASE_PATH ${IPC_OUTPUT_PATH}
             UNITY_BUILD
         )
+        target_link_libraries(${LIBRARY_NAME} ${LIBRARY_NAME}_ipc)
+        list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_IPC)
+    endif()
 
-    	set(GENERATED_LIBRARIES ${GENERATED_LIBRARIES} ${LIBRARY_NAME}_ipc)
-
-	endif()
-
-    add_library(${TARGET_NAME} INTERFACE)
-    target_link_libraries(${TARGET_NAME} INTERFACE ${GENERATED_LIBRARIES})
-    install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets)
+    set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "${MODULE_COMPILE_DEFINITIONS}")
 
     # Add a dummy target to make the QFace files visible in the IDE
     file(GLOB_RECURSE QFACE_FILES ${INTERFACE_DEFINITION_FOLDER}/*.qface)

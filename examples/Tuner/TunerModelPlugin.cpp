@@ -9,8 +9,6 @@
 #include "TunerModelPlugin.h"
 
 #include "tuner/Module.h"
-#include "tuner/ModuleDummy.h"
-
 #include "models/TunerViewModelCpp.h"
 
 void TunerModelPlugin::registerTypes(const char *uri)
@@ -20,5 +18,4 @@ void TunerModelPlugin::registerTypes(const char *uri)
 
     facelift::registerQmlComponent<TunerViewModelCpp>(uri);
 
-    tuner::ModuleDummy::registerQmlTypes(uri);
 }

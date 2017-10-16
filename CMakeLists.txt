@@ -3,27 +3,21 @@ project(facelift VERSION 1.0.0)
 
 include(GNUInstallDirs)    # for standard installation locations
 
-if(NOT DEFINED FACELIFT_ENABLE_IPC)
-    message("Detecting if QtDBus is available")
-    find_package(Qt5DBus)
-endif()
-
 option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
 option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
-option(FACELIFT_ENABLE_IPC "Enable IPC support" ${Qt5DBus_FOUND})
+option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
+option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" OFF)
 option(FACELIFT_BUILD_TEST "Enable build of examples" OFF)
+option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ON)
 
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Qml REQUIRED)
-find_package(Qt5Quick REQUIRED)
+find_package(Qt5 REQUIRED Core Gui Qml Quick)
 
-if (FACELIFT_ENABLE_IPC)
-    message("IPC is enabled => we need Qt5DBus")
-    find_package(Qt5DBus REQUIRED)
-    add_definitions(-DFACELIFT_ENABLE_IPC)
-endif()
+#if (FACELIFT_ENABLE_IPC)
+#    message("IPC is enabled => we need Qt5DBus")
+#    find_package(Qt5DBus REQUIRED)
+#    add_definitions(-DFACELIFT_ENABLE_IPC)
+#endif()
 
 set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
@@ -33,6 +27,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/codegen)
 
 include("cmake/faceliftMacros.cmake")
+
+set(AUTO_UNITY_BUILD ON)
 
 # No undefined symbol allowed in our shared libraries when using GCC
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

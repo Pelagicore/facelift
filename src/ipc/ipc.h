@@ -1089,8 +1089,11 @@ public:
     {
         auto &i = instance();
         const auto &typeID = AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME;
-        Q_ASSERT(!i.m_factories.contains(typeID));
-        i.m_factories.insert(typeID, &IPCAdapterFactoryManager::createInstance<AdapterType>);
+        if (i.m_factories.contains(typeID)) {
+            qWarning() << "IPC type already registered" << typeID;
+        } else {
+            i.m_factories.insert(typeID, &IPCAdapterFactoryManager::createInstance<AdapterType>);
+        }
     }
 
     IPCAdapterFactory getFactory(const QString &typeID) const

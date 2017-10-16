@@ -17,6 +17,7 @@
 
 {% for interface in module.interfaces %}
 #include "{{interface|fullyQualifiedPath}}.h"
+#include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
 {{module|namespaceOpen}}

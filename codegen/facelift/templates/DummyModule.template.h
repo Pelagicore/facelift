@@ -24,7 +24,7 @@ class {{class}}Dummy : public facelift::DummyModuleBase {
 
 public:
 
-    static void registerQmlTypes(const char* uri)
+    static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}})
     {
         Q_UNUSED(uri);
 

@@ -66,11 +66,7 @@ public:
         }
     }
 
-    static ServiceMonitorManager &instance()
-    {
-        static ServiceMonitorManager manager;
-        return manager;
-    }
+    static ServiceMonitorManager &instance();
 
     void show();
 

@@ -9,15 +9,6 @@
 #include "AddressBookPlugin.h"
 
 #include "facelift/example/addressbook/Module.h"
-#include "facelift/example/addressbook/ModuleDummy.h"
-#include "facelift/example/addressbook/ModuleMonitor.h"
-#include "facelift/example/addressbook/AddressBookMonitor.h"
-
-
-#ifdef FACELIFT_ENABLE_IPC
-#include "facelift/example/addressbook/ModuleIPC.h"
-#include "facelift/example/addressbook/AddressBookIPC.h"
-#endif
 
 #include "models/cpp/advanced/AddressBookCppWithProperties.h"
 #include "models/cpp/AddressBookCpp.h"
@@ -32,23 +23,13 @@ void AddressBookPlugin::registerTypes(const char *uri)
     Module::registerTypes();
     Module::registerQmlTypes(uri);
 
-#ifdef FACELIFT_ENABLE_IPC
-    // We register the IPC adapters/proxies so that we can use our interfaces across process boundaries
-    ModuleIPC::registerQmlTypes(uri);
-#endif
-
     AddressBookQMLImplementation::setModelImplementationFilePath(STRINGIFY(
                 QML_MODEL_LOCATION) "/models/qml/addressbook/AddressBook.qml");
-    facelift::registerQmlComponent<AddressBookQMLImplementation::Provider>(uri);
+//    facelift::registerQmlComponent<AddressBookQMLImplementation::Provider>(uri);
 
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here
-    //    facelift::registerQmlComponent<AddressBookCppWithProperties>(uri);
+        facelift::registerQmlComponent<AddressBookCppWithProperties>(uri);
     //    registerQmlComponent<AddressBookCpp>(uri);
-
-    ModuleMonitor::registerTypes();
-
-    // Register the dummy implementations
-    ModuleDummy::registerQmlTypes(uri);
 
 }

@@ -33,8 +33,4 @@ void TestPlugin::registerTypes(const char *uri)
     // The decision to register a dummy, QML, or C++ implementation should be taken here
     //    registerQmlComponent<testCpp>(uri);
 
-    ModuleMonitor::registerTypes();
-
-    // Register the dummy implementations
-    ModuleDummy::registerQmlTypes(uri);
 }

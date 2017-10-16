@@ -12,6 +12,14 @@
 #include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
+#ifdef ENABLE_IPC
+#include "{{module|fullyQualifiedPath}}/ModuleIPC.h"
+#endif
+
+#ifdef ENABLE_DESKTOP_TOOLS
+#include "{{module|fullyQualifiedPath}}/ModuleMonitor.h"
+#include "{{module|fullyQualifiedPath}}/ModuleDummy.h"
+#endif
 
 {{module|namespaceOpen}}
 
@@ -41,6 +49,11 @@ void Module::registerTypes()
     {% for struct in module.structs %}
     qRegisterMetaType<{{struct|fullyQualifiedCppName}}>();
     {% endfor %}
+
+#ifdef ENABLE_DESKTOP_TOOLS
+    ModuleMonitor::registerTypes();
+#endif
+
 }
 
 void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
@@ -75,6 +88,9 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     }
     {% endfor %}
 
+#ifdef ENABLE_IPC
+    ModuleIPC::registerQmlTypes(uri, majorVersion, minorVersion);
+#endif
 }
 
 {{module|namespaceClose}}

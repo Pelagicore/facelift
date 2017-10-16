@@ -104,4 +104,12 @@ void ServiceMonitorManager::refreshList()
     endResetModel();
 }
 
+
+ServiceMonitorManager &ServiceMonitorManager::instance()
+{
+    static ServiceMonitorManager manager;
+    return manager;
+}
+
+
 }
