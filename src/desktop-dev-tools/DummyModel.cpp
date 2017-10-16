@@ -100,9 +100,19 @@ DummyModelControlWindow::DummyModelControlWindow()
     show();
 }
 
+bool isDefined(QQmlType* p)
+{
+    return (p!=nullptr);
+}
+
+bool isDefined(QQmlType p)
+{
+    return (p.isCreatable());
+}
+
 bool DummyModuleBase::isTypeRegistered(const QString &fullyQualifiedTypeName, int majorVersion, int minorVersion)
 {
-    return (QQmlMetaType::qmlType(fullyQualifiedTypeName, majorVersion, minorVersion) == nullptr);
+    return isDefined(QQmlMetaType::qmlType(fullyQualifiedTypeName, majorVersion, minorVersion));
 }
 
 }

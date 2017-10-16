@@ -123,7 +123,7 @@ function(facelift_add_interface TARGET_NAME)
     set(CODEGEN_EXECUTABLE_LOCATION ${CODEGEN_LOCATION}/facelift-codegen.py)
 
     file(TO_NATIVE_PATH "${QFACE_BASE_LOCATION}" QFACE_BASE_LOCATION_NATIVE_PATH)
-    set(ENV{PYTHONPATH} "ENV{PYTHONPATH}:${QFACE_BASE_LOCATION_NATIVE_PATH}")
+    set(ENV{PYTHONPATH} "${QFACE_BASE_LOCATION_NATIVE_PATH}")
 
     set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
 
@@ -135,7 +135,9 @@ function(facelift_add_interface TARGET_NAME)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
-    set(CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
+    find_package(PythonInterp 3.0 REQUIRED)
+
+    set(CODEGEN_COMMAND ${PYTHON_EXECUTABLE} ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
 
     string(REPLACE ";" " " CODEGEN_COMMAND_WITH_SPACES "${CODEGEN_COMMAND}")
     message("Calling facelift code generator. Command:\n" ${CODEGEN_COMMAND_WITH_SPACES})
@@ -146,7 +148,7 @@ function(facelift_add_interface TARGET_NAME)
     )
 
     if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
-        message(FATAL_ERROR "Facelift code generation failed. Command \"${CODEGEN_COMMAND}\". Return code: ${CODEGEN_RETURN_CODE}\n")
+        message(FATAL_ERROR "Facelift code generation failed. Command \"${CODEGEN_COMMAND_WITH_SPACES}\". PYTHONPATH=$ENV{PYTHONPATH} Return code: ${CODEGEN_RETURN_CODE}\n")
     endif()
 
     facelift_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
@@ -427,7 +429,8 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
     install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
     file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${URI}\nplugin ${PLUGIN_NAME}\ntypeinfo plugins.qmltypes")
 
-    if(NOT CMAKE_CROSSCOMPILING)
+    if(NOT CMAKE_CROSSCOMPILING AND NOT WIN32)
+        # not supported for now on Win32 since the required libraries can't be loaded without setting the PATH variable
         add_custom_command(
             OUTPUT  ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
             COMMAND ${_qt5Core_install_prefix}/bin/qmlplugindump -noinstantiate ${URI} ${PLUGIN_MAJOR_VERSION}.${PLUGIN_MINOR_VERSION} ${CMAKE_BINARY_DIR}/imports -output ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
