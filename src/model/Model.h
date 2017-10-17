@@ -707,7 +707,7 @@ public:
     {
         if (!method.isCallable()) {
             qFatal("Method \"%s\" of Facelift interface implementation \"%s\" is about to be called but it is not implemented in your QML file. "
-                    "That method MUST be implemented if it is called.", qPrintable(methodName), qPrintable(interface()->interfaceID()));
+                    "That method MUST be implemented if it is called.", qPrintable(methodName), qPrintable(interfac()->interfaceID()));
         }
 
         return method;
@@ -728,7 +728,7 @@ public:
         m_interface->componentCompleted();
     }
 
-    InterfaceBase *interface() const
+    facelift::InterfaceBase *interfac() const
     {
         return m_interface;
     }

@@ -74,7 +74,7 @@ IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject
     if (o == nullptr) {
         auto qmlImpl = qobject_cast<facelift::ModelQMLImplementationBase *>(object);
         if (qmlImpl != nullptr) {
-            provider = qmlImpl->interface();
+            provider = qmlImpl->interfac();
         }
     } else {
         provider = o->provider();

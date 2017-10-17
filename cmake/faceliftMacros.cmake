@@ -127,7 +127,12 @@ function(facelift_add_interface TARGET_NAME)
 
     set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
 
-    set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
+    if(WIN32)
+        set(OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # There is a weird issue on Windows related to the MOC if the generated files are outside of ${CMAKE_CURRENT_BINARY_DIR}
+    else()
+        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
+    endif()
+
     set(TYPES_OUTPUT_PATH ${OUTPUT_PATH}/types)
     set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
     set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
@@ -135,6 +140,7 @@ function(facelift_add_interface TARGET_NAME)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
+    # find_package(PythonInterp) causes some issues if the another version has been searched before, and it is not needed anyway on non-Win32 platforms
     if(WIN32)
         find_package(PythonInterp 3.0 REQUIRED)
         set(CODEGEN_COMMAND ${PYTHON_EXECUTABLE} ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
