@@ -218,7 +218,7 @@ function(facelift_add_library LIB_NAME)
 
     set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE)
     set(oneValueArgs )
-    set(multiValueArgs HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
+    set(multiValueArgs PRIVATE_DEFINITIONS HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(SOURCES ${ARGUMENT_SOURCES})
@@ -279,6 +279,8 @@ function(facelift_add_library LIB_NAME)
           set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE C)
        endif()
     endif()
+
+    target_compile_definitions(${LIB_NAME} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
 
     # We assume every lib links against QtCore at least
     target_link_libraries(${LIB_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})

@@ -694,13 +694,13 @@ public:
 
     Q_SIGNAL void implementationIDChanged();
 
-    void setInterface(InterfaceBase *interface)
+    void setInterface(InterfaceBase *i)
     {
-        m_interface = interface;
-        connect(interface, &InterfaceBase::readyChanged, this, &ModelQMLImplementationBase::readyChanged);
+        m_interface = i;
+        QObject::connect(i, &InterfaceBase::readyChanged, this, &ModelQMLImplementationBase::readyChanged);
 
         assignImplementationID();
-        connect(this, &QObject::objectNameChanged, this, &ModelQMLImplementationBase::assignImplementationID);
+        QObject::connect(this, &QObject::objectNameChanged, this, &ModelQMLImplementationBase::assignImplementationID);
     }
 
     QJSValue &checkMethod(QJSValue &method, const char *methodName)
