@@ -56,7 +56,8 @@ void ServiceMonitorBase::addWidget(PropertyWidgetBase &widget)
 
 bool ModuleMonitorBase::isEnabled()
 {
-    return (getenv("FACELIFT_ENABLE_MONITOR") != nullptr);
+    auto v = getenv("FACELIFT_ENABLE_MONITOR");
+    return ((v != nullptr) && (strcmp(v, "1") == 0));
 }
 
 
