@@ -255,7 +255,6 @@ function(facelift_add_library LIB_NAME)
         generateQRC("${RESOURCE_FOLDER}/" "${CMAKE_CURRENT_BINARY_DIR}")
         qt5_add_resources(RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/resources.qrc)
         set(RESOURCE_FILES ${RESOURCE_FILES} ${RESOURCES})
-        message("HHHH ${RESOURCE_FILES}")
     endforeach()
 
     qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} TARGET ${LIB_NAME})
@@ -336,7 +335,6 @@ function(facelift_add_library LIB_NAME)
 
     endif()
 
-
     if(INSTALL_LIB)
 
         # Install library
@@ -352,7 +350,6 @@ function(facelift_add_library LIB_NAME)
         endif()
 
     endif()
-
 
 endfunction()
 
@@ -400,6 +397,47 @@ function(facelift_export_project)
 endfunction()
 
 
+function(facelift_append_to_file_if_not_existing FILE_PATH CONTENT)
+    file(READ "${FILE_PATH}" FILE_CONTENT)
+    string(FIND "${FILE_CONTENT}" "${CONTENT}" IS_FOUND)
+    if(${IS_FOUND} LESS 0)
+        file(APPEND ${QMLDIR_PATH} "${CONTENT}")
+    endif()
+endfunction()
+
+
+function(facelift_add_qml_plugin_qmldir)
+
+    set(options SINGLETONS)
+    set(oneValueArgs URI BASE_FILE_PATH)
+    set(multiValueArgs FILES_GLOB_RECURSE)
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(URI ${ARGUMENT_URI})
+    set(BASE_PATH ${ARGUMENT_BASE_FILE_PATH})
+    string(REPLACE "." "/" PLUGIN_PATH ${ARGUMENT_URI})
+    set(INSTALL_PATH imports/${PLUGIN_PATH})
+    set(QMLDIR_PATH ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir)
+
+    file(GLOB_RECURSE qmlSources ${ARGUMENT_FILES_GLOB_RECURSE})
+
+    if(NOT EXISTS ${QMLDIR_PATH})
+        file(WRITE ${QMLDIR_PATH} "")
+    endif()
+    foreach(qmlSource ${qmlSources})
+        get_filename_component(_fileName ${qmlSource} NAME_WE)
+        file(RELATIVE_PATH relativePath ${BASE_PATH} ${qmlSource})
+        set(LINE "${_fileName} ${PLUGIN_MAJOR_VERSION}.${PLUGIN_MINOR_VERSION} qrc:/${relativePath}\n")
+        if(ARGUMENT_SINGLETONS)
+            set(LINE "singleton ${LINE}")
+        endif()
+        facelift_append_to_file_if_not_existing(${QMLDIR_PATH} "${LINE}")
+    endforeach()
+
+    install(FILES ${QMLDIR_PATH} DESTINATION ${INSTALL_PATH} COMPONENT ${PROJECT_NAME})
+
+endfunction()
+
 
 # Build and install a QML plugin
 function(facelift_add_qml_plugin PLUGIN_NAME)
@@ -438,7 +476,7 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
     install(TARGETS ${PLUGIN_NAME} DESTINATION ${INSTALL_PATH})
 
     install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
-    file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${URI}\nplugin ${PLUGIN_NAME}\ntypeinfo plugins.qmltypes")
+    file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${URI}\nplugin ${PLUGIN_NAME}\ntypeinfo plugins.qmltypes\n")
 
     if(NOT CMAKE_CROSSCOMPILING AND NOT WIN32)
         # not supported for now on Win32 since the required libraries can't be loaded without setting the PATH variable
@@ -452,3 +490,4 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
     endif()
 
 endfunction()
+
