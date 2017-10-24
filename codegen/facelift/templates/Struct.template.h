@@ -23,8 +23,10 @@
 class {{struct.name}}QObjectWrapper;
 
 /**
- * {{struct.name}} gadget
- */
+* \ingroup {{struct.module.name|toValidId}}
+*/
+
+{{struct.comment}}
 class {{struct.name}} : public facelift::Structure<
 {% for field in struct.fields %}
     {{ comma() }}
@@ -93,7 +95,8 @@ public:
 		{% set QmlType=QmlType + "Gadget::Type" %}
 	{% endif %}
 
-    Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
+	{{field.comment}}
+	Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
 
     const {{field|returnType}}& {{field.name}}() const {
         return m_{{field.name}};
@@ -134,10 +137,13 @@ Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 
 {{module|namespaceOpen}}
 
+{{struct.comment}}
 
 /**
- * A QObject wrapper of a {{struct.name}}, which is suitable from instantiation from QML, for example
- */
+* \class {{struct.name}}QObjectWrapper
+* \ingroup {{struct.module.name|toValidId}}
+* \inqmlmodule {{struct.module.name}}
+*/
 class {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
 {
     Q_OBJECT
@@ -170,11 +176,14 @@ public:
 
 {% for field in struct.fields %}
 
+//////////////////
+
 	{% set QmlType=field|returnType %}
 	{% if field.type.is_enum %}
 		{% set QmlType=QmlType + "Gadget::Type" %}
 	{% endif %}
 
+    {{field.comment}}
     Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}} NOTIFY {{field}}Changed)
 
     Q_SIGNAL void {{field}}Changed();
@@ -191,6 +200,9 @@ public:
 
 {% endfor %}
 
+    /**
+     * This property gives you access to the underlying gadget object
+     */
     Q_PROPERTY({{struct | fullyQualifiedCppName}} gadget READ gadget)
 
     {{struct.name}} gadget() const {
@@ -209,6 +221,9 @@ public:
     	m_id = gadget.id();
     }
 
+    /**
+     * This property contains the serialized form of the structure
+     */
     Q_PROPERTY(QByteArray serialized READ serialized WRITE setSerialized NOTIFY anyFieldChanged)
 
     QByteArray serialized() const {
@@ -221,6 +236,9 @@ public:
     	assignFromGadget(v);
     }
 
+    /**
+     * This signal is triggered when one of the fields is changed
+     */
     Q_SIGNAL void anyFieldChanged();
 
 };

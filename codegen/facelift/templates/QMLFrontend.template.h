@@ -37,6 +37,13 @@
 
 {{module|namespaceOpen}}
 
+
+/**
+* \class {{class}}QMLFrontend
+* \ingroup {{interface.module.name|toValidId}}
+* \inqmlmodule {{interface.module.name}}
+*/
+
 /**
  * This is the class registered as a QML component for the {{interface}} interface
  */
@@ -71,6 +78,8 @@ public:
     }
 
     {% for property in interface.properties %}
+
+    {{property.comment}}
 
     {% if property.type.is_model -%}
 

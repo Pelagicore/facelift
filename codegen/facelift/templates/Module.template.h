@@ -22,12 +22,22 @@
 
 {{module|namespaceOpen}}
 
+/**
+* \brief {{module.name}} module singleton object
+* \ingroup {{module.name|toValidId}}
+* \inqmlmodule {{module.name}}
+* This singleton can be used to create instances of the types defined in the {{module.name}} module/package.
+*/
 class Module : public QObject {
     Q_OBJECT
 public:
 	Module();
 
 {% for struct in module.structs %}
+
+    /**
+     * Create an instance of {{struct|fullyQualifiedName}}
+     */
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} create{{struct}}();
 {% endfor %}
 

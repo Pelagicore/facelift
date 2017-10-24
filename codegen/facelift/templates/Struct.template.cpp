@@ -7,7 +7,7 @@
 
 #include "{{struct}}.h"
 
-{{struct.comment}}
+
 
 
 {{module|namespaceOpen}}

@@ -29,6 +29,10 @@ def fullyQualifiedPath(symbol):
     return symbol.qualified_name.replace('.', '/')
 
 
+def toValidId(name):
+    return name.replace('.', '_')
+
+
 def fullyQualifiedName(symbol):
     return symbol.qualified_name
 
@@ -135,6 +139,7 @@ def run_generation(input, output):
     generator.register_filter('fullyQualifiedName', fullyQualifiedName)
     generator.register_filter('fullyQualifiedCppName', fullyQualifiedCppName)
     generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
+    generator.register_filter('toValidId', toValidId)
     generator.destination = output
 
     ctx = {'output': output}
