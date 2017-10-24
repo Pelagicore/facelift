@@ -91,6 +91,11 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 #ifdef ENABLE_IPC
     ModuleIPC::registerQmlTypes(uri, majorVersion, minorVersion);
 #endif
+
+#ifdef ENABLE_DESKTOP_TOOLS
+    ModuleDummy::registerQmlTypes(uri, majorVersion, minorVersion);
+#endif
+
 }
 
 {{module|namespaceClose}}

@@ -31,7 +31,7 @@ public:
         {% for interface in module.interfaces %}
         {
         	facelift::registerQmlComponent<{{interface|fullyQualifiedCppName}}Dummy>(uri, "{{interface.name}}Dummy");
-        	registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
+//        	registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
         }
         {% endfor %}
     }
