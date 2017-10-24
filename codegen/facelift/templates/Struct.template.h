@@ -228,52 +228,8 @@ public:
 
 class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> {
 
-//    Q_OBJECT
-
 	typedef facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> Base;
 
-public:
-
-/*
-    Q_INVOKABLE bool elementExists(int elementId) const {
-        for (const auto &element : property().value()) {
-            if (element.id() == elementId) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}} addElement({{struct | fullyQualifiedCppName}} element) {
-    	return Base::addElement(element);
-    }
-
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}} removeElementByID(int elementId) {
-    	return Base::removeElementByID(elementId);
-    }
-
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}} addCloneOf({{struct | fullyQualifiedCppName}}QObjectWrapper* element) {
-    	return Base::addElement(element->gadget().clone());
-    }
-
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}}QObjectWrapper* elementById(int elementId) const {
-        auto element = Base::elementById(elementId);
-
-        if (element != nullptr) {
-        	return new {{struct | fullyQualifiedCppName}}QObjectWrapper(*element);  // This instance will owned by the QML engine
-        }
-        else
-        	return nullptr;
-    }
-
-    Q_INVOKABLE int elementIndexById(int elementId) const {
-        return Base::elementIndexById(elementId);
-    }
-
-    Q_INVOKABLE {{struct | fullyQualifiedCppName}} elementAt(int index) const {
-        return Base::elementAt(index);
-    }
-*/
 };
 
 {{module|namespaceClose}}

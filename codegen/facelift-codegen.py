@@ -12,6 +12,8 @@ from path import Path
 import logging
 import logging.config
 import yaml
+import qface
+import pdb
 
 here = Path(__file__).dirname()
 
@@ -111,6 +113,12 @@ def requiredQMLInclude(symbol):
         return requiredIncludeFromType(type, "QMLFrontend.h")
     else:
         return ""
+
+
+def hasReturnValue(self):
+    return not self.type.name == 'void'
+
+setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
 
 
 def run_generation(input, output):

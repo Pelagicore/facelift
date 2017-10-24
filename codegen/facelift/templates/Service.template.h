@@ -35,9 +35,7 @@
 
 class {{class}}QMLFrontend;
 
-/**
- * Definition of the {{interface}} interface
- */
+{{interface.comment}}
 class {{class}} : public facelift::InterfaceBase {
 
     Q_OBJECT
@@ -98,6 +96,8 @@ public:
     {% endfor %}
 
     {% for operation in interface.operations %}
+
+    {{operation.comment}}
     virtual {{operation|returnType}} {{operation}}(
         {% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}
@@ -108,6 +108,7 @@ public:
     {% endfor %}
 
     {% for event in interface.signals %}
+    {{event.comment}}
     Q_SIGNAL void {{event}}(
         {% set comma = joiner(",") %}
         {% for parameter in event.parameters %}
