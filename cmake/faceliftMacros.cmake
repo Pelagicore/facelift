@@ -6,9 +6,17 @@ function(facelift_add_unity_files VAR_NAME)
     set(FILE_INDEX "0")
 
     unset(FILE_LIST)
+    unset(NON_UNITY_FILE_LIST)
     foreach(FILE ${ARGN})
+        get_filename_component(EXT "${FILE}" EXT)
         get_filename_component(ABSOLUTE_FILE "${FILE}" ABSOLUTE)
-        set(FILE_LIST ${FILE_LIST} ${ABSOLUTE_FILE})
+        set(EXTENSIONS .h .hpp .cpp)
+        list(FIND EXTENSIONS ${EXT} INDEX)
+        if(${INDEX} EQUAL -1)
+            list(APPEND NON_UNITY_FILE_LIST ${ABSOLUTE_FILE})
+        else()
+            list(APPEND FILE_LIST ${ABSOLUTE_FILE})
+        endif()
     endforeach()
 
     set(AGGREGATED_FILE_LIST "")
@@ -54,7 +62,7 @@ function(facelift_add_unity_files VAR_NAME)
 
     endwhile()
 
-    set(${VAR_NAME} ${AGGREGATED_FILE_LIST} PARENT_SCOPE)
+    set(${VAR_NAME} ${AGGREGATED_FILE_LIST} ${NON_UNITY_FILE_LIST} PARENT_SCOPE)
 
 endfunction()
 
