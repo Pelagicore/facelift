@@ -19,8 +19,7 @@
 
 namespace facelift {
 
-class QMLFrontendBase :
-    public QObject, public QQmlParserStatus
+class QMLFrontendBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
 
@@ -89,8 +88,7 @@ private:
 };
 
 template<typename ProviderType, typename QMLType>
-class TQMLFrontend :
-    public QMLType
+class TQMLFrontend : public QMLType
 {
 
 public:
@@ -115,6 +113,7 @@ public:
         m_provider.componentCompleted();  // notify anyone interested that we are ready (such as an IPC attached property)
     }
 
+private:
     ProviderType m_provider;
 
 };
@@ -151,10 +150,8 @@ void registerSingletonQmlComponent(const char *uri, const char *name = ProviderT
 
 
 
-class ModelListModelBase :
-    public QAbstractListModel
+class ModelListModelBase : public QAbstractListModel
 {
-
     Q_OBJECT
 
 public:
@@ -197,8 +194,7 @@ protected:
 };
 
 template<typename ElementType>
-class ModelListModel :
-    public ModelListModelBase
+class ModelListModel : public ModelListModelBase
 {
 public:
     typedef ElementType (QObject::*ElementGetterFunction)(size_t);

@@ -461,8 +461,7 @@ private:
 class IPCServiceAdapterBase;
 
 
-class InterfaceManager :
-    public QObject
+class InterfaceManager : public QObject
 {
     Q_OBJECT
 
@@ -483,8 +482,7 @@ private:
 
 };
 
-class IPCServiceAdapterBase :
-    public QDBusVirtualObject, public IPCAdapterBase
+class IPCServiceAdapterBase : public QDBusVirtualObject, public IPCAdapterBase
 {
 
     Q_OBJECT
@@ -693,8 +691,7 @@ protected:
 
 
 template<typename ServiceType>
-class IPCServiceAdapter :
-    public IPCServiceAdapterBase
+class IPCServiceAdapter : public IPCServiceAdapterBase
 {
 public:
     typedef ServiceType TheServiceType;
@@ -769,8 +766,7 @@ public:
 
 };
 
-class IPCProxyBinder :
-    public QObject
+class IPCProxyBinder : public QObject
 {
     Q_OBJECT
 
@@ -969,8 +965,7 @@ private:
 
 
 template<typename Type, typename IPCAdapterType>
-class IPCProxy :
-    public Type, protected IPCRequestHandler
+class IPCProxy : public Type, protected IPCRequestHandler
 {
 
 public:
@@ -1110,8 +1105,7 @@ private:
 
 };
 
-class IPCAdapterAttachedType :
-    public QObject
+class IPCAdapterAttachedType : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath NOTIFY objectPathChanged)
@@ -1138,8 +1132,7 @@ private:
 };
 
 
-class IPCAttachedPropertyFactory :
-    public QObject
+class IPCAttachedPropertyFactory : public QObject
 {
     Q_OBJECT
 

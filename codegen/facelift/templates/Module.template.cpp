@@ -27,11 +27,10 @@
 
 QObject* Module_singletontype_provider(QQmlEngine*, QJSEngine*)
 {
-      return new Module();
+    return new Module();
 }
 
-Module::Module()
-    : QObject()
+Module::Module() : facelift::ModuleBase()
 {
 }
 
@@ -61,6 +60,8 @@ void Module::registerTypes()
 void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
 {
     Q_UNUSED(uri);
+
+    registerTypes();
 
     qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, majorVersion, minorVersion, "QMLImplListPropertyBase", "");
     qmlRegisterUncreatableType<facelift::StructureBase>(uri, majorVersion, minorVersion, "StructureBase", "");

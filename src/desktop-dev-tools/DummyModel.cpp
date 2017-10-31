@@ -100,9 +100,9 @@ DummyModelControlWindow::DummyModelControlWindow()
     show();
 }
 
-bool isDefined(QQmlType* p)
+bool isDefined(QQmlType *p)
 {
-    return (p!=nullptr);
+    return (p != nullptr);
 }
 
 bool isDefined(QQmlType p)

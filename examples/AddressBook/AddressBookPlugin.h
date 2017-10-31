@@ -10,8 +10,7 @@
 
 #include <QQmlExtensionPlugin>
 
-class AddressBookPlugin :
-    public QQmlExtensionPlugin
+class AddressBookPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface")

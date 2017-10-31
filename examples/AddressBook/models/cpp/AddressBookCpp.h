@@ -15,8 +15,7 @@ using namespace facelift::example::addressbook;
 /**
  * C++ Implementation of the AddressBook API
  */
-class AddressBookCpp :
-    public AddressBook
+class AddressBookCpp : public AddressBook
 {
 
     Q_OBJECT

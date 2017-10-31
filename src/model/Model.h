@@ -178,8 +178,7 @@ struct ModelTypeTraits<EnumType, typename std::enable_if<std::is_enum<EnumType>:
 
 
 template<typename ... FieldTypes>
-class Structure :
-    public StructureBase
+class Structure : public StructureBase
 {
 
 public:
@@ -413,8 +412,7 @@ struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::typ
 
 
 template<>
-struct TypeHandler<bool> :
-    public TypeHandlerBase
+struct TypeHandler<bool> : public TypeHandlerBase
 {
     static QString toString(const bool &v)
     {
@@ -430,8 +428,7 @@ struct TypeHandler<bool> :
 
 
 template<>
-struct TypeHandler<int> :
-    public TypeHandlerBase
+struct TypeHandler<int> : public TypeHandlerBase
 {
     static QString toString(const int &v)
     {
@@ -447,8 +444,7 @@ struct TypeHandler<int> :
 
 
 template<>
-struct TypeHandler<float> :
-    public TypeHandlerBase
+struct TypeHandler<float> : public TypeHandlerBase
 {
     static QString toString(const float &v)
     {
@@ -463,8 +459,7 @@ struct TypeHandler<float> :
 
 
 template<>
-struct TypeHandler<QString> :
-    public TypeHandlerBase
+struct TypeHandler<QString> : public TypeHandlerBase
 {
     static QString toString(const QString &v)
     {
@@ -543,17 +538,12 @@ using PropertyGetter = const PropertyType &(*)();
 class InterfaceBase;
 
 
-class ServiceRegistry :
-    public QObject
+class ServiceRegistry : public QObject
 {
     Q_OBJECT
 
 public:
-    static ServiceRegistry &instance()
-    {
-        static ServiceRegistry reg;
-        return reg;
-    }
+    static ServiceRegistry &instance();
 
     virtual ~ServiceRegistry();
 
@@ -580,8 +570,7 @@ class IPCAdapterBase
 /**
  * Base interface which every interface inherits from
  */
-class InterfaceBase :
-    public QObject
+class InterfaceBase : public QObject
 {
     Q_OBJECT
 
@@ -646,8 +635,7 @@ private:
 };
 
 
-class ModelQMLImplementationBase :
-    public QObject, public QQmlParserStatus
+class ModelQMLImplementationBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
 
@@ -755,8 +743,7 @@ private:
 };
 
 template<typename InterfaceType>
-class ModelQMLImplementation :
-    public ModelQMLImplementationBase
+class ModelQMLImplementation : public ModelQMLImplementationBase
 {
 
 public:
@@ -979,8 +966,7 @@ protected:
  *
  */
 template<typename WrappedType>
-class ServiceWrapper :
-    public WrappedType, public ServiceWrapperBase
+class ServiceWrapper : public WrappedType, public ServiceWrapperBase
 {
 
 public:
@@ -1017,8 +1003,10 @@ private:
 
 };
 
-class ModuleBase
+class ModuleBase : public QObject
 {
+    Q_OBJECT
+
 public:
     ModuleBase()
     {

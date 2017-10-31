@@ -239,8 +239,7 @@ struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_enum<Type
 
 };
 
-class DummyModelBase :
-    public QObject
+class DummyModelBase : public QObject
 {
     Q_OBJECT
 
@@ -351,8 +350,7 @@ private:
 };
 
 
-class DummyModelControlWindow :
-    public QMainWindow
+class DummyModelControlWindow : public QMainWindow
 {
 
 public:
@@ -379,8 +377,7 @@ private:
  * Abstract class for dummy models
  */
 template<typename TypeName>
-class DummyModel :
-    public DummyModelBase
+class DummyModel : public DummyModelBase
 {
 
 public:

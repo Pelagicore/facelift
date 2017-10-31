@@ -30,8 +30,7 @@ ServiceMonitorBase *monitorFactory(InterfaceBase *provider)
 }
 
 
-class ServiceMonitorManager :
-    public QAbstractTableModel
+class ServiceMonitorManager : public QAbstractTableModel
 {
     Q_OBJECT
 
@@ -96,8 +95,7 @@ private:
 };
 
 
-class ServiceMonitorBase :
-    public QObject
+class ServiceMonitorBase : public QObject
 {
 
     Q_OBJECT
@@ -125,8 +123,7 @@ private:
 
 
 template<typename ProviderType>
-class ServiceMonitor :
-    public ServiceMonitorBase
+class ServiceMonitor : public ServiceMonitorBase
 {
 
 public:

@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QPalette>
 #include <QDir>
+#include <QWidget>
 #include <QComboBox>
 #include <QScrollArea>
 
@@ -25,8 +26,7 @@
 
 namespace facelift {
 
-class PropertyWidgetBase :
-    public QWidget
+class PropertyWidgetBase : public QWidget
 {
     Q_OBJECT
 
@@ -72,8 +72,7 @@ private:
 
 
 template<typename PropertyType>
-class PropertyWidget :
-    public PropertyWidgetBase
+class PropertyWidget : public PropertyWidgetBase
 {
 
 public:
@@ -113,8 +112,7 @@ private:
 
 
 template<typename EnumType>
-class EnumerationPropertyWidget :
-    public PropertyWidget<EnumType>
+class EnumerationPropertyWidget : public PropertyWidget<EnumType>
 {
 
 public:
@@ -158,8 +156,7 @@ private:
 };
 
 
-class BooleanPropertyWidget :
-    public PropertyWidget<bool>
+class BooleanPropertyWidget : public PropertyWidget<bool>
 {
 
 public:
@@ -193,8 +190,7 @@ private:
 };
 
 
-class IntegerPropertyWidget :
-    public PropertyWidget<int>
+class IntegerPropertyWidget : public PropertyWidget<int>
 {
 
 public:
@@ -228,8 +224,7 @@ private:
     QSpinBox *widget = nullptr;
 };
 
-class FloatPropertyWidget :
-    public PropertyWidget<float>
+class FloatPropertyWidget : public PropertyWidget<float>
 {
 
 public:
@@ -265,8 +260,7 @@ private:
 };
 
 
-class StringPropertyWidget :
-    public PropertyWidget<QString>
+class StringPropertyWidget : public PropertyWidget<QString>
 {
 
 public:
@@ -301,8 +295,7 @@ private:
 
 
 template<typename ElementType>
-class ListPropertyWidget :
-    public PropertyWidget<QList<ElementType> >
+class ListPropertyWidget : public PropertyWidget<QList<ElementType> >
 {
 
 public:
@@ -342,8 +335,7 @@ public:
 
 
 template<typename ElementType>
-class SimpleListPropertyWidget :
-    public ListPropertyWidget<ElementType>
+class SimpleListPropertyWidget : public ListPropertyWidget<ElementType>
 {
 
 public:
@@ -369,44 +361,38 @@ struct TypeToWidgetBase
 };
 
 template<typename Type, typename Sfinae = void>
-struct TypeToWidget :
-    public TypeToWidgetBase
+struct TypeToWidget : public TypeToWidgetBase
 {
     typedef PropertyWidget<Type> PanelType;
 };
 
 
 template<typename ListElementType>
-struct TypeToWidget<QList<ListElementType> > :
-    public TypeToWidgetBase
+struct TypeToWidget<QList<ListElementType> > : public TypeToWidgetBase
 {
     typedef SimpleListPropertyWidget<ListElementType> PanelType;
 };
 
 template<>
-struct TypeToWidget<bool> :
-    public TypeToWidgetBase
+struct TypeToWidget<bool> : public TypeToWidgetBase
 {
     typedef BooleanPropertyWidget PanelType;
 };
 
 template<>
-struct TypeToWidget<int> :
-    public TypeToWidgetBase
+struct TypeToWidget<int> : public TypeToWidgetBase
 {
     typedef IntegerPropertyWidget PanelType;
 };
 
 template<>
-struct TypeToWidget<float> :
-    public TypeToWidgetBase
+struct TypeToWidget<float> : public TypeToWidgetBase
 {
     typedef FloatPropertyWidget PanelType;
 };
 
 template<>
-struct TypeToWidget<QString> :
-    public TypeToWidgetBase
+struct TypeToWidget<QString> : public TypeToWidgetBase
 {
     typedef StringPropertyWidget PanelType;
 };
@@ -419,8 +405,7 @@ struct TypeToWidget<EnumType, typename std::enable_if<std::is_enum<EnumType>::va
 
 
 template<typename StructType>
-class StructurePropertyWidget :
-    public PropertyWidget<StructType>
+class StructurePropertyWidget : public PropertyWidget<StructType>
 {
     typedef std::array<const char *, StructType::FieldCount> FieldNames;
     typedef typename StructType::FieldTupleTypes FieldTypes;

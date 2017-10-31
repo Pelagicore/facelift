@@ -103,7 +103,6 @@ struct call_impl<Model, F, Tuple, true, Total, N ...>
 };
 }
 
-// user invokes this
 template<typename Model, typename F, typename Tuple>
 void call_method(Model *obj, F f, Tuple &&t)
 {

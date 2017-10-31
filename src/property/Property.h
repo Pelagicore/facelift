@@ -110,8 +110,7 @@ private:
  * done automatically for him.
  */
 template<typename Type>
-class Property :
-    public PropertyBase
+class Property : public PropertyBase
 {
 
     typedef std::function<Type()> GetterFunction;
@@ -279,8 +278,7 @@ private:
 
 
 template<typename Type>
-class ServiceProperty :
-    public Property<Type *>
+class ServiceProperty : public Property<Type *>
 {
 
 public:
@@ -297,8 +295,7 @@ public:
 };
 
 template<typename ElementType>
-class ListProperty :
-    public Property<QList<ElementType> >
+class ListProperty : public Property<QList<ElementType> >
 {
 
 public:
@@ -352,8 +349,7 @@ private:
 
 
 template<typename ElementType>
-class ModelProperty :
-    public PropertyBase
+class ModelProperty : public PropertyBase
 {
 public:
     typedef std::function<ElementType(int)> ElementGetter;

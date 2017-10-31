@@ -11,8 +11,7 @@
 #include <QDebug>
 
 
-class MyAddressBookImplementation :
-    public AddressBookImplementation
+class MyAddressBookImplementation : public AddressBookImplementation
 {
 
     QString property1() const
@@ -27,8 +26,7 @@ class MyAddressBookImplementation :
 };
 
 
-class MyAddressBookImplementationWithProperties :
-    public AddressBookImplementationWithProperties
+class MyAddressBookImplementationWithProperties : public AddressBookImplementationWithProperties
 {
 
 public:
@@ -40,8 +38,7 @@ public:
 };
 
 
-class MyAddressBookExtendedImplementation :
-    public MyAddressBookImplementationWithProperties
+class MyAddressBookExtendedImplementation : public MyAddressBookImplementationWithProperties
 {
 
 public:
@@ -55,7 +52,6 @@ public:
 
 int main()
 {
-
     MyAddressBookImplementation i1;
     MyAddressBookImplementationWithProperties i2;
     MyAddressBookExtendedImplementation i3;

@@ -28,4 +28,11 @@ void ServiceRegistry::registerObject(InterfaceBase *i)
         });
 }
 
+ServiceRegistry &ServiceRegistry::instance()
+{
+    static ServiceRegistry reg;
+    return reg;
+}
+
+
 }

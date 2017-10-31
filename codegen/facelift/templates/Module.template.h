@@ -28,21 +28,31 @@
 * \inqmlmodule {{module.name}}
 * This singleton can be used to create instances of the types defined in the {{module.name}} module/package.
 */
-class Module : public QObject {
+class Module : public facelift::ModuleBase {
+
     Q_OBJECT
+
 public:
 	Module();
 
 {% for struct in module.structs %}
-
     /**
      * Create an instance of {{struct|fullyQualifiedName}}
      */
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} create{{struct}}();
+
 {% endfor %}
 
-    static void registerTypes();
+    /**
+     * Register all QML types provided by this module
+     */
     static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
+
+    /**
+     * Register metatypes off all types defined by this module. This method is called automatically by registerQmlTypes()
+     */
+    static void registerTypes();
+
 };
 
 {{module|namespaceClose}}

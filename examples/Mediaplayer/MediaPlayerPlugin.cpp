@@ -15,9 +15,7 @@ using namespace mediaplayer;
 
 void TunerModelPlugin::registerTypes(const char *uri)
 {
-    mediaplayer::Module::registerTypes();
     mediaplayer::Module::registerQmlTypes(uri);
 
     facelift::registerSingletonQmlComponent<MediaIndexerModelCpp>(uri);
-
 }

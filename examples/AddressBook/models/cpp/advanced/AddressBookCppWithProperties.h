@@ -17,15 +17,13 @@ using namespace facelift::example::addressbook;
 /**
  * C++ Implementation of the AddressBook API, using the PropertyAdapter helper class
  */
-class AddressBookCppWithProperties :
-    public AddressBookPropertyAdapter
+class AddressBookCppWithProperties : public AddressBookPropertyAdapter
 {
 
     Q_OBJECT
 
 public:
-    AddressBookCppWithProperties(QObject *parent = nullptr) :
-        AddressBookPropertyAdapter(parent)
+    AddressBookCppWithProperties(QObject *parent = nullptr) :        AddressBookPropertyAdapter(parent)
     {
         setImplementationID("C++ model implemented with properties");
 
@@ -52,8 +50,7 @@ public:
         qDebug() << "privateMethod called !";
     }
 
-    class SubInterfaceImpl :
-        public SubInterfacePropertyAdapter
+    class SubInterfaceImpl : public SubInterfacePropertyAdapter
     {
         void doSomething() override
         {

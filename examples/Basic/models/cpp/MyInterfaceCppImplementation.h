@@ -8,8 +8,7 @@ using namespace facelift::example::mypackage;
 /**
  * C++ Implementation of the MyInterface API
  */
-class MyInterfaceCppImplementation :
-    public MyInterfacePropertyAdapter
+class MyInterfaceCppImplementation : public MyInterfacePropertyAdapter
 {
 
 public:

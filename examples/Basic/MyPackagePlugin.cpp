@@ -21,13 +21,7 @@ using namespace facelift::example::mypackage;
 void MyPackagePlugin::registerTypes(const char *uri)
 {
     // Register the generated types
-    Module::registerTypes();
     Module::registerQmlTypes(uri);
-
-#ifdef FACELIFT_ENABLE_IPC
-    // We register the IPC adapters/proxies so that we can use our interfaces across process boundaries
-    ModuleIPC::registerQmlTypes(uri);
-#endif
 
     // We are registering the model types here, which can be used by the UI code.
     // The decision to register a dummy, QML, or C++ implementation should be taken here

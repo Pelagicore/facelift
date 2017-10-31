@@ -112,8 +112,7 @@ protected:
 };
 
 template<typename QMLModelImplementationType>
-class QMLModelImplementationFrontend :
-    public QMLModelImplementationFrontendBase
+class QMLModelImplementationFrontend : public QMLModelImplementationFrontendBase
 {
 protected:
     QMLModelImplementationFrontend()
@@ -125,8 +124,7 @@ protected:
 };
 
 
-class QMLImplListPropertyBase :
-    public QObject
+class QMLImplListPropertyBase : public QObject
 {
     Q_OBJECT
 
@@ -143,9 +141,9 @@ public:
 };
 
 template<typename ElementType>
-class TQMLImplListProperty :
-    public QMLImplListPropertyBase
+class TQMLImplListProperty : public QMLImplListPropertyBase
 {
+
 public:
     Property<QList<ElementType> > &property() const
     {
@@ -216,69 +214,6 @@ public:
         return property().value();
     }
 
-    /*
-        ElementType addElement(ElementType element)
-        {
-            auto list = m_property->value();
-            list.append(element);
-            m_property->setValue(list);
-            return list[list.size() - 1];
-        }
-
-        bool elementExists(ModelElementID elementId) const
-        {
-            for (const auto &element : property().value()) {
-                if (element.id() == elementId) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        const ElementType *elementById(ModelElementID elementId) const
-        {
-            Q_ASSERT(elementExists(elementId));
-            for (const auto &element : property().value()) {
-                if (element.id() == elementId) {
-                    return &element;
-                }
-            }
-            return nullptr;
-        }
-
-        ElementType removeElementByID(ModelElementID elementId)
-        {
-            ElementType returnValue;
-            auto list = m_property->value();
-            for (const auto &element : list) {
-                if (element.id() == elementId) {
-                    returnValue = element;
-                    list.removeAll(element);
-                    m_property->setValue(list);
-                    break;
-                }
-            }
-            return returnValue;
-        }
-
-        int elementIndexById(ModelElementID elementId) const
-        {
-            auto &list = property().value();
-            for (int index = 0; index < list.size(); index++) {
-                if (list[index].id() == elementId) {
-                    return index;
-                }
-            }
-            return -1;
-        }
-
-        const ElementType &elementAt(int index) const
-        {
-            Q_ASSERT((index >= 0) && (index < size()));
-            return property().value()[index];
-        }
-    */
-
 private:
     Property<QList<ElementType> > *m_property = nullptr;
     QList<QVariant> m_assignedVariantList;
@@ -287,17 +222,14 @@ private:
 
 
 template<typename ElementType>
-class QMLImplListProperty :
-    public TQMLImplListProperty<ElementType>
+class QMLImplListProperty : public TQMLImplListProperty<ElementType>
 {
 
 };
 
 
-class StructQObjectWrapperBase :
-    public QObject
+class StructQObjectWrapperBase : public QObject
 {
-
     Q_OBJECT
 
 public:
@@ -327,8 +259,7 @@ protected:
 
 
 template<typename StructType>
-class StructQObjectWrapper :
-    public StructQObjectWrapperBase
+class StructQObjectWrapper : public StructQObjectWrapperBase
 {
 
 public:
@@ -365,8 +296,7 @@ private:
 };
 
 template<typename StructQMLWrapperType>
-class QObjectWrapperPointer :
-    public QObjectWrapperPointerBase
+class QObjectWrapperPointer : public QObjectWrapperPointerBase
 {
 
 public:

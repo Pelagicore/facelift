@@ -10,8 +10,7 @@
 
 #include <QQmlExtensionPlugin>
 
-class MyPackagePlugin :
-    public QQmlExtensionPlugin
+class MyPackagePlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface")

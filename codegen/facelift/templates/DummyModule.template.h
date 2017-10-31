@@ -1,5 +1,3 @@
-
-{% set class = 'Module' %}
 /****************************************************************************
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
@@ -20,19 +18,19 @@
 
 {{module|namespaceOpen}}
 
-class {{class}}Dummy : public facelift::DummyModuleBase {
+class ModuleDummy : public facelift::DummyModuleBase {
 
 public:
 
     static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}})
     {
         Q_UNUSED(uri);
+        Q_UNUSED(majorVersion);
+        Q_UNUSED(minorVersion);
 
         {% for interface in module.interfaces %}
-        {
-        	facelift::registerQmlComponent<{{interface|fullyQualifiedCppName}}Dummy>(uri, "{{interface.name}}Dummy");
-//        	registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
-        }
+        facelift::registerQmlComponent<{{interface|fullyQualifiedCppName}}Dummy>(uri, "{{interface.name}}Dummy");
+//      	registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
         {% endfor %}
     }
 
