@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <QObject>
+#include "Model.h"
 
 {% for struct in module.structs %}
 #include "{{struct|fullyQualifiedPath}}.h"

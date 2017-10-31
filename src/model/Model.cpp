@@ -13,7 +13,6 @@ namespace facelift {
 ModelElementID StructureBase::s_nextID = 0;
 constexpr int StructureBase::ROLE_ID;
 
-
 ServiceRegistry::~ServiceRegistry()
 {
 }
@@ -34,5 +33,10 @@ ServiceRegistry &ServiceRegistry::instance()
     return reg;
 }
 
+void ModuleBase::registerQmlTypes(const char *uri, int majorVersion, int minorVersion)
+{
+    qmlRegisterUncreatableType<facelift::StructureBase>(uri, majorVersion, minorVersion, "StructureBase", "");
+    qmlRegisterUncreatableType<facelift::InterfaceBase>(uri, majorVersion, minorVersion, "InterfaceBase", "");
+}
 
 }

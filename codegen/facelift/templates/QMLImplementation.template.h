@@ -280,7 +280,7 @@ inline {{interface}}QMLImplementationFrontend::{{interface}}QMLImplementationFro
 }
 
 inline {{interface}}QMLImplementationFrontend::{{interface}}QMLImplementationFrontend() {
-    m_impl = {{interface}}QMLImplementation::createComponent<{{interface}}QMLImplementation>(qmlEngine(), this);
+    m_impl = createComponent<{{interface}}QMLImplementation>(qmlEngine(), this);
 }
 
 inline QObject* {{interface}}QMLImplementationFrontend::impl() {

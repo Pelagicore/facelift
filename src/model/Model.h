@@ -802,27 +802,6 @@ public:
         frontendUnderConstruction() = instance;
     }
 
-    template<typename ModelImplClass>
-    static ModelImplClass *createComponent(QQmlEngine *engine, InterfaceType *frontend)
-    {
-        auto path = modelImplementationFilePath();
-
-        // Save the reference to the frontend which we are currently creating, so that the QML model implementation is able
-        // to access it from its constructor
-        setFrontendUnderConstruction(frontend);
-        ModelImplClass *r = nullptr;
-        qDebug() << "Creating QML component from file : " << path;
-        QQmlComponent component(engine, QUrl::fromLocalFile(path));
-        if (!component.isError()) {
-            QObject *object = component.create();
-            r = qobject_cast<ModelImplClass *>(object);
-        } else {
-            qWarning() << "Error : " << component.errorString();
-            qFatal("Can't create QML model");
-        }
-        return r;
-    }
-
     void checkInterface() const
     {
         Q_ASSERT(m_interface != nullptr);
@@ -1012,6 +991,7 @@ public:
     {
     }
 
+    static void registerQmlTypes(const char *uri, int majorVersion, int minorVersion);
 };
 
 
@@ -1021,22 +1001,6 @@ inline int qRegisterMetaType()
     auto r = ::qRegisterMetaType<Type>();
     return r;
 }
-
-/*
-template<typename Type>
-inline QVariant toVariant(const Type &v)
-{
-    return v;
-}
-
-template<typename Type>
-inline QVariant toVariant(const QList<Type> &v)
-{
-    NOT_IMPLEMENTED();
-    Q_UNUSED(v);
-    return "";
-}
-*/
 
 
 template<typename Type>

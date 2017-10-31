@@ -12,8 +12,7 @@ class MyInterfaceCppImplementation : public MyInterfacePropertyAdapter
 {
 
 public:
-    MyInterfaceCppImplementation(QObject *parent = nullptr) :
-        MyInterfacePropertyAdapter(parent)
+    MyInterfaceCppImplementation(QObject *parent = nullptr) : MyInterfacePropertyAdapter(parent)
     {
         connect(&m_timer, &QTimer::timeout, this, [this] () {
             m_counter++;   // The value change signal is automatically triggered for you here

@@ -87,6 +87,9 @@ private:
 
 };
 
+/*!
+ * This is the class which is registered when calling registerQmlComponent()
+ */
 template<typename ProviderType, typename QMLType>
 class TQMLFrontend : public QMLType
 {
@@ -118,14 +121,6 @@ private:
 
 };
 
-template<typename ProviderType>
-void registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion =
-        ProviderType::VERSION_MAJOR,
-        int minorVersion = ProviderType::VERSION_MINOR)
-{
-    ProviderType::registerTypes(uri);
-    ::qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, majorVersion, minorVersion, name);
-}
 
 template<typename Type>
 QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
@@ -138,16 +133,36 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
     return obj;
 }
 
+
+/*!
+ * Register the given interface QML implementation as a creatable QML component.
+ * By default, the component is registered under the same name as defined in the Qface definition.
+ */
 template<typename ProviderType>
-void registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME,
+int registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion =
+        ProviderType::VERSION_MAJOR,
+        int minorVersion = ProviderType::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
+{
+    ProviderType::registerTypes(uri);
+    return ::qmlRegisterType<TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> >(uri, majorVersion, minorVersion, name);
+}
+
+
+/*!
+ * Register the given interface QML implementation as a creatable QML component.
+ * By default, the component is registered under the same name as defined in the Qface definition.
+ */
+template<typename ProviderType>
+int registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME,
         int majorVersion = ProviderType::VERSION_MAJOR,
-        int minorVersion = ProviderType::VERSION_MINOR)
+        int minorVersion = ProviderType::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
 {
     ProviderType::registerTypes(uri);
     typedef TQMLFrontend<ProviderType, typename ProviderType::QMLFrontendType> QMLType;
-    qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
+    return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
-
 
 
 class ModelListModelBase : public QAbstractListModel

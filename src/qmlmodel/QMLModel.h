@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Model.h"
+#include "QMLFrontend.h"
 #include "Property.h"
 
 namespace facelift {
@@ -114,9 +115,30 @@ protected:
 template<typename QMLModelImplementationType>
 class QMLModelImplementationFrontend : public QMLModelImplementationFrontendBase
 {
+
 protected:
     QMLModelImplementationFrontend()
     {
+    }
+
+    template<typename ModelImplClass, typename InterfaceType>
+    ModelImplClass *createComponent(QQmlEngine *engine, InterfaceType *frontend)
+    {
+        auto path = ModelImplClass::modelImplementationFilePath();
+        // Save the reference to the frontend which we are currently creating, so that the QML model implementation is able
+        // to access it from its constructor
+        ModelImplClass::setFrontendUnderConstruction(frontend);
+        ModelImplClass *r = nullptr;
+        qDebug() << "Creating QML component from file : " << path;
+        QQmlComponent component(engine, QUrl::fromLocalFile(path));
+        if (!component.isError()) {
+            QObject *object = component.create();
+            r = qobject_cast<ModelImplClass *>(object);
+        } else {
+            qWarning() << "Error : " << component.errorString();
+            qFatal("Can't create QML model");
+        }
+        return r;
     }
 
     QMLModelImplementationType *m_impl = nullptr;
@@ -326,6 +348,45 @@ private:
     QPointer<StructQMLWrapperType> m_pointer;
 
 };
+
+/*!
+ * Register the given interface QML implementation as a creatable QML component.
+ * By default, the component is registered under the same name as defined in the Qface definition.
+ * \param qmlFilePath Path of the file containing the QML implementation of the interface
+ */
+template<typename QMLImplementationType>
+int registerQmlComponent(const char *uri, const char *qmlFilePath,
+        const char *componentName = QMLImplementationType::Provider::QMLFrontendType::INTERFACE_NAME,
+        int majorVersion = QMLImplementationType::Provider::VERSION_MAJOR,
+        int minorVersion = QMLImplementationType::Provider::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, QMLImplementationType>::value>::type * = nullptr)
+{
+//    qDebug() << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
+    QMLImplementationType::Provider::registerTypes(uri);
+    QMLImplementationType::setModelImplementationFilePath(qmlFilePath);
+    return ::qmlRegisterType<TQMLFrontend<typename QMLImplementationType::Provider,
+           typename QMLImplementationType::Provider::QMLFrontendType> >(uri, majorVersion, minorVersion, componentName);
+}
+
+
+
+/*!
+ * Register the given interface QML implementation as QML singleton.
+ * By default, the component is registered under the same name as defined in the Qface definition.
+ * \param qmlFilePath Path of the file containing the QML implementation of the interface
+ */
+template<typename QMLImplementationType>
+int registerSingletonQmlComponent(const char *uri, const char *qmlFilePath,
+        const char *name = QMLImplementationType::Provider::QMLFrontendType::INTERFACE_NAME,
+        int majorVersion = QMLImplementationType::Provider::VERSION_MAJOR,
+        int minorVersion = QMLImplementationType::Provider::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, QMLImplementationType>::value>::type * = nullptr)
+{
+    QMLImplementationType::Provider::registerTypes(uri);
+    QMLImplementationType::setModelImplementationFilePath(qmlFilePath);
+    typedef TQMLFrontend<typename QMLImplementationType::Provider, typename QMLImplementationType::Provider::QMLFrontendType> QMLType;
+    return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
+}
 
 
 }

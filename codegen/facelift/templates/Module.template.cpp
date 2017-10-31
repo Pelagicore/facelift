@@ -43,10 +43,16 @@ Module::Module() : facelift::ModuleBase()
 
 void Module::registerTypes()
 {
+#ifndef NDEBUG
+    static bool alreadyRegistered = false;
+    if (alreadyRegistered)
+        qWarning() << "Types from facelift module \"{{module.name}}\" already registered. Do not call registerTypes() explicitly";
+    alreadyRegistered = true;
+#endif
+
     {% for enum in module.enums %}
     facelift::qRegisterMetaType<{{enum|fullyQualifiedCppName}}>();
     {% endfor %}
-
     {% for struct in module.structs %}
     qRegisterMetaType<{{struct|fullyQualifiedCppName}}>();
     {% endfor %}
@@ -63,20 +69,25 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
     registerTypes();
 
+    qmlRegisterSingletonType<Module>(uri, majorVersion, minorVersion, "Module", Module_singletontype_provider);
+
     qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, majorVersion, minorVersion, "QMLImplListPropertyBase", "");
-    qmlRegisterUncreatableType<facelift::StructureBase>(uri, majorVersion, minorVersion, "StructureBase", "");
-    qmlRegisterUncreatableType<facelift::InterfaceBase>(uri, majorVersion, minorVersion, "InterfaceBase", "");
+    ModuleBase::registerQmlTypes(uri, majorVersion, minorVersion);
 
     {% for struct in module.structs %}
     ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
     {% endfor %}
 
-    qmlRegisterSingletonType<Module>(uri, majorVersion, minorVersion, "Module", Module_singletontype_provider);
-
     {% for enum in module.enums %}
     qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
     {% endfor %}
 
+    // Register components used to implement an interface from QML
+    {% for interface in module.interfaces %}
+    ::qmlRegisterType<{{interface}}QMLImplementation>(uri, majorVersion, minorVersion, {{interface}}QMLImplementation::QML_NAME);
+    {% endfor %}
+
+/*
     {% for interface in module.interfaces %}
     {
     	facelift::registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri, "{{interface.name}}QML");
@@ -90,6 +101,7 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
         }
     }
     {% endfor %}
+*/
 
 #ifdef ENABLE_IPC
     ModuleIPC::registerQmlTypes(uri, majorVersion, minorVersion);
