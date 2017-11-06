@@ -449,6 +449,29 @@ function(facelift_add_qml_plugin_qmldir)
 endfunction()
 
 
+# Add a FILE and install it at the given DESTINATION in both the build folder and in the installation folder
+# The DESTINATION parameter must be a relative path
+# If specified, the RELATIVE_PATH_VARIABLE_NAME variable is set in the caller's scope and contains the path where the 
+# file is located, relative to the RELATIVE_PATH_BASE parameter. That relative path is valid in both the build folder
+# and the installation folder
+function(facelift_install_file)
+    set(options )
+    set(oneValueArgs FILE DESTINATION RELATIVE_PATH_BASE RELATIVE_PATH_VARIABLE_NAME)
+    set(multiValueArgs )
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    get_filename_component(BASENAME ${ARGUMENT_FILE} NAME)
+    configure_file(${ARGUMENT_FILE} ${CMAKE_BINARY_DIR}/${ARGUMENT_DESTINATION}/${BASENAME} @ONLY)
+    install(FILES ${CMAKE_BINARY_DIR}/${ARGUMENT_DESTINATION}/${BASENAME} DESTINATION ${ARGUMENT_DESTINATION})
+
+    if(ARGUMENT_RELATIVE_PATH_VARIABLE_NAME)
+       file(RELATIVE_PATH RELATIVE_PATH_VALUE "${CMAKE_INSTALL_PREFIX}/${ARGUMENT_RELATIVE_PATH_BASE}" "${CMAKE_INSTALL_PREFIX}/${ARGUMENT_DESTINATION}/${BASENAME}")
+       set(${ARGUMENT_RELATIVE_PATH_VARIABLE_NAME} ${RELATIVE_PATH_VALUE} PARENT_SCOPE)
+    endif()
+
+endfunction()
+
+
 # Build and install a QML plugin
 function(facelift_add_qml_plugin PLUGIN_NAME)
 
