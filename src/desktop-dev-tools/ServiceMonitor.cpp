@@ -53,6 +53,11 @@ void ServiceMonitorBase::addWidget(PropertyWidgetBase &widget)
     m_widgets.append(&widget);
 }
 
+void ServiceMonitorBase::appendLog(QString textToAppend)
+{
+    QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
+    ui->logLabel->setPlainText(text);
+}
 
 bool ModuleMonitorBase::isEnabled()
 {

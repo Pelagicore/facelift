@@ -13,12 +13,6 @@ option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ON)
 
 find_package(Qt5 REQUIRED Core Gui Qml Quick)
 
-#if (FACELIFT_ENABLE_IPC)
-#    message("IPC is enabled => we need Qt5DBus")
-#    find_package(Qt5DBus REQUIRED)
-#    add_definitions(-DFACELIFT_ENABLE_IPC)
-#endif()
-
 set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
@@ -35,8 +29,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# Make our build folder look like our installation folder
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 
 function(add_example_script NAME MAIN_QML_FILE)
     set(QML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_QML_FILE})

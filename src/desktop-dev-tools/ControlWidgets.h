@@ -60,6 +60,8 @@ public:
         return m_propertyName;
     }
 
+    virtual void enableEdition() = 0;
+
     Q_SIGNAL void valueChanged();
 
     virtual void refreshWidgetFromValue() = 0;
@@ -268,13 +270,13 @@ public:
         PropertyWidget(value, propertyName, parent)
     {
         widget = new QTextEdit();
-        widget->setReadOnly(false);
+        widget->setReadOnly(true);
         addWidget(widget);
     }
 
     void enableEdition()
     {
-        widget->setReadOnly(true);
+        widget->setReadOnly(false);
     }
 
     void refreshWidgetFromValue() override
@@ -308,7 +310,6 @@ public:
 
     void enableEdition()
     {
-        addCreateNewElementButton();
     }
 
     void refreshWidgetFromValue() override
@@ -426,6 +427,10 @@ public:
     void enableEdition()
     {
         widget->setEnabled(true);
+        for (auto& panel : m_childPanels)
+        {
+            panel->enableEdition();
+        }
     }
 
     template<std::size_t I = 0>

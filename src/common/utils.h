@@ -11,6 +11,7 @@
 #include "stddef.h"
 #include <tuple>
 
+#include <QTextStream>
 #include <QList>
 
 #define NOT_IMPLEMENTED() qFatal("Not implemented yet")
@@ -109,6 +110,18 @@ void call_method(Model *obj, F f, Tuple &&t)
     typedef typename std::decay<Tuple>::type ttype;
     detail::call_impl<Model, F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call_method(
         obj, f, std::forward<Tuple>(t));
+}
+
+inline void generateToString(QTextStream &message)
+{
+    Q_UNUSED(message);
+}
+
+template<typename FirstParameterTypes, typename ... ParameterTypes>
+void generateToString(QTextStream &message, const FirstParameterTypes &firstParameter, const ParameterTypes & ... parameters)
+{
+    message << firstParameter << ", ";
+    generateToString(message, parameters ...);
 }
 
 }

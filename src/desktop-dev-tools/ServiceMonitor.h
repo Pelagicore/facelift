@@ -112,6 +112,8 @@ public:
 
     void addWidget(PropertyWidgetBase &widget);
 
+    void appendLog(QString textToAppend);
+
 private:
     Ui_ServiceMonitorPanel *ui = nullptr;
     QWidget *m_window = nullptr;
@@ -135,7 +137,7 @@ public:
     }
 
     template<typename PropertyType>
-    void addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName)
+    typename TypeToWidget<PropertyType>::PanelType* addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName)
     {
         typedef typename TypeToWidget<PropertyType>::PanelType PanelType;
         auto widget = new PanelType(*new PropertyType(), propertyName);
@@ -146,9 +148,25 @@ public:
         // Update the GUI if the value is changed in the property
         connect(&m_provider, property.signal, this, [property, widget]() {
                 widget->setValue(property.value());
-            });
+        });
 
         addWidget(*widget);
+
+        return widget;
+    }
+
+    template<typename PropertyType, typename SetterFunction>
+    typename TypeToWidget<PropertyType>::PanelType* addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName, SetterFunction setter) {
+        auto widget = addProperty(property, propertyName);
+
+        widget->enableEdition();
+        connect(widget, &PropertyWidgetBase::valueChanged, this, [property, this, widget, propertyName, setter]() {
+            qWarning() << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
+            if (!(property.value() == widget->value()))
+                (m_provider.* setter)(widget->value());
+        });
+
+        return widget;
     }
 
     template<typename PropertyType>
@@ -163,6 +181,19 @@ public:
     {
         Q_UNUSED(property);
         Q_UNUSED(propertyName);
+    }
+
+    void addSignal();
+
+    template<typename ... ParameterTypes>
+    void logSignal(const QString signalName, void (ProviderType::*signal) (ParameterTypes ...))
+    {
+        QObject::connect(&m_provider, signal, [this, signalName] (ParameterTypes ... parameters) {
+            QString argString;
+            QTextStream s(&argString);
+            generateToString(s, parameters ...);
+            appendLog(QStringLiteral("signal: ") + signalName + "(" + argString + ")");
+        });
     }
 
 private:

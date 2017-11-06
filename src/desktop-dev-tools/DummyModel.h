@@ -514,6 +514,7 @@ public:
         // Create a panel for that structure
         auto widget = new PanelType(*(new SignalParametersStruct()), signalName, parameterNames);
         widget->init();
+        widget->enableEdition();
 
         // And add the trigger button
         auto triggerButton = new QPushButton("Trigger signal");
@@ -558,10 +559,12 @@ public:
     {
         auto widget = new ListPropertyWidget<ListElementType>(*(new QList<ListElementType>()), propertyName);
         widget->enableEdition();
+        widget->addCreateNewElementButton();
 
         typedef typename TypeToWidget<ListElementType>::PanelType ElementPanelType;
         auto widgetForNewElement = new ElementPanelType(*new ListElementType(), "New");
         widgetForNewElement->init();
+        widgetForNewElement->enableEdition();
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
@@ -574,17 +577,18 @@ public:
         addPropertyWidget_(property, *widget);
     }
 
-
     template<typename ListElementType>
     void addPropertyWidget(ListProperty<ListElementType> &property, const QString &propertyName)
     {
         auto widget = new ListPropertyWidget<ListElementType>(*(new QList<ListElementType>()), propertyName);
         widget->enableEdition();
+        widget->addCreateNewElementButton();
 
         typedef typename TypeToWidget<ListElementType>::PanelType ElementPanelType;
         auto widgetForNewElement = new ElementPanelType(*new ListElementType(), "New");
         widgetForNewElement->init();
         widget->setValueWidget(widgetForNewElement);
+        widgetForNewElement->enableEdition();
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
                 auto v = property.value();
@@ -599,18 +603,6 @@ public:
             });
 
         addPropertyWidget_(property, *widget);
-    }
-
-    void generateToString(QTextStream &message)
-    {
-        Q_UNUSED(message);
-    }
-
-    template<typename FirstParameterTypes, typename ... ParameterTypes>
-    void generateToString(QTextStream &message, const FirstParameterTypes &firstParameter, const ParameterTypes & ... parameters)
-    {
-        message << firstParameter << ", ";
-        generateToString(message, parameters ...);
     }
 
     template<typename ... ParameterTypes>

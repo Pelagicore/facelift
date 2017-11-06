@@ -22,8 +22,17 @@ public:
     {{interface}}Monitor(ProviderType_& provider): facelift::ServiceMonitor<{{interface}}>(provider) {
 
         {% for property in interface.properties %}
+        {% if (property.readonly) %}
         addProperty(provider.{{property}}Property(), "{{property}}");
+        {% else %}
+        addProperty(provider.{{property}}Property(), "{{property}}", &ProviderType_::set{{property}});
+        {% endif %}
         {% endfor %}
+
+        {% for signal in interface.signals %}
+        logSignal("{{signal}}", &ProviderType_::{{signal}});
+        {% endfor %}
+
     }
 
     private:

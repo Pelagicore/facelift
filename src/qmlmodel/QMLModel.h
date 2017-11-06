@@ -364,11 +364,8 @@ int registerQmlComponent(const char *uri, const char *qmlFilePath,
 //    qDebug() << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
     QMLImplementationType::Provider::registerTypes(uri);
     QMLImplementationType::setModelImplementationFilePath(qmlFilePath);
-    return ::qmlRegisterType<TQMLFrontend<typename QMLImplementationType::Provider,
-           typename QMLImplementationType::Provider::QMLFrontendType> >(uri, majorVersion, minorVersion, componentName);
+    return ::qmlRegisterType<TQMLFrontend<typename QMLImplementationType::Provider>>(uri, majorVersion, minorVersion, componentName);
 }
-
-
 
 /*!
  * Register the given interface QML implementation as QML singleton.
@@ -384,7 +381,7 @@ int registerSingletonQmlComponent(const char *uri, const char *qmlFilePath,
 {
     QMLImplementationType::Provider::registerTypes(uri);
     QMLImplementationType::setModelImplementationFilePath(qmlFilePath);
-    typedef TQMLFrontend<typename QMLImplementationType::Provider, typename QMLImplementationType::Provider::QMLFrontendType> QMLType;
+    typedef TQMLFrontend<typename QMLImplementationType::Provider> QMLType;
     return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
 
