@@ -427,8 +427,7 @@ public:
     void enableEdition()
     {
         widget->setEnabled(true);
-        for (auto& panel : m_childPanels)
-        {
+        for (auto &panel : m_childPanels) {
             panel->enableEdition();
         }
     }

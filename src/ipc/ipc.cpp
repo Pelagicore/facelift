@@ -7,6 +7,7 @@
  */
 
 #include "ipc.h"
+#include "QMLModel.h"
 
 namespace facelift {
 
@@ -63,8 +64,6 @@ IPCAdapterFactoryManager &IPCAdapterFactoryManager::instance()
     static IPCAdapterFactoryManager factory;
     return factory;
 }
-
-
 
 IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject *object)
 {

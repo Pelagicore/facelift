@@ -11,6 +11,8 @@
 
 #include <QtCore>
 
+#include "ServiceWrapper.h"
+
 #include "{{class}}.h"
 
 {{module|namespaceOpen}}

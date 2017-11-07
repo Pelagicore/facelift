@@ -19,18 +19,18 @@ class {{interface}}Monitor : public facelift::ServiceMonitor<{{interface}}> {
     Q_OBJECT
 
 public:
-    {{interface}}Monitor(ProviderType_& provider): facelift::ServiceMonitor<{{interface}}>(provider) {
+    {{interface}}Monitor(Provider_Type& provider): facelift::ServiceMonitor<{{interface}}>(provider) {
 
         {% for property in interface.properties %}
         {% if (property.readonly) %}
         addProperty(provider.{{property}}Property(), "{{property}}");
         {% else %}
-        addProperty(provider.{{property}}Property(), "{{property}}", &ProviderType_::set{{property}});
+        addProperty(provider.{{property}}Property(), "{{property}}", &Provider_Type::set{{property}});
         {% endif %}
         {% endfor %}
 
         {% for signal in interface.signals %}
-        logSignal("{{signal}}", &ProviderType_::{{signal}});
+        logSignal("{{signal}}", &Provider_Type::{{signal}});
         {% endfor %}
 
     }

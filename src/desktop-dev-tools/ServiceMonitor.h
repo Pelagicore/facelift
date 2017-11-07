@@ -24,7 +24,7 @@ class ServiceMonitorBase;
 template<typename Type>
 ServiceMonitorBase *monitorFactory(InterfaceBase *provider)
 {
-    typedef typename Type::ProviderType_ ProviderType;
+    typedef typename Type::Provider_Type ProviderType;
     auto p = qobject_cast<ProviderType *>(provider);
     return new Type(*p);
 }
@@ -73,7 +73,7 @@ public:
     void registerMonitorType()
     {
         FactoryFuntion f = monitorFactory<MonitorType>;
-        m_factories.insert(MonitorType::ProviderType_::FULLY_QUALIFIED_INTERFACE_NAME, f);
+        m_factories.insert(MonitorType::Provider_Type::FULLY_QUALIFIED_INTERFACE_NAME, f);
     }
 
     void createMonitor(InterfaceBase *object)
@@ -97,7 +97,6 @@ private:
 
 class ServiceMonitorBase : public QObject
 {
-
     Q_OBJECT
 
 public:
@@ -129,7 +128,7 @@ class ServiceMonitor : public ServiceMonitorBase
 {
 
 public:
-    typedef ProviderType ProviderType_;
+    typedef ProviderType Provider_Type;
 
     ServiceMonitor(ProviderType &provider) : ServiceMonitorBase(&provider), m_provider(provider)
     {
@@ -137,8 +136,7 @@ public:
     }
 
     template<typename PropertyType>
-    typename TypeToWidget<PropertyType>::PanelType* addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName)
-    {
+    typename TypeToWidget<PropertyType>::PanelType * addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName) {
         typedef typename TypeToWidget<PropertyType>::PanelType PanelType;
         auto widget = new PanelType(*new PropertyType(), propertyName);
 
@@ -148,7 +146,7 @@ public:
         // Update the GUI if the value is changed in the property
         connect(&m_provider, property.signal, this, [property, widget]() {
                 widget->setValue(property.value());
-        });
+            });
 
         addWidget(*widget);
 
@@ -156,15 +154,17 @@ public:
     }
 
     template<typename PropertyType, typename SetterFunction>
-    typename TypeToWidget<PropertyType>::PanelType* addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName, SetterFunction setter) {
+    typename TypeToWidget<PropertyType>::PanelType * addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName,
+            SetterFunction setter) {
         auto widget = addProperty(property, propertyName);
 
         widget->enableEdition();
         connect(widget, &PropertyWidgetBase::valueChanged, this, [property, this, widget, propertyName, setter]() {
-            qWarning() << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
-            if (!(property.value() == widget->value()))
-                (m_provider.* setter)(widget->value());
-        });
+                qWarning() << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
+                if (!(property.value() == widget->value())) {
+                    (m_provider.*setter)(widget->value());
+                }
+            });
 
         return widget;
     }
@@ -186,14 +186,14 @@ public:
     void addSignal();
 
     template<typename ... ParameterTypes>
-    void logSignal(const QString signalName, void (ProviderType::*signal) (ParameterTypes ...))
+    void logSignal(const QString signalName, void (ProviderType::*signal)(ParameterTypes ...))
     {
         QObject::connect(&m_provider, signal, [this, signalName] (ParameterTypes ... parameters) {
-            QString argString;
-            QTextStream s(&argString);
-            generateToString(s, parameters ...);
-            appendLog(QStringLiteral("signal: ") + signalName + "(" + argString + ")");
-        });
+                QString argString;
+                QTextStream s(&argString);
+                generateToString(s, parameters ...);
+                appendLog(QStringLiteral("signal: ") + signalName + "(" + argString + ")");
+            });
     }
 
 private:

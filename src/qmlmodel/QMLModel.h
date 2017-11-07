@@ -6,6 +6,199 @@
 
 namespace facelift {
 
+
+/**
+ * Base class for
+ */
+class ModelQMLImplementationBase : public QObject, public QQmlParserStatus
+{
+    Q_OBJECT
+
+public:
+    // We set a default property so that we can have children QML elements in our QML implementations, such as Timer
+    Q_PROPERTY(QQmlListProperty<QObject> childItems READ childItems)
+    Q_CLASSINFO("DefaultProperty", "childItems")
+
+    ModelQMLImplementationBase(QObject *parent = nullptr) :
+        QObject(parent)
+    {
+    }
+
+    Q_PROPERTY(bool ready READ ready WRITE setReady NOTIFY readyChanged)
+
+    void setReady(bool ready)
+    {
+        Q_ASSERT(m_interface != nullptr);
+        m_interface->setReady(ready);
+    }
+
+    bool ready() const
+    {
+        Q_ASSERT(m_interface != nullptr);
+        return m_interface->ready();
+    }
+
+    Q_SIGNAL void readyChanged();
+
+    Q_PROPERTY(QString implementationID READ implementationID WRITE setImplementationID NOTIFY implementationIDChanged)
+
+    void setImplementationID(const QString &id)
+    {
+        m_implementationID = id;
+        assignImplementationID();
+    }
+
+    const QString &implementationID() const
+    {
+        return m_implementationID;
+        Q_ASSERT(m_interface != nullptr);
+        return m_interface->implementationID();
+    }
+
+    Q_SIGNAL void implementationIDChanged();
+
+    void setInterface(InterfaceBase *i)
+    {
+        m_interface = i;
+        QObject::connect(i, &InterfaceBase::readyChanged, this, &ModelQMLImplementationBase::readyChanged);
+
+        assignImplementationID();
+        QObject::connect(this, &QObject::objectNameChanged, this, &ModelQMLImplementationBase::assignImplementationID);
+    }
+
+    QJSValue &checkMethod(QJSValue &method, const char *methodName)
+    {
+        if (!method.isCallable()) {
+            qFatal("Method \"%s\" of Facelift interface implementation \"%s\" is about to be called but it is not implemented in your QML file. "
+                    "That method MUST be implemented if it is called.", qPrintable(methodName), qPrintable(interfac()->interfaceID()));
+        }
+
+        return method;
+    }
+
+    QQmlListProperty<QObject> childItems()
+    {
+        return QQmlListProperty<QObject>(this, m_children);
+    }
+
+    void classBegin() override
+    {
+    }
+
+    void componentComplete() override
+    {
+        assignImplementationID();
+        m_interface->componentCompleted();
+    }
+
+    facelift::InterfaceBase *interfac() const
+    {
+        return m_interface;
+    }
+
+    void assignImplementationID()
+    {
+        Q_ASSERT(m_interface != nullptr);
+        QString id;
+        QTextStream s(&id);
+
+        s << "QML implementation - " << metaObject()->className();
+        if (!objectName().isEmpty()) {
+            s << ", name = " << objectName();
+        }
+        s << "" << this;
+
+        m_interface->setImplementationID(id);
+    }
+
+private:
+    QList<QObject *> m_children;
+    InterfaceBase *m_interface = nullptr;
+    QString m_implementationID;
+};
+
+template<typename InterfaceType>
+class ModelQMLImplementation : public ModelQMLImplementationBase
+{
+
+public:
+    ModelQMLImplementation(QObject *parent = nullptr) :
+        ModelQMLImplementationBase(parent)
+    {
+    }
+
+    static void setModelImplementationFilePath(QString path)
+    {
+        modelImplementationFilePath() = path;
+    }
+
+    static QString &modelImplementationFilePath()
+    {
+        static QString s_modelImplementationFilePath;
+        return s_modelImplementationFilePath;
+    }
+
+    virtual void initProvider(InterfaceType *provider) = 0;
+
+    void retrieveFrontend()
+    {
+        m_interface = retrieveFrontendUnderConstruction();
+        if (m_interface == nullptr) {
+            m_interface = createFrontend();
+        }
+
+        Q_ASSERT(m_interface);
+
+        initProvider(m_interface);
+        setInterface(m_interface);
+    }
+
+    virtual InterfaceType *createFrontend() = 0;
+
+    static void registerTypes(const char *theURI)
+    {
+        typedef typename InterfaceType::QMLImplementationModelType QMLImplementationModelType;
+
+        // Register the component used to actually implement the model in QML
+        // the QML file containing the model implementation should have this type at its root
+        ::qmlRegisterType<QMLImplementationModelType>(theURI, 1, 0, QMLImplementationModelType::QML_NAME);
+    }
+
+    static InterfaceType *retrieveFrontendUnderConstruction()
+    {
+        auto instance = frontendUnderConstruction();
+        frontendUnderConstruction() = nullptr;
+        return instance;
+    }
+
+    static void setFrontendUnderConstruction(InterfaceType *instance)
+    {
+        Q_ASSERT(frontendUnderConstruction() == nullptr);
+        frontendUnderConstruction() = instance;
+    }
+
+    void checkInterface() const
+    {
+        Q_ASSERT(m_interface != nullptr);
+    }
+
+private:
+    static InterfaceType * &frontendUnderConstruction()
+    {
+        static InterfaceType *i = nullptr;
+        return i;
+    }
+
+protected:
+    InterfaceType *provider() const
+    {
+        return m_interface;
+    }
+
+    InterfaceType *m_interface = nullptr;
+
+};
+
 template<typename EnumType>
 inline QJSValue enumToJSValue(const EnumType e, QQmlEngine *engine)
 {
@@ -361,10 +554,10 @@ int registerQmlComponent(const char *uri, const char *qmlFilePath,
         int minorVersion = QMLImplementationType::Provider::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, QMLImplementationType>::value>::type * = nullptr)
 {
-//    qDebug() << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
+    //    qDebug() << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
     QMLImplementationType::Provider::registerTypes(uri);
     QMLImplementationType::setModelImplementationFilePath(qmlFilePath);
-    return ::qmlRegisterType<TQMLFrontend<typename QMLImplementationType::Provider>>(uri, majorVersion, minorVersion, componentName);
+    return ::qmlRegisterType<TQMLFrontend<typename QMLImplementationType::Provider> >(uri, majorVersion, minorVersion, componentName);
 }
 
 /*!
@@ -384,6 +577,7 @@ int registerSingletonQmlComponent(const char *uri, const char *qmlFilePath,
     typedef TQMLFrontend<typename QMLImplementationType::Provider> QMLType;
     return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
+
 
 
 }

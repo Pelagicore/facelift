@@ -68,7 +68,7 @@ bool ModuleMonitorBase::isEnabled()
 
 ServiceMonitorManager::ServiceMonitorManager()
 {
-    // Our object might be intanciated from another thread so we move it back to the main thread
+    // Our object might be instantiated from another thread so we move it back to the main thread
     moveToThread(QApplication::instance()->thread());
     QTimer::singleShot(0, Qt::TimerType::CoarseTimer, this, &ServiceMonitorManager::show);
 }

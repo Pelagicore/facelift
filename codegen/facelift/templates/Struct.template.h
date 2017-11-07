@@ -74,9 +74,9 @@ public:
         return *this;
     }
 
-    static QHash<int, QByteArray> roleNames() {
-        return roleNames_(FIELD_NAMES);
-    }
+//    static QHash<int, QByteArray> roleNames() {
+//        return roleNames_(FIELD_NAMES);
+//    }
 
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} clone() const {
         {{struct.name}} s;
