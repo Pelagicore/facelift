@@ -23,8 +23,6 @@ void ServiceMonitorBase::init(InterfaceBase &service, const QString &interfaceNa
     ui->setupUi(m_window);
 
     m_window->setWindowTitle(interfaceName + " - Monitor - " + service.implementationID());
-    m_window->resize(600, 800);
-    m_window->show();
 
     QObject::connect(ui->clearLogButton, &QPushButton::clicked, this, [this]() {
             ui->logLabel->setText("");
@@ -61,20 +59,23 @@ void ServiceMonitorBase::appendLog(QString textToAppend)
 
 bool ModuleMonitorBase::isEnabled()
 {
+    return true;
     auto v = getenv("FACELIFT_ENABLE_MONITOR");
     return ((v != nullptr) && (strcmp(v, "1") == 0));
 }
-
 
 ServiceMonitorManager::ServiceMonitorManager()
 {
     // Our object might be instantiated from another thread so we move it back to the main thread
     moveToThread(QApplication::instance()->thread());
-    QTimer::singleShot(0, Qt::TimerType::CoarseTimer, this, &ServiceMonitorManager::show);
 }
 
-
 void ServiceMonitorManager::show()
+{
+    QTimer::singleShot(0, Qt::TimerType::CoarseTimer, this, &ServiceMonitorManager::doShow);
+}
+
+void ServiceMonitorManager::doShow()
 {
     m_window = new QMainWindow();
     ui = new Ui_ServiceMonitorManagerWindow();

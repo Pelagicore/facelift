@@ -76,11 +76,13 @@ public:
         m_factories.insert(MonitorType::Provider_Type::FULLY_QUALIFIED_INTERFACE_NAME, f);
     }
 
-    void createMonitor(InterfaceBase *object)
+    ServiceMonitorBase *createMonitor(InterfaceBase *object)
     {
-        auto interfaceID = object->interfaceID();
+        auto &interfaceID = object->interfaceID();
         if (m_factories.count(interfaceID) != 0) {
-            m_factories[interfaceID](object);
+            return m_factories[interfaceID](object);
+        } else {
+            return nullptr;
         }
     }
 
@@ -89,6 +91,8 @@ public:
     void onItemActivated(const QModelIndex &index);
 
 private:
+    void doShow();
+
     QMap<QString, FactoryFuntion> m_factories;
     Ui_ServiceMonitorManagerWindow *ui = nullptr;
     QMainWindow *m_window = nullptr;
@@ -113,6 +117,10 @@ public:
 
     void appendLog(QString textToAppend);
 
+    QWidget * mainWidget() const {
+        return m_window;
+    }
+
 private:
     Ui_ServiceMonitorPanel *ui = nullptr;
     QWidget *m_window = nullptr;
@@ -136,7 +144,8 @@ public:
     }
 
     template<typename PropertyType>
-    typename TypeToWidget<PropertyType>::PanelType * addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName) {
+    typename TypeToWidget<PropertyType>::PanelType * addProperty(PropertyInterface<ProviderType, PropertyType> property,
+            QString propertyName) {
         typedef typename TypeToWidget<PropertyType>::PanelType PanelType;
         auto widget = new PanelType(*new PropertyType(), propertyName);
 
@@ -188,7 +197,7 @@ public:
     template<typename ... ParameterTypes>
     void logSignal(const QString signalName, void (ProviderType::*signal)(ParameterTypes ...))
     {
-        QObject::connect(&m_provider, signal, [this, signalName] (ParameterTypes ... parameters) {
+        QObject::connect(&m_provider, signal, this, [this, signalName] (ParameterTypes ... parameters) {
                 QString argString;
                 QTextStream s(&argString);
                 generateToString(s, parameters ...);
