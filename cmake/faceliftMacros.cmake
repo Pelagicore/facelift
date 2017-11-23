@@ -120,6 +120,9 @@ function(facelift_add_interface TARGET_NAME)
     set(multiValueArgs)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+    # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
+    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
+
     facelift_load_variables()
     set(LIBRARY_NAME ${TARGET_NAME})
     set(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER})
@@ -153,7 +156,7 @@ function(facelift_add_interface TARGET_NAME)
         find_package(PythonInterp 3.0 REQUIRED)
         set(CODEGEN_COMMAND ${PYTHON_EXECUTABLE} ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
     else()
-        set(CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})    
+        set(CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
     endif()
 
     string(REPLACE ";" " " CODEGEN_COMMAND_WITH_SPACES "${CODEGEN_COMMAND}")
@@ -167,6 +170,9 @@ function(facelift_add_interface TARGET_NAME)
     if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
         message(FATAL_ERROR "Facelift code generation failed. Command \"${CODEGEN_COMMAND_WITH_SPACES}\". PYTHONPATH=$ENV{PYTHONPATH} Return code: ${CODEGEN_RETURN_CODE}\n")
     endif()
+
+    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_EXECUTABLE_LOCATION};${QFACE_FILES}")
 
     facelift_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
 
