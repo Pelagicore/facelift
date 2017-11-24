@@ -21,7 +21,9 @@ function(facelift_add_unity_files VAR_NAME)
 
     set(AGGREGATED_FILE_LIST "")
 
-    while(1)
+    list(LENGTH FILE_LIST REMAINING_FILE_COUNT)
+
+    while(${REMAINING_FILE_COUNT} GREATER 0)
 
         list(LENGTH FILE_LIST LIST_LENGTH)
 
@@ -31,14 +33,24 @@ function(facelift_add_unity_files VAR_NAME)
 
         math(EXPR FILE_INDEX "${FILE_INDEX}+1")
 
-        # Limit the number of files per aggregator compilation unit to 12, to avoid excessive memory usage
-        if(LIST_LENGTH GREATER 12)
-            list(GET FILE_LIST 0 1 2 3 4 5 6 7 8 9 10 11 FILES)
-        else()
-            set(FILES ${FILE_LIST})
+        # Limit the number of files per unit to ~ 500Kb, to avoid excessive memory usage
+        if(NOT UNITY_BUILD_MAX_FILE_SIZE)
+            set(UNITY_BUILD_MAX_FILE_SIZE 500000)
         endif()
 
-        list(REMOVE_ITEM FILE_LIST ${FILES})
+        unset(FILES)
+        set(UNITY_FILE_SIZE 0)
+        while((${UNITY_BUILD_MAX_FILE_SIZE} GREATER ${UNITY_FILE_SIZE}) AND (${REMAINING_FILE_COUNT} GREATER 0))
+            list(GET FILE_LIST 0 FILE)
+            list(REMOVE_AT FILE_LIST 0)
+            list(APPEND FILES ${FILE})
+
+            file(READ "${FILE}" TMP_FILE_CONTENT)
+            string(LENGTH "${TMP_FILE_CONTENT}" FILE_SIZE)
+
+            math(EXPR UNITY_FILE_SIZE "${UNITY_FILE_SIZE}+${FILE_SIZE}")
+            math(EXPR REMAINING_FILE_COUNT "${REMAINING_FILE_COUNT}-1")
+        endwhile()
 
         # Generate an aggregator unit content
         set(FILE_CONTENT "")
