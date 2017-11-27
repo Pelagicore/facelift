@@ -45,7 +45,11 @@ function(facelift_add_unity_files VAR_NAME)
             list(REMOVE_AT FILE_LIST 0)
             list(APPEND FILES ${FILE})
 
-            file(READ "${FILE}" TMP_FILE_CONTENT)
+            if(EXISTS ${FILE})
+                file(READ "${FILE}" TMP_FILE_CONTENT)
+            else()
+                unset(TMP_FILE_CONTENT)
+            endif()
             string(LENGTH "${TMP_FILE_CONTENT}" FILE_SIZE)
 
             math(EXPR UNITY_FILE_SIZE "${UNITY_FILE_SIZE}+${FILE_SIZE}")
