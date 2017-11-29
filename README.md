@@ -82,7 +82,10 @@ $ CC="ccache gcc" CXX="ccache g++" cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/
 
 # Examples
 
-Multiple example applications are provided, which are normally built together with the package itself. Each example has a corresponding launch script which you can use to start the example.
+Multiple example applications are provided, which can be built together with the package itself using the `-DFACELIFT_BUILD_EXAMPLES=ON` flag with CMake.
+
+Each example has a corresponding launch script which you can use to start the example.
+
 For example:
 ```
 $ ./examples/launch-addressbook.sh
