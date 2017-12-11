@@ -155,7 +155,7 @@ public:
      * be reevaluated whenever the signal is triggered
      */
     template<typename SourceType, typename ... Args>
-    Property &addTrigger(SourceType *source, void (SourceType::*changeSignal)(Args ...))
+    Property &addTrigger(const SourceType *source, void (SourceType::*changeSignal)(Args ...))
     {
         m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
                 reevaluate();
