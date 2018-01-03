@@ -64,9 +64,22 @@ void Module::registerTypes()
 
 }
 
-void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
+
+void Module::registerUncreatableQmlTypes(const char* uri, int majorVersion, int minorVersion)
 {
     Q_UNUSED(uri);
+    Q_UNUSED(majorVersion);
+    Q_UNUSED(minorVersion);
+
+    // register an uncreatable type for every interface, so that this type can be used in QML
+    {% for interface in module.interfaces %}
+    qmlRegisterUncreatableType<{{interface}}QMLFrontend>(uri, majorVersion, minorVersion, "{{interface}}", "");
+    {% endfor %}
+}
+
+
+void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
+{
 
     registerTypes();
 
@@ -75,6 +88,7 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, majorVersion, minorVersion, "QMLImplListPropertyBase", "");
     ModuleBase::registerQmlTypes(uri, majorVersion, minorVersion);
 
+    // register structure QObject wrappers
     {% for struct in module.structs %}
     ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
     {% endfor %}
@@ -83,7 +97,7 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
     {% endfor %}
 
-    // Register components used to implement an interface from QML
+    // Register components used to implement an interface in QML
     {% for interface in module.interfaces %}
     ::qmlRegisterType<{{interface}}QMLImplementation>(uri, majorVersion, minorVersion, {{interface}}QMLImplementation::QML_NAME);
     {% endfor %}

@@ -48,8 +48,10 @@ public:
      */
     static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
 
+    static void registerUncreatableQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
+
     /**
-     * Register metatypes off all types defined by this module. This method is called automatically by registerQmlTypes()
+     * Register metatypes of all types defined by this module. This method is called automatically by registerQmlTypes()
      */
     static void registerTypes();
 
