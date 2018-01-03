@@ -10,6 +10,7 @@
 #include "assert.h"
 
 #include <QObject>
+#include <QDebug>
 #include <QTextStream>
 #include <QTimer>
 
@@ -127,6 +128,11 @@ public:
     bool isReplyMessage() const
     {
         return (m_message.type() == QDBusMessage::ReplyMessage);
+    }
+
+    bool isErrorMessage() const
+    {
+        return (m_message.type() == QDBusMessage::ErrorMessage);
     }
 
 private:
@@ -918,6 +924,19 @@ public:
         }
     }
 
+    template<typename PropertyType>
+    void sendSetterCall(const char *methodName, const PropertyType &value)
+    {
+        IPCMessage msg(m_serviceName, m_objectPath, m_interfaceName, methodName);
+        msg << value;
+        auto replyMessage = msg.call(connection());
+        if (replyMessage.isErrorMessage()) {
+            qFatal("Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet"
+                    , qPrintable(
+                        methodName), qPrintable(m_objectPath));
+        }
+    }
+
     template<typename ... Args>
     IPCMessage sendMethodCall(const char *methodName, const Args & ... args)
     {
@@ -925,7 +944,7 @@ public:
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, StreamWriteFunction<IPCMessage>(msg));
         auto replyMessage = msg.call(connection());
-        if (!replyMessage.isReplyMessage()) {
+        if (replyMessage.isErrorMessage()) {
             qFatal("Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet"
                     , qPrintable(
                         methodName), qPrintable(m_objectPath));
@@ -1024,6 +1043,12 @@ public:
     }
 
     virtual void bindLocalService(InterfaceType *service) = 0;
+
+    template<typename PropertyType>
+    void sendSetterCall(const char *methodName, const PropertyType &value)
+    {
+        m_ipcBinder.sendSetterCall(methodName, value);
+    }
 
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... args)

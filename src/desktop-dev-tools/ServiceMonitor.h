@@ -117,7 +117,8 @@ public:
 
     void appendLog(QString textToAppend);
 
-    QWidget * mainWidget() const {
+    QWidget *mainWidget() const
+    {
         return m_window;
     }
 

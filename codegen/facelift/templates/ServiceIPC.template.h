@@ -298,7 +298,7 @@ public:
     	{% if (not property.readonly) %}
     void set{{property}}(const {{property|returnType}}& newValue) override {
     	if (localInterface() == nullptr) {
-            sendMethodCall("set{{property}}", newValue);
+            sendSetterCall("set{{property}}", newValue);
         } else {
             localInterface()->set{{property}}(newValue);
         }
