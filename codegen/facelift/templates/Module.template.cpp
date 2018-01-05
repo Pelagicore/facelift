@@ -26,21 +26,9 @@
 
 {{module|namespaceOpen}}
 
-QObject* Module_singletontype_provider(QQmlEngine*, QJSEngine*)
-{
-    return new Module();
-}
-
 Module::Module() : facelift::ModuleBase()
 {
 }
-
-{% for struct in module.structs %}
-{{struct|fullyQualifiedCppName}} Module::create{{struct}}()
-{
-    return {{struct|fullyQualifiedCppName}}();
-}
-{% endfor %}
 
 void Module::registerTypes()
 {
@@ -80,21 +68,21 @@ void Module::registerUncreatableQmlTypes(const char* uri, int majorVersion, int 
 
 void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
 {
-
     registerTypes();
-
-    qmlRegisterSingletonType<Module>(uri, majorVersion, minorVersion, "Module", Module_singletontype_provider);
 
     qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, majorVersion, minorVersion, "QMLImplListPropertyBase", "");
     ModuleBase::registerQmlTypes(uri, majorVersion, minorVersion);
 
-    // register structure QObject wrappers
     {% for struct in module.structs %}
+    // register structure QObject wrapper
     ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
+    // register structure gadget factory
+    ::qmlRegisterSingletonType<{{struct}}Factory>(uri, majorVersion, minorVersion, "{{struct}}Factory", facelift::StructureFactoryBase::getter<{{struct}}Factory>);
     {% endfor %}
 
+    // register enumeration gadgets
     {% for enum in module.enums %}
-    qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
+    ::qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
     {% endfor %}
 
     // Register components used to implement an interface in QML

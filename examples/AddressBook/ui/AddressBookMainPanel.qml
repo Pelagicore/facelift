@@ -166,7 +166,7 @@ Item {
             Button {
                 text: "test method"
                 onClicked: {
-                    var contact = Module.createContact();
+                    var contact = ContactFactory.create();
                     print(contact)
                     var returnContact = viewModel.testMethod(contact);
                     print("return value : " + returnContact)

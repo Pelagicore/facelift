@@ -38,7 +38,7 @@ Item {
 
         function addNewItem() {
             var content = testInterface.structListProperty
-            var newItem = Module.createTestStruct()
+            var newItem = TestStructFactory.create()
             newItem.aString = "IIIIIII"
             content.push(newItem)
             testInterface.structListProperty = content

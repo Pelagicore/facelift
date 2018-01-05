@@ -250,6 +250,20 @@ class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{st
 
 };
 
+
+class {{struct}}Factory : public facelift::StructureFactoryBase {
+
+public:
+
+    {{struct}}Factory(QQmlEngine* qmlEngine) : facelift::StructureFactoryBase(qmlEngine) {
+    }
+
+    Q_INVOKABLE {{struct}}* create() {
+        return new {{struct}}();
+    }
+
+};
+
 {{module|namespaceClose}}
 
 namespace facelift {

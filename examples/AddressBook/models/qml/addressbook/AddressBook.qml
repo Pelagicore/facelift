@@ -66,7 +66,7 @@ AddressBookImplementation {
     createNewContact: function() {
         var contactList = root.contacts;
         if (contactList.length < 5) {
-            var newContact = Module.createContact();
+            var newContact = ContactFactory.create();
             newContact.name = "New contact " + nextContactIndex++;
             newContact.number = "089 4892";
             contactList.push(newContact);

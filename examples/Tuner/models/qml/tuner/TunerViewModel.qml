@@ -55,7 +55,7 @@ TunerViewModelImplementation {
     }
 
     function addStation(stationName, frequency) {
-        var station = TunerModule.createStation()
+        var station = StationFactory.create()
         station.name = stationName;
         station.frequency = frequency;
         stationList.addElement(station);

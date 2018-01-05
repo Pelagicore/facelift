@@ -734,9 +734,8 @@ public:
 /**
  * Base class for all generated Module classes
  */
-class ModuleBase : public QObject
+class ModuleBase
 {
-    Q_OBJECT
 
 public:
     ModuleBase()
@@ -744,6 +743,23 @@ public:
     }
 
     static void registerQmlTypes(const char *uri, int majorVersion, int minorVersion);
+};
+
+
+class StructureFactoryBase : public QObject {
+
+    Q_OBJECT
+
+public:
+
+    StructureFactoryBase(QQmlEngine* engine) : QObject(engine) {
+    }
+
+    template<typename Type>
+    static QObject* getter(QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
+        return new Type(qmlEngine);
+    }
+
 };
 
 

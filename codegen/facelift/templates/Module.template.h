@@ -30,28 +30,23 @@
 */
 class Module : public facelift::ModuleBase {
 
-    Q_OBJECT
-
 public:
 	Module();
-
-{% for struct in module.structs %}
-    /**
-     * Create an instance of {{struct|fullyQualifiedName}}
-     */
-    Q_INVOKABLE {{struct|fullyQualifiedCppName}} create{{struct}}();
-
-{% endfor %}
 
     /**
      * Register all QML types provided by this module
      */
     static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
 
+    /**
+     * Register all interfaces as uncreatable types.
+     * An interface called "MyInterface" in the QFace file is registered as uncreatable under the name "MyInterface"
+     */
     static void registerUncreatableQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
 
+private:
     /**
-     * Register metatypes of all types defined by this module. This method is called automatically by registerQmlTypes()
+     * Register metatypes of all types defined by this module. This method should not be called by any hand-written code
      */
     static void registerTypes();
 
