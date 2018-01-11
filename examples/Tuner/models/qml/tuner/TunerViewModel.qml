@@ -7,7 +7,7 @@ import QtQuick.Controls 1.2
 /**
  * QML Implementation of the TunerViewModel API
  */
-TunerViewModelImplementation {
+TunerViewModelQMLImplementation {
 
     id: root
 

@@ -61,7 +61,7 @@ class {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{
 
 public:
 
-    static constexpr const char* QML_NAME = "{{interface}}Implementation";
+    static constexpr const char* QML_NAME = "{{interface}}QMLImplementation";
 
     typedef {{interface}}QMLImplementationFrontend Provider;
     typedef {{interface}}QMLImplementation ThisType;

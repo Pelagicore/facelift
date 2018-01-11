@@ -19,7 +19,7 @@ Item {
         aString: "This is the first item"
     }
 
-    TestInterfaceImplementation {
+    TestInterfaceQMLImplementation {
         id: testInterface
 
         property int anInt: 0

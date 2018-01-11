@@ -5,7 +5,7 @@ import facelift.example.mypackage 1.0
 /**
  * QML Implementation of the MyInterface interface
  */
-MyInterfaceImplementation {
+MyInterfaceQMLImplementation {
     id: root
 
     counter: 100
