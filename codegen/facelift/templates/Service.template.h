@@ -1,16 +1,13 @@
-{% set class = '{0}'.format(interface) %}
-{% set comma = joiner(",") %}
-
 /****************************************************************************
-
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
-
 #pragma once
 
-#include <QtCore>
+{% set class = '{0}'.format(interface) %}
+{% set comma = joiner(",") %}
 
+#include <QtCore>
 #include "Model.h"
 
 // Dependencies
@@ -30,7 +27,6 @@
 {% endfor %}
 {% endfor %}
 
-
 {{module|namespaceOpen}}
 
 class {{class}}QMLFrontend;
@@ -42,8 +38,8 @@ class {{class}} : public facelift::InterfaceBase {
 
 public:
 
-	static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
-	static constexpr const char* INTERFACE_NAME = "{{interface}}";
+    static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
+    static constexpr const char* INTERFACE_NAME = "{{interface}}";
 
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
@@ -98,24 +94,14 @@ public:
     {% for operation in interface.operations %}
 
     {{operation.comment}}
-    virtual {{operation|returnType}} {{operation}}(
-        {% set comma = joiner(",") %}
-        {% for parameter in operation.parameters %}
-        {{ comma() }}
-        {{parameter|returnType}} {{parameter.name}}
-        {% endfor %}
-    ) = 0;
+    virtual {{operation|returnType}} {{operation}}({% set comma = joiner(",") %}
+        {% for parameter in operation.parameters %}{{ comma() }}{{parameter|returnType}} {{parameter.name}}{% endfor %}) = 0;
     {% endfor %}
 
     {% for event in interface.signals %}
     {{event.comment}}
-    Q_SIGNAL void {{event}}(
-        {% set comma = joiner(",") %}
-        {% for parameter in event.parameters %}
-        {{ comma() }}
-        {{parameter|returnType}} {{parameter.name}}
-        {% endfor %}
-    );
+    Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
+        {% for parameter in event.parameters -%}{{ comma() }}{{parameter|returnType}} {{parameter.name}}{% endfor %});
     {% endfor %}
 
 };

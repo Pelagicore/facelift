@@ -22,7 +22,7 @@ Item {
     	viewModel: viewModelProxy
     }
     
-    AddressBook {
+    AddressBookImpl {
         id: viewModel
         IPC.enabled: true
     }

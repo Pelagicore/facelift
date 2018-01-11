@@ -16,7 +16,7 @@ Item {
 
     property bool popupVisible: false
     property bool serverSide: true
-    property var viewModel
+    property AddressBook viewModel
     property bool contactDirty: nameField.isDirty || numberField.isDirty
 
     Column {

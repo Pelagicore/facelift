@@ -69,11 +69,6 @@ public:
         return m_target;
     }
 
-    static void registerQmlTypes(const char *uri, int majorVersion = 1, int minorVersion = 0)
-    {
-        ::qmlRegisterType<ServiceMonitorQMLComponent>(uri, majorVersion, minorVersion, "ServiceMonitor");
-    }
-
 private:
     QObject *m_target;
     ServiceMonitorBase *m_monitor = nullptr;

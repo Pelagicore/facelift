@@ -112,7 +112,6 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
 #ifdef ENABLE_DESKTOP_TOOLS
     ModuleDummy::registerQmlTypes(uri, majorVersion, minorVersion);
-    facelift::ServiceMonitorQMLComponent::registerQmlTypes(uri, majorVersion, minorVersion);
 #endif
 
 }

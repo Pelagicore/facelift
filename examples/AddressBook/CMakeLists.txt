@@ -13,4 +13,5 @@ facelift_add_qml_plugin(AddressBookModelPlugin
 )
 
 add_example_script(addressbook ui/AddressBookApp.qml)
+add_example_script(addressbook-monitor ui/AddressBookMonitor.qml)
 add_example_script(addressbook-dummy ui/AddressBookDummyApp.qml)

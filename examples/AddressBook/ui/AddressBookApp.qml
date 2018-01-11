@@ -21,7 +21,7 @@ Item {
     	viewModel: viewModel
     }
 
-    AddressBook {
+    AddressBookImpl {
         id: viewModel
     }
 

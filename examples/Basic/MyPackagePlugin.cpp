@@ -17,11 +17,12 @@ void MyPackagePlugin::registerTypes(const char *uri)
 {
     using namespace facelift::example::mypackage;
 
-    // Register the generated types
+    // Register all generated QML types
     Module::registerQmlTypes(uri);
 
-    // We are registering the model types here, which can be used by the UI code.
-    // The decision to register a dummy, QML, or C++ implementation should be taken here
-    //    facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri);
-    facelift::registerQmlComponent<MyInterfaceQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION) "/models/qml/mypackage/MyInterface.qml");
+    Module::registerUncreatableQmlTypes(uri);
+
+    // We are registering the implementation types here, which can be used by the UI code.
+    facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri);
+    //facelift::registerQmlComponent<MyInterfaceQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION) "/models/qml/mypackage/MyInterface.qml");
 }
