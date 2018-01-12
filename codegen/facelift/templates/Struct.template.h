@@ -253,13 +253,15 @@ class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{st
 
 class {{struct}}Factory : public facelift::StructureFactoryBase {
 
+    Q_OBJECT
+
 public:
 
     {{struct}}Factory(QQmlEngine* qmlEngine) : facelift::StructureFactoryBase(qmlEngine) {
     }
 
-    Q_INVOKABLE {{struct}}* create() {
-        return new {{struct}}();
+    Q_INVOKABLE {{struct|fullyQualifiedCppName}} create() {
+        return {{struct}}();
     }
 
 };
