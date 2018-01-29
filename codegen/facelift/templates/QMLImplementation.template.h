@@ -62,6 +62,7 @@ class {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{
 public:
 
     static constexpr const char* QML_NAME = "{{interface}}QMLImplementation";
+    static constexpr bool ENABLED = true;
 
     typedef {{interface}}QMLImplementationFrontend Provider;
     typedef {{interface}}QMLImplementation ThisType;

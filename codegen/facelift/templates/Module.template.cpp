@@ -87,7 +87,9 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
     // Register components used to implement an interface in QML
     {% for interface in module.interfaces %}
-    ::qmlRegisterType<{{interface}}QMLImplementation>(uri, majorVersion, minorVersion, {{interface}}QMLImplementation::QML_NAME);
+    if ({{interface}}QMLImplementation::ENABLED) {
+        ::qmlRegisterType<{{interface}}QMLImplementation>(uri, majorVersion, minorVersion, {{interface}}QMLImplementation::QML_NAME);
+    }
     {% endfor %}
 
 /*

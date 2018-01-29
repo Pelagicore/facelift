@@ -190,7 +190,7 @@ public:
 
 	typedef {{interface}}IPCAdapter IPCAdapterType;
 
-	// override the default QMLFrontend type to add teh IPC related properties
+	// override the default QMLFrontend type to add the IPC related properties
 	typedef {{interface}}IPCQMLFrontendType QMLFrontendType;
 
     Q_PROPERTY(facelift::IPCProxyBinder* ipc READ ipc CONSTANT)

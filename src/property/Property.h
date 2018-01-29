@@ -26,13 +26,9 @@ class PropertyBase
 public:
     typedef void (QObject::*ChangeSignal)();
 
-    PropertyBase()
-    {
-    }
+    PropertyBase();
 
-    virtual ~PropertyBase()
-    {
-    }
+    virtual ~PropertyBase();
 
     template<typename ServiceType>
     void init(const char *name, QObject *ownerObject, void (ServiceType::*changeSignal)())
@@ -42,23 +38,7 @@ public:
         m_name = name;
     }
 
-    void triggerValueChangedSignal()
-    {
-        if (m_asynchronousNotification) {
-            // Asynchronous notification is enabled => we will actually trigger the change signal during the next main loop iteration
-            if (!m_notificationTimerEnabled) {
-                m_notificationTimerEnabled = true;
-
-                QTimer::singleShot(0, m_ownerObject, [this] () {
-                        doTriggerChangeSignal();
-                        m_notificationTimerEnabled = false;
-                    });
-
-            }
-        } else {
-            doTriggerChangeSignal();
-        }
-    }
+    void triggerValueChangedSignal();
 
     QObject *owner() const
     {
@@ -82,18 +62,10 @@ protected:
 
     virtual QString toString() const = 0;
 
+    void doBreakBinding();
+
 private:
-    void doTriggerChangeSignal()
-    {
-        if (signalPointer() != nullptr) {
-            if (isDirty()) {
-                qDebug() << "Property" << name() << ": Triggering notification. New value:" << toString();
-                // Trigger the signal
-                clean();
-                (m_ownerObject->*signalPointer())();
-            }
-        }
-    }
+    void doTriggerChangeSignal();
 
     QObject *m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
@@ -101,6 +73,10 @@ private:
     bool m_notificationTimerEnabled = false;
     const char *m_name = nullptr;
     bool m_asynchronousNotification = false;
+
+protected:
+
+    QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
 
 };
 
@@ -246,15 +222,8 @@ protected:
     void breakBinding()
     {
         if (m_getterFunction) {
-            qDebug() << this->name() << " property : breaking binding";
-
             m_getterFunction = nullptr;
-            for (const auto &connection : m_connections) {
-                auto successfull = QObject::disconnect(connection);
-                Q_ASSERT(successfull);
-            }
-            m_connections.clear();
-
+            doBreakBinding();
         }
     }
 
@@ -271,8 +240,6 @@ private:
     Type m_previousValue = m_value;  /// The value when the last "value changed" signal was triggered
 
     GetterFunction m_getterFunction;  /// The bound getter function, if any
-
-    QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
 
 };
 
