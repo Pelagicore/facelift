@@ -3,13 +3,21 @@ project(facelift VERSION 1.0.0)
 
 include(GNUInstallDirs)    # for standard installation locations
 
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+   set(DEBUG_BUILD ON)
+   set(RELEASE_BUILD OFF)
+else()
+   set(DEBUG_BUILD OFF)
+   set(RELEASE_BUILD ON)
+endif()
+
 option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
 option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
 option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" OFF)
 option(FACELIFT_BUILD_TEST "Enable build of examples" OFF)
-option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ON)
+option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ${DEBUG_BUILD})
 
 find_package(Qt5 REQUIRED Core Gui Qml Quick)
 

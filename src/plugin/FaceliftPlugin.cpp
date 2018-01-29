@@ -8,7 +8,9 @@
 
 #include "FaceliftPlugin.h"
 
+#ifdef ENABLE_DESKTOP_TOOLS
 #include "ServiceMonitorQMLComponent.h"
+#endif
 
 void FaceliftPlugin::registerTypes(const char *uri)
 {
