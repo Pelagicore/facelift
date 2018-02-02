@@ -255,7 +255,7 @@ endfunction()
 
 function(facelift_add_library LIB_NAME)
 
-    set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC)
+    set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC USE_QML_COMPILER)
     set(oneValueArgs )
     set(multiValueArgs PRIVATE_DEFINITIONS HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE PUBLIC_HEADER_BASE_PATH LINK_LIBRARIES UI_FILES RESOURCE_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -283,9 +283,14 @@ function(facelift_add_library LIB_NAME)
     unset(RESOURCE_FILES)
     foreach(RESOURCE_FOLDER ${ARGUMENT_RESOURCE_FOLDERS})
         generateQRC("${RESOURCE_FOLDER}/" "${CMAKE_CURRENT_BINARY_DIR}")
-        qt5_add_resources(RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/resources.qrc)
-        set(RESOURCE_FILES ${RESOURCE_FILES} ${RESOURCES})
+        set(RESOURCE_FILES ${RESOURCE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/resources.qrc")
     endforeach()
+
+    if(ARGUMENT_USE_QML_COMPILER)
+        qtquick_compiler_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
+    else()
+        qt5_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
+    endif()
 
     qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} TARGET ${LIB_NAME})
 
@@ -294,11 +299,17 @@ function(facelift_add_library LIB_NAME)
         qt5_wrap_ui(UI_FILES ${ARGUMENT_UI_FILES})
     endif()
 
-    set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES} ${RESOURCE_FILES})
+    set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES} ${RESOURCES_BIN})
 
     set(UNITY_BUILD ${ARGUMENT_UNITY_BUILD})
     if(${AUTO_UNITY_BUILD})
         set(UNITY_BUILD ON)
+    endif()
+
+    if(ARGUMENT_USE_QML_COMPILER)
+        #qml compiler adds private definitions of V4 to RESOURCES BIN
+        #combining set of resources in one file leads to redefinition error message
+        set(UNITY_BUILD OFF)
     endif()
 
     if(UNITY_BUILD)
