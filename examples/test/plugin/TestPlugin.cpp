@@ -9,8 +9,6 @@
 #include "TestPlugin.h"
 
 #include "facelift/test/Module.h"
-#include "facelift/test/ModuleDummy.h"
-#include "facelift/test/ModuleMonitor.h"
 
 #ifdef FACELIFT_ENABLE_IPC
 #include "facelift/test/ModuleIPC.h"

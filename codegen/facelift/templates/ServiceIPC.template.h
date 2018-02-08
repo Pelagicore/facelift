@@ -89,6 +89,8 @@ public:
 
         const auto& member = requestMessage.member();
 
+        auto theService = service();
+
         {% for operation in interface.operations %}
         if (member == "{{operation.name}}") {
             {% for parameter in operation.parameters %}
@@ -98,7 +100,7 @@ public:
 
         	{% if (operation.hasReturnValue) %} auto returnValue = {% endif %}
 
-            m_service->{{operation.name}}(
+            theService->{{operation.name}}(
                     {% set comma = joiner(",") %}
                     {% for parameter in operation.parameters %}
                         {{ comma() }}
@@ -116,7 +118,7 @@ public:
         if (member == "set{{property.name}}") {
             {{property|returnType}} value;
             requestMessage >> value;
-            m_service->set{{property.name}}(value);
+            theService->set{{property.name}}(value);
         } else
     	{% endif %}
         {% endfor %}
@@ -131,20 +133,25 @@ public:
 
     void connectSignals() override {
 
+        auto theService = service();
+
         // Properties
         {% for property in interface.properties %}
-        connect(m_service, &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
+        connect(theService, &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
         {% endfor %}
 
         // signals
         {% for signal in interface.signals %}
-        connect(m_service, &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
+        connect(theService, &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
         {% endfor %}
 
     }
 
     void serializeSpecificPropertyValues(facelift::IPCMessage& msg) override {
         Q_UNUSED(msg);
+
+        auto theService = service();
+
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
             // TODO : model
@@ -156,7 +163,7 @@ public:
 
 //            qFatal("Property of interface type not supported");
             {% else %}
-        msg << m_service->{{property.name}}();
+        msg << theService->{{property.name}}();
             {% endif %}
         {% endfor %}
     }

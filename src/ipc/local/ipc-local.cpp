@@ -6,9 +6,14 @@
  *   Please see the LICENSE file for details.
  */
 
-#include "ipc.h"
-#include "QMLModel.h"
+#include "ipc-local.h"
 
 namespace facelift {
+
+LocalIPCAdapterFactoryManager &LocalIPCAdapterFactoryManager::instance()
+{
+    static LocalIPCAdapterFactoryManager m;
+    return m;
+}
 
 }

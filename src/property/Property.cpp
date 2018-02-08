@@ -10,7 +10,8 @@ PropertyBase::~PropertyBase()
 {
 }
 
-void PropertyBase::doBreakBinding() {
+void PropertyBase::doBreakBinding()
+{
     qDebug() << this->name() << " property : breaking binding";
 
     for (const auto &connection : m_connections) {
@@ -21,7 +22,8 @@ void PropertyBase::doBreakBinding() {
 }
 
 
-void PropertyBase::triggerValueChangedSignal() {
+void PropertyBase::triggerValueChangedSignal()
+{
     if (m_asynchronousNotification) {
         // Asynchronous notification is enabled => we will actually trigger the change signal during the next main loop iteration
         if (!m_notificationTimerEnabled) {
@@ -47,6 +49,20 @@ void PropertyBase::doTriggerChangeSignal()
             clean();
             (m_ownerObject->*signalPointer())();
         }
+    }
+}
+
+void PropertyBase::setGetterFunctionContext(QObject *context)
+{
+    if (m_getterFunctionContext != nullptr) {
+        QObject::disconnect(m_getterFunctionContextConnection);
+    }
+    m_getterFunctionContext = context;
+
+    if (m_getterFunctionContext != nullptr) {
+        m_getterFunctionContextConnection = QObject::connect(m_getterFunctionContext, &QObject::destroyed, owner(), [this]() {
+                m_getterFunctionContext = nullptr;
+            });
     }
 }
 

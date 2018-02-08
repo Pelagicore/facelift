@@ -64,18 +64,21 @@ protected:
 
     void doBreakBinding();
 
+    void setGetterFunctionContext(QObject *context);
+
 private:
     void doTriggerChangeSignal();
 
     QObject *m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
 
-    bool m_notificationTimerEnabled = false;
     const char *m_name = nullptr;
+    bool m_notificationTimerEnabled = false;
     bool m_asynchronousNotification = false;
 
 protected:
-
+    QObject *m_getterFunctionContext = nullptr;
+    QMetaObject::Connection m_getterFunctionContextConnection;
     QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
 
 };
@@ -148,14 +151,20 @@ public:
         return value();
     }
 
-    Property &bind(const GetterFunction &f)
+    Property &bind(QObject *context, const GetterFunction &f)
     {
         breakBinding();
 
+        setGetterFunctionContext(context);
         m_getterFunction = f;
         reevaluate();
 
         return *this;
+    }
+
+    Property &bind(const GetterFunction &f)
+    {
+        return bind(nullptr, f);
     }
 
     void setValue(const Type &right)

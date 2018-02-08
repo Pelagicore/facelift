@@ -562,11 +562,6 @@ private:
 
 };
 
-class IPCAdapterBase
-{
-
-};
-
 /**
  * Base interface which every interface inherits from
  */
@@ -746,17 +741,19 @@ public:
 };
 
 
-class StructureFactoryBase : public QObject {
+class StructureFactoryBase : public QObject
+{
 
     Q_OBJECT
 
 public:
-
-    StructureFactoryBase(QQmlEngine* engine) : QObject(engine) {
+    StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
+    {
     }
 
     template<typename Type>
-    static QObject* getter(QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
+    static QObject *getter(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
+    {
         return new Type(qmlEngine);
     }
 

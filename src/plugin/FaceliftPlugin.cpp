@@ -19,4 +19,3 @@ void FaceliftPlugin::registerTypes(const char *uri)
     ::qmlRegisterType<facelift::ServiceMonitorQMLComponent>(uri, 1, 0, "ServiceMonitor");
 #endif
 }
-
