@@ -2,7 +2,7 @@
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
 
-function(facelift_add_unity_files VAR_NAME)
+function(facelift_add_unity_files TARGET_NAME VAR_NAME)
     set(FILE_INDEX "0")
 
     unset(FILE_LIST)
@@ -58,7 +58,7 @@ function(facelift_add_unity_files VAR_NAME)
 
         # Generate an aggregator unit content
         set(FILE_CONTENT "")
-        set(FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}_unity_${FILE_INDEX}.cpp)
+        set(FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_unity_${FILE_INDEX}.cpp)
         foreach(SRC_FILE ${FILES})
             set(FILE_CONTENT "${FILE_CONTENT}#include \"${SRC_FILE}\"\n")
         endforeach()
@@ -253,7 +253,7 @@ endfunction()
 #endfunction()
 
 
-function(facelift_add_library LIB_NAME)
+macro(_facelift_add_target_start)
 
     set(options OPTIONAL NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC USE_QML_COMPILER)
     set(oneValueArgs )
@@ -292,7 +292,7 @@ function(facelift_add_library LIB_NAME)
         qt5_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
     endif()
 
-    qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} TARGET ${LIB_NAME})
+    qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} TARGET ${TARGET_NAME})
 
     unset(UI_FILES)
     if(ARGUMENT_UI_FILES)
@@ -313,12 +313,27 @@ function(facelift_add_library LIB_NAME)
     endif()
 
     if(UNITY_BUILD)
-        facelift_add_unity_files(ALL_SOURCES "${ALL_SOURCES}")
+        facelift_add_unity_files(${TARGET_NAME} ALL_SOURCES "${ALL_SOURCES}")
     endif()
+
+endmacro()
+
+macro(_facelift_add_target_finish)
+
+    target_compile_definitions(${TARGET_NAME} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
+
+    # We assume every lib links against QtCore at least
+    target_link_libraries(${TARGET_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
+
+endmacro()
+
+function(facelift_add_library TARGET_NAME)
+
+    _facelift_add_target_start(${ARGN})
 
     unset(__INTERFACE)
     if(ARGUMENT_INTERFACE)
-        add_library(${LIB_NAME} INTERFACE)
+        add_library(${TARGET_NAME} INTERFACE)
         set(__INTERFACE INTERFACE)
     else()
        if(NOT ALL_SOURCES)
@@ -329,16 +344,11 @@ function(facelift_add_library LIB_NAME)
            set(ALL_SOURCES ${EMPTY_FILE_PATH})
        endif()
        if(${ARGUMENT_STATIC})
-           add_library(${LIB_NAME} STATIC ${ALL_SOURCES})
+           add_library(${TARGET_NAME} STATIC ${ALL_SOURCES})
        else()
-           add_library(${LIB_NAME} SHARED ${ALL_SOURCES})
+           add_library(${TARGET_NAME} SHARED ${ALL_SOURCES})
        endif()
     endif()
-
-    target_compile_definitions(${LIB_NAME} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
-
-    # We assume every lib links against QtCore at least
-    target_link_libraries(${LIB_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
 
     if (NOT ${ARGUMENT_NO_INSTALL})
         set(INSTALL_LIB ON)
@@ -358,7 +368,7 @@ function(facelift_add_library LIB_NAME)
 
     if (EXPORT_LIB)
 
-        set(HEADERS_INSTALLATION_LOCATION ${PROJECT_NAME}/${LIB_NAME})
+        set(HEADERS_INSTALLATION_LOCATION ${PROJECT_NAME}/${TARGET_NAME})
 
         # Create the directory for the installed headers
         install(DIRECTORY DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION})
@@ -374,7 +384,7 @@ function(facelift_add_library LIB_NAME)
         if(__INTERFACE)
         else()
             # Set the installed headers location
-            target_include_directories(${LIB_NAME}
+            target_include_directories(${TARGET_NAME}
                 PUBLIC
                     $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
             )
@@ -385,12 +395,12 @@ function(facelift_add_library LIB_NAME)
     if(INSTALL_LIB)
 
         # Install library
-        install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
         if(__INTERFACE)
         else()
             # Set the installed headers location
-            target_include_directories(${LIB_NAME}
+            target_include_directories(${TARGET_NAME}
                 PUBLIC
                     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
             )
@@ -398,6 +408,20 @@ function(facelift_add_library LIB_NAME)
 
     endif()
 
+    _facelift_add_target_finish()
+
+endfunction()
+
+
+function(facelift_add_executable TARGET_NAME)
+    _facelift_add_target_start(${ARGN})
+    add_executable(${TARGET_NAME} ${ALL_SOURCES})
+
+    if (NOT ${ARGUMENT_NO_INSTALL})
+        install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
+
+    _facelift_add_target_finish()
 endfunction()
 
 
