@@ -27,18 +27,21 @@ private:
 template<typename Type>
 LocalIPCMessage &operator<<(LocalIPCMessage &msg, const Type &v)
 {
+    Q_UNUSED(v);
     return msg;
 }
 
 template<typename Type>
 LocalIPCMessage &operator>>(LocalIPCMessage &msg, Type &v)
 {
+    Q_UNUSED(v);
     return msg;
 }
 
 template<typename Type>
 LocalIPCMessage &operator>>(LocalIPCMessage &msg, facelift::Property<Type> &property)
 {
+    Q_UNUSED(property);
     return msg;
 }
 
@@ -54,7 +57,6 @@ public:
 
     void bindToIPC() override
     {
-        qWarning() << "GGGG";
         // no actual IPC => Nothing to do
     }
 
@@ -82,19 +84,24 @@ public:
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... args)
     {
-        Q_ASSERT(false);
+        Q_UNUSED(methodName);
+        qFatal("IPC unavailable");
     }
 
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
     {
-        Q_ASSERT(false);
+        Q_UNUSED(methodName);
+        Q_UNUSED(returnValue);
+        qFatal("IPC unavailable");
     }
 
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value)
     {
-        Q_ASSERT(false);
+        Q_UNUSED(methodName);
+        Q_UNUSED(value);
+        qFatal("IPC unavailable");
     }
 
 private:
@@ -145,16 +152,25 @@ public:
     template<typename Type>
     void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly) const
     {
+        Q_UNUSED(s);
+        Q_UNUSED(propertyName);
+        Q_UNUSED(isReadonly);
     }
 
     template<typename ... Args>
     void addMethodSignature(QTextStream &s, const char *methodName, const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
+        Q_UNUSED(s);
+        Q_UNUSED(methodName);
+        Q_UNUSED(argNames);
     }
 
     template<typename ... Args>
     void addSignalSignature(QTextStream &s, const char *methodName, const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
+        Q_UNUSED(s);
+        Q_UNUSED(methodName);
+        Q_UNUSED(argNames);
     }
 
     virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;

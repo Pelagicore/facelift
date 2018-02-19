@@ -11,7 +11,7 @@
 
 #include "Property.h"
 
-#if 1
+#ifdef DBUS_IPC_ENABLED
 #include "dbus/ipc-dbus.h"
 
 namespace facelift {
