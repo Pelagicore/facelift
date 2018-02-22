@@ -67,9 +67,11 @@ file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.qface)
 add_custom_target(FACELIFT_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
 
 get_property(FACELIFT_CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+set(FACELIFT_IMPORT_DIRS ${CMAKE_BINARY_DIR}/imports)
 configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake @ONLY)
 
 set(FACELIFT_CODEGEN_LOCATION \${CMAKE_CURRENT_LIST_DIR}/../../../bin)   # relative path of the installed code generator
+set(FACELIFT_IMPORT_DIRS \${CMAKE_CURRENT_LIST_DIR}/../../../imports)
 configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed @ONLY)
 
 facelift_export_project(BUILD_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake INSTALLED_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed)
