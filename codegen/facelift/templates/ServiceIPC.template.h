@@ -91,6 +91,10 @@ public:
 
         auto theService = service();
 
+        {% if (not interface.operations) %}
+        Q_UNUSED(theService);
+        {% endif %}
+
         {% for operation in interface.operations %}
         if (member == "{{operation.name}}") {
             {% for parameter in operation.parameters %}
@@ -135,6 +139,10 @@ public:
 
         auto theService = service();
 
+        {% if (not interface.properties and not interface.signals) %}
+        Q_UNUSED(theService);
+        {% endif %}
+
         // Properties
         {% for property in interface.properties %}
         connect(theService, &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
@@ -151,6 +159,10 @@ public:
         Q_UNUSED(msg);
 
         auto theService = service();
+
+        {% if (not interface.properties) %}
+        Q_UNUSED(theService);
+        {% endif %}
 
         {% for property in interface.properties %}
             {%if property.type.is_model -%}
