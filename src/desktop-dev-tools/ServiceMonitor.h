@@ -170,7 +170,7 @@ public:
 
         widget->enableEdition();
         connect(widget, &PropertyWidgetBase::valueChanged, this, [property, this, widget, propertyName, setter]() {
-                qWarning() << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
+                qDebug() << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
                 if (!(property.value() == widget->value())) {
                     (m_provider.*setter)(widget->value());
                 }

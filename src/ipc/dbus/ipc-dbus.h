@@ -705,7 +705,7 @@ public:
         msg << value;
         auto replyMessage = msg.call(connection());
         if (replyMessage.isErrorMessage()) {
-            qFatal(
+            qCritical(
                 "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
                 qPrintable(methodName), qPrintable(objectPath()));
         }
@@ -719,7 +719,7 @@ public:
         for_each_in_tuple(argTuple, StreamWriteFunction<DBusIPCMessage>(msg));
         auto replyMessage = msg.call(connection());
         if (replyMessage.isErrorMessage()) {
-            qFatal(
+            qCritical(
                 "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
                 qPrintable(methodName), qPrintable(objectPath()));
         }
