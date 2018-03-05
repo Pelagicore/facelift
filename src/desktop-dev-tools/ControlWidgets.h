@@ -22,7 +22,7 @@
 #include <QScrollArea>
 
 #include "utils.h"
-#include "Model.h"
+#include "FaceliftModel.h"
 
 namespace facelift {
 

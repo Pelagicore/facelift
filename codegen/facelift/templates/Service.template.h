@@ -8,7 +8,7 @@
 {% set comma = joiner(",") %}
 
 #include <QtCore>
-#include "Model.h"
+#include "FaceliftModel.h"
 
 // Dependencies
 {% for property in interface.properties %}

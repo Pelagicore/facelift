@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Model.h"
+#include "FaceliftModel.h"
 
 {% for struct in module.structs %}
 #include "{{struct|fullyQualifiedPath}}.h"

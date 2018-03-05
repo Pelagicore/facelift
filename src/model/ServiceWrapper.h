@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Model.h"
+#include "FaceliftModel.h"
 
 namespace facelift {
 

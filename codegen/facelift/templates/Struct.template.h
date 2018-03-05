@@ -10,7 +10,7 @@
 #include <QAbstractListModel>
 #include <QTextStream>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 #include "QMLModel.h"
 
 // Dependencies

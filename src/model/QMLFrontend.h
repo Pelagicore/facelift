@@ -15,7 +15,7 @@
 #include <functional>
 #include <QQmlParserStatus>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 
 namespace facelift {
 

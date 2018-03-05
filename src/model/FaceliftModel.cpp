@@ -6,7 +6,7 @@
  *   Please see the LICENSE file for details.
  */
 
-#include "Model.h"
+#include "FaceliftModel.h"
 
 namespace facelift {
 

@@ -9,7 +9,7 @@
 
 #include <QDebug>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 #include "QMLFrontend.h"
 #include "QMLModel.h"
 

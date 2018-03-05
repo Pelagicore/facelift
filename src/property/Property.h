@@ -16,7 +16,7 @@
 #include <QTimer>
 #include <functional>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 
 namespace facelift {
 

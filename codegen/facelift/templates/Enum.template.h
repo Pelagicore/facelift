@@ -7,7 +7,7 @@
 
 #include <QtCore>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 
 {{module|namespaceOpen}}
 

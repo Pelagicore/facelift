@@ -20,7 +20,7 @@
 #include <QDBusInterface>
 #include <QDBusServiceWatcher>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 #include "utils.h"
 #include "Property.h"
 

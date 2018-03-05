@@ -11,7 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-#include "Model.h"
+#include "FaceliftModel.h"
 #include "Property.h"
 
 #include <QJsonObject>
