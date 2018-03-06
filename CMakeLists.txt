@@ -15,7 +15,7 @@ option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info"
 option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
 option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
-option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" OFF)
+option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" ON)
 option(FACELIFT_BUILD_TEST "Enable build of examples" OFF)
 option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ${DEBUG_BUILD})
 

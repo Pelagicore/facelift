@@ -9,14 +9,14 @@ This section gives you an overview about how to define an interface, implement i
 \subsection interface QFace interface definition
 \include "mypackage.qface"
 
-\subsection ui-code UI code
-\include "MyApp.qml"
-
 \subsection cpp-impl C++ implementation of our interface
 \include "MyInterfaceCppImplementation.h"
 
 \subsection qml-impl QML implementation of our interface
 \include "MyInterface.qml"
+
+\subsection ui-code UI code
+\include "MyApp.qml"
 
 \section IPCExample IPC example
 

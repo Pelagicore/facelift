@@ -8,21 +8,21 @@
 
 #include "MyPackagePlugin.h"
 
+#include "models/cpp/MyInterfaceCppImplementation.h"
 #include "facelift/example/mypackage/Module.h"
 
-#include "models/cpp/MyInterfaceCppImplementation.h"
 #include "facelift/example/mypackage/MyInterfaceQMLImplementation.h"
 
 void MyPackagePlugin::registerTypes(const char *uri)
 {
     using namespace facelift::example::mypackage;
 
-    // Register all generated QML types
+    // Register generated QML types
     Module::registerQmlTypes(uri);
 
+    // This additional call registers all interfaces as uncreatable types, so that
     Module::registerUncreatableQmlTypes(uri);
 
-    // We are registering the implementation types here, which can be used by the UI code.
-    facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri);
-    //facelift::registerQmlComponent<MyInterfaceQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION) "/models/qml/mypackage/MyInterface.qml");
+    // We register our C++ implementation class as a creatable type, which can be instantiated by the UI code, using the given string identifier
+    facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceImplementation");
 }

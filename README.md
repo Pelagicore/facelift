@@ -10,7 +10,7 @@ This software has been created in order to help solving problems which are typic
 # Requirements
 
 This is a list of requirements which have been taken into account when designing this component:
- - Interfaces are defined using the QFace IDL
+ - Interfaces are defined using the QFace IDL. Using an IDL ensures that the exposed interface is the same, regardless of the language used to implement the interface.
  - Interfaces can be implemented in C++
  - Interfaces can be implemented in QML/JS
  - C++ interface implementations should be clean from any hack required by the interfacing to QML (no wrapping of data into QVariant, no need to implement a QAbstractItemModel, no use of integer instead of enum, etc...)
@@ -82,7 +82,7 @@ $ CC="ccache gcc" CXX="ccache g++" cmake -DCMAKE_PREFIX_PATH=/path/to/Qt/gcc_64/
 
 # Examples
 
-Multiple example applications are provided, which can be built together with the package itself using the `-DFACELIFT_BUILD_EXAMPLES=ON` flag with CMake.
+Multiple example applications are provided, which can be built together with the package itself using the `-DFACELIFT_BUILD_EXAMPLES=ON` CMake configure option.
 
 Each example has a corresponding launch script which you can use to start the example.
 

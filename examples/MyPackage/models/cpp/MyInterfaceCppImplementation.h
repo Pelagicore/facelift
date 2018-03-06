@@ -22,7 +22,7 @@ public:
 
     void resetCounter() override
     {
-        m_counter = 0;
+        m_counter = 0;   // This assignment triggers the corresponding "value changed" signal.
         counterReset();
     }
 

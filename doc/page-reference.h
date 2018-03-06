@@ -76,7 +76,7 @@ MyInterfaceIPCProxy                 | MyInterfaceQMLFrontend       | This class 
 \section Relations Relations between QML types
 
 Note how the MyInterfaceQMLFrontend and the MyInterfaceQMLImplementation differ: the latter is used when writing an implementation of an
-interfaceu using the QML language, which means all the properties defined in the IDL are writable, and the signals can be triggered, whereas the properties exposed
+interface using the QML language, which means all the properties defined in the IDL are writable, and the signals can be triggered, whereas the properties exposed
 by MyInterfaceQMLFrontend are typically read-only (if they are defined readonly in the IDL definition).
 
 
