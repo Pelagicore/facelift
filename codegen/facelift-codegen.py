@@ -49,7 +49,8 @@ def fullyQualifiedCppName(type):
             return getPrimitiveCppType(type)
     except AttributeError:
         pass
-    return '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
+    s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
+    return s
 
 
 def namespaceOpen(symbol):
@@ -125,8 +126,13 @@ def hasReturnValue(self):
 setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
 
 
-def run_generation(input, output):
-    system = FileSystem.parse(input)
+def run_generation(input, output, dependency):
+    # Build the list of modules to be generated
+    modulesToGenerate = []
+    for module in FileSystem.parse(list(input)).modules:
+        modulesToGenerate.append(module.name)
+
+    system = FileSystem.parse(list(input) + list(dependency))
     generator = Generator(search_path=Path(here / 'facelift/templates'))
     generator.register_filter('returnType', returnType)
     generator.register_filter('cppBool', cppBool)
@@ -144,45 +150,47 @@ def run_generation(input, output):
 
     ctx = {'output': output}
     for module in system.modules:
-        ctx.update({'module': module})
-        module_path = '/'.join(module.name_parts)
-        log.debug('process module %s' % module.module_name)
-        ctx.update({'path': module_path})
-        generator.write('module/{{path}}/Module.h', 'Module.template.h', ctx)
-        generator.write('module/{{path}}/Module.cpp', 'Module.template.cpp', ctx)
-        generator.write('ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx)
-        generator.write('devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx)
-        generator.write('devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx)
-        generator.write('devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx)
-        for interface in module.interfaces:
-            log.debug('process interface %s' % interface)
-            ctx.update({'interface': interface})
-            generator.write('types/{{path}}/{{interface}}.h', 'Service.template.h', ctx)
-            generator.write('types/{{path}}/{{interface}}Wrapper.h', 'ServiceWrapper.template.h', ctx)
-            generator.write('types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx)
-            generator.write('types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx)
-            generator.write('types/{{path}}/{{interface}}QMLImplementation.h', 'QMLImplementation.template.h', ctx)
-            generator.write('types/{{path}}/{{interface}}QMLFrontend.h', 'QMLFrontend.template.h', ctx)
-            generator.write('devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx)
-            generator.write('devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx)
-            generator.write('ipc/{{path}}/{{interface}}IPC.h', 'ServiceIPC.template.h', ctx)
-        for enum in module.enums:
-            ctx.update({'enum': enum})
-            generator.write('types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx)
-            generator.write('types/{{path}}/{{enum}}.cpp', 'Enum.template.cpp', ctx)
-        for struct in module.structs:
-            ctx.update({'struct': struct})
-            generator.write('types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx)
-            generator.write('types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx)
+        if module.name in modulesToGenerate:
+            ctx.update({'module': module})
+            module_path = '/'.join(module.name_parts)
+            log.debug('process module %s' % module.module_name)
+            ctx.update({'path': module_path})
+            generator.write('module/{{path}}/Module.h', 'Module.template.h', ctx)
+            generator.write('module/{{path}}/Module.cpp', 'Module.template.cpp', ctx)
+            generator.write('ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx)
+            generator.write('devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx)
+            generator.write('devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx)
+            generator.write('devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx)
+            for interface in module.interfaces:
+                log.debug('process interface %s' % interface)
+                ctx.update({'interface': interface})
+                generator.write('types/{{path}}/{{interface}}.h', 'Service.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}Wrapper.h', 'ServiceWrapper.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx)
+                generator.write('types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}QMLImplementation.h', 'QMLImplementation.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}QMLFrontend.h', 'QMLFrontend.template.h', ctx)
+                generator.write('devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx)
+                generator.write('devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx)
+                generator.write('ipc/{{path}}/{{interface}}IPC.h', 'ServiceIPC.template.h', ctx)
+            for enum in module.enums:
+                ctx.update({'enum': enum})
+                generator.write('types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx)
+                generator.write('types/{{path}}/{{enum}}.cpp', 'Enum.template.cpp', ctx)
+            for struct in module.structs:
+                ctx.update({'struct': struct})
+                generator.write('types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx)
+                generator.write('types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx)
 
 
 @click.command()
-@click.argument('input', nargs=-1, type=click.Path(exists=True))
-@click.argument('output', nargs=1, type=click.Path(exists=True))
-def generate(input, output):
+@click.option('--output', default=".")
+@click.option('--input', '-i', multiple=True)
+@click.option('--dependency', '-d', multiple=True)
+def generate(input, output, dependency):
     """Takes several files or directories as input and generates the code
     in the given output directory."""
-    run_generation(input, output)
+    run_generation(input, output, dependency)
 
 
 if __name__ == '__main__':

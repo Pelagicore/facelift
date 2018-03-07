@@ -140,7 +140,7 @@ function(facelift_add_interface TARGET_NAME)
 
     set(options)
     set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
-    set(multiValueArgs)
+    set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
@@ -174,12 +174,18 @@ function(facelift_add_interface TARGET_NAME)
 
     file(MAKE_DIRECTORY ${WORK_PATH})
 
+    set(BASE_CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} --input "${INTERFACE_DEFINITION_FOLDER}" --output "${WORK_PATH}")
+
+    foreach(IMPORT_FOLDER ${ARGUMENT_IMPORT_FOLDERS})
+        set(BASE_CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND} --dependency ${IMPORT_FOLDER})
+    endforeach()
+
     # find_package(PythonInterp) causes some issues if the another version has been searched before, and it is not needed anyway on non-Win32 platforms
     if(WIN32)
         find_package(PythonInterp 3.0 REQUIRED)
-        set(CODEGEN_COMMAND ${PYTHON_EXECUTABLE} ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
+        set(CODEGEN_COMMAND ${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND} )
     else()
-        set(CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} ${INTERFACE_DEFINITION_FOLDER} ${WORK_PATH})
+        set(CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND})
     endif()
 
     string(REPLACE ";" " " CODEGEN_COMMAND_WITH_SPACES "${CODEGEN_COMMAND}")
@@ -206,7 +212,7 @@ function(facelift_add_interface TARGET_NAME)
     facelift_add_library(${LIBRARY_NAME}_types
         SOURCES_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES FaceliftModelLib FaceliftQMLModelLib FaceliftPropertyLib
+        LINK_LIBRARIES FaceliftModelLib FaceliftQMLModelLib FaceliftPropertyLib ${ARGUMENT_LINK_LIBRARIES}
         PUBLIC_HEADER_BASE_PATH ${TYPES_OUTPUT_PATH}
         UNITY_BUILD
     )
@@ -214,7 +220,7 @@ function(facelift_add_interface TARGET_NAME)
     facelift_add_library(${LIBRARY_NAME}
         SOURCES_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES ${LIBRARY_NAME}_types
+        LINK_LIBRARIES ${LIBRARY_NAME}_types ${ARGUMENT_LINK_LIBRARIES}
         PUBLIC_HEADER_BASE_PATH ${MODULE_OUTPUT_PATH}
         UNITY_BUILD
     )
@@ -223,7 +229,7 @@ function(facelift_add_interface TARGET_NAME)
         facelift_add_library(${LIBRARY_NAME}_desktop_dev_tools
             SOURCES_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftDesktopDevTools
+            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftDesktopDevTools ${ARGUMENT_LINK_LIBRARIES}
             PUBLIC_HEADER_BASE_PATH ${DEVTOOLS_OUTPUT_PATH}
             UNITY_BUILD
         )
@@ -235,7 +241,7 @@ function(facelift_add_interface TARGET_NAME)
         facelift_add_library(${LIBRARY_NAME}_ipc
             SOURCES_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib
+            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib ${ARGUMENT_LINK_LIBRARIES}
             PUBLIC_HEADER_BASE_PATH ${IPC_OUTPUT_PATH}
             UNITY_BUILD
         )
