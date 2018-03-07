@@ -51,15 +51,8 @@ As with Qt/QML itself, there are multiple ways to register a type, depending on 
 Note that since a C++ implementation of our interface is a class which is not QML-friendly (it does not expose any Q_PROPERTY or Q_INVOKABLE),
 it is not registered directly into the QML engine, using the usual Qt/QML API.
 
-\subsection s1 Registration as a creatable QML type
-
 Example:
 \include MyPackagePlugin.cpp
-
-\subsection s2 Registration as a singleton
-facelift::registerQmlComponent
-
-The interface can be registered as a QML singleton using the
 
 
 */
