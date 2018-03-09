@@ -13,7 +13,7 @@
 class MyPackagePlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface");
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface")
 
 public:
     void registerTypes(const char *uri) override;

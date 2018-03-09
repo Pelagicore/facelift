@@ -24,14 +24,11 @@ log = logging.getLogger(__name__)
 def parameterType(symbol):
     return symbol
 
-
 def fullyQualifiedPath(symbol):
     return symbol.qualified_name.replace('.', '/')
 
-
 def toValidId(name):
     return name.replace('.', '_')
-
 
 def fullyQualifiedName(symbol):
     return symbol.qualified_name
@@ -52,18 +49,15 @@ def fullyQualifiedCppName(type):
     s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
     return s
 
-
 def namespaceOpen(symbol):
     parts = symbol.qualified_name.split('.')
     ns = ' '.join(['namespace %s {' % x for x in parts])
     return ns
 
-
 def namespaceClose(symbol):
     parts = symbol.qualified_name.split('.')
     ns = '} ' * len(parts)
     return ns
-
 
 def returnTypeFromSymbol(symbol):
     if symbol.is_void or symbol.is_primitive:
@@ -77,10 +71,8 @@ def returnTypeFromSymbol(symbol):
     else:
         return fullyQualifiedCppName(symbol)
 
-
 def returnType(symbol):
     return returnTypeFromSymbol(symbol.type)
-
 
 def cppBool(b):
     if b:
@@ -88,10 +80,8 @@ def cppBool(b):
     else:
         return "false"
 
-
 def nestedType(symbol):
     return symbol.type.nested
-
 
 def requiredIncludeFromType(symbol, suffix):
     typeName = ''
@@ -104,13 +94,11 @@ def requiredIncludeFromType(symbol, suffix):
     else:
         return ""
 
-
 def requiredInclude(symbol):
     if not symbol.type.is_primitive:
         type = symbol.type.nested if symbol.type.nested else symbol.type
         return requiredIncludeFromType(type, ".h")
     return ""
-
 
 def requiredQMLInclude(symbol):
     if symbol.type.is_interface:
@@ -119,12 +107,16 @@ def requiredQMLInclude(symbol):
     else:
         return ""
 
+def hasListParameter(parameters):
+    for param in parameters:
+        if param.type.is_list:
+            return True
+    return False
 
 def hasReturnValue(self):
     return not self.type.name == 'void'
 
 setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
-
 
 def run_generation(input, output, dependency):
     # Build the list of modules to be generated
@@ -146,6 +138,7 @@ def run_generation(input, output, dependency):
     generator.register_filter('fullyQualifiedCppName', fullyQualifiedCppName)
     generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
     generator.register_filter('toValidId', toValidId)
+    generator.register_filter('hasListParameter', hasListParameter)
     generator.destination = output
 
     ctx = {'output': output}

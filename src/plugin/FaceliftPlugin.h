@@ -13,7 +13,7 @@
 class FaceliftPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "FaceliftPlugin");
+    Q_PLUGIN_METADATA(IID "FaceliftPlugin")
 
 public:
     void registerTypes(const char *uri) override;

@@ -753,6 +753,7 @@ public:
     template<typename Type>
     static QObject *getter(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
     {
+        Q_UNUSED(jsEngine);
         return new Type(qmlEngine);
     }
 

@@ -160,9 +160,9 @@ public:
 
         auto theService = service();
 
-        {% if (not interface.properties) %}
+        {#% if (not interface.properties) %#}
         Q_UNUSED(theService);
-        {% endif %}
+        {#% endif %#}
 
         {% for property in interface.properties %}
             {% if property.type.is_model -%}
