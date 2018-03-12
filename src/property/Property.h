@@ -133,8 +133,8 @@ public:
      * Add the given signal to the signals which this property is bound to, which means that the value of the property will
      * be reevaluated whenever the signal is triggered
      */
-    template<typename SourceType, typename ... Args>
-    Property &addTrigger(const SourceType *source, void (SourceType::*changeSignal)(Args ...))
+    template<typename SourceObjectType, typename SourceSignalType, typename ... Args>
+    Property &addTrigger(const SourceObjectType *source, void (SourceSignalType::*changeSignal)(Args ...))
     {
         m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
                 reevaluate();
@@ -401,7 +401,6 @@ public:
         auto elementCount = size();
         for (size_t i = 0; i < elementCount; i++) {
             list.append(elementAt(i));
-
         }
         return list;
     }
@@ -418,7 +417,6 @@ private:
     size_t m_size = 0;
 
     bool m_modified = false;
-
 };
 
 
