@@ -203,20 +203,15 @@ public:
 
     void checkInit()
     {
-        if (m_componentCompleted && !m_alreadyInitialized && enabled() && !objectPath().isEmpty()) {
-            m_alreadyInitialized = true;
-            QObject::connect(
-                &InterfaceManager::instance(), &InterfaceManager::adapterAvailable, this,
-                &IPCProxyBinderBase::onLocalAdapterAvailable);
-
-            auto localAdapter = InterfaceManager::instance().getAdapter(this->objectPath());
-            if (localAdapter != nullptr) {
-                onLocalAdapterAvailable(localAdapter);
-            }
-
-            bindToIPC();
+        if (m_componentCompleted && enabled() && !objectPath().isEmpty()) {
+            this->connectToServer();
         }
     }
+
+    /**
+     * Establish the connection with the server
+     */
+    void connectToServer();
 
     virtual void bindToIPC() = 0;
 
@@ -229,7 +224,6 @@ private:
     bool m_enabled = true;
     bool m_alreadyInitialized = false;
     bool m_componentCompleted = false;
-
 
 };
 

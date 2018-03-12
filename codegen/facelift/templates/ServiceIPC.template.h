@@ -165,15 +165,12 @@ public:
         {% endif %}
 
         {% for property in interface.properties %}
-            {%if property.type.is_model -%}
+            {% if property.type.is_model -%}
             // TODO : model
-//            qFatal("Property of model type not supported");
-            qWarning() << "TODO";
+        qWarning("Property of model type not supported over IPC");
             {% elif property.type.is_interface -%}
             // TODO
-            qWarning() << "TODO";
-
-//            qFatal("Property of interface type not supported");
+        qWarning("Property of interface type not supported over IPC");
             {% else %}
         msg << theService->{{property.name}}();
             {% endif %}

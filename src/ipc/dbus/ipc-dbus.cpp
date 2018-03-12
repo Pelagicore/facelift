@@ -140,7 +140,7 @@ void DBusIPCProxyBinder::bindToIPC()
 
         m_busWatcher.addWatchedService(m_serviceName);
         m_busWatcher.setConnection(connection());
-        connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &DBusIPCProxyBinder::onServiceAvailable);
+        QObject::connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &DBusIPCProxyBinder::onServiceAvailable);
 
         auto successPropertyChangeSignal =
                 connection().connect(m_serviceName, objectPath(), m_interfaceName,

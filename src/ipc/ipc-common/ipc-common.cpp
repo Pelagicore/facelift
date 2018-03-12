@@ -43,4 +43,20 @@ void IPCProxyBinderBase::onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
         localAdapterAvailable(adapter);
     }
 }
+
+void IPCProxyBinderBase::connectToServer() {
+    if (!m_alreadyInitialized) {
+        m_alreadyInitialized = true;
+        QObject::connect(
+            &InterfaceManager::instance(), &InterfaceManager::adapterAvailable, this,
+            &IPCProxyBinderBase::onLocalAdapterAvailable);
+
+        auto localAdapter = InterfaceManager::instance().getAdapter(this->objectPath());
+        if (localAdapter != nullptr) {
+            onLocalAdapterAvailable(localAdapter);
+        }
+
+        bindToIPC();
+    }
+}
 }

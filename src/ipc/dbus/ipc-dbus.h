@@ -815,6 +815,10 @@ public:
         return &m_ipcBinder;
     }
 
+    void connectToServer() {
+        m_ipcBinder.connectToServer();
+    }
+
 private:
     DBusIPCProxyBinder m_ipcBinder;
     bool m_serviceRegistered = false;

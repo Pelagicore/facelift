@@ -78,6 +78,10 @@ public:
         return &m_ipcBinder;
     }
 
+    void connectToServer() {
+        m_ipcBinder.connectToServer();
+    }
+
     virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
     virtual void deserializeSpecificPropertyValues(LocalIPCMessage &msg) = 0;
 
@@ -85,23 +89,23 @@ public:
     void sendMethodCall(const char *methodName, const Args & ... args)
     {
         Q_UNUSED(methodName);
-        qFatal("IPC unavailable");
+        qCritical("IPC unavailable");
     }
 
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
     {
-        Q_UNUSED(methodName);
-        Q_UNUSED(returnValue);
-        qFatal("IPC unavailable");
+        qCritical(
+            "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
+            qPrintable(methodName), qPrintable(this->objectPath()));
     }
 
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value)
     {
-        Q_UNUSED(methodName);
-        Q_UNUSED(value);
-        qFatal("IPC unavailable");
+        qCritical(
+            "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
+            qPrintable(methodName), qPrintable(this->objectPath()));
     }
 
 private:
