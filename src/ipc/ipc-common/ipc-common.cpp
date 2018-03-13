@@ -44,7 +44,8 @@ void IPCProxyBinderBase::onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
     }
 }
 
-void IPCProxyBinderBase::connectToServer() {
+void IPCProxyBinderBase::connectToServer()
+{
     if (!m_alreadyInitialized) {
         m_alreadyInitialized = true;
         QObject::connect(

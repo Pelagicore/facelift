@@ -325,7 +325,7 @@ private:
 
 
 template<typename ElementType>
-class ModelProperty : public PropertyBase
+class ModelProperty : public Model<ElementType>, public PropertyBase
 {
 public:
     typedef std::function<ElementType(int)> ElementGetter;
@@ -342,7 +342,7 @@ public:
         return *this;
     }
 
-    ElementType elementAt(int index) const
+    ElementType elementAt(int index) const override
     {
         if (m_elementGetter != nullptr) {
             return m_elementGetter(index);
@@ -356,7 +356,7 @@ public:
         m_elementGetter = getter;
     }
 
-    void setSize(size_t size)
+    void setSize(int size)
     {
         if (m_size != size) {
             m_size = size;
@@ -370,7 +370,7 @@ public:
         triggerValueChangedSignal();
     }
 
-    size_t size() const
+    int size() const override
     {
         if (m_elementGetter != nullptr) {
             return m_size;
@@ -399,7 +399,7 @@ public:
     {
         QList<ElementType> list;
         auto elementCount = size();
-        for (size_t i = 0; i < elementCount; i++) {
+        for (int i = 0; i < elementCount; i++) {
             list.append(elementAt(i));
         }
         return list;
@@ -407,14 +407,13 @@ public:
 
     QString toString() const override
     {
-        NOT_IMPLEMENTED();
-        return "Model";
+        return QString("Model ") + name();
     }
 
 private:
     ElementGetter m_elementGetter;
     QList<ElementType> m_elements;
-    size_t m_size = 0;
+    int m_size = 0;
 
     bool m_modified = false;
 };

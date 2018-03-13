@@ -1,0 +1,13 @@
+module advanced 1.0
+
+struct MyStruct {
+    string name
+    bool enabled
+}
+
+interface AdvancedModel {
+    readonly model<MyStruct> theModel;
+    void deleteModelItem(MyStruct item);
+    void insertNewModelItemAfter(MyStruct item);
+    void renameModelItem(MyStruct item, string name);
+}

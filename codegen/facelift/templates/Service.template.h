@@ -56,9 +56,8 @@ public:
 
     {% if property.type.is_model -%}
 
-    virtual {{property|nestedType|fullyQualifiedCppName}} {{property.name}}ElementAt(size_t index) = 0;
 
-    virtual size_t {{property.name}}Size() = 0;
+    virtual facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 

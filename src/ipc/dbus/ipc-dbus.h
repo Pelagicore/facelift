@@ -815,7 +815,8 @@ public:
         return &m_ipcBinder;
     }
 
-    void connectToServer() {
+    void connectToServer()
+    {
         m_ipcBinder.connectToServer();
     }
 

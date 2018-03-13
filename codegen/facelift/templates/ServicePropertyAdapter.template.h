@@ -28,12 +28,8 @@ public:
 
     {% if property.type.is_model %}
 
-    {{property|nestedType|fullyQualifiedCppName}} {{property.name}}ElementAt(size_t index) override {
-        return m_{{property.name}}.elementAt(index);
-    }
-
-    size_t {{property.name}}Size() override {
-    	return m_{{property.name}}.size();
+    facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() override {
+        return m_{{property.name}};
     }
 
     facelift::ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};

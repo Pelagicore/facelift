@@ -14,6 +14,7 @@
 #include <QtQml>
 #include <functional>
 #include <QQmlParserStatus>
+#include <QAbstractListModel>
 
 #include "FaceliftModel.h"
 
@@ -176,10 +177,11 @@ class ModelListModelBase : public QAbstractListModel
 public:
     typedef size_t (QObject::*SizeGetterFunction)();
 
+    /*
     void notifyModelChanged()
     {
         auto previousRowCount = m_rowCount;
-        auto newRowCount = (m_provider->*m_sizeGetter)();
+        auto newRowCount = m_property->size();
 
         if (newRowCount > previousRowCount) {
             // And a beginInsertRows() & endInsertRows() for the new items
@@ -197,18 +199,67 @@ public:
         QModelIndex previousTopLeft = index(0, 0);
         QModelIndex previousBottomRight = index(m_rowCount - 1, 0);
         dataChanged(previousTopLeft, previousBottomRight);
-
     }
+    */
 
     void syncWithProvider()
     {
-        m_rowCount = (m_provider->*m_sizeGetter)();
+        m_rowCount = m_property->size();
+    }
+
+    void init(facelift::ModelBase &property)
+    {
+        m_property = &property;
+        QObject::connect(m_property, &facelift::ModelBase::beginInsertElements, this, &ModelListModelBase::onBeginInsertElements);
+        QObject::connect(m_property, &facelift::ModelBase::endInsertElements, this, &ModelListModelBase::onEndInsertElements);
+        QObject::connect(m_property, &facelift::ModelBase::beginRemoveElements, this, &ModelListModelBase::onBeginRemoveElements);
+        QObject::connect(m_property, &facelift::ModelBase::endRemoveElements, this, &ModelListModelBase::onEndRemoveElements);
+        QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
+                &ModelListModelBase::onDataChanged);
+    }
+
+    void onBeginInsertElements(int first, int last)
+    {
+        beginInsertRows(QModelIndex(), first, last);
+    }
+
+    void onEndInsertElements()
+    {
+        endInsertRows();
+    }
+
+    void onBeginRemoveElements(int first, int last)
+    {
+        beginRemoveRows(QModelIndex(), first, last);
+    }
+
+    void onEndRemoveElements()
+    {
+        endRemoveRows();
+    }
+
+    void onDataChanged(int first, int last)
+    {
+        QModelIndex topLeft = createIndex(first, last);
+        dataChanged(topLeft, topLeft);
+    }
+
+    int rowCount(const QModelIndex &index) const override
+    {
+        Q_UNUSED(index);
+        return m_rowCount;
+    }
+
+    QHash<int, QByteArray> roleNames() const override
+    {
+        QHash<int, QByteArray> roles;
+        roles[Qt::UserRole] = "modelData";
+        return roles;
     }
 
 protected:
-    size_t m_rowCount = 0;
-    SizeGetterFunction m_sizeGetter;
-    QObject *m_provider;
+    int m_rowCount = 0;
+    facelift::ModelBase *m_property = nullptr;
 
 };
 
@@ -222,40 +273,22 @@ public:
     {
     }
 
-    QHash<int, QByteArray> roleNames() const override
-    {
-        QHash<int, QByteArray> roles;
-        roles[1000] = "modelData";
-        return roles;
-        //        return ElementType::roleNames_(ElementType::FIELD_NAMES);
-    }
-
-    int rowCount(const QModelIndex &index) const override
-    {
-        Q_UNUSED(index);
-        return m_rowCount;
-    }
-
     QVariant data(const QModelIndex &index, int role) const override
     {
         Q_UNUSED(role);
-        auto element = (m_provider->*m_elementGetter)(index.row());
+        auto element = m_property->elementAt(index.row());
         return QVariant::fromValue(element);
     }
 
-    template<typename ProviderType>
-    void init(QObject *ownerObject, void (ProviderType::*changeSignal)(), size_t (ProviderType::*sizeGetter)(),
-            ElementType (ProviderType::*elementGetter)(size_t))
+    void init(facelift::Model<ElementType> &property)
     {
-        Q_UNUSED(changeSignal);
-        m_provider = ownerObject;
-        m_sizeGetter = (SizeGetterFunction) sizeGetter;
-        m_elementGetter = (ElementGetterFunction) elementGetter;
+        ModelListModelBase::init(property);
+        m_property = &property;
         syncWithProvider();
     }
 
 private:
-    ElementGetterFunction m_elementGetter = nullptr;
+    facelift::Model<ElementType> *m_property = nullptr;
 
 };
 

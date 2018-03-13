@@ -165,7 +165,6 @@ def run_generation(input, output, dependency):
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})
                 generator.write('types/{{path}}/{{interface}}.h', 'Service.template.h', ctx)
-                generator.write('types/{{path}}/{{interface}}Wrapper.h', 'ServiceWrapper.template.h', ctx)
                 generator.write('types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx)
                 generator.write('types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx)
                 generator.write('types/{{path}}/{{interface}}QMLImplementation.h', 'QMLImplementation.template.h', ctx)
