@@ -39,6 +39,7 @@ interface TestInterface {
     signal eventInt(int p);
     signal eventBoolAndStruct(bool p, TestStruct q);
     signal eventWithList(list<int> p, bool q);
+    signal eventWithStructWithList(TestStructWithList p)
 }
 
 struct TestStruct {
@@ -56,3 +57,10 @@ struct TestStruct2 {
     TestStruct s
     TestEnum i
 }
+
+struct TestStructWithList {
+    list<int> listOfInts
+    list<TestStruct> listOfStructs
+    TestEnum enumField
+}
+

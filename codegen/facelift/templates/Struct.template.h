@@ -74,10 +74,6 @@ public:
         return *this;
     }
 
-//    static QHash<int, QByteArray> roleNames() {
-//        return roleNames_(FIELD_NAMES);
-//    }
-
     Q_INVOKABLE {{struct|fullyQualifiedCppName}} clone() const {
         {{struct.name}} s;
         s.setValue(asTuple());
@@ -90,16 +86,20 @@ public:
 
 {% for field in struct.fields %}
 
-	{% set QmlType=field|returnType %}
-	{% if field.type.is_enum %}
-		{% set QmlType=QmlType + "Gadget::Type" %}
-	{% endif %}
-
 	{{field.comment}}
-	Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}})
+	Q_PROPERTY({{field|qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}})
+
+    {{field|qmlCompatibleType}} qmlCompatible{{field.name}}() const {
+        return facelift::toQMLCompatibleType({{field.name}}());
+    }
 
     const {{field|returnType}}& {{field.name}}() const {
         return m_{{field.name}};
+    }
+
+    void qmlCompatibleSet{{field.name}}({{field|qmlCompatibleType}} value) {
+//      qDebug() << "Setting field {{field.name}} with value:" << value;
+        facelift::assignFromQmlType(m_{{field.name}}, value);
     }
 
     void set{{field.name}}({{field|returnType}} value) {
@@ -178,13 +178,16 @@ public:
 
 //////////////////
 
-	{% set QmlType=field|returnType %}
-	{% if field.type.is_enum %}
-		{% set QmlType=QmlType + "Gadget::Type" %}
-	{% endif %}
-
     {{field.comment}}
-    Q_PROPERTY({{QmlType}} {{field}} READ {{field}} WRITE set{{field}} NOTIFY {{field}}Changed)
+    Q_PROPERTY({{field|qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}} NOTIFY {{field}}Changed)
+
+    {{field|qmlCompatibleType}} qmlCompatible{{field.name}}() const {
+        return facelift::toQMLCompatibleType({{field.name}}());
+    }
+
+    void qmlCompatibleSet{{field.name}}({{field|qmlCompatibleType}} value) {
+        assignFromQmlType(m_{{field.name}}, value);
+    }
 
     Q_SIGNAL void {{field}}Changed();
 

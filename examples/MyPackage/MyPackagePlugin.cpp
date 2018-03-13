@@ -28,6 +28,6 @@ void MyPackagePlugin::registerTypes(const char *uri)
     facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceImplementation");
 
     // Other possibility: we register our C++ implementation class as a singleton, which can be used by the UI code, using the given string identifier
-//    facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
+    //    facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
 
 }

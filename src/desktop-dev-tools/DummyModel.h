@@ -88,47 +88,6 @@ inline void readJSONSimple<QString>(const QJsonValue &json, QString &value)
 }
 
 
-
-
-/*
-template<typename Type>
-inline void assignRandomValue(Type &t)
-{
-    t = {};
-}
-
-#include <random>
-template<>
-inline void assignRandomValue(int &t)
-{
-    static ::std::normal_distribution<double> normal_dist(653, 10);
-    typedef ::std::mt19937 MyRNG;  // the Mersenne Twister with a popular choice of parameters
-    MyRNG rng;
-    t = normal_dist(rng);
-}
-
-template<>
-inline void assignRandomValue(QString &t)
-{
-    t = "Random string";
-}
-
-template<::std::size_t I = 0, typename ... Tp>
-inline typename ::std::enable_if<I == sizeof ... (Tp), void>::type
-random_tuple(::std::tuple<Tp ...> &t)
-{
-    Q_UNUSED(t);
-}
-
-template<::std::size_t I = 0, typename ... Tp>
-inline typename ::std::enable_if < I<sizeof ... (Tp), void>::type
-random_tuple(::std::tuple<Tp ...> &t)
-{
-    assignRandomValue(::std::get<I>(t));
-    random_tuple<I + 1, Tp ...>(t);
-}
-*/
-
 template<typename ListElementType>
 inline QWidget *createWidget(ListProperty<ListElementType> &t, const QString &propertyName)
 {
@@ -164,6 +123,38 @@ struct DummyModelTypeHandler
     {
         readJSONSimple(json, value);
     }
+};
+
+
+template<typename ListElementType>
+QJsonArray toJsonArray(const QList<ListElementType> &list)
+{
+    QJsonArray array;
+    for (auto &propertyElement : list) {
+        QJsonValue jsonValue;
+        DummyModelTypeHandler<ListElementType>::writeJSON(jsonValue, propertyElement);
+        array.append(jsonValue);
+    }
+    return array;
+}
+
+
+template<typename ElementType>
+struct DummyModelTypeHandler<QList<ElementType> >
+{
+    static void writeJSON(QJsonValue &json, const QList<ElementType> &value)
+    {
+        json = toJsonArray(value);
+    }
+
+    static void readJSON(const QJsonValue &json, QList<ElementType> &value)
+    {
+        value.clear();
+        auto array = json.toArray();
+        for (const auto &jsonObject : array) {
+        }
+    }
+
 };
 
 
@@ -423,19 +414,6 @@ public:
         DummyModelTypeHandler<ElementType>::writeJSON(jsonValue, property.value());
         json[propertyName] = jsonValue;
     }
-
-    template<typename ListElementType>
-    QJsonArray toJsonArray(const QList<ListElementType> &list) const
-    {
-        QJsonArray array;
-        for (auto &propertyElement : list) {
-            QJsonValue jsonValue;
-            DummyModelTypeHandler<ListElementType>::writeJSON(jsonValue, propertyElement);
-            array.append(jsonValue);
-        }
-        return array;
-    }
-
 
     template<typename ListElementType>
     void writeJSONProperty(QJsonObject &json, const ListProperty<ListElementType> &property,

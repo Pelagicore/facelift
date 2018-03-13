@@ -40,6 +40,13 @@ def getPrimitiveCppType(symbol):
         return 'float'
     return symbol;
 
+def qmlCompatibleType(symbol):
+    if symbol.type.is_enum:
+        return returnType(symbol.type) + "Gadget::Type"
+    if symbol.type.is_list:
+        return "QVariantList"
+    return returnType(symbol.type)
+
 def fullyQualifiedCppName(type):
     try:
         if type.is_primitive:
@@ -139,6 +146,7 @@ def run_generation(input, output, dependency):
     generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
     generator.register_filter('toValidId', toValidId)
     generator.register_filter('hasListParameter', hasListParameter)
+    generator.register_filter('qmlCompatibleType', qmlCompatibleType)
     generator.destination = output
 
     ctx = {'output': output}

@@ -70,8 +70,7 @@ public:
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
                 {{ comma() }}
-                {%- set QmlType=parameter|returnType -%}
-                {{QmlType}} {{parameter.name}}
+                {{parameter|returnType}} {{parameter.name}}
             {%- endfor -%}) {
             emit {{class}}QMLFrontend::{{event.name}}(
             {%- set comma2 = joiner(", ") -%}
@@ -118,14 +117,10 @@ public:
     QPointer<{{property|returnType}}QMLFrontend> m_{{property}}Frontend;
 
     {%- else %}
-        {% set QmlType=property|returnType %}
-        {% if property.type.is_enum %}
-            {% set QmlType=QmlType + "Gadget::Type" %}
-        {% endif %}
         {% if property.readonly %}
-    Q_PROPERTY({{QmlType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
         {%- else %}
-    Q_PROPERTY({{QmlType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
     void set{{property}}(const {{property|returnType}}& newValue) {
         // qDebug() << "Request to set property {{property}} to " << newValue;
         Q_ASSERT(m_provider);
@@ -148,11 +143,7 @@ public:
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}
-        {%- set QmlType=parameter|returnType -%}
-        {%- if parameter.type.is_enum -%}
-            {%- set QmlType=QmlType + "Gadget::Type" -%}
-        {%- endif -%}
-        {{QmlType}} {{parameter.name}}
+        {{parameter|qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
     ) {
         Q_ASSERT(m_provider);
@@ -171,13 +162,7 @@ public:
         {%- set comma = joiner(", ") -%}
         {%- for parameter in event.parameters -%}
         {{ comma() }}
-        {%- set QmlType=parameter|returnType -%}
-        {%- if parameter.type.is_enum -%}
-            {%- set QmlType=QmlType + "Gadget::Type" -%}
-        {%- elif parameter.type.is_list -%}
-            {%- set QmlType="QVariantList" -%}
-        {%- endif -%}
-        {{QmlType}} {{parameter.name}}
+        {{parameter|qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
     );
     {% endfor %}

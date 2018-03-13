@@ -122,11 +122,25 @@ struct TypeHandlerBase
         Q_UNUSED(connections);
     }
 
+    template<typename Type>
+    static const Type &toQMLCompatibleType(const Type &v)
+    {
+        return v;
+    }
+
+    template<typename Type, typename QmlType>
+    static void assignFromQmlType(Type &field, const QmlType &qmlValue)
+    {
+        field = qmlValue;
+    }
+
 };
 
 template<typename Type, typename Enable = void>
 struct TypeHandler
 {
+    typedef Type QMLType;
+
     static QString toString(const Type &v)
     {
         Q_UNUSED(v);
@@ -164,6 +178,7 @@ struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<Struc
         Q_UNUSED(value);
         Q_UNUSED(variant);
     }
+
 };
 
 
@@ -327,6 +342,8 @@ BinarySeralizer &operator>>(BinarySeralizer &msg, Type &v)
 template<typename Type>
 struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
 {
+    typedef Type QMLType;
+
     static void write(BinarySeralizer &msg, const Type &param)
     {
         auto tupleCopy = param.asTuple();
@@ -378,12 +395,24 @@ struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, 
         return v.toString();
     }
 
+    static const Type &toQMLCompatibleType(const Type &v)
+    {
+        return v;
+    }
+
+    static void assignFromQmlType(Type &field, const Type &qmlValue)
+    {
+        field = qmlValue;
+    }
+
 };
 
 
 template<typename Type>
 struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
 {
+    typedef Type QMLType;
+
     static void write(BinarySeralizer &msg, const Type &param)
     {
         msg << static_cast<int>(param);
@@ -406,6 +435,16 @@ struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::typ
         return static_cast<Type>(variant.toInt());
     }
 
+    static const Type &toQMLCompatibleType(const Type &v)
+    {
+        return v;
+    }
+
+    static void assignFromQmlType(Type &field, const Type &qmlValue)
+    {
+        field = qmlValue;
+    }
+
 };
 
 
@@ -413,6 +452,8 @@ struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::typ
 template<>
 struct TypeHandler<bool> : public TypeHandlerBase
 {
+    typedef bool QMLType;
+
     static QString toString(const bool &v)
     {
         return v ? "true" : "false";
@@ -429,6 +470,8 @@ struct TypeHandler<bool> : public TypeHandlerBase
 template<>
 struct TypeHandler<int> : public TypeHandlerBase
 {
+    typedef int QMLType;
+
     static QString toString(const int &v)
     {
         return QString::number(v);
@@ -445,6 +488,8 @@ struct TypeHandler<int> : public TypeHandlerBase
 template<>
 struct TypeHandler<float> : public TypeHandlerBase
 {
+    typedef float QMLType;
+
     static QString toString(const float &v)
     {
         return QString::number(v);
@@ -460,6 +505,8 @@ struct TypeHandler<float> : public TypeHandlerBase
 template<>
 struct TypeHandler<QString> : public TypeHandlerBase
 {
+    typedef QString QMLType;
+
     static QString toString(const QString &v)
     {
         QString s("\"");
@@ -479,6 +526,8 @@ struct TypeHandler<QString> : public TypeHandlerBase
 template<typename ElementType>
 struct TypeHandler<QList<ElementType> >
 {
+    typedef QVariantList QMLType;
+
     static void write(BinarySeralizer &msg, const QList<ElementType> &list)
     {
         int count = list.size();
@@ -511,6 +560,28 @@ struct TypeHandler<QList<ElementType> >
         }
         str << "]";
         return s;
+    }
+
+    static QVariantList toQMLCompatibleType(const QList<ElementType> &list)
+    {
+        QVariantList variantList;
+        for (const auto &e : list) {
+            variantList.append(QVariant::fromValue(e));
+        }
+        return variantList;
+    }
+
+    static void assignFromQmlType(QList<ElementType> &field, const QVariantList &qmlValue)
+    {
+        field.clear();
+        for (const auto &v : qmlValue) {
+            if (v.canConvert<ElementType>()) {
+                ElementType element = v.value<ElementType>();
+                field.append(element);
+            } else {
+                qFatal("Bad array item type");
+            }
+        }
     }
 
 };
@@ -661,16 +732,17 @@ inline QList<QVariant> toQListQVariantEnum(const QList<ElementType> &list)
     return variantList;
 }
 
-template<typename ElementType>
-inline QList<QVariant> toQMLCompatibleType(const QList<ElementType> &list)
+template<typename Type>
+inline const typename TypeHandler<Type>::QMLType toQMLCompatibleType(const Type &v)
 {
-    QList<QVariant> variantList;
-    for (const auto &e : list) {
-        variantList.append(QVariant::fromValue(e));
-    }
-    return variantList;
+    return TypeHandler<Type>::toQMLCompatibleType(v);
 }
 
+template<typename Type, typename QmlType>
+static void assignFromQmlType(Type &field, const QmlType &qmlValue)
+{
+    TypeHandler<Type>::assignFromQmlType(field, qmlValue);
+}
 
 template<typename Class, typename PropertyType>
 class PropertyInterface

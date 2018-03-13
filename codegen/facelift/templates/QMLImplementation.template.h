@@ -202,18 +202,13 @@ public:
 
     {% else %}
 
-		{% set QmlType=property|returnType %}
-		{% if property.type.is_enum %}
-			{% set QmlType=QmlType + "Gadget::Type" %}
-		{% endif %}
-
-      Q_PROPERTY({{QmlType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-      const {{QmlType}}& {{property.name}}() const {
+      Q_PROPERTY({{property|qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+      const {{property|qmlCompatibleType}}& {{property.name}}() const {
           checkInterface();
           return interface().m_{{property.name}};
       }
 
-      void set{{property.name}}(const {{QmlType}}& value) {
+      void set{{property.name}}(const {{property|qmlCompatibleType}}& value) {
           checkInterface();
           interface().m_{{property.name}} = value;
       }

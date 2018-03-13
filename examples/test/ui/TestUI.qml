@@ -9,5 +9,6 @@ Rectangle {
     TestInterfaceImplementation {
         intProperty: 5
         onEventWithList: console.log("Received signal with list parameter: " + p);
+        onEventWithStructWithList: console.log("Received signal with struct parameter. list of ints: " + p.listOfInts + " / list of structs: " + p.listOfStructs);
     }
 }

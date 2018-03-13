@@ -482,6 +482,14 @@ public:
     {
     }
 
+    template<typename Type, typename QmlType>
+    void assignFromQmlType(facelift::Property<Type> &field, const QmlType &qmlValue)
+    {
+        Type newFieldValue;
+        facelift::assignFromQmlType(newFieldValue, qmlValue);
+        field = newFieldValue;
+    }
+
 protected:
     StructType m_data;
 

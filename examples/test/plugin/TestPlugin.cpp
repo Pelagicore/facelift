@@ -35,6 +35,6 @@ void TestPlugin::registerTypes(const char *uri)
     // "TestInterfaceImplementation". It's actual implementation will be delegated to the "TestInterface" QML
     // component, that derives from "TestInterfaceQMLImplementation".
     facelift::registerQmlComponent<TestInterfaceQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION)
-                                      "/models/qml/TestInterface.qml", "TestInterfaceImplementation");
+            "/models/qml/TestInterface.qml", "TestInterfaceImplementation");
 #endif
 }
