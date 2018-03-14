@@ -33,38 +33,50 @@ public:
 
     void setintProperty(const int &newValue) override
     {
-        qDebug() << "new intProperty:" << newValue;
-    };
+        qDebug() << "set intProperty:" << newValue;
+        m_intProperty = newValue;
+    }
+
     void setwritableEnumProperty(const TestEnum & /*newValue*/) override
     {
-    };
+    }
+
     void setstructProperty(const TestStruct & /*newValue*/) override
     {
-    };
+    }
+
     void setstructProperty2(const TestStruct2 & /*newValue*/) override
     {
-    };
-    void setstringListProperty(const QList<QString> & /*newValue*/) override
+    }
+
+    void setstringListProperty(const QList<QString> & newValue) override
     {
-    };
+        qDebug() << "set stringListProperty:" << newValue;
+        m_stringListProperty = newValue;
+    }
+
     QString method1() override
     {
         return QString();
-    };
+    }
+
     TestStruct2 method2(int /*intParam*/, bool /*boolParam*/) override
     {
         return TestStruct2();
-    };
+    }
+
     TestEnum method3() override
     {
         return TestEnum();
-    };
+    }
+
     QList<TestEnum> method4(TestStruct2 /*s*/)  override
     {
         return QList<TestEnum>();
-    };
+    }
+
     QList<TestStruct> method5() override
     {
         return QList<TestStruct>();
-    };
+    }
 };
