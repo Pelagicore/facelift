@@ -17,8 +17,8 @@ class {{interface}}QMLImplementation;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter, public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation> {
-
+class {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter, public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation>
+{
     Q_OBJECT
 
 public:
@@ -55,8 +55,8 @@ public:
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend> {
-
+class {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend>
+{
     Q_OBJECT
 
 public:
@@ -78,7 +78,7 @@ public:
         {% for property in interface.properties %}
         QObject::connect(provider, &Provider::{{property}}Changed, this, &ThisType::{{property}}Changed);
 
-        {% if property.type.is_list -%}
+        {% if property.type.is_list or property.type.is_map -%}
         m_{{property.name}}QMLProperty.setProperty(interface().m_{{property.name}});
         {% endif %}
 
@@ -136,31 +136,23 @@ public:
     {% endfor %}
 
     {% for property in interface.properties %}
-
-    {% if property.type.is_list -%}
-
-
-    Q_PROPERTY(QList<QVariant> {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-
-    facelift::QMLImplListProperty<{{property|nestedType|returnType}}> m_{{property.name}}QMLProperty;
+    {% if property.type.is_list or property.type.is_map %}
+    Q_PROPERTY({{property|qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
 
 
-    QList<QVariant> {{property.name}}() const {
+    facelift::QMLImpl{{property.type.name|capitalize}}Property<{{property|nestedType|returnType}}> m_{{property.name}}QMLProperty;
+
+    {{property|qmlCompatibleType}} {{property.name}}() const {
         return m_{{property.name}}QMLProperty.elementsAsVariant();
     }
-
-    void set{{property.name}}(QList<QVariant> v) {
+    void set{{property.name}}({{property|qmlCompatibleType}} v) {
         m_{{property.name}}QMLProperty.setElementsAsVariant(v);
     }
-
     {% elif property.type.is_model %}
     // TODO : model
-
     {% elif property.type.is_interface -%}
     // TODO : interface
-
     {% elif property.type.is_struct -%}
-
     // This property can contain either a {{property|returnType}} (gadget), or a {{property|returnType}}QObjectWrapper
     Q_PROPERTY(QVariant {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
     QVariant {{property.name}}() const {
@@ -312,6 +304,5 @@ inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{prop
 }
     {% endif %}
 {% endfor %}
-
 
 {{module|namespaceClose}}

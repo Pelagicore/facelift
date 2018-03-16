@@ -47,6 +47,8 @@ def qmlCompatibleType(symbol):
         return returnType(symbol.type) + "Gadget::Type"
     if symbol.type.is_list:
         return "QVariantList"
+    elif symbol.type.is_map:
+        return "QVariantMap"
     return returnType(symbol.type)
 
 def fullyQualifiedCppName(type):
@@ -79,6 +81,8 @@ def returnTypeFromSymbol(type):
         return 'QList<{0}>'.format(returnTypeFromSymbol(type.nested))
     elif type.is_interface:
         return '{0}*'.format(fullyQualifiedCppName(type))
+    elif type.is_map:
+        return 'QMap<QString, {0}>'.format(returnTypeFromSymbol(type.nested))
     else:
         return fullyQualifiedCppName(type)
 
@@ -118,9 +122,9 @@ def requiredQMLInclude(symbol):
     else:
         return ""
 
-def hasListParameter(parameters):
+def hasContainerParameter(parameters):
     for param in parameters:
-        if param.type.is_list:
+        if param.type.is_list or param.type.is_map:
             return True
     return False
 
@@ -152,7 +156,7 @@ def run_generation(input, output, dependency):
     generator.register_filter('fullyQualifiedCppName', fullyQualifiedCppName)
     generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
     generator.register_filter('toValidId', toValidId)
-    generator.register_filter('hasListParameter', hasListParameter)
+    generator.register_filter('hasContainerParameter', hasContainerParameter)
     generator.register_filter('qmlCompatibleType', qmlCompatibleType)
     generator.destination = output
 

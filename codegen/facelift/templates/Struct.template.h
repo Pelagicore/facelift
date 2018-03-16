@@ -133,6 +133,7 @@ inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f) {
 }
 
 Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list properties
+//Q_DECLARE_METATYPE(QMap<QString, {{struct|fullyQualifiedCppName}}>)   // TODO: Needed for map properties?
 Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
 
 {{module|namespaceOpen}}
@@ -253,6 +254,12 @@ class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{st
 
 };
 
+class QMLImplMapProperty{{struct}} : public facelift::TQMLImplMapProperty<{{struct | fullyQualifiedCppName}}> {
+
+        typedef facelift::TQMLImplMapProperty<{{struct | fullyQualifiedCppName}}> Base;
+
+};
+
 
 class {{struct}}Factory : public facelift::StructureFactoryBase {
 
@@ -275,6 +282,11 @@ namespace facelift {
 
 template<>
 class QMLImplListProperty<{{struct | fullyQualifiedCppName}}> : public {{module|fullyQualifiedCppName}}::QMLImplListProperty{{struct}} {
+
+};
+
+template<>
+class QMLImplMapProperty<{{struct | fullyQualifiedCppName}}> : public {{module|fullyQualifiedCppName}}::QMLImplMapProperty{{struct}} {
 
 };
 

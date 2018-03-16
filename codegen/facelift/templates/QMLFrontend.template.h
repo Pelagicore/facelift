@@ -65,7 +65,7 @@ public:
         {% endif %}
         {% endfor %}
         {% for event in interface.signals %}
-        {% if event.parameters|hasListParameter %}
+        {% if event.parameters|hasContainerParameter %}
         connect(m_provider, &{{class}}::{{event.name}}, this, [this] (
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
@@ -100,10 +100,10 @@ public:
 
     facelift::ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
 
-    {% elif property.type.is_list %}
-    // Using QVariantList, since exposing QList<ActualType> to QML does not seem to work
+    {% elif property.type.is_list or property.type.is_map %}
+    // Using {{property|qmlCompatibleType}}, since exposing {{property|returnType}} to QML does not seem to work
     Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}}
-                  {%- if not property.readonly %} WRITE set{{property}}{% endif %} NOTIFY {{property.name}}Changed)
+               {%- if not property.readonly %} WRITE set{{property}}{% endif %} NOTIFY {{property.name}}Changed)
     {{property|qmlCompatibleType}} {{property}}() const
     {
         return facelift::toQMLCompatibleType(m_provider->{{property}}());

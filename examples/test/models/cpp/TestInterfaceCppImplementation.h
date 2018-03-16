@@ -15,13 +15,15 @@ class TestInterfaceCppImplementation : public TestInterfacePropertyAdapter
     class Interface2Implementation : public TestInterface2PropertyAdapter {
 
     public:
-        Interface2Implementation(TestInterfaceCppImplementation* parent) : TestInterface2PropertyAdapter(parent) {
+        Interface2Implementation(TestInterfaceCppImplementation* parent, QString id) : TestInterface2PropertyAdapter(parent) {
+            m_id = id;
         }
 
         void doSomething() override {
-            qWarning() << "doSomething called";
+            qWarning() << "doSomething called. id =" << m_id;
         }
 
+        QString m_id;
     };
 
 
@@ -30,27 +32,35 @@ public:
     {
         qDebug() << "C++ implementation of TestInterface is used";
         QTimer::singleShot(1000, this, [this] () {
-            emit eventWithList(QList<int>({3, 4, 5}), true);
+            eventWithList(QList<int>({3, 4, 5}), true);
+            eventWithMap(QMap<QString, int>({{QStringLiteral("five"), 5}, {QStringLiteral("six"), 6}}));
+
             QList<TestStruct> structs;
             TestStruct s;
             s.setaString("Struct1");
             structs.append(s);
             s.setaString("Struct2");
             structs.append(s);
-
             TestStructWithList arg;
             arg.setlistOfStructs(structs);
             arg.setlistOfInts(QList<int>({2, 5, 8}));
             eventWithStructWithList(arg);
         });
 
-        m_interfaceListProperty.addElement(new Interface2Implementation(this));
+        m_interfaceListProperty.addElement(new Interface2Implementation(this, ""));
+        m_interfaceMapProperty = facelift::Map<facelift::test::TestInterface2*>({{"key1", new Interface2Implementation(this, "blabla")}});
     }
 
     void setintProperty(const int &newValue) override
     {
         qDebug() << "set intProperty:" << newValue;
         m_intProperty = newValue;
+    }
+
+    void setintMapProperty(const QMap<QString, int>& newValue) override
+    {
+        qDebug() << "set intMap:" << newValue;
+        m_intMapProperty = newValue;
     }
 
     void setwritableEnumProperty(const TestEnum & /*newValue*/) override

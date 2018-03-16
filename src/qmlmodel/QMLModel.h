@@ -443,6 +443,108 @@ class QMLImplListProperty : public TQMLImplListProperty<ElementType>
 };
 
 
+class QMLImplMapPropertyBase : public QObject
+{
+    Q_OBJECT
+
+public:
+    Q_INVOKABLE virtual int size() const = 0;
+
+    Q_PROPERTY(QVariantMap content READ elementsAsVariant WRITE setElementsAsVariant NOTIFY elementsChanged)
+
+    Q_SIGNAL void elementsChanged();
+
+    virtual QVariantMap elementsAsVariant() const = 0;
+    virtual void setElementsAsVariant(const QVariantMap &map) = 0;
+
+};
+
+template<typename ElementType>
+class TQMLImplMapProperty : public QMLImplMapPropertyBase
+{
+
+public:
+    Property<QMap<QString, ElementType> > &property() const
+    {
+        Q_ASSERT(m_property != nullptr);
+        return *m_property;
+    }
+
+    QVariantMap elementsAsVariant() const override
+    {
+        return toQMLCompatibleType(elements());
+    }
+
+    void onReferencedObjectChanged()
+    {
+        // TODO: check that QObject references in QVariant
+        // One of the referenced objects has emitted a change signal so we refresh our map
+        refreshMap(m_assignedVariantMap);
+    }
+
+    void clearConnections()
+    {
+        for (const auto &connection : m_changeSignalConnections) {
+            auto successfull = QObject::disconnect(connection);
+            Q_ASSERT(successfull);
+        }
+        m_changeSignalConnections.clear();
+    }
+
+    void refreshMap(const QVariantMap &variantMap)
+    {
+        auto map = m_property->value();
+        map.clear();
+
+        clearConnections();
+        for (auto i = variantMap.constBegin(); i != variantMap.constEnd(); ++i) {
+            map.insert(i.key(), fromVariant<ElementType>(i.value()));
+            // Add connections so that we can react when the property of an object has changed
+            TypeHandler<ElementType>::connectChangeSignals(i.value(), this,
+                    &TQMLImplMapProperty::onReferencedObjectChanged,
+                    m_changeSignalConnections);
+        }
+
+        m_property->setValue(map);
+        elementsChanged();
+    }
+
+    void setElementsAsVariant(const QVariantMap &variantMap) override
+    {
+        m_assignedVariantMap = variantMap;
+        refreshMap(m_assignedVariantMap);
+    }
+
+    void setProperty(Property<QMap<QString, ElementType> > &property)
+    {
+        if (m_property == nullptr)
+            m_property = &property;
+    }
+
+    int size() const override
+    {
+        return property().value().size();
+    }
+
+    const QMap<QString, ElementType> &elements() const
+    {
+        return property().value();
+    }
+
+private:
+    Property<QMap<QString, ElementType> > *m_property = nullptr;
+    QVariantMap m_assignedVariantMap;
+    QList<QMetaObject::Connection> m_changeSignalConnections;
+};
+
+
+template<typename ElementType>
+class QMLImplMapProperty : public TQMLImplMapProperty<ElementType>
+{
+
+};
+
+
 class StructQObjectWrapperBase : public QObject
 {
     Q_OBJECT

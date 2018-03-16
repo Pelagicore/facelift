@@ -13,6 +13,7 @@
 
 #include <QTextStream>
 #include <QList>
+#include <QMap>
 
 #define NOT_IMPLEMENTED() qFatal("Not implemented yet")
 
@@ -116,6 +117,7 @@ inline void generateToString(QTextStream &message)
 {
     Q_UNUSED(message);
 }
+
 
 template<typename FirstParameterTypes, typename ... ParameterTypes>
 void generateToString(QTextStream &message, const FirstParameterTypes &firstParameter, const ParameterTypes & ... parameters)

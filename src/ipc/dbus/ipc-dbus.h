@@ -409,6 +409,41 @@ struct IPCTypeHandler<QList<ElementType> >
 };
 
 
+template<typename ElementType>
+struct IPCTypeHandler<QMap<QString, ElementType> >
+{
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "a{sv}";     // TODO: is it so?
+        IPCTypeHandler<ElementType>::writeDBUSSignature(s);
+    }
+
+    static void write(DBusIPCMessage &msg, const QMap<QString, ElementType> &map)
+    {
+        int count = map.size();
+        msg.writeSimple(count);
+        for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
+            IPCTypeHandler<QString>::write(msg, i.key());
+            IPCTypeHandler<ElementType>::write(msg, i.value());
+        }
+    }
+
+    static void read(DBusIPCMessage &msg, QMap<QString, ElementType> &map)
+    {
+        map.clear();
+        int count;
+        msg.readNextParameter(count);
+        for (int i = 0; i < count; i++) {
+            QString key;
+            ElementType value;
+            IPCTypeHandler<QString>::read(msg, key);
+            IPCTypeHandler<ElementType>::read(msg, value);
+            map.insert(key, value);
+        }
+    }
+};
+
+
 template<typename Type>
 DBusIPCMessage &operator<<(DBusIPCMessage &msg, const Type &v)
 {

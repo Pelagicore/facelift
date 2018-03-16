@@ -71,6 +71,7 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     registerTypes();
 
     qmlRegisterUncreatableType<facelift::QMLImplListPropertyBase>(uri, majorVersion, minorVersion, "QMLImplListPropertyBase", "");
+    qmlRegisterUncreatableType<facelift::QMLImplMapPropertyBase>(uri, majorVersion, minorVersion, "QMLImplMapPropertyBase", "");
     ModuleBase::registerQmlTypes(uri, majorVersion, minorVersion);
 
     {% for struct in module.structs %}

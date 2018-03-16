@@ -20,6 +20,8 @@
 #include <QWidget>
 #include <QComboBox>
 #include <QScrollArea>
+#include <QMap>
+#include <QList>
 
 #include "utils.h"
 #include "FaceliftModel.h"
@@ -303,6 +305,37 @@ private:
 };
 
 
+
+template<typename ElementType>
+class MapPropertyWidget : public PropertyWidget<QMap<QString, ElementType> >
+{
+
+public:
+    MapPropertyWidget(QMap<QString, ElementType> &value, const QString &propertyName, QWidget *parent = nullptr) :
+        PropertyWidget<QMap<QString, ElementType> >(value, propertyName, parent)
+    {
+    }
+
+    void enableEdition()
+    {
+    }
+
+    void refreshWidgetFromValue() override
+    {
+    }
+
+    void setValueWidget(QWidget *widget)
+    {
+        this->addWidget(widget);
+    }
+
+    void init() {
+        Q_ASSERT(false);
+    }
+
+};
+
+
 template<typename ElementType>
 class ListPropertyWidget : public PropertyWidget<QList<ElementType> >
 {
@@ -379,6 +412,12 @@ template<typename ListElementType>
 struct TypeToWidget<QList<ListElementType> > : public TypeToWidgetBase
 {
     typedef SimpleListPropertyWidget<ListElementType> PanelType;
+};
+
+template<typename ElementType>
+struct TypeToWidget<QMap<QString, ElementType> > : public TypeToWidgetBase
+{
+    typedef MapPropertyWidget<ElementType> PanelType;
 };
 
 template<>

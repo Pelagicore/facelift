@@ -325,6 +325,58 @@ private:
 
 
 template<typename ElementType>
+class MapProperty : public Property<QMap<QString, ElementType> >
+{
+
+public:
+    using Property<QMap<QString, ElementType> >::operator=;
+
+    void removeElementById(ModelElementID elementId)
+    {
+        bool bModified = false;
+        for (int i = 0; i < size(); i++) {
+            if (this->value()[i].id() == elementId) {
+                this->modifiableValue().removeAt(i);
+                bModified = true;
+                break;
+            }
+        }
+
+        if (bModified)
+            this->triggerValueChangedSignal();
+    }
+
+    void addElement(ElementType element)
+    {
+        this->modifiableValue().append(element);
+        this->triggerValueChangedSignal();
+    }
+
+    int size() const
+    {
+        return this->value().size();
+    }
+
+    const ElementType *elementPointerById(ModelElementID id) const
+    {
+        for (const auto &element : this->value()) {
+            if (element.id() == id)
+                return &element;
+        }
+        return nullptr;
+    }
+
+private:
+    QMap<QString, ElementType> &modifiableValue()
+    {
+        this->breakBinding();
+        return this->m_value;
+    }
+
+};
+
+
+template<typename ElementType>
 class ModelProperty : public Model<ElementType>, public PropertyBase
 {
 public:

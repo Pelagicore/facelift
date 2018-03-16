@@ -15,6 +15,7 @@
 #include <QQmlEngine>
 #include <QJSValue>
 #include <QTimer>
+#include <QMap>
 
 #include <array>
 
@@ -27,6 +28,9 @@
 namespace facelift {
 
 typedef int ModelElementID;
+
+template<typename ElementType> using Map = QMap<QString, ElementType>;
+
 
 class StructureBase
 {
@@ -515,6 +519,73 @@ struct TypeHandler<QList<ElementType> >
 
 };
 
+template<typename ElementType>
+struct TypeHandler<QMap<QString, ElementType> >
+{
+    typedef QVariantMap QMLType;
+
+    static void write(BinarySeralizer &msg, const QMap<QString, ElementType> &map)
+    {
+        int count = map.size();
+        msg << count;
+        for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
+            TypeHandler<QString>::write(msg, i.key());
+            TypeHandler<ElementType>::write(msg, i.value());
+        }
+    }
+
+    static void read(BinarySeralizer &msg, QMap<QString, ElementType> &map)
+    {
+        map.clear();
+        int count;
+        msg >> count;
+        for (int i = 0; i < count; i++) {
+            QString key;
+            ElementType value;
+            TypeHandler<QString>::read(msg, key);
+            TypeHandler<ElementType>::read(msg, value);
+            map.insert(key, value);
+        }
+    }
+
+    static QString toString(const QMap<QString, ElementType> &map)
+    {
+
+        QString s;
+        QTextStream str(&s);
+        str << "[ ";
+        for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
+            str << TypeHandler<QString>::toString(i.key());
+            str << ":";
+            str << TypeHandler<ElementType>::toString(i.value());
+            str << ", ";
+        }
+        str << "]";
+        return s;
+    }
+
+    static QVariantMap toQMLCompatibleType(const QMap<QString, ElementType> &map)
+    {
+        QVariantMap variantMap;
+        for (auto i = map.constBegin(); i != map.constEnd(); ++i)
+            variantMap.insert(i.key(), QVariant::fromValue(TypeHandler<ElementType>::toQMLCompatibleType(i.value())));
+
+        return variantMap;
+    }
+
+    static void assignFromQmlType(QMap<QString, ElementType> &field, const QVariantMap &qmlValue)
+    {
+        field.clear();
+        for (auto i = qmlValue.constBegin(); i != qmlValue.constEnd(); ++i) {
+            QVariant value = i.value();
+            if (value.canConvert<ElementType>())
+                field.insert(i.key(), value.value<ElementType>());
+            else
+                qFatal("Bad map item value type");
+        }
+    }
+};
+
 
 template<typename ... FieldTypes>
 BinarySeralizer &operator<<(BinarySeralizer &stream, const Structure<FieldTypes ...> &s)
@@ -874,6 +945,17 @@ public:
 
 };
 
+}
+
+
+template<typename ElementType>
+inline QTextStream &operator <<(QTextStream &outStream, const facelift::Map<ElementType> &f) {
+    outStream << "[";
+    for(const auto& e : f.toStdMap()) {
+        outStream << e.first << "=" << e.second << ", ";
+    }
+    outStream << "]";
+    return outStream;
 }
 
 

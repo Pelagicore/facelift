@@ -30,6 +30,10 @@ interface TestInterface {
 
     readonly list<TestStruct> structListProperty;
 
+    readonly map<TestInterface2> interfaceMapProperty;
+    readonly map<TestStruct> structMapProperty;
+    map<int> intMapProperty;
+
     string method1();
     TestStruct2 method2(int intParam, bool boolParam);
     TestEnum method3();
@@ -41,6 +45,7 @@ interface TestInterface {
     signal eventInt(int p);
     signal eventBoolAndStruct(bool p, TestStruct q);
     signal eventWithList(list<int> p, bool q);
+    signal eventWithMap(map<int> p);
     signal eventWithStructWithList(TestStructWithList p)
 }
 

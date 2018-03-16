@@ -158,6 +158,26 @@ struct DummyModelTypeHandler<QList<ElementType> >
 };
 
 
+template<typename ElementType>
+struct DummyModelTypeHandler<QMap<QString, ElementType> >
+{
+    static void writeJSON(QJsonValue &json, const QMap<QString, ElementType> &value)
+    {
+        Q_UNUSED(json);
+        Q_UNUSED(value);
+        Q_ASSERT(false);
+    }
+
+    static void readJSON(const QJsonValue &json, QMap<QString, ElementType> &value)
+    {
+        Q_UNUSED(json);
+        Q_UNUSED(value);
+        Q_ASSERT(false);
+    }
+
+};
+
+
 template<typename Type>
 struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_base_of<StructureBase, Type>::value>::type>
 {
