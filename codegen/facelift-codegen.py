@@ -126,6 +126,9 @@ def hasReturnValue(self):
 setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
 
 def run_generation(input, output, dependency):
+    FileSystem.strict = True
+    Generator.strict = True
+
     # Build the list of modules to be generated
     modulesToGenerate = []
     for module in FileSystem.parse(list(input)).modules:

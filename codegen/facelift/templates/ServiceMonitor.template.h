@@ -12,7 +12,7 @@
 {{module|namespaceOpen}}
 
 /**
- * Dummy implementation of the {{class}} API
+ * Dummy implementation of the {{interface}} API
  */
 class {{interface}}Monitor : public facelift::ServiceMonitor<{{interface}}> {
 
