@@ -87,26 +87,30 @@ public:
     virtual void deserializeSpecificPropertyValues(LocalIPCMessage &msg) = 0;
 
     template<typename ... Args>
-    void sendMethodCall(const char *methodName, const Args & ... args)
+    void sendMethodCall(const char *methodName, const Args & ... /*args*/)
     {
         Q_UNUSED(methodName);
         qCritical("IPC unavailable");
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... /*args*/)
     {
-        qCritical(
-            "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
-            qPrintable(methodName), qPrintable(this->objectPath()));
+        Q_UNUSED(returnValue);
+
+        qCritical("Error message received when calling method '%s' on service at path '%s'."
+                  "This likely indicates that the server you are trying to access is not available yet",
+                  qPrintable(methodName), qPrintable(ipc()->objectPath()));
     }
 
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value)
     {
-        qCritical(
-            "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
-            qPrintable(methodName), qPrintable(this->objectPath()));
+        Q_UNUSED(value);
+
+        qCritical("Error message received when calling method '%s' on service at path '%s'."
+                  "This likely indicates that the server you are trying to access is not available yet",
+                  qPrintable(methodName), qPrintable(ipc()->objectPath()));
     }
 
 private:
@@ -187,8 +191,9 @@ public:
     virtual void serializeSpecificPropertyValues(LocalIPCMessage &msg) = 0;
 
     template<typename ... Args>
-    void sendSignal(const char *signalName, const Args & ... args)
+    void sendSignal(const char *signalName, const Args & ... /*args*/)
     {
+        Q_UNUSED(signalName);
     }
 
     InterfaceBase *service() const override

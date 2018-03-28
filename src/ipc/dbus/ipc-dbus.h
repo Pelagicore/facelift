@@ -927,40 +927,11 @@ public:
 
 private:
     QMap<QString, IPCAdapterFactory> m_factories;
-
-};
-
-class IPCAdapterAttachedType : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath NOTIFY objectPathChanged)
-
-public:
-    IPCAdapterAttachedType(QObject *parent) : QObject(parent)
-    {
-    }
-
-    Q_SIGNAL void objectPathChanged();
-
-    const QString &objectPath() const
-    {
-        return m_objectPath;
-    }
-
-    void setObjectPath(const QString &objectPath)
-    {
-        m_objectPath = objectPath;
-    }
-
-private:
-    QString m_objectPath;
-
 };
 
 
 class DBusIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
 {
-
 public:
     static DBusIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
 

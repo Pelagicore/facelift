@@ -12,85 +12,76 @@
 
 {{module|namespaceOpen}}
 
-class {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}> {
 
+class {{interface}}IPCQMLFrontendType;
+
+
+class {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>
+{
     Q_OBJECT
 
+    // Q_PROPERTY(QObject* service READ service WRITE setService)
 public:
+    typedef {{interface|fullyQualifiedCppName}} ServiceType;
 
     static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
 
-//    Q_PROPERTY(QObject* service READ service WRITE setService)
-
-    typedef {{interface|fullyQualifiedCppName}} ServiceType;
-
-    {{interface}}IPCAdapter(QObject* parent = nullptr) : facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>(parent)
+    {{interface}}IPCAdapter(QObject* parent = nullptr)
+        : facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>(parent)
     {
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void appendDBUSIntrospectionData(QTextStream &s) const override {
-        Q_UNUSED(s);
+    void appendDBUSIntrospectionData(QTextStream &s) const override
+    {
         {% for property in interface.properties %}
-        {
-            addPropertySignature<{{interface|fullyQualifiedCppName}}::PropertyType_{{property.name}}>(s, "{{property.name}}"
-            , {{ property.readonly | cppBool }}
-            );
-        }
+        addPropertySignature<{{interface|fullyQualifiedCppName}}::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
         {% endfor %}
-
         {% for operation in interface.operations %}
+
         {
-    		std::array<const char*, {{ operation.parameters.__len__() }} > argumentNames = {
-    	            {% for parameter in operation.parameters %}
-    	            "{{parameter}}",
-    	            {% endfor %}
-    		};
-
+            std::array<const char*, {{ operation.parameters.__len__() }}> argumentNames = {
+                {%- for parameter in operation.parameters -%}
+                "{{parameter}}",
+                {%- endfor -%}
+            };
             addMethodSignature<
-            {% set comma = joiner(",") %}
-            {% for parameter in operation.parameters %}
-                {{ comma() }}
-                {{parameter|returnType}}
-            {% endfor %}
-            >(s, "{{operation.name}}", argumentNames
-
-            );
+            {%- set comma = joiner(", ") -%}
+            {%- for parameter in operation.parameters -%}
+                {{ comma() }}{{parameter|returnType}}
+            {%- endfor -%}
+            >(s, "{{operation.name}}", argumentNames);
         }
         {% endfor %}
 
         // signals
         {% for signal in interface.signals %}
         {
-		std::array<const char*, {{ signal.parameters.__len__() }} > argumentNames = {
-	            {% for parameter in signal.parameters %}
-	            "{{parameter}}",
-	            {% endfor %}
-		};
-
-        addSignalSignature<
-        {% set comma = joiner(",") %}
-        {% for parameter in signal.parameters %}
-            {{ comma() }}
-            {{parameter|returnType}}
-        {% endfor %}
-        >(s, "{{signal.name}}", argumentNames
-
-        );
+            std::array<const char*, {{ signal.parameters.__len__() }}> argumentNames = {
+                {%- for parameter in signal.parameters -%}
+                    "{{parameter}}",
+                {%- endfor -%}
+            };
+            addSignalSignature<
+            {%- set comma = joiner(", ") -%}
+            {%- for parameter in signal.parameters -%}
+            {{ comma() }}{{parameter|returnType}}
+            {%- endfor -%}
+            >(s, "{{signal.name}}", argumentNames);
         }
-        {% endfor %}
 
+        {% endfor %}
     }
 
-    facelift::IPCHandlingResult handleMethodCallMessage(facelift::IPCMessage& requestMessage, facelift::IPCMessage& replyMessage) override {
-
+    facelift::IPCHandlingResult handleMethodCallMessage(facelift::IPCMessage &requestMessage,
+                                                        facelift::IPCMessage &replyMessage) override
+    {
         Q_UNUSED(replyMessage); // Since we do not always have return values
         Q_UNUSED(requestMessage);
 
-        const auto& member = requestMessage.member();
-
+        const auto &member = requestMessage.member();
+        Q_UNUSED(member);  // In case there are no methods
         auto theService = service();
-
         {% if (not interface.operations) %}
         Q_UNUSED(theService);
         {% endif %}
@@ -100,25 +91,21 @@ public:
             {% for parameter in operation.parameters %}
             {{parameter|returnType}} param_{{parameter.name}};
             requestMessage >> param_{{parameter.name}};
+
             {% endfor %}
-
-        	{% if (operation.hasReturnValue) %} auto returnValue = {% endif %}
-
+            {% if operation.hasReturnValue %}
+            replyMessage << theService->{{operation.name}}(
+            {%- else %}
             theService->{{operation.name}}(
-                    {% set comma = joiner(",") %}
-                    {% for parameter in operation.parameters %}
-                        {{ comma() }}
-                        param_{{parameter.name}}
-                    {% endfor %}
-            );
-
-         	{% if (operation.hasReturnValue) %} replyMessage << returnValue; {% endif %}
-
+            {%- endif %}
+            {% set comma = joiner(", ") %}
+            {% for parameter in operation.parameters -%}
+                {{ comma() }}param_{{parameter.name}}
+            {%- endfor -%}  );
         } else
         {% endfor %}
-
         {% for property in interface.properties %}
-    	{% if (not property.readonly) %}
+        {% if (not property.readonly) %}
         if (member == "set{{property.name}}") {
             {% if (not property.type.is_interface) %}
             {{property|returnType}} value;
@@ -128,21 +115,18 @@ public:
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
         } else
-    	{% endif %}
+        {% endif %}
         {% endfor %}
-
-
-
         {
             return facelift::IPCHandlingResult::INVALID;
         }
+
         return facelift::IPCHandlingResult::OK;
     }
 
-    void connectSignals() override {
-
+    void connectSignals() override
+    {
         auto theService = service();
-
         {% if (not interface.properties and not interface.signals) %}
         Q_UNUSED(theService);
         {% endif %}
@@ -152,164 +136,153 @@ public:
         connect(theService, &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
         {% endfor %}
 
-        // signals
+        // Signals
         {% for signal in interface.signals %}
         connect(theService, &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
         {% endfor %}
-
     }
 
-    void serializeSpecificPropertyValues(facelift::IPCMessage& msg) override {
+    void serializeSpecificPropertyValues(facelift::IPCMessage& msg) override
+    {
         Q_UNUSED(msg);
 
         auto theService = service();
-
         {#% if (not interface.properties) %#}
         Q_UNUSED(theService);
         {#% endif %#}
 
         {% for property in interface.properties %}
-            {% if property.type.is_model -%}
-            // TODO : model
+        {% if property.type.is_model -%}
+        // TODO : model
         qWarning("Property of model type not supported over IPC");
-            {% elif property.type.is_interface -%}
-            // TODO
+        {% elif property.type.is_interface %}
+        // TODO
         qWarning("Property of interface type not supported over IPC");
-            {% else %}
+        {% else %}
         msg << theService->{{property.name}}();
-            {% endif %}
+        {% endif %}
         {% endfor %}
     }
-
     {% for event in interface.signals %}
-        void {{event}}(
-                {% set comma = joiner(",") %}
-                {% for parameter in event.parameters %}
-                    {{ comma() }}
-                    {{parameter|returnType}} {{parameter.name}}
-                    {% endfor %}
-        ) {
-            sendSignal("{{event}}"
-            {% for parameter in event.parameters %}
-                , {{parameter.name}}
-                {% endfor %}
-            );
-        }
-    {% endfor %}
 
+    void {{event}}(
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in event.parameters -%}
+        {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+    {%- endfor -%}  )
+    {
+        sendSignal("{{event}}"
+        {%- for parameter in event.parameters -%}
+            , {{parameter.name}}
+        {%- endfor -%}  );
+    }
+    {% endfor %}
 };
 
-class {{interface}}IPCQMLFrontendType;
 
-
-class {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter> {
-
+class {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>
+{
     Q_OBJECT
 
+    Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
+
 public:
+    typedef {{interface}}IPCAdapter IPCAdapterType;
+    // override the default QMLFrontend type to add the IPC related properties
+    typedef {{interface}}IPCQMLFrontendType QMLFrontendType;
 
-	typedef {{interface}}IPCAdapter IPCAdapterType;
-
-	// override the default QMLFrontend type to add the IPC related properties
-	typedef {{interface}}IPCQMLFrontendType QMLFrontendType;
-
-    Q_PROPERTY(facelift::IPCProxyBinder* ipc READ ipc CONSTANT)
-
-    {{interface}}IPCProxy(QObject* parent = nullptr) : facelift::IPCProxy<{{interface}}PropertyAdapter, IPCAdapterType>(parent) {
+    {{interface}}IPCProxy(QObject *parent = nullptr)
+        : facelift::IPCProxy<{{interface}}PropertyAdapter
+        , IPCAdapterType>(parent)
+    {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void deserializeSpecificPropertyValues(facelift::IPCMessage& msg) override {
+    void deserializeSpecificPropertyValues(facelift::IPCMessage &msg) override
+    {
         Q_UNUSED(msg);
         {% for property in interface.properties %}
-        	{% if property.type.is_model -%}
 
+        {% if property.type.is_model %}
         qFatal("Model not supported");
-        	{% elif property.type.is_interface -%}
-//        qFatal("Property of interface type not supported");
-        qWarning() << "TODO : handle interface properties" ;
-
-        	{% else %}
-		PropertyType_{{property.name}} {{property.name}};
-		msg >> {{property.name}};
-		m_{{property.name}}.setValue({{property.name}});
-
-            {% endif %}
+        {% elif property.type.is_interface %}
+        // qFatal("Property of interface type not supported");
+        qWarning() << "TODO: handle interface properties";
+        {% else %}
+        PropertyType_{{property.name}} {{property.name}};
+        msg >> {{property.name}};
+        m_{{property.name}}.setValue({{property.name}});
+        {% endif %}
         {% endfor %}
     }
 
-    void bindLocalService({{interface}} * service) override {
-    	Q_UNUSED(service);
+    void bindLocalService({{interface}} *service) override
+    {
+        Q_UNUSED(service);
 
-    	// Bind all properties
+        // Bind all properties
         {% for property in interface.properties %}
-    	m_{{property.name}}.bind(service->{{property.name}}Property());
+        m_{{property.name}}.bind(service->{{property.name}}Property());
         {% endfor %}
 
         // Forward all signals
         {% for signal in interface.signals %}
-    	QObject::connect(service, &InterfaceType::{{signal.name}}, this, &InterfaceType::{{signal.name}});
+        QObject::connect(service, &InterfaceType::{{signal.name}}, this, &InterfaceType::{{signal.name}});
         {% endfor %}
-
     }
 
-    void deserializeSignal(facelift::IPCMessage& msg) override {
-
+    void deserializeSignal(facelift::IPCMessage &msg) override
+    {
         QString signalName;
         msg >> signalName;
-
         {% for event in interface.signals %}
+
         if (signalName == "{{event}}") {
             {% for parameter in event.parameters %}
-                {{parameter|returnType}} param_{{parameter.name}};
-                msg >> param_{{parameter.name}};
+            {{parameter|returnType}} param_{{parameter.name}};
+            msg >> param_{{parameter.name}};
             {% endfor %}
-
             {{event}}(
-                {% set comma = joiner(",") %}
-                {% for parameter in event.parameters %}
-                    {{ comma() }}
-                    param_{{parameter.name}}
-                {% endfor %}
-            );
+            {%- set comma = joiner(",") -%}
+            {%- for parameter in event.parameters -%}
+                {{ comma() }} param_{{parameter.name}}
+            {%- endfor -%}  );
         }
         {% endfor %}
     }
-
     {% for operation in interface.operations %}
 
     {{operation|returnType}} {{operation.name}}(
-            {% set comma = joiner(",") %}
-            {% for parameter in operation.parameters %}
-            {{ comma() }}
-            {{parameter|returnType}} {{parameter.name}}
-            {% endfor %}
-    ) override {
-    	if (localInterface() == nullptr)
-    	{
-    	{% if (operation.hasReturnValue) %}
-    	{{operation|returnType}} returnValue;
-        sendMethodCallWithReturn("{{operation.name}}", returnValue
-                {% for parameter in operation.parameters %}
+        {%- set comma = joiner(", ") -%}
+        {%- for parameter in operation.parameters -%}
+        {{ comma() }}{{ parameter|returnType }} {{ parameter.name }}
+        {%- endfor -%}  ) override
+    {
+        if (localInterface() == nullptr) {
+            {% if (operation.hasReturnValue) %}
+            {{operation|returnType}} returnValue;
+            sendMethodCallWithReturn("{{operation.name}}", returnValue
+                {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
-                {% endfor %}
-                );
-        return returnValue;
-        {% else %}
-        sendMethodCall("{{operation.name}}"
-                {% for parameter in operation.parameters %}
-                , {{parameter.name}}
-                {% endfor %}
-                );
-        {% endif %}
-    	}
-    	  	else return localInterface()->{{operation.name}}(
-            		{% set comma = joiner(",") %}
-    	  			{% for parameter in operation.parameters %}
-    	  			{{ comma() }} {{parameter.name}}
-                    {% endfor %}
-         );
-
+                {%- endfor -%} );
+            return returnValue;
+            {% else %}
+            sendMethodCall("{{operation.name}}"
+            {%- for parameter in operation.parameters -%}
+            , {{parameter.name}}
+            {%- endfor -%}  );
+            {% endif %}
+        } else {
+            {% if (operation.hasReturnValue) %}
+            return localInterface()->{{operation.name}}(
+            {%- else %}
+            localInterface()->{{operation.name}}(
+            {%- endif -%}
+            {%- set comma = joiner(", ") -%}
+            {%- for parameter in operation.parameters -%}
+                {{ comma() }}{{parameter.name}}
+            {%- endfor -%} );
+        }
     }
     {% endfor %}
 
@@ -327,31 +300,27 @@ public:
             localInterface()->set{{property}}(newValue);
         }
     }
-        {% endif %}
+    {% endif %}
     {% endfor %}
-
-
-private:
-
 };
 
 
-class {{interface}}IPCQMLFrontendType : public {{interface}}QMLFrontend {
+class {{interface}}IPCQMLFrontendType : public {{interface}}QMLFrontend
+{
+    Q_OBJECT
 
-	Q_OBJECT
+    Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
-
-    {{interface}}IPCQMLFrontendType(QObject* parent = nullptr) : {{interface}}QMLFrontend(parent) {
-	}
-
-    Q_PROPERTY(facelift::IPCProxyBinder* ipc READ ipc CONSTANT)
-
-    facelift::IPCProxyBinder* ipc() {
-    	auto p = static_cast<{{interface}}IPCProxy*>(provider());
-    	return p->ipc();
+    {{interface}}IPCQMLFrontendType(QObject *parent = nullptr) : {{interface}}QMLFrontend(parent)
+    {
     }
 
+    facelift::IPCProxyBinder *ipc()
+    {
+        auto p = static_cast<{{interface}}IPCProxy*>(provider());
+        return p->ipc();
+    }
 };
 
 {{module|namespaceClose}}
