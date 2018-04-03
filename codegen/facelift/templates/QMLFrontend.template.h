@@ -143,7 +143,7 @@ public:
     }
         {%- endif %}
 
-    virtual const {{property|returnType}}& {{property}}() const
+    const {{property|returnType}}& {{property}}() const
     {
         Q_ASSERT(m_provider);
         // qDebug() << "Read property {{property}}. Value: " << m_provider->{{property}}() ;
@@ -154,7 +154,7 @@ public:
     {% endfor %}
 
     {% for operation in interface.operations %}
-    Q_INVOKABLE virtual {{operation|returnType}} {{operation}}(
+    Q_INVOKABLE {{operation|returnType}} {{operation}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter|qmlCompatibleType}} {{parameter.name}}
