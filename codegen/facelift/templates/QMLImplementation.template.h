@@ -142,7 +142,7 @@ public:
 
     Q_PROPERTY(QList<QVariant> {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
 
-    facelift::QMLImplListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}QMLProperty;
+    facelift::QMLImplListProperty<{{property|nestedType|returnType}}> m_{{property.name}}QMLProperty;
 
 
     QList<QVariant> {{property.name}}() const {

@@ -49,8 +49,6 @@ class {{class}}QMLFrontend : public facelift::QMLFrontendBase
 
 public:
 
-    static constexpr const char* INTERFACE_NAME = "{{interface}}";
-
     {{class}}QMLFrontend(QObject* parent = nullptr)
         : facelift::QMLFrontendBase(parent)
     {
@@ -58,6 +56,7 @@ public:
 
     void init({{class}}& provider)
     {
+        facelift::QMLFrontendBase::setProvider(provider);
         m_provider = &provider;
         {% for property in interface.properties %}
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
@@ -122,13 +121,10 @@ public:
     {%- elif property.type.is_interface %}
     Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
 
-    {{property|returnType}}QMLFrontend* {{property}}()
+    {{property|qmlCompatibleType}} {{property}}()
     {
-        synchronizeInterfaceProperty(m_{{property}}Frontend, m_provider->{{property}}());
-        return m_{{property}}Frontend;
+        return facelift::getQMLFrontend(m_provider->{{property}}());
     }
-
-    QPointer<{{property|returnType}}QMLFrontend> m_{{property}}Frontend;
 
     {%- else %}
         {% if property.readonly %}

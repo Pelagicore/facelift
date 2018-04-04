@@ -54,29 +54,6 @@ public:
         return id;
     }
 
-    /**
-     *
-     */
-    template<typename QMLFrontendType, typename InterfaceType>
-    void synchronizeInterfaceProperty(QPointer<QMLFrontendType> &p, InterfaceType *i)
-    {
-        if (p.isNull() || (p->m_provider.data() != i)) {
-            if (i != nullptr) {
-                p = new QMLFrontendType(i);
-                p->init(*i);
-                p->setProvider(i);
-            } else {
-                p = nullptr;
-            }
-        }
-    }
-
-    void setProvider(InterfaceBase *provider)
-    {
-        m_provider = provider;
-        connect(provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
-    }
-
     void classBegin() override
     {
     }
@@ -84,6 +61,14 @@ public:
     void componentComplete() override
     {
         m_provider->componentCompleted();
+    }
+
+protected:
+
+    void setProvider(InterfaceBase &provider)
+    {
+        m_provider = &provider;
+        connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
     }
 
 private:
@@ -104,7 +89,6 @@ public:
         ProviderType::QMLFrontendType(parent)
     {
         this->init(m_provider);
-        this->setProvider(&m_provider);
     }
 
     virtual ~TQMLFrontend()
@@ -144,7 +128,7 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
  * By default, the component is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>
-int registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME, int majorVersion =
+int registerQmlComponent(const char *uri, const char *name = ProviderType::INTERFACE_NAME, int majorVersion =
         ProviderType::VERSION_MAJOR,
         int minorVersion = ProviderType::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
@@ -159,7 +143,7 @@ int registerQmlComponent(const char *uri, const char *name = ProviderType::QMLFr
  * By default, the component is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>
-int registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::QMLFrontendType::INTERFACE_NAME,
+int registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::INTERFACE_NAME,
         int majorVersion = ProviderType::VERSION_MAJOR,
         int minorVersion = ProviderType::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
@@ -170,17 +154,28 @@ int registerSingletonQmlComponent(const char *uri, const char *name = ProviderTy
 }
 
 
+
+template<typename ProviderType>
+typename ProviderType::QMLFrontendType* getQMLFrontend(ProviderType* provider) {
+    if (provider == nullptr)
+        return nullptr;
+    else {
+        if (provider->m_qmlFrontend == nullptr) {
+            // No QML frontend instantiated yet => create one
+            provider->m_qmlFrontend = new typename ProviderType::QMLFrontendType(provider);
+            provider->m_qmlFrontend->init(*provider);
+        }
+        return provider->m_qmlFrontend;
+    }
+}
+
+
 class ModelListModelBase : public QAbstractListModel
 {
     Q_OBJECT
 
 public:
     typedef size_t (QObject::*SizeGetterFunction)();
-
-    void syncWithProvider()
-    {
-        m_rowCount = m_property->size();
-    }
 
     void init(facelift::ModelBase &property)
     {
@@ -222,7 +217,7 @@ public:
     int rowCount(const QModelIndex &index) const override
     {
         Q_UNUSED(index);
-        return m_rowCount;
+        return m_property->size();
     }
 
     QHash<int, QByteArray> roleNames() const override
@@ -233,7 +228,6 @@ public:
     }
 
 protected:
-    int m_rowCount = 0;
     facelift::ModelBase *m_property = nullptr;
 
 };
@@ -259,7 +253,6 @@ public:
     {
         ModelListModelBase::init(property);
         m_property = &property;
-        syncWithProvider();
     }
 
 private:

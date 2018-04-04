@@ -60,11 +60,15 @@ public:
         return m_propertyName;
     }
 
-    virtual void enableEdition() = 0;
+    virtual void enableEdition() {
+        Q_ASSERT(false);
+    }
 
     Q_SIGNAL void valueChanged();
 
-    virtual void refreshWidgetFromValue() = 0;
+    virtual void refreshWidgetFromValue() {
+        Q_ASSERT(false);
+    }
 
 private:
     QHBoxLayout *m_layout;
@@ -96,6 +100,9 @@ public:
     PropertyType &value()
     {
         return m_value;
+    }
+
+    void init() {
     }
 
 protected:

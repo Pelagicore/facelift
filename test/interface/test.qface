@@ -21,6 +21,8 @@ interface TestInterface {
     TestStruct structProperty;
     TestStruct2 structProperty2;
 
+    readonly TestInterface2 interfaceProperty;
+    readonly list<TestInterface2> interfaceListProperty;
     readonly list<int> intListProperty;
     readonly list<bool> boolListProperty;
 

@@ -149,38 +149,6 @@ struct TypeHandler
 
 };
 
-template<typename Type, typename Sfinae = void>
-struct ModelTypeTraits
-{
-    typedef bool IsSimple;
-
-    template<typename Type2>
-    static void assignToVariant(const Type2 &value, QVariant &variant)
-    {
-        Q_UNUSED(value);
-        Q_UNUSED(variant);
-        variant = toVariant(value);
-    }
-
-};
-
-
-template<typename StructType>
-struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<StructureBase, StructType>::value>::type>
-{
-    typedef bool IsStruct;
-
-    template<typename Type2>
-    static void assignToVariant(const Type2 &value, QVariant &variant)
-    {
-        // We are not able to assign a structure type to a QVariant yet
-        qFatal("Unable to access a structure member from a model");
-        Q_UNUSED(value);
-        Q_UNUSED(variant);
-    }
-
-};
-
 
 template<typename ... FieldTypes>
 class Structure : public StructureBase
@@ -515,7 +483,7 @@ struct TypeHandler<QList<ElementType> >
     {
         QVariantList variantList;
         for (const auto &e : list) {
-            variantList.append(QVariant::fromValue(e));
+            variantList.append(QVariant::fromValue(TypeHandler<ElementType>::toQMLCompatibleType(e)));
         }
         return variantList;
     }
@@ -531,6 +499,18 @@ struct TypeHandler<QList<ElementType> >
                 qFatal("Bad array item type");
             }
         }
+    }
+
+    template<typename ReceiverType, typename Function>
+    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
+            QList<QMetaObject::Connection> &connections)
+    {
+        // nothing to connect for most of the types
+        Q_UNUSED(variant);
+        Q_UNUSED(receiver);
+        Q_UNUSED(function);
+        Q_UNUSED(connections);
+        Q_ASSERT(false);
     }
 
 };
@@ -589,6 +569,9 @@ class InterfaceBase : public QObject
     Q_OBJECT
 
 public:
+
+    typedef void QMLFrontendType;
+
     InterfaceBase(QObject *parent = nullptr) :
         QObject(parent)
     {
@@ -795,6 +778,8 @@ inline int qRegisterMetaType()
 template<typename Type>
 struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
+    typedef typename Type::QMLFrontendType QMLFrontendType;
+
     static void write(BinarySeralizer &msg, const Type &param)
     {
         NOT_IMPLEMENTED();
@@ -807,6 +792,7 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
 
     static Type *fromVariant(const QVariant &variant)
     {
+        Q_UNUSED(variant);
         NOT_IMPLEMENTED();
         return nullptr;
     }
@@ -815,6 +801,23 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
     {
         auto s = (size_t)(v);
         return QString::number(s, 16);
+    }
+
+
+    template<typename ReceiverType, typename Function>
+    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
+            QList<QMetaObject::Connection> &connections)
+    {
+        NOT_IMPLEMENTED();
+        Q_UNUSED(variant);
+        Q_UNUSED(receiver);
+        Q_UNUSED(function);
+        Q_UNUSED(connections);
+    }
+
+    static QMLFrontendType* toQMLCompatibleType(Type *v)
+    {
+        return getQMLFrontend(v);
     }
 
 };

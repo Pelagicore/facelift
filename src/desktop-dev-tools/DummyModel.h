@@ -130,7 +130,7 @@ template<typename ListElementType>
 QJsonArray toJsonArray(const QList<ListElementType> &list)
 {
     QJsonArray array;
-    for (auto &propertyElement : list) {
+    for (const auto &propertyElement : list) {
         QJsonValue jsonValue;
         DummyModelTypeHandler<ListElementType>::writeJSON(jsonValue, propertyElement);
         array.append(jsonValue);
@@ -209,6 +209,27 @@ struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_base_of<S
         typedef typename ::std::tuple_element<I, typename Type::FieldTupleTypes>::type FieldType;
         DummyModelTypeHandler<FieldType>::readJSON(jsonObject[Type::FIELD_NAMES[I]], ::std::get<I>(value));
         readFieldsFromJson<I + 1, Tp ...>(value, jsonObject);
+    }
+
+};
+
+
+template<typename Type>
+struct DummyModelTypeHandler<Type*, typename ::std::enable_if<::std::is_base_of<InterfaceBase, Type>::value>::type>
+{
+
+    static void writeJSON(QJsonValue &json, const Type * value)
+    {
+        Q_UNUSED(json);
+        Q_UNUSED(value);
+        Q_ASSERT(false);
+    }
+
+    static void readJSON(const QJsonValue &json, Type * value)
+    {
+        Q_UNUSED(json);
+        Q_UNUSED(value);
+        Q_ASSERT(false);
     }
 
 };

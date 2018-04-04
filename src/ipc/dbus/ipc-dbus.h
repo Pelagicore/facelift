@@ -328,6 +328,32 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBas
 
 };
 
+
+template<typename Type>
+struct IPCTypeHandler<Type*, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
+{
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        Q_UNUSED(s);
+        Q_ASSERT(false);
+    }
+
+    static void write(DBusIPCMessage &msg, const Type *param)
+    {
+        Q_UNUSED(msg);
+        Q_UNUSED(param);
+        Q_ASSERT(false);
+    }
+
+    static void read(DBusIPCMessage &msg, Type *param)
+    {
+        Q_UNUSED(msg);
+        Q_UNUSED(param);
+        Q_ASSERT(false);
+    }
+};
+
+
 template<typename Type>
 struct IPCTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
 {

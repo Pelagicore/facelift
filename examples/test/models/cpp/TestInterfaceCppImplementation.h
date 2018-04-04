@@ -1,6 +1,7 @@
 #pragma once
 
 #include "facelift/test/TestInterfacePropertyAdapter.h"
+#include "facelift/test/TestInterface2PropertyAdapter.h"
 
 
 using namespace facelift::test;
@@ -10,6 +11,19 @@ using namespace facelift::test;
  */
 class TestInterfaceCppImplementation : public TestInterfacePropertyAdapter
 {
+
+    class Interface2Implementation : public TestInterface2PropertyAdapter {
+
+    public:
+        Interface2Implementation(TestInterfaceCppImplementation* parent) : TestInterface2PropertyAdapter(parent) {
+        }
+
+        void doSomething() override {
+            qWarning() << "doSomething called";
+        }
+
+    };
+
 
 public:
     TestInterfaceCppImplementation(QObject *parent = nullptr) : TestInterfacePropertyAdapter(parent)
@@ -29,6 +43,8 @@ public:
             arg.setlistOfInts(QList<int>({2, 5, 8}));
             eventWithStructWithList(arg);
         });
+
+        m_interfaceListProperty.addElement(new Interface2Implementation(this));
     }
 
     void setintProperty(const int &newValue) override

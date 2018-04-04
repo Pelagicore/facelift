@@ -46,6 +46,8 @@ public:
 
     typedef {{class}}QMLFrontend QMLFrontendType;
 
+    friend QMLFrontendType;
+
     {{class}}(QObject* parent = nullptr);
 
     static void registerTypes(const char* uri) {
@@ -66,7 +68,7 @@ public:
     {% elif property.type.is_interface -%}
 
     // Service property
-    virtual {{property|returnType}}* {{property}}() = 0;
+    virtual {{property|returnType}} {{property}}() = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
@@ -106,6 +108,9 @@ public:
     Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
         {% for parameter in event.parameters -%}{{ comma() }}{{parameter|returnType}} {{parameter.name}}{% endfor %});
     {% endfor %}
+
+//private:  TODO : make this field private
+    mutable QMLFrontendType* m_qmlFrontend = nullptr;
 
 };
 

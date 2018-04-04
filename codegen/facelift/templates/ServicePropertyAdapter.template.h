@@ -40,16 +40,16 @@ public:
         return m_{{property.name}}.value();
     }
 
-    facelift::ListProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
+    facelift::ListProperty<{{property|nestedType|returnType}}> m_{{property.name}};
 
     {% elif property.type.is_interface -%}
 
     // Service property
-    {{property|returnType}}* {{property}}() override {
+    {{property|returnType}} {{property}}() override {
     	return m_{{property.name}}.value();
     }
 
-    facelift::ServiceProperty<{{property|returnType}}> m_{{property.name}};
+    facelift::ServiceProperty<{{property.type|fullyQualifiedCppName}}> m_{{property.name}};
 
  // TODO
 

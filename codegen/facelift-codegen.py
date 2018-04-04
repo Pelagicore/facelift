@@ -41,6 +41,8 @@ def getPrimitiveCppType(symbol):
     return symbol;
 
 def qmlCompatibleType(symbol):
+    if symbol.type.is_interface:
+        return "QObject*"
     if symbol.type.is_enum:
         return returnType(symbol.type) + "Gadget::Type"
     if symbol.type.is_list:
@@ -66,17 +68,19 @@ def namespaceClose(symbol):
     ns = '} ' * len(parts)
     return ns
 
-def returnTypeFromSymbol(symbol):
-    if symbol.is_void or symbol.is_primitive:
-        if symbol.name == 'string':
+def returnTypeFromSymbol(type):
+    if type.is_void or type.is_primitive:
+        if type.name == 'string':
             return 'QString'
-        if symbol.name == 'real':
+        if type.name == 'real':
             return 'float'
-        return symbol
-    elif symbol.is_list:
-        return 'QList<{0}>'.format(returnTypeFromSymbol(symbol.nested))
+        return type
+    elif type.is_list:
+        return 'QList<{0}>'.format(returnTypeFromSymbol(type.nested))
+    elif type.is_interface:
+        return '{0}*'.format(fullyQualifiedCppName(type))
     else:
-        return fullyQualifiedCppName(symbol)
+        return fullyQualifiedCppName(type)
 
 def returnType(symbol):
     return returnTypeFromSymbol(symbol.type)
