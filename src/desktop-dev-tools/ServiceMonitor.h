@@ -193,6 +193,13 @@ public:
         Q_UNUSED(propertyName);
     }
 
+    template<typename PropertyType, typename SetterFunction>
+    void addProperty(ServicePropertyInterface<ProviderType, PropertyType> property, QString propertyName, SetterFunction)
+    {
+        Q_UNUSED(property);
+        Q_UNUSED(propertyName);
+    }
+
     void addSignal();
 
     template<typename ... ParameterTypes>

@@ -120,9 +120,13 @@ public:
         {% for property in interface.properties %}
     	{% if (not property.readonly) %}
         if (member == "set{{property.name}}") {
+            {% if (not property.type.is_interface) %}
             {{property|returnType}} value;
             requestMessage >> value;
             theService->set{{property.name}}(value);
+            {% else %}
+            Q_ASSERT(false); // Writable interface properties are unsupported
+            {% endif %}
         } else
     	{% endif %}
         {% endfor %}
@@ -309,12 +313,16 @@ public:
     }
     {% endfor %}
 
-
-    {% for property in interface.properties %}
-    	{% if (not property.readonly) %}
-    void set{{property}}(const {{property|returnType}}& newValue) override {
-    	if (localInterface() == nullptr) {
+    {%- for property in interface.properties %}
+        {% if (not property.readonly) %}
+    void set{{property}}(const {{property|returnType}}& newValue) override
+    {
+        if (localInterface() == nullptr) {
+            {% if (not property.type.is_interface) %}
             sendSetterCall("set{{property}}", newValue);
+            {% else %}
+            Q_ASSERT(false); // Writable interface properties are unsupported
+            {% endif %}
         } else {
             localInterface()->set{{property}}(newValue);
         }

@@ -72,6 +72,10 @@ public:
 
     facelift::ServicePropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property() { return facelift::ServicePropertyInterface<{{class}}, {{property|returnType}}>(); };
 
+    {% if (not property.readonly) %}
+    virtual void set{{property}}(const {{property|returnType}}& newValue) = 0;
+    {% endif %}
+
     {% else %}
 
     virtual const {{property|returnType}}& {{property}}() const = 0;

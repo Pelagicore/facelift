@@ -235,7 +235,11 @@ public:
         QJSValueList args;
 
         QQmlEngine* engine = qmlEngine(this);
+        {% if (not property.type.is_interface) %}
         args.append(facelift::toJSValue(value, engine));
+        {% else %}
+        Q_ASSERT(false); // Writable interface properties are unsupported
+        {% endif %}
 
         checkMethod(m_set{{property.name}}, "set{{property.name}}").call(args);
     }

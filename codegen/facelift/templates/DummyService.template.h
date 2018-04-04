@@ -58,7 +58,11 @@ public:
     	{% if (not property.readonly) %}
     void set{{property}}(const {{property|returnType}}& newValue) override {
     	m_dummy.logSetterCall("{{property}}", newValue);
-    	m_{{property}} = newValue;
+        {% if (not property.type.is_interface) %}
+        m_{{property}} = newValue;
+        {% else %}
+        Q_ASSERT(false); // Writable interface properties are unsupported
+        {% endif %}
     }
         {% endif %}
     {% endfor %}
