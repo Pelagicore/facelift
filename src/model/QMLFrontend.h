@@ -177,31 +177,6 @@ class ModelListModelBase : public QAbstractListModel
 public:
     typedef size_t (QObject::*SizeGetterFunction)();
 
-    /*
-    void notifyModelChanged()
-    {
-        auto previousRowCount = m_rowCount;
-        auto newRowCount = m_property->size();
-
-        if (newRowCount > previousRowCount) {
-            // And a beginInsertRows() & endInsertRows() for the new items
-            beginInsertRows(QModelIndex(), previousRowCount, newRowCount - 1);
-            syncWithProvider();
-            endInsertRows();
-        } else {
-            // And a beginInsertRows() & endInsertRows() for the new items
-            beginRemoveRows(QModelIndex(), newRowCount, previousRowCount - 1);
-            syncWithProvider();
-            endRemoveRows();
-        }
-
-        // Trigger "dataChanged()" for the items which were existing previously
-        QModelIndex previousTopLeft = index(0, 0);
-        QModelIndex previousBottomRight = index(m_rowCount - 1, 0);
-        dataChanged(previousTopLeft, previousBottomRight);
-    }
-    */
-
     void syncWithProvider()
     {
         m_rowCount = m_property->size();

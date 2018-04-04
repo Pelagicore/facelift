@@ -182,15 +182,6 @@ struct ModelTypeTraits<StructType, typename std::enable_if<std::is_base_of<Struc
 };
 
 
-template<typename EnumType>
-struct ModelTypeTraits<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
-{
-    typedef bool IsEnum;
-};
-
-
-
-
 template<typename ... FieldTypes>
 class Structure : public StructureBase
 {
@@ -214,37 +205,6 @@ public:
     {
         return m_values;
     }
-    //
-    //    template<std::size_t I = 0, typename ... Tp>
-    //    inline typename std::enable_if<I == sizeof ... (Tp), void>::type
-    //    toVariant(const std::tuple<Tp ...> &t, QVariant &variant, size_t index) const
-    //    {
-    //        Q_UNUSED(t);
-    //        Q_UNUSED(variant);
-    //        Q_UNUSED(index);
-    //    }
-    //
-    //    template<std::size_t I = 0, typename ... Tp>
-    //    inline typename std::enable_if < I<sizeof ... (Tp), void>::type
-    //    toVariant(const std::tuple<Tp ...> &t, QVariant &variant, size_t index) const
-    //    {
-    //        typedef ModelTypeTraits<typeof(std::get<I>(t))> Trait;
-    //        if (index == I + ROLE_BASE) {
-    //            Trait::assignToVariant(std::get<I>(t), variant);
-    //        }
-    //        toVariant<I + 1, Tp ...>(t, variant, index);
-    //    }
-    //
-    //    QVariant getFieldAsVariant(int role) const
-    //    {
-    //        if (role == ROLE_ID) {
-    //            return id();
-    //        }
-    //
-    //        QVariant v;
-    //        toVariant(m_values, v, role);
-    //        return v;
-    //    }
 
     QByteArray serialize() const override
     {
@@ -275,17 +235,6 @@ public:
     {
         return (m_values == right.m_values);
     }
-
-    //    static QHash<int, QByteArray> roleNames_(const FieldNames &fieldNames)
-    //    {
-    //        QHash<int, QByteArray> roleNames;
-    //        roleNames[ROLE_ID] = "id";
-    //        int i = ROLE_BASE;
-    //        for (auto &fieldName : fieldNames) {
-    //            roleNames[i++] = fieldName;
-    //        }
-    //        return roleNames;
-    //    }
 
 protected:
     template<std::size_t I = 0, typename ... Tp>
