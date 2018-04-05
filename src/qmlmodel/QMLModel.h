@@ -199,26 +199,13 @@ protected:
 
 };
 
-template<typename EnumType>
-inline QJSValue enumToJSValue(const EnumType e, QQmlEngine *engine)
-{
-    Q_UNUSED(engine);
-    return static_cast<int>(e);
-}
-
-template<typename StructType>
-inline QJSValue structToJSValue(const StructType &s, QQmlEngine *engine)
-{
-    return engine->toScriptValue(s);
-}
-
 
 template<typename Type, typename Sfinae = void>
 struct QMLModelTypeHandler
 {
     static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
     {
-        return engine->toScriptValue(v);
+        return engine->toScriptValue(facelift::toQMLCompatibleType(v));
     }
 
     static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
@@ -228,13 +215,13 @@ struct QMLModelTypeHandler
 
 };
 
-
+/*
 template<typename StructType>
 struct QMLModelTypeHandler<StructType, typename std::enable_if<std::is_base_of<StructureBase, StructType>::value>::type>
 {
     static QJSValue toJSValue(const StructType &f, QQmlEngine *engine)
     {
-        return structToJSValue(f, engine);
+        return engine->toScriptValue(f);
     }
 
     static void fromJSValue(StructType &v, const QJSValue &value, QQmlEngine *engine)
@@ -250,7 +237,8 @@ struct QMLModelTypeHandler<EnumType, typename std::enable_if<std::is_enum<EnumTy
 {
     static QJSValue toJSValue(const EnumType &v, QQmlEngine *engine)
     {
-        return enumToJSValue(v, engine);
+        Q_UNUSED(engine);
+        return static_cast<int>(v);
     }
 
     static void fromJSValue(EnumType &v, const QJSValue &value, QQmlEngine *engine)
@@ -267,7 +255,11 @@ struct QMLModelTypeHandler<QList<ListElementType> >
     typedef QList<ListElementType> Type;
     static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
     {
-        return engine->toScriptValue(v);
+        QVariantList list;
+        for (const auto& e : v) {
+            list.append(QVariant::fromValue(TypeHandler<ListElementType>::toQMLCompatibleType(e)));
+        }
+        return engine->toScriptValue(list);
     }
 
     static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
@@ -276,6 +268,7 @@ struct QMLModelTypeHandler<QList<ListElementType> >
     }
 
 };
+*/
 
 template<typename Type>
 QJSValue toJSValue(const Type &v, QQmlEngine *engine)

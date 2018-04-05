@@ -116,8 +116,8 @@ def requiredInclude(symbol):
     return ""
 
 def requiredQMLInclude(symbol):
-    if symbol.type.is_interface:
-        type = symbol.type.nested if symbol.type.nested else symbol.type
+    type = symbol.type.nested if symbol.type.nested else symbol.type
+    if not type.is_primitive and not type.is_struct and not type.is_enum:
         return requiredIncludeFromType(type, "QMLFrontend.h")
     else:
         return ""

@@ -102,14 +102,6 @@ inline QWidget *createWidget(ListProperty<ListElementType> &t, const QString &pr
     return widget;
 }
 
-template<typename ElementType>
-inline QTextStream &operator<<(QTextStream &outStream, const QList<ElementType> &f)
-{
-    Q_UNUSED(outStream);
-    Q_UNUSED(f);
-    //    outStream << toString(f);
-    return outStream;
-}
 
 template<typename Type, typename Enable = void>
 struct DummyModelTypeHandler

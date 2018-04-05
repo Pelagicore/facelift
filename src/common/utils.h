@@ -17,6 +17,15 @@
 
 #define NOT_IMPLEMENTED() qFatal("Not implemented yet")
 
+template<typename ElementType>
+inline QTextStream &operator<<(QTextStream &outStream, const QList<ElementType> &f)
+{
+    Q_UNUSED(outStream);
+    Q_UNUSED(f);
+    //    outStream << toString(f);
+    return outStream;
+}
+
 namespace facelift {
 
 template<typename StreamType>

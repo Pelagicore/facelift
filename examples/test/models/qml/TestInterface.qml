@@ -13,8 +13,18 @@ import facelift.test 1.0
 TestInterfaceQMLImplementation {
     id: root
 
+    intMapProperty: { 'one':1, 'two':2, 'three':3 }
+
     setintProperty: function(i) {
         console.error("new intProperty: ", i);
+    }
+
+    setstringListProperty: function(i) {
+        console.error("new stringListProperty: ", i);
+    }
+
+    setintMapProperty: function(i) {
+        console.error("new setintMapProperty: ", i);
     }
 
     Timer {

@@ -8,6 +8,7 @@
 #include "QMLModel.h"
 
 #include "{{interface}}PropertyAdapter.h"
+#include "{{interface}}QMLFrontend.h"
 
 {{module|namespaceOpen}}
 

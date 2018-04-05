@@ -20,6 +20,7 @@ Rectangle {
         Component.onCompleted: {
             console.log("stringListProperty: " + stringListProperty);
             console.log("interfaceListProperty: " + interfaceListProperty[0]);
+            console.log("intMapProperty: " + JSON.stringify(intMapProperty));
             interfaceListProperty[0].doSomething();
             console.log("intMapProperty.one: " + intMapProperty.one
                         + ", intMapProperty['two']: "+ intMapProperty['two']);
