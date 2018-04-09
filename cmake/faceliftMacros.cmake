@@ -293,11 +293,11 @@ macro(_facelift_add_target_start)
         set(HEADERS ${HEADERS} ${GLOB_FILES})
     endforeach()
 
-    unset(RESOURCE_FILES)
-    foreach(RESOURCE_FOLDER ${ARGUMENT_RESOURCE_FOLDERS})
-        generateQRC("${RESOURCE_FOLDER}/" "${CMAKE_CURRENT_BINARY_DIR}")
-        set(RESOURCE_FILES ${RESOURCE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/resources.qrc")
-    endforeach()
+    if(ARGUMENT_RESOURCE_FOLDERS)
+        set(GENERATED_QRC_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources.qrc")
+        facelift_generateQRC("${GENERATED_QRC_PATH}" INPUT_FOLDERS ${ARGUMENT_RESOURCE_FOLDERS})
+        list(APPEND RESOURCE_FILES "${GENERATED_QRC_PATH}")
+    endif()
 
     if(ARGUMENT_USE_QML_COMPILER)
         qtquick_compiler_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
@@ -607,3 +607,57 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
 
 endfunction()
 
+
+function(facelift_generateQRC OUTPUT_FILE)
+
+    set(options )
+    set(oneValueArgs )
+    set(multiValueArgs INPUT_FOLDERS)
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(QRC "<RCC>\n")
+
+    foreach(INPUT_PATH ${ARGUMENT_INPUT_FOLDERS})
+
+        string(APPEND QRC "\t<qresource prefix=\"/\">\n")
+        file(GLOB_RECURSE FILES "${INPUT_PATH}/*.qml"
+                                "${INPUT_PATH}/*.js"
+                                "${INPUT_PATH}/*.ttf"
+        )
+        foreach(FILE ${FILES})
+            file(RELATIVE_PATH RELATIVE_PATH ${INPUT_PATH} ${FILE})
+            string(APPEND QRC "\t\t<file alias=\"${RELATIVE_PATH}\">${FILE}</file>\n")
+        endforeach()
+        string(APPEND QRC "\t</qresource>\n")
+
+        string(APPEND QRC "\t<qresource prefix=\"/images\">\n")
+        file(GLOB_RECURSE FILES "${INPUT_PATH}/*.png"
+                                "${INPUT_PATH}/*.sci"
+                                "${INPUT_PATH}/*.json"
+                                "${INPUT_PATH}/*.astcz"
+                                "${INPUT_PATH}/*.tcsh"
+                                "${INPUT_PATH}/*.tesh"
+                                "${INPUT_PATH}/*.gsh"
+                                "${INPUT_PATH}/*.fsh"
+        )
+
+        foreach(FILE ${FILES})
+            file(RELATIVE_PATH RELATIVE_PATH ${INPUT_PATH} ${FILE})
+            string(APPEND QRC "\t\t<file alias=\"${RELATIVE_PATH}\">${FILE}</file>\n")
+        endforeach()
+        string(APPEND QRC "\t</qresource>\n")
+
+    endforeach()
+
+    string(APPEND QRC "</RCC>")
+
+    # Write content to file if not already
+    unset(OLD_FILE_CONTENT)
+    if(EXISTS ${OUTPUT_FILE})
+        file(READ ${OUTPUT_FILE} OLD_FILE_CONTENT)
+    endif()
+    if(NOT "${OLD_FILE_CONTENT}" STREQUAL "${QRC}")
+        file(WRITE "${OUTPUT_FILE}" "${QRC}")
+    endif()
+
+endfunction()
