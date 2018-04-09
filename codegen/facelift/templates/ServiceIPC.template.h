@@ -243,9 +243,9 @@ public:
             msg >> param_{{parameter.name}};
             {% endfor %}
             {{event}}(
-            {%- set comma = joiner(",") -%}
+            {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
-                {{ comma() }} param_{{parameter.name}}
+                {{ comma() }}param_{{parameter.name}}
             {%- endfor -%}  );
         }
         {% endfor %}
