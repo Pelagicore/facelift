@@ -40,6 +40,7 @@ void IPCProxyBinderBase::onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
 {
     if (adapter->objectPath() == this->objectPath()) {
         qDebug() << "Local server found for " << objectPath();
+        m_inProcess = true;
         localAdapterAvailable(adapter);
     }
 }

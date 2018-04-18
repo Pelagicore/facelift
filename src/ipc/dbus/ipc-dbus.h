@@ -735,8 +735,10 @@ public:
     Q_SLOT
     void onSignalTriggered(const QDBusMessage &dbusMessage)
     {
-        DBusIPCMessage msg(dbusMessage);
-        m_serviceObject->deserializeSignal(msg);
+        if (!inProcess()) {   // TODO: onSignalTriggered should not be called in-process
+            DBusIPCMessage msg(dbusMessage);
+            m_serviceObject->deserializeSignal(msg);
+        }
     }
 
     void bindToIPC();

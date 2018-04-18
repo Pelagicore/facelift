@@ -184,6 +184,11 @@ public:
         checkInit();
     }
 
+    bool inProcess() const
+    {
+        return m_inProcess;
+    }
+
     const QString &objectPath() const
     {
         return m_objectPath;
@@ -222,6 +227,7 @@ public:
 private:
     QString m_objectPath;
     bool m_enabled = true;
+    bool m_inProcess = false;
     bool m_alreadyInitialized = false;
     bool m_componentCompleted = false;
 
