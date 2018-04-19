@@ -438,6 +438,23 @@ function(facelift_add_executable TARGET_NAME)
 endfunction()
 
 
+function(facelift_add_test TEST_NAME)
+
+    facelift_add_executable(${TEST_NAME} ${ARGN})
+
+    set_target_properties(${TEST_NAME} PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test
+    )
+
+    add_test(
+        NAME ${TEST_NAME}
+        COMMAND $<TARGET_FILE:${TEST_NAME}>
+    )
+
+endfunction()
+
+
 # Export this package into CMake's global registry
 # This allows users of our package to use the "find_package(PACKAGE_NAME)" statement
 # to retrieve the definitions needed to build against our package

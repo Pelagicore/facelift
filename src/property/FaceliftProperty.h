@@ -31,7 +31,7 @@ public:
     virtual ~PropertyBase();
 
     template<typename ServiceType>
-    void init(const char *name, QObject *ownerObject, void (ServiceType::*changeSignal)())
+    void init(QObject *ownerObject, void (ServiceType::*changeSignal)(), const char *name = "Unknown")
     {
         m_ownerObject = ownerObject;
         m_ownerSignal = static_cast<ChangeSignal>(changeSignal);

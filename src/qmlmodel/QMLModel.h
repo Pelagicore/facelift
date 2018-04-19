@@ -545,7 +545,7 @@ class StructQObjectWrapperBase : public QObject
 public:
     StructQObjectWrapperBase(QObject *parent = nullptr) : QObject(parent)
     {
-        m_id.init("id", this, &StructQObjectWrapperBase::idChanged);
+        m_id.init(this, &StructQObjectWrapperBase::idChanged, "id");
     }
 
     Q_PROPERTY(int uid READ id WRITE setId NOTIFY idChanged)

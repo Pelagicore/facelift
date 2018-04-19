@@ -170,7 +170,7 @@ public:
 
     void init() {
     	{% for field in struct.fields %}
-        m_{{field.name}}.init("{{field.name}}", this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed);
+        m_{{field.name}}.init(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, "{{field.name}}");
         QObject::connect(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, this, &{{struct.name}}QObjectWrapper::anyFieldChanged);
     	{% endfor %}
     }

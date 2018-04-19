@@ -57,6 +57,7 @@ if(FACELIFT_BUILD_EXAMPLES)
 endif()
 
 if(FACELIFT_BUILD_TEST)
+    enable_testing()
     add_subdirectory(test)
     add_subdirectory(examples/test)
 endif()

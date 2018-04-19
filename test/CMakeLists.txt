@@ -1,3 +1,4 @@
+
 facelift_add_interface(TestInterface
     INTERFACE_DEFINITION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/interface
 )
@@ -10,3 +11,4 @@ if(FACELIFT_ENABLE_IPC)
     add_subdirectory(ipc)
 endif()
 
+add_subdirectory(property)

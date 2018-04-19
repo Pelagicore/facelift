@@ -161,7 +161,8 @@ public:
         return m_provider->{{operation}}(
                 {%- set comma = joiner(", ") -%}
                 {%- for parameter in operation.parameters -%}
-                {{ comma() }}{{parameter.name}}
+                {{ comma() }}
+                facelift::toProviderCompatibleType<{{parameter|returnType}}, {{parameter|qmlCompatibleType}}>({{parameter.name}})
                 {%- endfor -%}
                 );
     }

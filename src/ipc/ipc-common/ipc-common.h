@@ -244,7 +244,7 @@ public:
 public:
     IPCProxyBase(QObject *parent) : AdapterType(parent)
     {
-        m_serviceReady.init("ready", this, &InterfaceBase::readyChanged);
+        m_serviceReady.init(this, &InterfaceBase::readyChanged, "ready");
     }
 
     template<typename BinderType>

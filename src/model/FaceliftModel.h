@@ -742,9 +742,17 @@ inline const typename TypeHandler<Type>::QMLType toQMLCompatibleType(const Type 
 }
 
 template<typename Type, typename QmlType>
-static void assignFromQmlType(Type &field, const QmlType &qmlValue)
+static void assignFromQmlType(Type &value, const QmlType &qmlValue)
 {
-    TypeHandler<Type>::assignFromQmlType(field, qmlValue);
+    TypeHandler<Type>::assignFromQmlType(value, qmlValue);
+}
+
+template<typename Type, typename QmlType>
+static Type toProviderCompatibleType(const QmlType &qmlValue)
+{
+    Type value;
+    assignFromQmlType<Type, QmlType>(value, qmlValue);
+    return value;
 }
 
 template<typename Class, typename PropertyType>

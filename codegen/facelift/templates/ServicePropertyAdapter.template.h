@@ -21,7 +21,7 @@ public:
 
     {{class}}PropertyAdapter(QObject* parent = nullptr) : {{class}}(parent) {
         {% for property in interface.properties %}
-          m_{{property.name}}.init("{{property.name}}", this, &{{class}}::{{property.name}}Changed);
+          m_{{property.name}}.init(this, &{{class}}::{{property.name}}Changed, "{{property.name}}");
         {% endfor %}
     }
 
