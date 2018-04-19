@@ -8,7 +8,7 @@
 
 #include <QDebug>
 
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 
 class QMLFrontendBase :

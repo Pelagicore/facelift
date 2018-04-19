@@ -2,7 +2,7 @@
 
 #include "FaceliftModel.h"
 #include "QMLFrontend.h"
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 namespace facelift {
 

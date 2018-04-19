@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 class TunerService :
     public QObject

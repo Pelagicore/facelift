@@ -12,7 +12,7 @@
 #include <QJsonArray>
 
 #include "FaceliftModel.h"
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 #include <QJsonObject>
 #include <QJsonDocument>

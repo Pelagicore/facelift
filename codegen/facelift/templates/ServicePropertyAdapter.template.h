@@ -1,3 +1,4 @@
+
 {% set class = '{0}'.format(interface) %}
 /****************************************************************************
 ** This is an auto-generated file.
@@ -7,7 +8,7 @@
 #pragma once
 
 #include "{{class}}.h"
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 {{module|namespaceOpen}}
 

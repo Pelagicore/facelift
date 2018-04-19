@@ -18,7 +18,7 @@
 
 #include "FaceliftModel.h"
 #include "utils.h"
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 #include "ipc-common/ipc-common.h"
 

@@ -22,7 +22,7 @@
 
 #include "FaceliftModel.h"
 #include "utils.h"
-#include "Property.h"
+#include "FaceliftProperty.h"
 
 #include "QMLFrontend.h"
 #include "QMLModel.h"
