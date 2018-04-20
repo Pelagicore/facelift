@@ -598,13 +598,13 @@ private:
 
     virtual IPCHandlingResult handleMethodCallMessage(DBusIPCMessage &requestMessage, DBusIPCMessage &replyMessage) = 0;
 
-    void serializePropertyValues(DBusIPCMessage &replyMessage)
+    void serializePropertyValues(DBusIPCMessage &msg)
     {
-        replyMessage << m_service->ready();
-        serializeSpecificPropertyValues(replyMessage);
+        msg << m_service->ready();
+        serializeSpecificPropertyValues(msg);
     }
 
-    virtual void serializeSpecificPropertyValues(DBusIPCMessage &replyMessage) = 0;
+    virtual void serializeSpecificPropertyValues(DBusIPCMessage &msg) = 0;
 
     void init(InterfaceBase *service);
 
