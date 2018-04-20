@@ -510,7 +510,7 @@ endfunction()
 function(facelift_add_qml_plugin_qmldir)
 
     set(options SINGLETONS)
-    set(oneValueArgs URI BASE_FILE_PATH)
+    set(oneValueArgs URI BASE_FILE_PATH VERSION)
     set(multiValueArgs FILES_GLOB_RECURSE)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -520,6 +520,12 @@ function(facelift_add_qml_plugin_qmldir)
     set(INSTALL_PATH imports/${PLUGIN_PATH})
     set(QMLDIR_INSTALLED_PATH ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir.installed)
     set(QMLDIR_PATH ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir)
+
+    if(ARGUMENT_VERSION)
+        string(REPLACE "." ";" VERSION_LIST "${ARGUMENT_VERSION}")
+        list(GET VERSION_LIST 0 PLUGIN_MAJOR_VERSION)
+        list(GET VERSION_LIST 1 PLUGIN_MINOR_VERSION)
+    endif()
 
     file(GLOB_RECURSE qmlSources ${ARGUMENT_FILES_GLOB_RECURSE})
 
