@@ -15,8 +15,7 @@ void PropertyBase::doBreakBinding()
     qDebug() << this->name() << " property : breaking binding";
 
     for (const auto &connection : m_connections) {
-        auto successfull = QObject::disconnect(connection);
-        Q_ASSERT(successfull);
+        QObject::disconnect(connection);
     }
     m_connections.clear();
 }
