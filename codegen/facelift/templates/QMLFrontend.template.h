@@ -95,7 +95,7 @@ public:
     Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
     QObject* {{property}}()
     {
-    	return &m_{{property}}Model;
+        return &m_{{property}}Model;
     }
 
     facelift::ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
@@ -125,8 +125,7 @@ public:
     {
         return facelift::getQMLFrontend(m_provider->{{property}}());
     }
-
-    {%- else %}
+    {% else %}
         {% if property.readonly %}
     Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
         {%- else %}
@@ -135,7 +134,7 @@ public:
     {
         // qDebug() << "Request to set property {{property}} to " << newValue;
         Q_ASSERT(m_provider);
-    	m_provider->set{{property}}(newValue);
+        m_provider->set{{property}}(newValue);
     }
         {%- endif %}
 
@@ -162,7 +161,11 @@ public:
                 {%- set comma = joiner(", ") -%}
                 {%- for parameter in operation.parameters -%}
                 {{ comma() }}
+                {%- if parameter|returnType == parameter|qmlCompatibleType -%}
+                {{parameter.name}}
+                {%- else -%}
                 facelift::toProviderCompatibleType<{{parameter|returnType}}, {{parameter|qmlCompatibleType}}>({{parameter.name}})
+                {%- endif -%}
                 {%- endfor -%}
                 );
     }
