@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import facelift.test 1.0
-import facelift 1.0
 
 Rectangle {
     width: 400
