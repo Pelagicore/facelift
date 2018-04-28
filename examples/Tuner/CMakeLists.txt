@@ -1,12 +1,16 @@
 
-add_qface_package(TunerGenerated ${CMAKE_CURRENT_SOURCE_DIR}/interface)
-
-file(GLOB_RECURSE CPP_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-
-add_qml_plugin(TunerModelPlugin tuner 1 0 "${CPP_SOURCE_FILES}" "${HEADER_FILES}" "TunerGenerated")
-target_include_directories(TunerModelPlugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Tuner)
-
-set_target_properties(TunerModelPlugin PROPERTIES
-    COMPILE_DEFINITIONS "TUNERVIEWMODEL_QML_LOCATION=${CMAKE_CURRENT_SOURCE_DIR}/models/TunerViewModelImpl.qml"
+facelift_add_interface(TunerInterface
+    INTERFACE_DEFINITION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/interface
 )
+
+#facelift_set_qml_implementation_path(TunerGenerated "${CMAKE_CURRENT_SOURCE_DIR}/models/qml")
+
+facelift_add_qml_plugin(TunerModelPlugin
+    URI tuner
+    SOURCES_GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+    HEADERS_GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    LINK_LIBRARIES TunerInterface
+)
+
+add_example_script(tuner ui/TunerApp.qml)
+add_example_script(tunerdummy ui/TunerAppWithDummy.qml)

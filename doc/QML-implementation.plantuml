@@ -1,0 +1,77 @@
+@startuml
+
+
+package Facelift {
+
+	class InterfaceBase {
+	    Base C++ class for all generated interfaces
+	}
+
+	class QMLFrontendBase {
+	    Base C++ class for all generated QML frontends
+	}
+
+	class IPCServiceAdapterBase {
+	    Base C++ for class for all generated IPC adapters
+	}
+
+}
+
+abstract class Interface #88CCDD {
+    C++ abstract class defining the interface
+...
+    generated from IDL
+}
+
+abstract class InterfacePropertyAdapter #88CCDD {
+    Abstract helper class which contains boilerplate code to help writing concrete interface implementations
+...
+    generated from IDL
+
+}
+
+
+class InterfaceDummy #88CCDD {
+    generated from IDL
+}
+
+
+class InterfaceIPCProxy #88CCDD {
+    generated from IDL
+}
+
+
+class InterfaceQMLFrontend #88CCDD {
+    Implements the interface exposed to the QML engine, to be used by the UI code
+    Turns data from the interface implementation into QML-compatible types
+...
+    generated from IDL
+
+}
+
+class InterfaceImplementation {
+    concrete class implementing the interface
+    
+}
+
+Interface <|-- InterfacePropertyAdapter
+InterfacePropertyAdapter <|-- InterfaceImplementation
+InterfacePropertyAdapter <|-- InterfaceDummy
+InterfacePropertyAdapter <|-- InterfaceIPCProxy
+IPCServiceAdapterBase <|-- InterfaceIPCProxy
+
+InterfaceQMLFrontend  "provider" --> Interface
+
+
+InterfaceBase <|-- Interface
+
+QMLFrontendBase <|-- InterfaceQMLFrontend
+
+@enduml
+
+
+note left
+	a note
+	can also be defined
+	on several lines
+end note

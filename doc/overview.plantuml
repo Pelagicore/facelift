@@ -1,0 +1,42 @@
+@startuml
+
+
+abstract class Interface #88CCDD {
+    C++ abstract class defining the interface
+...
+    generated from IDL
+}
+
+
+
+
+class InterfaceQMLFrontend #88CCDD {
+    Implements the interface exposed to the QML engine, to be used by the UI code
+    Turns data from the interface implementation into QML-friendly types
+...
+    generated from IDL
+}
+
+
+class InterfaceImplementation {
+    Concrete class implementing the interface
+    Typically written by hand
+}
+
+class InterfaceImplementation {
+    Concrete class implementing the interface
+    Typically written by hand
+}
+
+class InterfaceQMLImplementation {
+    Used as base component when implementing "Interface" using QML code
+}
+
+Interface <|-- InterfaceImplementation
+
+InterfaceQMLFrontend --> "provider" Interface
+
+InterfaceQMLImplementation --> "provider" Interface
+
+
+@enduml

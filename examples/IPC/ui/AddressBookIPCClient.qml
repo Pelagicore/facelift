@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import qface.addressbook 1.0
+import facelift.example.addressbook 1.0
 
 import QtQuick.Controls 1.2
 
@@ -21,9 +21,10 @@ Item {
     	anchors.fill: parent
     	viewModel: viewModel
     }
-    
+
     AddressBookIPCProxy {
-         id: viewModel
+        id: viewModel
+        ipc.objectPath: "/non/default/object/path"
     }
 
 }

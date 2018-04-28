@@ -1,20 +1,19 @@
+/*
+ *   This file is part of the FaceLift project
+ *   Copyright (C) 2017 Pelagicore AB
+ *   SPDX-License-Identifier: LGPL-2.1
+ *   This file is subject to the terms of the <license name> licence.
+ *   Please see the LICENSE file for details.
+ */
+
 #include "TunerModelPlugin.h"
 
-#include <qqml.h>
-
-#include "tuner/TunerModuleDummy.h"
-#include "tuner/TunerModule.h"
-#include "tuner/TunerViewModelQML.h"
-
+#include "tuner/Module.h"
 #include "models/TunerViewModelCpp.h"
 
-void TunerModelPlugin::registerTypes(const char *uri) {
+void TunerModelPlugin::registerTypes(const char *uri)
+{
+    tuner::Module::registerQmlTypes(uri);
 
-    TunerModule::registerTypes();
-    TunerModule::registerQmlTypes(uri);
-
-    TunerModuleDummy::registerQmlTypes(uri);
-    registerQmlComponent<TunerViewModelCpp>(uri);
-//    TunerViewModelQMLImplementation::registerTypes(uri, STRINGIFY(TUNERVIEWMODEL_QML_LOCATION));
-
+    facelift::registerQmlComponent<TunerViewModelCpp>(uri);
 }

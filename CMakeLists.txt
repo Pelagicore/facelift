@@ -1,65 +1,78 @@
-project(QmlCppAPI)
+cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
+project(facelift VERSION 1.0.0)
 
-cmake_minimum_required(VERSION 3.1)
+include(GNUInstallDirs)    # for standard installation locations
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+   set(DEBUG_BUILD ON)
+   set(RELEASE_BUILD OFF)
+else()
+   set(DEBUG_BUILD OFF)
+   set(RELEASE_BUILD ON)
+endif()
+
+option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
+option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
+option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
+option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
+option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" ON)
+option(FACELIFT_BUILD_TEST "Enable build of tests" OFF)
+option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ${DEBUG_BUILD})
+
+find_package(Qt5 REQUIRED Core Gui Qml Quick)
+
+set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 
-include("cmake/QMLCppAPIConfig.cmake")
+set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/codegen)
 
+include("cmake/faceliftMacros.cmake")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(AUTO_UNITY_BUILD ON)
 
+# No undefined symbol allowed in our shared libraries when using GCC
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+endif()
 
-# Build a QML plugin
-function(add_qml_plugin PLUGIN_NAME URI PLUGIN_MAJOR_VERSION PLUGIN_MINOR_VERSION SOURCE_FILES HEADERS EXTRA_DEPENDENCIES)
+# Make our build folder look like our installation folder
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 
-    # All plugins are linked against Qt libraries (QML and Quick). Use parameter EXTRA_DEPENDENCIES
-    # if additional libraries are needed.
-    string(REPLACE "." "/" PLUGIN_PATH ${URI})
-
-    set(PLUGINREGISTER "plugin ${PLUGIN_NAME}")
-    qt5_wrap_cpp(MOCS_PLUGIN ${HEADERS} OPTIONS -Muri=${URI})
-
-    add_library(${PLUGIN_NAME} SHARED ${SOURCE_FILES} ${MOCS_PLUGIN})
-    target_link_libraries(${PLUGIN_NAME} ${EXTRA_DEPENDENCIES} Qt5::Core Qt5::Gui Qt5::Qml Qt5::Quick)
-
-    target_include_directories(${PLUGIN_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-
-    set(INSTALL_PATH imports/${PLUGIN_PATH})
-
-    set_target_properties(${PLUGIN_NAME} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
-    )
-
-    install(TARGETS ${PLUGIN_NAME} DESTINATION ${INSTALL_PATH})
-
-    #Build the exports defines from the library path
-    string(TOUPPER "${PLUGIN_PATH}_PLUGIN" EXPORT_DEFINE)
-    string(REPLACE "/" "_" EXPORT_DEFINE ${EXPORT_DEFINE})
-
-    set_target_properties(${PLUGIN_NAME} PROPERTIES
-        COMPILE_DEFINITIONS  "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION};${EXPORT_DEFINE}"
-    )
-
-    #write qmldir file
-    set(QMLDIR_PLUGIN ${PLUGINREGISTER})
-    set(QMLDIR_URI ${URI})
-
-    install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir DESTINATION ${INSTALL_PATH})
-    set(REG_IMPORT "Q_IMPORT_PLUGIN(${PLUGIN_NAME})\n")
-    set_property(GLOBAL APPEND_STRING PROPERTY STATIC_REGISTRATION_IMPORTS ${REG_IMPORT})
-
-    file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "module ${QMLDIR_URI}\n${QMLDIR_PLUGIN}\ntypeinfo plugins.qmltypes")
-
+function(add_example_script NAME MAIN_QML_FILE)
+    set(QML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_QML_FILE})
+    configure_file(${PROJECT_SOURCE_DIR}/examples/launch-example.sh ${PROJECT_BINARY_DIR}/examples/launch-${NAME}.sh @ONLY)
 endfunction()
 
+if(FACELIFT_ENABLE_CODEGEN)
+    add_subdirectory(codegen)
+endif()
 
+add_subdirectory(src)
 
-#add_subdirectory(lib)
-add_subdirectory(examples)
-add_subdirectory(misc/test)
+if(FACELIFT_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
+if(FACELIFT_BUILD_TEST)
+    enable_testing()
+    add_subdirectory(test)
+    add_subdirectory(examples/test)
+endif()
 
-file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.yaml *.qdl)
-add_custom_target(QFACE_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
+add_subdirectory(doc)
+
+file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir *.qface)
+add_custom_target(FACELIFT_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
+
+get_property(FACELIFT_CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+set(FACELIFT_IMPORT_DIRS ${CMAKE_BINARY_DIR}/imports)
+configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake @ONLY)
+
+set(FACELIFT_CODEGEN_LOCATION \${CMAKE_CURRENT_LIST_DIR}/../../../bin)   # relative path of the installed code generator
+set(FACELIFT_IMPORT_DIRS \${CMAKE_CURRENT_LIST_DIR}/../../../imports)
+configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed @ONLY)
+
+facelift_export_project(BUILD_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake INSTALLED_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed)

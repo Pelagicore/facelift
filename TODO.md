@@ -1,0 +1,3 @@
+- Fix object path setting on proxy object
+- Add IPC support for properties of "service" type
+- Fix non readonly lists in QML models

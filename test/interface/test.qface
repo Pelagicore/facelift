@@ -1,0 +1,73 @@
+/*
+ *   This file is part of the FaceLift project
+ *   Copyright (C) 2017 Pelagicore AB
+ *   SPDX-License-Identifier: LGPL-2.1
+ *   This file is subject to the terms of the <license name> licence.
+ *   Please see the LICENSE file for details.
+ */
+
+module facelift.test 1.0;
+
+interface TestInterface2 {
+    void doSomething();
+}
+
+interface TestInterface {
+
+    readonly bool boolProperty;
+    readonly TestEnum enumProperty;
+    TestEnum writableEnumProperty;
+    int intProperty;
+    TestStruct structProperty;
+    TestStruct2 structProperty2;
+
+    readonly TestInterface2 interfaceProperty;
+    readonly list<TestInterface2> interfaceListProperty;
+    readonly list<int> intListProperty;
+    readonly list<bool> boolListProperty;
+
+    list<string> stringListProperty;
+
+    readonly list<TestStruct> structListProperty;
+
+    readonly map<TestInterface2> interfaceMapProperty;
+    readonly map<TestStruct> structMapProperty;
+    map<int> intMapProperty;
+
+    string method1();
+    TestStruct2 method2(int intParam, bool boolParam);
+    TestEnum method3();
+    list<TestEnum> method4(TestStruct2 s);
+    list<TestStruct> method5();
+
+    signal event1(TestStruct p);
+    signal eventEnum(TestEnum p);
+    signal eventInt(int p);
+    signal eventBoolAndStruct(bool p, TestStruct q);
+    signal eventWithList(list<int> p, bool q);
+    signal eventWithMap(map<int> p);
+    signal eventWithStructWithList(TestStructWithList p)
+}
+
+struct TestStruct {
+    string aString
+    int anInt
+}
+
+enum TestEnum {
+    E1,
+    E2,
+    E3,
+}
+
+struct TestStruct2 {
+    TestStruct s
+    TestEnum i
+}
+
+struct TestStructWithList {
+    list<int> listOfInts
+    list<TestStruct> listOfStructs
+    TestEnum enumField
+}
+
