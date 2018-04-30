@@ -1,4 +1,5 @@
 {% set class = '{0}'.format(interface) %}
+{% set hasReadiness = interface|hasReadinessProperty %}
 {%- macro printif(name) -%}
 {%- if name -%}{{name}}
 {% endif -%}
@@ -60,6 +61,7 @@ public:
         m_provider = &provider;
         {% for property in interface.properties %}
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
+
         {% if property.type.is_model -%}
         m_{{property}}Model.init(m_provider->{{property}}());
         {% endif %}
@@ -86,10 +88,22 @@ public:
         connect(m_provider, &{{class}}::{{event.name}}, this, &{{class}}QMLFrontend::{{event.name}});
         {% endif %}
         {% endfor %}
+
+        {% if hasReadiness %}
+        connect(m_provider, &{{class}}::readinessChanged, this, &{{class}}QMLFrontend::readinessChanged);
+        {% endif %}
     }
+    {% if hasReadiness %}
+
+    Q_PROPERTY({{module|fullyQualifiedCppName}}::Readiness readiness READ readiness NOTIFY readinessChanged)
+    Readiness readiness() const
+    {
+        return m_provider->readiness();
+    }
+    Q_SIGNAL void readinessChanged();
+    {% endif %}
 
     {% for property in interface.properties %}
-
     {{- printif(property.comment)}}
     {% if property.type.is_model -%}
     Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
@@ -187,3 +201,6 @@ public:
 
 {{module|namespaceClose}}
 
+{% if hasReadiness %}
+Q_DECLARE_METATYPE({{module|fullyQualifiedCppName}}::Readiness)
+{% endif %}
