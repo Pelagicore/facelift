@@ -79,10 +79,6 @@ AddressBookQMLImplementation {
         }
     }
 
-    updateContact: function() {
-        print("Not implemented"); // TODO
-    }
-
     updateContact: function(contactId, contact) {
         var contactList = root.contacts;
         var foundIndex = findContactForId(contactId);

@@ -134,7 +134,6 @@ Item {
                 onClicked: {
                     viewModel.deleteContact(viewModel.currentContact.id)
                 }
-
             }
 
             Button {
@@ -155,11 +154,6 @@ Item {
                     nameField.reset();
                     numberField.reset();
                 }
-                            viewModel.updateContact(viewModel.currentContact.id, contact)
-                        }
-                    }
-
-
             }
 
             Button {

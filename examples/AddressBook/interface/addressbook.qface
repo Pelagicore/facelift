@@ -7,6 +7,7 @@
  */
 
 module facelift.example.addressbook 1.0;
+
 interface SubInterface {
     void doSomething();
 }
