@@ -1,6 +1,3 @@
 [submodule "qface"]
 	path = codegen/facelift/qface
 	url = ../qface.git
-[submodule "tools/multimake"]
-	path = tools/multimake
-	url = ../multimake.git
