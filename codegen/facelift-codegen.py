@@ -4,7 +4,7 @@
 # Copyright (C) 2017 Pelagicore AB
 # SPDX-License-Identifier: LGPL-2.1
 # This file is subject to the terms of the LGPL 2.1 license.
-# Please see the LICENSE file for details. 
+# Please see the LICENSE file for details.
 
 import click
 from qface.generator import FileSystem, Generator
@@ -128,6 +128,12 @@ def hasContainerParameter(parameters):
             return True
     return False
 
+def hasReadinessProperty(interface):
+    for property in interface.properties:
+        if property.tags.get('readiness'):
+            return True
+    return False
+
 def hasReturnValue(self):
     return not self.type.name == 'void'
 
@@ -157,6 +163,7 @@ def run_generation(input, output, dependency):
     generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
     generator.register_filter('toValidId', toValidId)
     generator.register_filter('hasContainerParameter', hasContainerParameter)
+    generator.register_filter('hasReadinessProperty', hasReadinessProperty)
     generator.register_filter('qmlCompatibleType', qmlCompatibleType)
     generator.destination = output
 

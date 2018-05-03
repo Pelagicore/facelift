@@ -34,6 +34,9 @@ interface TestInterface {
     readonly map<TestStruct> structMapProperty;
     map<int> intMapProperty;
 
+    @readiness: true
+    int readyProperty;
+
     string method1();
     TestStruct2 method2(int intParam, bool boolParam);
     TestEnum method3();

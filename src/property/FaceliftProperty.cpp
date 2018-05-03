@@ -41,6 +41,8 @@ void PropertyBase::triggerValueChangedSignal()
 
 void PropertyBase::doTriggerChangeSignal()
 {
+    setReadiness(true);
+
     if (signalPointer() != nullptr) {
         if (isDirty()) {
             qDebug() << "Property" << name() << ": Triggering notification. New value:" << toString();

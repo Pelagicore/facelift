@@ -38,6 +38,14 @@ public:
         m_name = name;
     }
 
+    template<typename ServiceType>
+    void init(QObject *ownerObject, void (ServiceType::*changeSignal)(), void (ServiceType::*readinessSignal)(),
+              const char *name = "Unknown")
+    {
+        init(ownerObject, changeSignal, name);
+        m_readinessSignal = static_cast<ChangeSignal>(readinessSignal);
+    }
+
     void triggerValueChangedSignal();
 
     QObject *owner() const
@@ -55,6 +63,19 @@ public:
         return m_ownerSignal;
     }
 
+    bool &readiness()
+    {
+        return m_readiness;
+    }
+
+    void setReadiness(bool ready)
+    {
+        if (Q_UNLIKELY(m_readinessSignal && m_readiness != ready)) {
+            m_readiness = ready;
+            (m_ownerObject->*m_readinessSignal)();
+        }
+    }
+
 protected:
     virtual void clean() = 0;
 
@@ -69,8 +90,10 @@ protected:
 private:
     void doTriggerChangeSignal();
 
+    bool m_readiness = true;
     QObject *m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
+    ChangeSignal m_readinessSignal = nullptr;
 
     const char *m_name = nullptr;
     bool m_notificationTimerEnabled = false;
