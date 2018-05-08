@@ -45,8 +45,10 @@ Rectangle {
         onEventWithMap: console.log("Received signal with map parameter, e.g.: " + p.five);
         onEventWithStructWithList: console.log("Received signal with struct parameter. list of ints: "
                                                + p.listOfInts + " / list of structs: " + p.listOfStructs);
+        onReadyFlagsChanged: console.log("ReadyFlag of readyProperty is " + readyFlags.readyProperty);
 
         Component.onCompleted: {
+            console.log("Initial readyFlag of readyProperty: " + readyFlags.readyProperty);
             console.log("stringListProperty: " + stringListProperty);
             console.log("interfaceListProperty: " + interfaceListProperty[0]);
             console.log("intMapProperty: " + JSON.stringify(intMapProperty));
@@ -58,5 +60,4 @@ Rectangle {
             interfaceMapProperty["key1"].doSomething();
         }
     }
-
 }

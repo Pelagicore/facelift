@@ -47,18 +47,23 @@
 class {{class}}PropertyAdapter : public {{class}} {
 
 public:
-
-    {{class}}PropertyAdapter(QObject* parent = nullptr) : {{class}}(parent) {
+    {{class}}PropertyAdapter(QObject* parent = nullptr) : {{class}}(parent)
+    {
         {% for property in interface.properties %}
-          m_{{property.name}}.init(this, &{{class}}::{{property.name}}Changed, "{{property.name}}");
+        {% if property.tags.hasReadyFlag %}
+        m_{{property.name}}.init(this, &{{class}}::{{property.name}}Changed, &{{class}}::readyFlagsChanged, "{{property.name}}");
+        m_readyFlags.m_{{property.name}} = &m_{{property.name}}.isReady();
+        {% else %}
+        m_{{property.name}}.init(this, &{{class}}::{{property.name}}Changed, "{{property.name}}");
+        {% endif %}
+
         {% endfor %}
     }
 
     {% for property in interface.properties %}
-
     {% if property.type.is_model %}
-
-    facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() override {
+    facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() override
+    {
         return m_{{property.name}};
     }
 
@@ -66,7 +71,8 @@ public:
 
     {% elif property.type.is_list %}
 
-    const {{property|returnType}}& {{property}}() const override {
+    const {{property|returnType}}& {{property}}() const override
+    {
         return m_{{property.name}}.value();
     }
 
@@ -75,27 +81,24 @@ public:
     {% elif property.type.is_interface -%}
 
     // Service property
-    {{property|returnType}} {{property}}() override {
+    {{property|returnType}} {{property}}() override
+    {
         return m_{{property.name}}.value();
     }
 
     facelift::ServiceProperty<{{property.type|fullyQualifiedCppName}}> m_{{property.name}};
 
- // TODO
+    // TODO
 
     {% else %}
-
-    const {{property|returnType}}& {{property}}() const override {
+    const {{property|returnType}} &{{property}}() const override
+    {
         return m_{{property.name}}.value();
     }
     facelift::Property<{{property|returnType}}> m_{{property.name}};
+
     {% endif %}
-
     {% endfor %}
-
 };
 
 {{module|namespaceClose}}
-
-
-
