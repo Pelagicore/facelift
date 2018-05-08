@@ -126,5 +126,4 @@ AddressBookQMLImplementation {
             print("Contact not found ID: " + contactId); // TODO
         }
     }
-    
 }

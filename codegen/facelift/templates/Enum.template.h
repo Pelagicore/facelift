@@ -72,12 +72,12 @@ template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {
 namespace facelift {
 
 template<> inline const QList<{{enum|fullyQualifiedCppName}}>& validValues<{{enum|fullyQualifiedCppName}}>() {
-	static QList<{{enum|fullyQualifiedCppName}}> values = {
-	{% for member in enum.members %}
-	{{enum|fullyQualifiedCppName}}::{{member}},
-	{% endfor %}
-	};
-	return values;
+    static QList<{{enum|fullyQualifiedCppName}}> values = {
+    {% for member in enum.members %}
+    {{enum|fullyQualifiedCppName}}::{{member}},
+    {% endfor %}
+    };
+    return values;
 }
 
 template <> inline QString enumToString(const {{enum|fullyQualifiedCppName}}& v) {
@@ -99,11 +99,11 @@ template <> inline QString enumToString(const {{enum|fullyQualifiedCppName}}& v)
 inline void assignFromString(const QString &s, {{enum|fullyQualifiedCppName}}& v)
 {
     {% for member in enum.members %}
-	if (s == "{{member}}")
-		v = {{enum|fullyQualifiedCppName}}::{{member}};
+    if (s == "{{member}}")
+        v = {{enum|fullyQualifiedCppName}}::{{member}};
     else
     {% endfor %}
-	qFatal("No enum value matching string");
+    qFatal("No enum value matching string");
 }
 
 

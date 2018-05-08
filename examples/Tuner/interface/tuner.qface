@@ -31,19 +31,19 @@
 module tuner 1.0
 
 struct Station {
-	string name
-	int frequency
-	string frequencyText
-	int stationId
-	bool isPlaying
-	ProgramType programType
+    string name
+    int frequency
+    string frequencyText
+    int stationId
+    bool isPlaying
+    ProgramType programType
 }
 
 interface TunerViewModel {
     readonly Station currentStation;
-	readonly list<Station> stationList;
+    readonly list<Station> stationList;
 
-	bool enable_AF;
+    bool enable_AF;
 
     void setCurrentStation(Station station);
     void nextStation();

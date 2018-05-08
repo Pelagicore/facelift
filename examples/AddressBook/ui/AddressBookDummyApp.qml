@@ -47,8 +47,8 @@ Item {
 
     AddressBookMainPanel {
         id: mainPanel
-    	anchors.fill: parent
-    	viewModel: viewModel
+        anchors.fill: parent
+        viewModel: viewModel
     }
 
     AddressBookDummy {

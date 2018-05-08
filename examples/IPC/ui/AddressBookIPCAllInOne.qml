@@ -43,13 +43,13 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-	    color: "yellow"
+        color: "yellow"
     }
 
     AddressBookMainPanel {
         id: mainPanel
-    	anchors.fill: parent
-    	viewModel: viewModelProxy
+        anchors.fill: parent
+        viewModel: viewModelProxy
     }
     
     AddressBookImpl {
