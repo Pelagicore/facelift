@@ -1,4 +1,4 @@
 # How can I contribute?
-FaceLift is a typical open source project meaning anyone who agrees to the terms of the license in the FaceLift project can contribute to the project.
-The development takes place on github at https://github.com/jacky309/FaceLift
-
+FaceLift is open source and licensed under the MIT license. If you agree to the
+terms of the license, then feel free to send Pull Requests or otherwise
+contribute to the project.
