@@ -39,8 +39,9 @@
 
 constexpr const char* {{interface}}::FULLY_QUALIFIED_INTERFACE_NAME;
 
-{{interface}}::{{interface}}(QObject* parent) :
-    facelift::InterfaceBase(parent) {
+{{interface}}::{{interface}}(QObject* parent)
+    : facelift::InterfaceBase(parent)
+{
     init({{interface}}::FULLY_QUALIFIED_INTERFACE_NAME);
 }
 
