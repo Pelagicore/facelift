@@ -64,35 +64,35 @@ public:
     {% if property.type.is_model -%}
 
     {{property|nestedType|fullyQualifiedCppName}} {{property.name}}ElementAt(size_t index) override {
-    	return wrapped()->{{property.name}}ElementAt(index);
+        return wrapped()->{{property.name}}ElementAt(index);
     }
 
     size_t {{property.name}}Size() override {
-    	return wrapped()->{{property.name}}Size();
+        return wrapped()->{{property.name}}Size();
     }
 
     {% elif property.type.is_list -%}
 
     const {{property|returnType}}& {{property}}() const override {
-    	return wrapped()->{{property}}();
+        return wrapped()->{{property}}();
     }
 
     {% elif property.type.is_interface -%}
 
     // Service property
     {{property|returnType}}* {{property}}() override {
-    	return wrapped()->{{property}}();
+        return wrapped()->{{property}}();
     }
 
     {% else %}
 
     const {{property|returnType}}& {{property}}() const override {
-    	return wrapped()->{{property}}();
+        return wrapped()->{{property}}();
     }
 
     {% if (not property.readonly) %}
     void set{{property}}(const {{property|returnType}}& newValue) override {
-    	return wrapped()->set{{property}}(newValue);
+        return wrapped()->set{{property}}(newValue);
     }
     {% endif %}
 
@@ -109,19 +109,19 @@ public:
         {{parameter|returnType}} {{parameter.name}}
         {% endfor %}
     ) override {
-    	return wrapped()->{{operation}}(
-    	        {% set comma = joiner(",") %}
-    	        {% for parameter in operation.parameters %}
-    	        {{ comma() }}
-    	        {{parameter.name}}
-    	        {% endfor %}
-    	);
+        return wrapped()->{{operation}}(
+                {% set comma = joiner(",") %}
+                {% for parameter in operation.parameters %}
+                {{ comma() }}
+                {{parameter.name}}
+                {% endfor %}
+        );
     }
 
     {% endfor %}
 
     void initConnections({{class}}* wrapped) override {
-    	Q_UNUSED(wrapped);
+        Q_UNUSED(wrapped);
 
         {% for property in interface.properties %}
         addConnection(QObject::connect(wrapped, &{{class}}::{{property.name}}Changed, this, &{{class}}Wrapper::{{property.name}}Changed));

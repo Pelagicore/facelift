@@ -76,7 +76,7 @@ public:
 
     // Service property
     {{property|returnType}} {{property}}() override {
-    	return m_{{property.name}}.value();
+        return m_{{property.name}}.value();
     }
 
     facelift::ServiceProperty<{{property.type|fullyQualifiedCppName}}> m_{{property.name}};

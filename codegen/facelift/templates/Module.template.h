@@ -61,7 +61,7 @@
 class Module : public facelift::ModuleBase {
 
 public:
-	Module();
+    Module();
 
     /**
      * Register all QML types provided by this module

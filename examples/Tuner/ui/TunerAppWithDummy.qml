@@ -46,8 +46,8 @@ Item {
 
     TunerAppMainPanel {
         id: mainPanel
-    	anchors.fill: parent
-    	viewModel: viewModel
+        anchors.fill: parent
+        viewModel: viewModel
     }
 
     TunerViewModelDummy {

@@ -44,13 +44,13 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-	    color: "green"
+        color: "green"
     }
 
     AddressBookMainPanel {
         id: mainPanel
-    	anchors.fill: parent
-    	viewModel: proxy
+        anchors.fill: parent
+        viewModel: proxy
     }
 
     AddressBookIPCProxy {

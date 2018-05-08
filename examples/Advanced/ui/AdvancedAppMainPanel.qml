@@ -36,7 +36,6 @@ import QtQuick.Layouts 1.2
  */
 
 Item {
-
     id: root
 
     width: 700
@@ -58,15 +57,14 @@ Item {
             color: (index % 2) == 0 ? "gray" : "lightgray"
 
             Row {
-            
                 spacing: 10
                 anchors.fill: parent
-            
+
                 Rectangle {
                     width: 50
-                    height: parent.height 
+                    height: parent.height
                     color: "blue"
-                    
+
                     Text {
                         text: "Remove"
                     }
@@ -77,9 +75,8 @@ Item {
                             advancedModel.deleteModelItem(modelData)
                         }
                     }
-                    
                 }
-    
+
                 Text {
                     id: trackNameLabel
                     text: modelData.name
@@ -87,7 +84,7 @@ Item {
 
                 Rectangle {
                     width: 50
-                    height: parent.height 
+                    height: parent.height
                     color: "red"
 
                     Text {
@@ -100,14 +97,13 @@ Item {
                             advancedModel.renameModelItem(modelData, "renamed item")
                         }
                     }
-
                 }
 
                 Rectangle {
                     width: 50
                     height: parent.height
                     color: "green"
-                    
+
                     Text {
                         text: "Insert"
                     }
@@ -118,11 +114,8 @@ Item {
                             advancedModel.insertNewModelItemAfter(modelData)
                         }
                     }
-
                 }
-
             }
-
         }
     }
 }

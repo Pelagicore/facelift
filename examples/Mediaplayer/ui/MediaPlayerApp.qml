@@ -45,7 +45,7 @@ Item {
 
     MediaPlayerAppMainPanel {
         id: mainPanel
-    	anchors.fill: parent
+        anchors.fill: parent
         mediaIndexerModel: MediaIndexerModel
     }
 

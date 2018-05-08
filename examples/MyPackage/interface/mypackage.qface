@@ -38,7 +38,7 @@ interface MyInterface {
     // This method resets the value of the counter
     void resetCounter();
 
-    // This signal is triggered when the counter has been reset 
+    // This signal is triggered when the counter has been reset
     signal counterReset();
 
 }

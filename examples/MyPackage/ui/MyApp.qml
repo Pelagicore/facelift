@@ -47,8 +47,8 @@ Item {
     }
 
     MouseArea {
-    	anchors.fill: parent
-    	onClicked: myInterface.resetCounter();
+        anchors.fill: parent
+        onClicked: myInterface.resetCounter();
     }
 
     Text {
