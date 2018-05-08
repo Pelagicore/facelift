@@ -93,5 +93,5 @@ $ ./examples/launch-addressbook.sh
 
 ## License and Copyright
 
-This code is copyright (c) 2017 Pelagicore AB
-Licensed under the LGPL 2.1, please see LICENSE file for more.
+This code is copyright (c) 2018 Luxoft Sweden AB
+Licensed under the MIT, please see LICENSE file for more information.
