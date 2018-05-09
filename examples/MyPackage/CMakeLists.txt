@@ -15,3 +15,4 @@ facelift_add_qml_plugin(MyPackagePlugin
 add_example_script(mypackage ui/MyApp.qml)
 add_example_script(mypackage-ipcclient ui/ipc/MyAppIPCClient.qml)
 add_example_script(mypackage-ipcserver ui/ipc/MyAppIPCServer.qml)
+add_example_script(mypackage-inprocess ui/ipc/MyAppInProcess.qml)

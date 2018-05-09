@@ -28,7 +28,6 @@
 **
 **********************************************************************/
 
-//! [indoc]
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import facelift.example.mypackage 1.0
@@ -36,24 +35,50 @@ import facelift.example.mypackage 1.0
 Window {
     width: 160
     height: 120
-    color: "wheat"
-    title: "Client"
+    title: "In-Process"
 
-    MyInterfaceIPCProxy {
-        id: myInterface
-        ipc.objectPath: "/my/object/path"
-        onCounterReset: console.log("Client: the counter has been reset")
-        onCounterChanged: console.log("Client: counter changed: " + counter)
+    // "Server"
+    Rectangle {
+        id: server
+        width: parent.width
+        height: parent.height / 2
+        color: "wheat"
+
+        MyInterfaceImplementation {
+            id: myInterface
+            IPC.enabled: true
+            IPC.objectPath: "/my/object/path"
+            onCounterReset: console.log("Server: the counter has been reset")
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: "Server counter: " + myInterface.counter
+        }
     }
 
-    Text {
-        anchors.centerIn: parent
-        text: myInterface.counter
-    }
+    // "Client"
+    Rectangle {
+        width: parent.width
+        height: parent.height / 2
+        anchors.top: server.bottom
+        color: "lightsteelblue"
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: myInterface.resetCounter();
+        MyInterfaceIPCProxy {
+            id: myProxy
+            ipc.objectPath: "/my/object/path"
+            onCounterReset: console.log("Client: the counter has been reset")
+            onCounterChanged: console.log("Client: counter changed: " + counter)
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: "Client counter: " + myProxy.counter
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: myProxy.resetCounter();
+        }
     }
 }
-//! [indoc]
