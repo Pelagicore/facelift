@@ -28,6 +28,7 @@
 **
 **********************************************************************/
 
+//! [indoc]
 #pragma once
 
 #include "facelift/example/mypackage/MyInterfacePropertyAdapter.h"
@@ -60,3 +61,4 @@ private:
     QTimer m_timer;
 
 };
+//! [indoc]

@@ -28,6 +28,7 @@
 **
 **********************************************************************/
 
+//! [indoc]
 module facelift.example.mypackage 1.0;
 
 interface MyInterface {
@@ -42,3 +43,4 @@ interface MyInterface {
     signal counterReset();
 
 }
+//! [indoc]
