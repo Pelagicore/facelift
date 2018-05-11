@@ -28,6 +28,7 @@
 **
 **********************************************************************/
 
+//! [indoc]
 import QtQuick 2.0
 import facelift.example.mypackage 1.0
 
@@ -56,3 +57,4 @@ Item {
     }
 
 }
+//! [indoc]

@@ -28,6 +28,7 @@
 **
 **********************************************************************/
 
+//! [indoc]
 #include "MyPackagePlugin.h"
 
 #include "models/cpp/MyInterfaceCppImplementation.h"
@@ -42,7 +43,7 @@ void MyPackagePlugin::registerTypes(const char *uri)
     // Register generated QML types
     Module::registerQmlTypes(uri);
 
-    // This additional call registers all interfaces as uncreatable types, so that we can used typed properties in our QML files
+    // This additional call registers all interfaces as uncreatable types, so that we can use typed properties in our QML files
     // The type names are exactly the interface names as defined in the QFace file
     Module::registerUncreatableQmlTypes(uri);
 
@@ -53,3 +54,4 @@ void MyPackagePlugin::registerTypes(const char *uri)
     //    facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
 
 }
+//! [indoc]
