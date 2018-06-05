@@ -40,7 +40,7 @@
 #include <QDBusServiceWatcher>
 
 #include "FaceliftModel.h"
-#include "utils.h"
+#include "FaceliftUtils.h"
 #include "FaceliftProperty.h"
 
 #include "ipc-common/ipc-common.h"

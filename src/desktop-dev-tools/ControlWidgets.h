@@ -46,7 +46,7 @@
 #include <QMap>
 #include <QList>
 
-#include "utils.h"
+#include "FaceliftUtils.h"
 #include "FaceliftModel.h"
 
 namespace facelift {

@@ -1,4 +1,4 @@
 facelift_add_library(FaceliftCommonLib
-    SOURCES utils.cpp
-    HEADERS utils.h
+    SOURCES FaceliftUtils.cpp
+    HEADERS FaceliftUtils.h
 )
