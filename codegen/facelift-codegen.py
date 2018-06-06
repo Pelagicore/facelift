@@ -152,6 +152,12 @@ def hasContainerParameter(parameters):
             return True
     return False
 
+def hasPropertyWithReadyFlag(interface):
+    for property in interface.properties:
+        if property.tags.get('hasReadyFlag'):
+            return True
+    return False
+
 def hasReturnValue(self):
     return not self.type.name == 'void'
 
@@ -181,6 +187,7 @@ def run_generation(input, output, dependency):
     generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
     generator.register_filter('toValidId', toValidId)
     generator.register_filter('hasContainerParameter', hasContainerParameter)
+    generator.register_filter('hasPropertyWithReadyFlag', hasPropertyWithReadyFlag)
     generator.register_filter('qmlCompatibleType', qmlCompatibleType)
     generator.destination = output
 

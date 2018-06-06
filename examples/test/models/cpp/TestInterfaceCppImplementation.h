@@ -61,7 +61,10 @@ public:
     TestInterfaceCppImplementation(QObject *parent = nullptr) : TestInterfacePropertyAdapter(parent)
     {
         qDebug() << "C++ implementation of TestInterface is used";
+        m_readyProperty = 0;
+        m_readyProperty.setReady(false);
         QTimer::singleShot(1000, this, [this] () {
+            m_readyProperty = 42;
             eventWithList(QList<int>({3, 4, 5}), true);
             eventWithMap(QMap<QString, int>({{QStringLiteral("five"), 5}, {QStringLiteral("six"), 6}}));
 
@@ -109,6 +112,12 @@ public:
     {
         qDebug() << "set stringListProperty:" << newValue;
         m_stringListProperty = newValue;
+    }
+
+    void setreadyProperty(const int &newValue) override
+    {
+        qDebug() << "set readyProperty:" << newValue;
+        m_intProperty = newValue;
     }
 
     QString method1() override
