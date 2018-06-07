@@ -232,8 +232,7 @@ public:
 
     void onDataChanged(int first, int last)
     {
-        QModelIndex topLeft = createIndex(first, last);
-        dataChanged(topLeft, topLeft);
+        dataChanged(createIndex(first, 0), createIndex(last, 0));
     }
 
     int rowCount(const QModelIndex &index) const override

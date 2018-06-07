@@ -158,6 +158,12 @@ def hasPropertyWithReadyFlag(interface):
             return True
     return False
 
+def hasModelProperty(interface):
+    for property in interface.properties:
+        if property.type.is_model:
+            return True
+    return False
+
 def hasReturnValue(self):
     return not self.type.name == 'void'
 
@@ -188,6 +194,7 @@ def run_generation(input, output, dependency):
     generator.register_filter('toValidId', toValidId)
     generator.register_filter('hasContainerParameter', hasContainerParameter)
     generator.register_filter('hasPropertyWithReadyFlag', hasPropertyWithReadyFlag)
+    generator.register_filter('hasModelProperty', hasModelProperty)
     generator.register_filter('qmlCompatibleType', qmlCompatibleType)
     generator.destination = output
 
