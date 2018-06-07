@@ -36,25 +36,22 @@
 
 using namespace advanced;
 
-class AdvancedModelCpp :
-    public AdvancedModelPropertyAdapter
+class AdvancedModelCpp : public AdvancedModelPropertyAdapter
 {
-
     Q_OBJECT
 
 public:
     AdvancedModelCpp(QObject *parent = nullptr) :
         AdvancedModelPropertyAdapter(parent)
     {
-        for (int i = 0; i < 100; i++) {
+        int i = 0;
+        for (; i < 100; i++)
             m_items.append(i);
-            m_nextAvailableID++;
-        }
+
+        m_nextAvailableID = i;
 
         m_theModel.setSize(m_items.size());
-        m_theModel.setGetter([this](int index) {
-            return getItem(index);
-        });
+        m_theModel.setGetter(std::bind(&AdvancedModelCpp::getItem, this, std::placeholders::_1));
     }
 
     MyStruct getItem(int index)
@@ -75,9 +72,10 @@ public:
         qWarning() << "Deleting" << item;
         auto index = m_items.indexOf(item.id());
         if (index != -1) {
-            m_theModel.beginRemoveElements(index, index);
+            emit m_theModel.beginRemoveElements(index, index);
             m_items.remove(index);
-            m_theModel.endRemoveElements();
+            emit m_theModel.endRemoveElements();
+            m_theModel.setSize(m_items.size());
             qWarning() << "Deleted" << item;
         }
     }
@@ -87,9 +85,10 @@ public:
         qWarning() << "inserting" << item;
         auto index = m_items.indexOf(item.id());
         if (index != -1) {
-            m_theModel.beginInsertElements(index, index);
+            emit m_theModel.beginInsertElements(index, index);
             m_items.insert(index, m_nextAvailableID++);
-            m_theModel.endInsertElements();
+            emit m_theModel.endInsertElements();
+            m_theModel.setSize(m_items.size());
             qWarning() << "Duplicated" << item;
         }
     }
@@ -101,7 +100,7 @@ public:
         m_renamedItems[elementId] = name;
         auto index = m_items.indexOf(elementId);
         if (index != -1) {
-            m_theModel.dataChanged(index);
+            emit m_theModel.dataChanged(index);
             qWarning() << "Renamed" << item << m_renamedItems << "index" << index;
         }
     }
@@ -110,5 +109,4 @@ private:
     QVector<int> m_items;
     QMap<int, QString> m_renamedItems;
     int m_nextAvailableID = 0;
-
 };
