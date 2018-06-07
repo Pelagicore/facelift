@@ -62,6 +62,33 @@ public:
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
+    void setService(facelift::InterfaceBase *srvc) override
+    {
+        facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>::setService(srvc);
+
+        {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        facelift::ModelBase *{{property.name}} = &(service()->{{property.name}}());
+        connect({{property.name}}, static_cast<void (facelift::ModelBase::*)(int, int)>
+                (&facelift::ModelBase::dataChanged), this, [this] (int first, int last) {
+            sendSignal("{{property.name}}DataChanged", first, last);
+        });
+        connect({{property.name}}, &facelift::ModelBase::beginRemoveElements, this, [this] (int first, int last) {
+            sendSignal("{{property.name}}BeginRemove", first, last);
+        });
+        connect({{property.name}}, &facelift::ModelBase::endRemoveElements, this, [this] () {
+            sendSignal("{{property.name}}EndRemove");
+        });
+        connect({{property.name}}, &facelift::ModelBase::beginInsertElements, this, [this] (int first, int last) {
+            sendSignal("{{property.name}}BeginInsert", first, last);
+        });
+        connect({{property.name}}, &facelift::ModelBase::endInsertElements, this, [this] () {
+            sendSignal("{{property.name}}EndInsert");
+        });
+        {% endif %}
+        {% endfor %}
+    }
+
     void appendDBUSIntrospectionData(QTextStream &s) const override
     {
         {% for property in interface.properties %}
@@ -135,6 +162,15 @@ public:
         } else
         {% endfor %}
         {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        if (member == "get{{property.name}}RowCount") {
+            replyMessage << theService->{{property.name}}().size();
+        } else if (member == "get{{property.name}}Data") {
+            int row;
+            requestMessage >> row;
+            replyMessage << theService->{{property.name}}().elementAt(row);
+        } else
+        {% endif %}
         {% if (not property.readonly) %}
         if (member == "set{{property.name}}") {
             {% if (not property.type.is_interface) %}
@@ -182,13 +218,10 @@ public:
         {#% endif %#}
 
         {% for property in interface.properties %}
-        {% if property.type.is_model -%}
-        // TODO : model
-        qWarning("Property of model type not supported over IPC");
-        {% elif property.type.is_interface %}
+        {% if property.type.is_interface %}
         // TODO
         qWarning("Property of interface type not supported over IPC");
-        {% else %}
+        {% elif not property.type.is_model %}
         msg << theService->{{property.name}}();
         {% endif %}
         {% endfor %}
@@ -233,12 +266,10 @@ public:
         Q_UNUSED(msg);
         {% for property in interface.properties %}
 
-        {% if property.type.is_model %}
-        qFatal("Model not supported");
-        {% elif property.type.is_interface %}
+        {% if property.type.is_interface %}
         // qFatal("Property of interface type not supported");
         qWarning() << "TODO: handle interface properties";
-        {% else %}
+        {% elif not property.type.is_model %}
         PropertyType_{{property.name}} {{property.name}};
         msg >> {{property.name}};
         m_{{property.name}}.setValue({{property.name}});
@@ -279,6 +310,28 @@ public:
             {%- endfor -%}  );
         }
         {% endfor %}
+
+        {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        if (signalName == "{{property.name}}DataChanged") {
+            int first, last;
+            msg >> first >> last;
+            emit m_{{property.name}}.dataChanged(first, last);
+        } else if (signalName == "{{property.name}}BeginInsert") {
+            int first, last;
+            msg >> first >> last;
+            emit m_{{property.name}}.beginInsertElements(first, last);
+        } else if (signalName == "{{property.name}}EndInsert") {
+            emit m_{{property.name}}.endInsertElements();
+        } else if (signalName == "{{property.name}}BeginRemove") {
+            int first, last;
+            msg >> first >> last;
+            emit m_{{property.name}}.beginRemoveElements(first, last);
+        } else if (signalName == "{{property.name}}EndRemove") {
+            emit m_{{property.name}}.endRemoveElements();
+        }
+        {% endif %}
+        {% endfor %}
     }
     {% for operation in interface.operations %}
 
@@ -315,9 +368,9 @@ public:
         }
     }
     {% endfor %}
-
     {%- for property in interface.properties %}
-        {% if (not property.readonly) %}
+
+    {% if (not property.readonly) %}
     void set{{property}}(const {{property|returnType}}& newValue) override
     {
         if (localInterface() == nullptr) {
@@ -329,6 +382,20 @@ public:
         } else {
             localInterface()->set{{property}}(newValue);
         }
+    }
+    {% elif property.type.is_model %}
+    int get{{property.name}}RowCount() override
+    {
+        int size;
+        sendMethodCallWithReturn("get{{property.name}}RowCount", size);
+        return size;
+    }
+
+    QVariant get{{property.name}}Data(int row) override
+    {
+        {{property|nestedType|fullyQualifiedCppName}} retval;
+        sendMethodCallWithReturn("get{{property.name}}Data", retval, row);
+        return QVariant::fromValue(retval);
     }
     {% endif %}
     {% endfor %}
