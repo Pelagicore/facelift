@@ -92,7 +92,7 @@ public:
         {% for property in interface.properties %}
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
 
-        {% if property.type.is_model -%}
+        {% if property.type.is_model %}
         m_{{property}}Model.init(m_provider->{{property}}());
         {% endif %}
         {% endfor %}
@@ -135,7 +135,7 @@ public:
 
     {% for property in interface.properties %}
     {{- printif(property.comment)}}
-    {% if property.type.is_model -%}
+    {% if property.type.is_model %}
     Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
     QObject* {{property}}()
     {
