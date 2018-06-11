@@ -49,10 +49,10 @@
 #include "QMLFrontend.h"
 #include "QMLModel.h"
 
+#include "ipc-dbus-object-registry.h"
 
 namespace facelift {
 namespace dbus {
-
 
 
 DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
@@ -61,7 +61,18 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
     if (!m_dbusConnected) {
         qCritical() << "NOT connected to DBUS";
     }
+
 }
+
+facelift::ipc::ObjectRegistry& DBusManager::objectRegistry() {
+    if (m_objectRegistry == nullptr) {
+        m_objectRegistry = new DBusObjectRegistry(*this);
+        m_objectRegistry->init();
+    }
+
+    return *m_objectRegistry;
+}
+
 
 DBusManager &DBusManager::instance()
 {
@@ -97,8 +108,6 @@ DBusIPCServiceAdapterBase *DBusIPCAttachedPropertyFactory::qmlAttachedProperties
     return serviceAdapter;
 }
 
-
-
 bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const QDBusConnection &connection)
 {
     DBusIPCMessage requestMessage(dbusMsg);
@@ -127,7 +136,6 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
     return false;
 }
 
-
 void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
 {
     m_service = service;
@@ -136,7 +144,10 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
 
             if (dbusManager().isDBusConnected()) {
 
-                DBusManager::instance().registerServiceName(m_serviceName);
+                if (!m_serviceName.isEmpty())
+                    DBusManager::instance().registerServiceName(m_serviceName);
+
+                DBusManager::instance().objectRegistry().registerObject(objectPath(), DBusManager::instance().serviceName());
 
                 qDebug() << "Registering IPC object at " << objectPath();
                 m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
@@ -153,10 +164,26 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
     }
 }
 
-
 void DBusIPCProxyBinder::bindToIPC()
 {
-    if ((m_serviceName != nullptr) && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
+    if (m_serviceName.isEmpty()) {
+        auto& registry = DBusManager::instance().objectRegistry();
+
+        if (registry.objects().contains(objectPath())) {
+            m_serviceName = registry.objects()[objectPath()];
+        }
+
+        if (m_serviceName.isEmpty()) {
+            QObject::connect(&registry, &facelift::ipc::ObjectRegistry::objectsChanged, this, [this] () {
+                if (DBusManager::instance().objectRegistry().objects().contains(objectPath())) {
+                    m_serviceName = DBusManager::instance().objectRegistry().objects()[objectPath()];
+                    this->checkInit();
+                }
+            });
+        }
+    }
+
+    if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
 
         qDebug() << "Initializing IPC proxy. objectPath:" << objectPath();
 

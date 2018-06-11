@@ -48,7 +48,7 @@ Window {
 
     Text {
         anchors.centerIn: parent
-        text: myInterface.counter
+        text: myInterface.ready ? myInterface.counter : "Not ready"
     }
 
     MouseArea {

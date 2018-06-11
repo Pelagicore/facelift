@@ -136,21 +136,12 @@ function(facelift_add_package TARGET_NAME QFACE_MODULE_NAME INTERFACE_FOLDER)
 endfunction()
 
 
-function(facelift_add_interface TARGET_NAME)
+function(facelift_generate_code )
 
     set(options)
-    set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
-    set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES)
+    set(oneValueArgs INTERFACE_DEFINITION_FOLDER OUTPUT_PATH)
+    set(multiValueArgs IMPORT_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
-    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
-
-    facelift_load_variables()
-    set(LIBRARY_NAME ${TARGET_NAME})
-    set(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER})
-
-    set(GENERATED_HEADERS_INSTALLATION_LOCATION ${FACELIFT_GENERATED_HEADERS_INSTALLATION_LOCATION}/${LIBRARY_NAME})
 
     get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
     set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/facelift/qface)
@@ -160,21 +151,9 @@ function(facelift_add_interface TARGET_NAME)
     set(ENV{PYTHONPATH} "${QFACE_BASE_LOCATION_NATIVE_PATH}")
 
     set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
-
-    if(WIN32)
-        set(OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # There is a weird issue on Windows related to the MOC if the generated files are outside of ${CMAKE_CURRENT_BINARY_DIR}
-    else()
-        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
-    endif()
-
-    set(TYPES_OUTPUT_PATH ${OUTPUT_PATH}/types)
-    set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
-    set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
-    set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
-
     file(MAKE_DIRECTORY ${WORK_PATH})
 
-    set(BASE_CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} --input "${INTERFACE_DEFINITION_FOLDER}" --output "${WORK_PATH}")
+    set(BASE_CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} --input "${ARGUMENT_INTERFACE_DEFINITION_FOLDER}" --output "${WORK_PATH}")
 
     foreach(IMPORT_FOLDER ${ARGUMENT_IMPORT_FOLDERS})
         set(BASE_CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND} --dependency ${IMPORT_FOLDER})
@@ -200,13 +179,44 @@ function(facelift_add_interface TARGET_NAME)
         message(FATAL_ERROR "Facelift code generation failed. Command \"${CODEGEN_COMMAND_WITH_SPACES}\". PYTHONPATH=$ENV{PYTHONPATH} Return code: ${CODEGEN_RETURN_CODE}\n")
     endif()
 
-    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_EXECUTABLE_LOCATION};${QFACE_FILES}")
-
-    facelift_synchronize_folders(${WORK_PATH} ${OUTPUT_PATH})
+    facelift_synchronize_folders(${WORK_PATH} ${ARGUMENT_OUTPUT_PATH})
 
     # Delete work folder
     file(REMOVE_RECURSE ${WORK_PATH})
+
+endfunction()
+
+
+function(facelift_add_interface TARGET_NAME)
+
+    set(options)
+    set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
+    set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES)
+    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
+    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
+
+    facelift_load_variables()
+    set(LIBRARY_NAME ${TARGET_NAME})
+
+    set(GENERATED_HEADERS_INSTALLATION_LOCATION ${FACELIFT_GENERATED_HEADERS_INSTALLATION_LOCATION}/${LIBRARY_NAME})
+
+    if(WIN32)
+        set(OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # There is a weird issue on Windows related to the MOC if the generated files are outside of ${CMAKE_CURRENT_BINARY_DIR}
+    else()
+        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
+    endif()
+
+    set(TYPES_OUTPUT_PATH ${OUTPUT_PATH}/types)
+    set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
+    set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
+    set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
+
+    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_EXECUTABLE_LOCATION};${QFACE_FILES}")
+
+    facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH})
 
     # Get the list of generated files
     facelift_add_library(${LIBRARY_NAME}_types
@@ -252,7 +262,6 @@ function(facelift_add_interface TARGET_NAME)
     set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "${MODULE_COMPILE_DEFINITIONS}")
 
     # Add a dummy target to make the QFace files visible in the IDE
-    file(GLOB_RECURSE QFACE_FILES ${INTERFACE_DEFINITION_FOLDER}/*.qface)
     add_custom_target(FaceliftPackage_${LIBRARY_NAME} SOURCES ${QFACE_FILES})
 
 endfunction()
