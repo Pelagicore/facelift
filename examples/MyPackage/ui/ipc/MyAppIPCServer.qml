@@ -36,7 +36,7 @@ import facelift.example.mypackage 1.0
 Window {
     width: 160
     height: 120
-    color: "linen"
+    color: "lightblue"
     title: "Server"
 
     MyInterfaceImplementation {
@@ -49,6 +49,11 @@ Window {
     Text {
         anchors.centerIn: parent
         text: myInterface.counter
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: myInterface.resetCounter();
     }
 
 }

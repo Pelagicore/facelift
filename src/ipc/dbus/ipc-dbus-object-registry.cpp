@@ -28,37 +28,8 @@
 **
 **********************************************************************/
 
-//! [indoc]
-#pragma once
+#include "ipc-dbus-object-registry.h"
 
-#include "facelift/example/mypackage/MyInterfacePropertyAdapter.h"
+namespace facelift {
 
-
-using namespace facelift::example::mypackage;
-
-/**
- * C++ Implementation of the MyInterface API
- */
-class MyInterfaceCppImplementation : public MyInterfacePropertyAdapter
-{
-
-public:
-    MyInterfaceCppImplementation(QObject *parent = nullptr) : MyInterfacePropertyAdapter(parent)
-    {
-        connect(&m_timer, &QTimer::timeout, this, [this] () {
-            m_counter++;   // The value change signal is automatically triggered for you here
-        });
-        m_timer.start(3000);
-    }
-
-    void resetCounter() override
-    {
-        m_counter = 0;   // This assignment triggers the corresponding "value changed" signal.
-        counterReset();
-    }
-
-private:
-    QTimer m_timer;
-
-};
-//! [indoc]
+}

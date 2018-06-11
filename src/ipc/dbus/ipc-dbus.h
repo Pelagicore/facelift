@@ -38,6 +38,7 @@
 #include <QDBusAbstractInterface>
 #include <QDBusInterface>
 #include <QDBusServiceWatcher>
+#include <QDBusContext>
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
@@ -48,6 +49,11 @@
 #include "ipc-dbus-serialization.h"
 
 namespace facelift {
+
+namespace ipc {
+class ObjectRegistry;
+}
+
 namespace dbus {
 
 using namespace facelift;
@@ -493,6 +499,8 @@ DBusIPCMessage &operator>>(DBusIPCMessage &msg, Property<Type> &property)
 }
 
 
+class DBusObjectRegistry;
+
 class DBusManager
 {
 
@@ -506,11 +514,11 @@ public:
         return m_dbusConnected;
     }
 
-    void registerServiceName(const QString &serviceName)
+    bool registerServiceName(const QString &serviceName)
     {
         qDebug() << "Registering serviceName " << serviceName;
         auto success = m_busConnection.registerService(serviceName);
-        Q_ASSERT(success);
+        return success;
     }
 
     QDBusConnection &connection()
@@ -518,8 +526,15 @@ public:
         return m_busConnection;
     }
 
+    QString serviceName() const {
+        return m_busConnection.baseService();
+    }
+
+    facelift::ipc::ObjectRegistry& objectRegistry();
+
 private:
     QDBusConnection m_busConnection;
+    DBusObjectRegistry* m_objectRegistry = nullptr;
     bool m_dbusConnected;
 };
 
@@ -529,7 +544,6 @@ class DBusIPCServiceAdapterBase : public IPCServiceAdapterBase
     Q_OBJECT
 
 public:
-    static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.ipc";
 
     static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
     static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
@@ -541,7 +555,7 @@ public:
     class DBusVirtualObject : public QDBusVirtualObject
     {
 
-public:
+    public:
         DBusVirtualObject(DBusIPCServiceAdapterBase &adapter) : QDBusVirtualObject(nullptr), m_adapter(adapter)
         {
         }
@@ -556,7 +570,7 @@ public:
             return m_adapter.handleMessage(message, connection);
         }
 
-private:
+    private:
         DBusIPCServiceAdapterBase &m_adapter;
     };
 
@@ -640,7 +654,7 @@ protected:
     DBusVirtualObject m_dbusVirtualObject;
 
     QString m_introspectionData;
-    QString m_serviceName = DEFAULT_SERVICE_NAME;
+    QString m_serviceName;
 
     InterfaceBase *m_service = nullptr;
 
@@ -773,8 +787,7 @@ public:
 
     void requestPropertyValues()
     {
-        DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(),
-                DBusIPCServiceAdapterBase::GET_PROPERTIES_MESSAGE_NAME);
+        DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCServiceAdapterBase::GET_PROPERTIES_MESSAGE_NAME);
         auto replyMessage = msg.call(connection());
         if (replyMessage.isReplyMessage()) {
             m_serviceObject->deserializePropertyValues(replyMessage);
@@ -831,10 +844,12 @@ public:
 private:
     bool m_alreadyInitialized = false;
 
-    QString m_serviceName = DBusIPCServiceAdapterBase::DEFAULT_SERVICE_NAME;
+    QString m_serviceName;
     QString m_interfaceName;
 
     IPCRequestHandler *m_serviceObject = nullptr;
+
+    facelift::ipc::ObjectRegistry* m_objectRegistry = nullptr;
 
     QDBusServiceWatcher m_busWatcher;
 };
