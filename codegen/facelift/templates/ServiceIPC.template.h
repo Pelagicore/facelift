@@ -36,6 +36,7 @@
 #pragma once
 
 #include "ipc.h"
+#include "FaceliftUtils.h"
 
 #include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
 #include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
@@ -316,14 +317,22 @@ public:
         if (signalName == "{{property.name}}DataChanged") {
             int first, last;
             msg >> first >> last;
+            for (int i = first; i <= last; ++i) {
+                if (m_{{property.name}}Cache.exists(i))
+                    m_{{property.name}}Cache.remove(i);
+            }
             emit m_{{property.name}}.dataChanged(first, last);
         } else if (signalName == "{{property.name}}BeginInsert") {
+            m_{{property.name}}Cache.clear();
+            m_{{property.name}}CachedRowCount = -1;
             int first, last;
             msg >> first >> last;
             emit m_{{property.name}}.beginInsertElements(first, last);
         } else if (signalName == "{{property.name}}EndInsert") {
             emit m_{{property.name}}.endInsertElements();
         } else if (signalName == "{{property.name}}BeginRemove") {
+            m_{{property.name}}Cache.clear();
+            m_{{property.name}}CachedRowCount = -1;
             int first, last;
             msg >> first >> last;
             emit m_{{property.name}}.beginRemoveElements(first, last);
@@ -386,17 +395,33 @@ public:
     {% elif property.type.is_model %}
     int get{{property.name}}RowCount() override
     {
-        int size;
-        sendMethodCallWithReturn("get{{property.name}}RowCount", size);
-        return size;
+        if (m_{{property.name}}CachedRowCount < 0) {
+            int rowCount;
+            sendMethodCallWithReturn("get{{property.name}}RowCount", rowCount);
+            m_{{property.name}}CachedRowCount = rowCount;
+        }
+        return m_{{property.name}}CachedRowCount;
     }
 
     QVariant get{{property.name}}Data(int row) override
     {
         {{property|nestedType|fullyQualifiedCppName}} retval;
-        sendMethodCallWithReturn("get{{property.name}}Data", retval, row);
+        if (m_{{property.name}}Cache.exists(row)) {
+            retval = m_{{property.name}}Cache.get(row);
+        } else {
+            sendMethodCallWithReturn("get{{property.name}}Data", retval, row);
+            m_{{property.name}}Cache.insert(row, retval);
+        }
         return QVariant::fromValue(retval);
     }
+    {% endif %}
+    {% endfor %}
+
+private:
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    int m_{{property.name}}CachedRowCount = -1;
+    facelift::LeastRecentlyUsedCache<int, {{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}Cache;
     {% endif %}
     {% endfor %}
 };
