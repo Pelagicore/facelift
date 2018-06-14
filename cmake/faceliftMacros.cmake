@@ -5,6 +5,15 @@ include(CMakePackageConfigHelpers)
 function(facelift_add_unity_files TARGET_NAME VAR_NAME)
     set(FILE_INDEX "0")
 
+    # Limit the number of files per unit to ~ 500Kb, to avoid excessive memory usage
+    if(NOT UNITY_BUILD_MAX_FILE_SIZE)
+        set(UNITY_BUILD_MAX_FILE_SIZE 256000)
+    endif()
+
+    if(NOT UNITY_BUILD_MAX_FILE_COUNT)
+        set(UNITY_BUILD_MAX_FILE_COUNT 5)
+    endif()
+
     unset(FILE_LIST)
     unset(NON_UNITY_FILE_LIST)
     foreach(FILE ${ARGN})
@@ -37,12 +46,7 @@ function(facelift_add_unity_files TARGET_NAME VAR_NAME)
 
         math(EXPR FILE_INDEX "${FILE_INDEX}+1")
 
-        # Limit the number of files per unit to ~ 500Kb, to avoid excessive memory usage
-        if(NOT UNITY_BUILD_MAX_FILE_SIZE)
-            set(UNITY_BUILD_MAX_FILE_SIZE 256000)
-        endif()
-
-        set(REMAINING_FILE_COUNT_PER_UNIT 10)
+        set(REMAINING_FILE_COUNT_PER_UNIT ${UNITY_BUILD_MAX_FILE_COUNT})
 
         unset(FILES)
         set(UNITY_FILE_SIZE 0)
@@ -73,6 +77,8 @@ function(facelift_add_unity_files TARGET_NAME VAR_NAME)
         # To avoid unnecessary recompiles, check if it is really necessary to rewrite the unity file
         if(EXISTS ${FILE_NAME})
             file(READ ${FILE_NAME} OLD_FILE_CONTENT)
+        else()
+            unset(OLD_FILE_CONTENT)
         endif()
 
         if(NOT "${OLD_FILE_CONTENT}" STREQUAL "${FILE_CONTENT}")
