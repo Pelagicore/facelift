@@ -48,6 +48,9 @@
 {% endfor %}
 
 {% for operation in interface.operations %}
+{% if operation.hasReturnValue %}
+{{operation.type|requiredInclude}}
+{% endif %}
 {% for parameter in operation.parameters %}
 {{parameter|requiredInclude}}
 {% endfor %}
