@@ -65,6 +65,37 @@
 
 {{module|namespaceOpen}}
 
+
+{% for property in interface.properties %}
+{% if property.type.is_model %}
+template<typename ProviderType>
+class {{property|capitalize}}ListModel : public facelift::ModelListModelBase
+{
+public:
+    void init(ProviderType *provider)
+    {
+        m_provider = provider;
+        ModelListModelBase::init(provider->{{property}}());
+    }
+
+    int rowCount(const QModelIndex &index) const override
+    {
+        Q_UNUSED(index);
+        return m_provider->get{{property}}RowCount();
+    }
+
+    QVariant data(const QModelIndex &index, int role) const override
+    {
+        Q_UNUSED(role);
+        return m_provider->get{{property}}Data(index.row());
+    }
+
+private:
+    ProviderType *m_provider = nullptr;
+};
+{% endif %}
+{% endfor %}
+
 /**
 * \class {{class}}QMLFrontend
 * \ingroup {{interface.module.name|toValidId}}
@@ -92,8 +123,8 @@ public:
         {% for property in interface.properties %}
         connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
 
-        {% if property.type.is_model -%}
-        m_{{property}}Model.init(m_provider->{{property}}());
+        {% if property.type.is_model %}
+        m_{{property}}ListModel.init(m_provider);
         {% endif %}
         {% endfor %}
         {% for event in interface.signals %}
@@ -135,14 +166,15 @@ public:
 
     {% for property in interface.properties %}
     {{- printif(property.comment)}}
-    {% if property.type.is_model -%}
+    {% if property.type.is_model %}
     Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+
     QObject* {{property}}()
     {
-        return &m_{{property}}Model;
+        return &m_{{property}}ListModel;
     }
 
-    facelift::ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
+    {{property|capitalize}}ListModel<{{class}}> m_{{property}}ListModel;
 
     {% elif property.type.is_list or property.type.is_map %}
     // Using {{property|qmlCompatibleType}}, since exposing {{property|returnType}} to QML does not seem to work

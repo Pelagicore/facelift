@@ -28,14 +28,19 @@
 **
 **********************************************************************/
 
-#include "AdvancedPlugin.h"
+import QtQuick 2.4
+import QtQuick.Window 2.2
+import advanced 1.0
 
-#include "advanced/Module.h"
-#include "models/AdvancedModelCpp.h"
 
-void TunerModelPlugin::registerTypes(const char *uri)
-{
-    advanced::Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<AdvancedModelCpp>(uri, "AdvancedModel");
-    //facelift::registerSingletonQmlComponent<AdvancedModelCpp>(uri);
+Window {
+    width: 160
+    height: 120
+    color: "linen"
+    title: "Server"
+    visible: true
+
+    AdvancedModel {
+        IPC.enabled: true
+    }
 }

@@ -32,6 +32,8 @@
 
 #include "assert.h"
 #include "stddef.h"
+#include <list>
+#include <unordered_map>
 #include <tuple>
 
 #include <QTextStream>
@@ -157,5 +159,62 @@ void generateToString(QTextStream &message, const FirstParameterTypes &firstPara
     message << firstParameter << ", ";
     generateToString(message, parameters ...);
 }
+
+
+template <typename Key, typename Value>
+class LeastRecentlyUsedCache
+{
+public:
+    LeastRecentlyUsedCache(unsigned int size = 50) : m_size(size) {}
+
+    bool exists(const Key &key) const
+    {
+        return (m_map.find(key) != m_map.end());
+    }
+
+    Value get(const Key &key)
+    {
+        auto it = m_map.find(key);
+        m_list.splice(m_list.begin(), m_list, it->second);  // move to front to "log" recent usage
+        return it->second->second;
+    }
+
+    void insert(const Key &key, const Value &val)
+    {
+        auto it = m_map.find(key);
+        if (it != m_map.end()) {
+            m_list.erase(it->second);
+            m_map.erase(it);
+        }
+
+        m_list.push_front(std::make_pair(key, val));
+        m_map.insert({key, m_list.begin()});
+
+        while (m_map.size() > m_size) {
+            auto last = m_list.end();
+            last--;
+            m_map.erase(last->first);
+            m_list.pop_back();
+        }
+    }
+
+    void remove(const Key &key)
+    {
+        auto it = m_map.find(key);
+        m_map.erase(key);
+        m_list.erase(it->second);
+    }
+
+    void clear()
+    {
+        m_map.clear();
+        m_list.clear();
+    }
+
+private:
+    unsigned int m_size;
+    std::list<std::pair<Key, Value>> m_list;  // last item is least recently used
+    std::unordered_map<Key, decltype(m_list.begin())> m_map;
+};
 
 }
