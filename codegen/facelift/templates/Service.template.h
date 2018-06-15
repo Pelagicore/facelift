@@ -108,8 +108,10 @@ public:
     }
 
     {% for property in interface.properties %}
-    {% if property.type.is_model -%}
+    {% if property.type.is_model %}
     virtual facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() = 0;
+    virtual int get{{property.name}}RowCount() = 0;
+    virtual {{property|nestedType|fullyQualifiedCppName}} get{{property.name}}Data(int row) = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 

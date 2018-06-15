@@ -67,6 +67,16 @@ public:
         return m_{{property.name}};
     }
 
+    int get{{property.name}}RowCount() override
+    {
+        return m_{{property.name}}.size();
+    }
+
+    {{property|nestedType|fullyQualifiedCppName}} get{{property.name}}Data(int row) override
+    {
+        return m_{{property.name}}.elementAt(row);
+    }
+
     facelift::ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
 
     {% elif property.type.is_list %}

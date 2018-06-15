@@ -232,8 +232,7 @@ public:
 
     void onDataChanged(int first, int last)
     {
-        QModelIndex topLeft = createIndex(first, last);
-        dataChanged(topLeft, topLeft);
+        dataChanged(createIndex(first, 0), createIndex(last, 0));
     }
 
     int rowCount(const QModelIndex &index) const override
@@ -251,34 +250,6 @@ public:
 
 protected:
     facelift::ModelBase *m_property = nullptr;
-
-};
-
-template<typename ElementType>
-class ModelListModel : public ModelListModelBase
-{
-public:
-    typedef ElementType (QObject::*ElementGetterFunction)(size_t);
-
-    ModelListModel()
-    {
-    }
-
-    QVariant data(const QModelIndex &index, int role) const override
-    {
-        Q_UNUSED(role);
-        auto element = m_property->elementAt(index.row());
-        return QVariant::fromValue(element);
-    }
-
-    void init(facelift::Model<ElementType> &property)
-    {
-        ModelListModelBase::init(property);
-        m_property = &property;
-    }
-
-private:
-    facelift::Model<ElementType> *m_property = nullptr;
 
 };
 
