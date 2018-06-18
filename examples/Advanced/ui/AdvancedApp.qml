@@ -34,7 +34,7 @@ import advanced 1.0
 
 Item {
     id: root
-    height: 540
+    height: 386
     width: 360
 
     //AdvancedModelIPCProxy {
@@ -111,7 +111,7 @@ Item {
     ListView {
         id: mediaList
         width: 280
-        height: 400
+        height: 286
         anchors.centerIn: parent
 
         model: advancedModel.theModel
