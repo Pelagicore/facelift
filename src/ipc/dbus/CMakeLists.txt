@@ -2,7 +2,13 @@
 find_package(Qt5DBus QUIET)
 
 if(Qt5DBus_FOUND)
-    set(GENERATED_FILE_PATH ${CMAKE_CURRENT_BINARY_DIR}/Generated)
+
+    if(WIN32)
+        set(GENERATED_FILE_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/FaceliftIPCLibDBus)  # There is a weird issue on Windows related to the MOC if the generated files are outside of ${CMAKE_CURRENT_BINARY_DIR}
+    else()
+        set(GENERATED_FILE_PATH ${CMAKE_BINARY_DIR}/facelift_generated/FaceliftIPCLibDBus)  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
+    endif()
+
     facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/interfaces OUTPUT_PATH ${GENERATED_FILE_PATH})
     include_directories(${GENERATED_FILE_PATH}/ipc ${GENERATED_FILE_PATH}/types)
     facelift_add_library(FaceliftIPCLibDBus
