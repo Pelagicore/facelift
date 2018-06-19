@@ -165,9 +165,12 @@ public:
         {% for property in interface.properties %}
         {% if property.type.is_model %}
         if (member == "{{property.name}}Data") {
-            int row;
-            requestMessage >> row;
-            replyMessage << theService->{{property.name}}().elementAt(row);
+            int first, last;
+            requestMessage >> first >> last;
+            QList<{{property|nestedType|fullyQualifiedCppName}}> list;
+            for (int i = first; i <= last; ++i)
+                list.append(theService->{{property.name}}().elementAt(i));
+            replyMessage << list;
         } else
         {% endif %}
         {% if (not property.readonly) %}
@@ -423,8 +426,23 @@ public:
         if (m_{{property.name}}Cache.exists(row)) {
             retval = m_{{property.name}}Cache.get(row);
         } else {
-            sendMethodCallWithReturn("{{property.name}}Data", retval, row);
-            m_{{property.name}}Cache.insert(row, retval);
+            static const int prefetch = 12;    // fetch 25 items around requested one
+            QList<{{property|nestedType|fullyQualifiedCppName}}> list;
+            int first = row > prefetch ? row - prefetch : 0;
+            int last = row < m_{{property.name}}.size() - prefetch ? row + prefetch : m_{{property.name}}.size() - 1;
+
+            while (m_{{property.name}}Cache.exists(first) && first < last)
+                ++first;
+            while (m_{{property.name}}Cache.exists(last) && last > first)
+                --last;
+
+            sendMethodCallWithReturn("{{property.name}}Data", list, first, last);
+            Q_ASSERT(list.size() == (last - first + 1));
+
+            for (int i = first; i <= last; ++i)
+                m_{{property.name}}Cache.insert(i, list.at(i - first));
+
+            retval = list.at(row - first);
         }
         return retval;
     }
