@@ -312,6 +312,7 @@ public:
     }
 
     using Property<Type *>::operator=;
+    using Property<Type *>::bind;
 
 };
 
