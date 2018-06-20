@@ -39,12 +39,11 @@
 
 {{module|namespaceOpen}}
 
-const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = {
+const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
     {%- for field in struct.fields -%}
     {{ comma() }}
     "{{field.name}}"
     {%- endfor %}
-
-};
+} };
 
 {{module|namespaceClose}}

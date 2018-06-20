@@ -70,11 +70,11 @@ public:
         {% for operation in interface.operations %}
 
         {
-            std::array<const char*, {{ operation.parameters.__len__() }}> argumentNames = {
+            std::array<const char*, {{ operation.parameters.__len__() }}> argumentNames = { {
                 {%- for parameter in operation.parameters -%}
                 "{{parameter}}",
                 {%- endfor -%}
-            };
+            } };
             addMethodSignature<
             {%- set comma = joiner(", ") -%}
             {%- for parameter in operation.parameters -%}
@@ -87,11 +87,11 @@ public:
         // signals
         {% for signal in interface.signals %}
         {
-            std::array<const char*, {{ signal.parameters.__len__() }}> argumentNames = {
+            std::array<const char*, {{ signal.parameters.__len__() }}> argumentNames = { {
                 {%- for parameter in signal.parameters -%}
                     "{{parameter}}",
                 {%- endfor -%}
-            };
+            }};
             addSignalSignature<
             {%- set comma = joiner(", ") -%}
             {%- for parameter in signal.parameters -%}

@@ -65,11 +65,11 @@ public:
 
 
         m_dummy.logMethodCall("{{operation}}",
-                {
+                { {
                     {% for parameter in operation.parameters %}
                     "{{parameter}}",
                     {% endfor %}
-                }
+                } }
                 {% for parameter in operation.parameters %}
                  , {{parameter.name}}
                 {% endfor %}
@@ -118,11 +118,11 @@ public:
                         {{ comma() }}
                         {{parameter|returnType}}
                         {% endfor %}
-                >("{{event.name}}", {
+                >("{{event.name}}", { {
                         {% for parameter in event.parameters %}
                         "{{parameter}}",
                         {% endfor %}
-                }, &adapter, &{{class}}::{{event.name}});
+                } }, &adapter, &{{class}}::{{event.name}});
 
             {% endfor %}
 
