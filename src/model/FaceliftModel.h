@@ -388,6 +388,17 @@ struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::typ
         field = qmlValue;
     }
 
+    template<typename ReceiverType, typename Function>
+    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
+            QList<QMetaObject::Connection> &connections)
+    {
+        // nothing to connect
+        Q_UNUSED(variant);
+        Q_UNUSED(receiver);
+        Q_UNUSED(function);
+        Q_UNUSED(connections);
+    }
+
 };
 
 

@@ -471,6 +471,12 @@ template<typename EnumType>
 struct TypeToWidget<EnumType, typename std::enable_if<std::is_enum<EnumType>::value>::type>
 {
     typedef EnumerationPropertyWidget<EnumType> PanelType;
+
+    static EnumType clone(const EnumType &v)
+    {
+        return v;
+    }
+
 };
 
 

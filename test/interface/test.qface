@@ -47,6 +47,7 @@ interface TestInterface {
     readonly list<TestInterface2> interfaceListProperty;
     readonly list<int> intListProperty;
     readonly list<bool> boolListProperty;
+    readonly list<TestEnum> enumListProperty;
 
     list<string> stringListProperty;
 

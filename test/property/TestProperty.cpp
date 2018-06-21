@@ -38,8 +38,8 @@
 
 int main(int argc, char *argv[])
 {
-    Q_UNUSED(argc)
-    Q_UNUSED(argv)
+    Q_UNUSED(argc);
+    Q_UNUSED(argv);
 
     TestPropertyClass c;
     facelift::Property<int> intProperty = 7;
