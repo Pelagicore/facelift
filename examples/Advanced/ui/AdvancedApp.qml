@@ -31,20 +31,90 @@
 import QtQuick 2.0
 import advanced 1.0
 
-/**
- * Application UI
- */
+
 Item {
-
     id: root
+    height: 386
+    width: 360
 
-    height: mainPanel.height
-    width: mainPanel.width
-
-    AdvancedAppMainPanel {
-        id: mainPanel
-        anchors.fill: parent
-        advancedModel: AdvancedModel
+    //AdvancedModelIPCProxy {
+    AdvancedModel {
+        id: advancedModel
     }
 
+    Component {
+        id: delegate
+
+        Rectangle {
+            height: 30
+            width: parent.width
+            color: (index % 2) == 0 ? "gray" : "lightgray"
+
+            Row {
+                anchors.fill: parent
+                anchors.margins: 4
+                spacing: 4
+
+                Text {
+                    width: 80
+                    text: modelData.name
+                }
+
+                Rectangle {
+                    width: 60
+                    height: parent.height
+                    color: "lightsteelblue"
+
+                    Text {
+                        text: "Rename"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: advancedModel.renameModelItem(modelData, "x" + modelData.name);
+                    }
+                }
+
+                Rectangle {
+                    width: 60
+                    height: parent.height
+                    color: "green"
+
+                    Text {
+                        text: "Insert"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: advancedModel.insertNewModelItemAfter(modelData);
+                    }
+                }
+
+                Rectangle {
+                    width: 60
+                    height: parent.height
+                    color: "red"
+
+                    Text {
+                        text: "Remove"
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: advancedModel.deleteModelItem(modelData);
+                    }
+                }
+            }
+        }
+    }
+
+    ListView {
+        id: mediaList
+        width: 280
+        height: 286
+        anchors.centerIn: parent
+
+        model: advancedModel.theModel
+        delegate: delegate
+    }
 }

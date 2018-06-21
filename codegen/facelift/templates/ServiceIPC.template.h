@@ -36,6 +36,8 @@
 #pragma once
 
 #include "ipc.h"
+#include "FaceliftUtils.h"
+// TEST
 
 #include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
 #include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
@@ -60,6 +62,33 @@ public:
         : facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>(parent)
     {
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
+    }
+
+    void setService(facelift::InterfaceBase *srvc) override
+    {
+        facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>::setService(srvc);
+
+        {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        facelift::ModelBase *{{property.name}} = &(service()->{{property.name}}());
+        connect({{property.name}}, static_cast<void (facelift::ModelBase::*)(int, int)>
+                (&facelift::ModelBase::dataChanged), this, [this] (int first, int last) {
+            sendSignal("{{property.name}}DataChanged", first, last);
+        });
+        connect({{property.name}}, &facelift::ModelBase::beginRemoveElements, this, [this] (int first, int last) {
+            sendSignal("{{property.name}}BeginRemove", first, last);
+        });
+        connect({{property.name}}, &facelift::ModelBase::endRemoveElements, this, [this] () {
+            sendSignal("{{property.name}}EndRemove");
+        });
+        connect({{property.name}}, &facelift::ModelBase::beginInsertElements, this, [this] (int first, int last) {
+            sendSignal("{{property.name}}BeginInsert", first, last);
+        });
+        connect({{property.name}}, &facelift::ModelBase::endInsertElements, this, [this] () {
+            sendSignal("{{property.name}}EndInsert");
+        });
+        {% endif %}
+        {% endfor %}
     }
 
     void appendDBUSIntrospectionData(QTextStream &s) const override
@@ -135,6 +164,13 @@ public:
         } else
         {% endfor %}
         {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        if (member == "{{property.name}}Data") {
+            int row;
+            requestMessage >> row;
+            replyMessage << theService->{{property.name}}().elementAt(row);
+        } else
+        {% endif %}
         {% if (not property.readonly) %}
         if (member == "set{{property.name}}") {
             {% if (not property.type.is_interface) %}
@@ -182,12 +218,11 @@ public:
         {#% endif %#}
 
         {% for property in interface.properties %}
-        {% if property.type.is_model -%}
-        // TODO : model
-        qWarning("Property of model type not supported over IPC");
-        {% elif property.type.is_interface %}
+        {% if property.type.is_interface %}
         // TODO
         qWarning("Property of interface type not supported over IPC");
+        {% elif property.type.is_model %}
+        msg << theService->{{property.name}}().size();
         {% else %}
         msg << theService->{{property.name}}();
         {% endif %}
@@ -226,6 +261,12 @@ public:
         , IPCAdapterType>(parent)
     {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
+
+        {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        m_{{property.name}}.setGetter(std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
+        {% endif %}
+        {% endfor %}
     }
 
     void deserializeSpecificPropertyValues(facelift::IPCMessage &msg) override
@@ -233,11 +274,18 @@ public:
         Q_UNUSED(msg);
         {% for property in interface.properties %}
 
-        {% if property.type.is_model %}
-        qFatal("Model not supported");
-        {% elif property.type.is_interface %}
+        {% if property.type.is_interface %}
         // qFatal("Property of interface type not supported");
         qWarning() << "TODO: handle interface properties";
+        {% elif property.type.is_model %}
+        int {{property.name}}Size;
+        msg >> {{property.name}}Size;
+        if ({{property.name}}Size && !m_{{property.name}}.size()) {
+            // we have an initial size, notify that size elements have been inserted
+            emit m_{{property.name}}.beginInsertElements(0, {{property.name}}Size - 1);
+            emit m_{{property.name}}.endInsertElements();
+        }
+        m_{{property.name}}.setSize({{property.name}}Size);
         {% else %}
         PropertyType_{{property.name}} {{property.name}};
         msg >> {{property.name}};
@@ -279,6 +327,34 @@ public:
             {%- endfor -%}  );
         }
         {% endfor %}
+
+        {% for property in interface.properties %}
+        {% if property.type.is_model %}
+        if (signalName == "{{property.name}}DataChanged") {
+            int first, last;
+            msg >> first >> last;
+            for (int i = first; i <= last; ++i) {
+                if (m_{{property.name}}Cache.exists(i))
+                    m_{{property.name}}Cache.remove(i);
+            }
+            emit m_{{property.name}}.dataChanged(first, last);
+        } else if (signalName == "{{property.name}}BeginInsert") {
+            m_{{property.name}}Cache.clear();
+            int first, last;
+            msg >> first >> last;
+            emit m_{{property.name}}.beginInsertElements(first, last);
+        } else if (signalName == "{{property.name}}EndInsert") {
+            emit m_{{property.name}}.endInsertElements();
+        } else if (signalName == "{{property.name}}BeginRemove") {
+            m_{{property.name}}Cache.clear();
+            int first, last;
+            msg >> first >> last;
+            emit m_{{property.name}}.beginRemoveElements(first, last);
+        } else if (signalName == "{{property.name}}EndRemove") {
+            emit m_{{property.name}}.endRemoveElements();
+        }
+        {% endif %}
+        {% endfor %}
     }
     {% for operation in interface.operations %}
 
@@ -315,9 +391,9 @@ public:
         }
     }
     {% endfor %}
-
     {%- for property in interface.properties %}
-        {% if (not property.readonly) %}
+
+    {% if (not property.readonly) %}
     void set{{property}}(const {{property|returnType}}& newValue) override
     {
         if (localInterface() == nullptr) {
@@ -330,6 +406,26 @@ public:
             localInterface()->set{{property}}(newValue);
         }
     }
+    {% endif %}
+    {% if property.type.is_model %}
+    {{property|nestedType|fullyQualifiedCppName}} {{property.name}}Data(int row)
+    {
+        {{property|nestedType|fullyQualifiedCppName}} retval;
+        if (m_{{property.name}}Cache.exists(row)) {
+            retval = m_{{property.name}}Cache.get(row);
+        } else {
+            sendMethodCallWithReturn("{{property.name}}Data", retval, row);
+            m_{{property.name}}Cache.insert(row, retval);
+        }
+        return retval;
+    }
+    {% endif %}
+    {% endfor %}
+
+private:
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    facelift::LeastRecentlyUsedCache<int, {{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}Cache;
     {% endif %}
     {% endfor %}
 };
