@@ -74,8 +74,8 @@ public:
         if (index != -1) {
             emit m_theModel.beginRemoveElements(index, index);
             m_items.remove(index);
-            emit m_theModel.endRemoveElements();
             m_theModel.setSize(m_items.size());
+            emit m_theModel.endRemoveElements();
             qWarning() << "Deleted" << item;
         }
     }
@@ -87,8 +87,8 @@ public:
         if (index != -1) {
             emit m_theModel.beginInsertElements(index, index);
             m_items.insert(index, m_nextAvailableID++);
-            emit m_theModel.endInsertElements();
             m_theModel.setSize(m_items.size());
+            emit m_theModel.endInsertElements();
             qWarning() << "Duplicated" << item;
         }
     }
