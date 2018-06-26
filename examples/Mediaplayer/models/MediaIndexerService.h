@@ -79,7 +79,7 @@ private:
         s.url = url;
         s.type = type;
         m_files.push_back(s);
-        filesChanged();
+        emit filesChanged();
     }
 
     QVector<MediaFile> m_files;

@@ -725,7 +725,7 @@ protected:
     {
         if (m_ready != ready) {
             m_ready = ready;
-            readyChanged();
+            emit readyChanged();
         }
     }
 

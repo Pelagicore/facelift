@@ -38,7 +38,7 @@ void InterfaceManager::registerAdapter(const QString &objectPath, IPCServiceAdap
     if (!m_registry.contains(objectPath)) {
         m_registry.insert(objectPath, adapter);
         QObject::connect(adapter, &IPCServiceAdapterBase::destroyed, this, &InterfaceManager::onAdapterDestroyed);
-        adapterAvailable(adapter);
+        emit adapterAvailable(adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(objectPath),
                 qPrintable(facelift::toString(*m_registry[objectPath]->service())));
@@ -59,7 +59,7 @@ IPCServiceAdapterBase *InterfaceManager::getAdapter(const QString &objectPath)
 void InterfaceManager::onAdapterDestroyed(IPCServiceAdapterBase *adapter)
 {
     m_registry.remove(adapter->objectPath());
-    adapterDestroyed(adapter);
+    emit adapterDestroyed(adapter);
 }
 
 InterfaceManager &InterfaceManager::instance()
@@ -73,7 +73,7 @@ void IPCProxyBinderBase::onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
     if (adapter->objectPath() == this->objectPath()) {
         qDebug() << "Local server found for " << objectPath();
         m_inProcess = true;
-        localAdapterAvailable(adapter);
+        emit localAdapterAvailable(adapter);
     }
 }
 

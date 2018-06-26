@@ -45,8 +45,8 @@ void ServiceRegistry::registerObject(InterfaceBase *i)
 
     // Notify later since our object is not yet fully constructed at this point in time
     QTimer::singleShot(0, [this, i] () {
-            objectRegistered(i);
-        });
+        emit objectRegistered(i);
+    });
 }
 
 ServiceRegistry &ServiceRegistry::instance()
