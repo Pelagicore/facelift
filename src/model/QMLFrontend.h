@@ -50,10 +50,10 @@ class IPCAttachedPropertyFactoryBase;
 class QMLFrontendBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
 
 public:
-    QMLFrontendBase(QObject *parent = nullptr) :
-        QObject(parent)
+    QMLFrontendBase(QObject *parent = nullptr) : QObject(parent)
     {
     }
 
@@ -84,7 +84,7 @@ public:
 
     void componentComplete() override
     {
-        m_provider->componentCompleted();
+        emit m_provider->componentCompleted();
     }
 
 protected:
@@ -152,7 +152,8 @@ public:
 
     void componentComplete() override
     {
-        m_provider.componentCompleted();  // notify anyone interested that we are ready (such as an IPC attached property)
+        // notify anyone interested that we are ready (such as an IPC attached property)
+        emit m_provider.componentCompleted();
     }
 
 private:

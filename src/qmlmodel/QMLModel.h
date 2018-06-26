@@ -43,6 +43,7 @@ namespace facelift {
 class ModelQMLImplementationBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
 
 public:
     // We set a default property so that we can have children QML elements in our QML implementations, such as Timer
