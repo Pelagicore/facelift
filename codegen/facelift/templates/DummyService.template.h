@@ -37,10 +37,10 @@
 
 #pragma once
 
-#include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
+#include "{{interface.fullyQualifiedPath}}PropertyAdapter.h"
 #include "DummyModel.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 /**
  * Dummy implementation of the {{class}} API
@@ -55,11 +55,11 @@ public:
     }
 
     {% for operation in interface.operations %}
-    {{operation|returnType}} {{operation}}(
+    {{operation.cppType}} {{operation}}(
             {% set comma = joiner(",") %}
             {% for parameter in operation.parameters %}
             {{ comma() }}
-            {{parameter|returnType}} {{parameter.name}}
+            {{parameter.cppType}} {{parameter.name}}
             {% endfor %}
 ) override {
 
@@ -76,7 +76,7 @@ public:
         );
 
         {% if (operation.hasReturnValue) %}
-        {{operation|returnType}} returnValue = {};
+        {{operation.cppType}} returnValue = {};
         return returnValue;
         {% endif %}
 
@@ -85,7 +85,7 @@ public:
 
     {% for property in interface.properties %}
         {% if (not property.readonly) %}
-    void set{{property}}(const {{property|returnType}}& newValue) override {
+    void set{{property}}(const {{property.cppType}}& newValue) override {
         m_dummy.logSetterCall("{{property}}", newValue);
         {% if (not property.type.is_interface) %}
         m_{{property}} = newValue;
@@ -116,7 +116,7 @@ public:
                         {% set comma = joiner(",") %}
                         {% for parameter in event.parameters %}
                         {{ comma() }}
-                        {{parameter|returnType}}
+                        {{parameter.cppType}}
                         {% endfor %}
                 >("{{event.name}}", { {
                         {% for parameter in event.parameters %}
@@ -161,5 +161,5 @@ public:
 
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 

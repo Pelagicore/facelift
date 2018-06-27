@@ -38,10 +38,10 @@
 #include "ServiceMonitor.h"
 
 {% for interface in module.interfaces %}
-#include "{{interface|fullyQualifiedPath}}Monitor.h"
+#include "{{interface.fullyQualifiedPath}}Monitor.h"
 {% endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class ModuleMonitor : public facelift::ModuleMonitorBase {
 
@@ -50,5 +50,5 @@ public:
 
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 

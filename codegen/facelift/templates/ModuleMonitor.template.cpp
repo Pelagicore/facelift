@@ -30,7 +30,7 @@
 
 #include "ModuleMonitor.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 void ModuleMonitor::registerTypes()
 {
@@ -47,4 +47,4 @@ void ModuleMonitor::registerTypes()
     }
 }
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

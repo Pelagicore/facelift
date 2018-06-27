@@ -35,10 +35,10 @@
 
 #pragma once
 
-#include "{{interface|fullyQualifiedPath}}.h"
+#include "{{interface.fullyQualifiedPath}}.h"
 #include "ServiceMonitor.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 /**
  * Dummy implementation of the {{interface}} API
@@ -68,5 +68,5 @@ public:
 
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 

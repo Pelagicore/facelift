@@ -30,7 +30,7 @@
 
 {% set class = '{0}'.format(interface) %}
 {% set comma = joiner(",") %}
-{% set hasReadyFlags = interface|hasPropertyWithReadyFlag -%}
+{% set hasReadyFlags = interface.hasPropertyWithReadyFlag -%}
 
 /****************************************************************************
 ** This is an auto-generated file.
@@ -44,25 +44,25 @@
 
 // Dependencies
 {% for property in interface.properties %}
-{{property|requiredInclude}}
+{{property.type.requiredInclude}}
 {% endfor %}
 
 {% for operation in interface.operations %}
 {% if operation.hasReturnValue %}
-{{operation.type|requiredInclude}}
+{{operation.type.requiredInclude}}
 {% endif %}
 {% for parameter in operation.parameters %}
-{{parameter|requiredInclude}}
+{{parameter.type.requiredInclude}}
 {% endfor %}
 {% endfor %}
 
 {% for event in interface.signals %}
 {% for parameter in event.parameters %}
-{{parameter|requiredInclude}}
+{{parameter.type.requiredInclude}}
 {% endfor %}
 {% endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class {{class}}QMLFrontend;
 
@@ -93,7 +93,7 @@ class {{class}} : public facelift::InterfaceBase {
 
 public:
 
-    static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface|fullyQualifiedName|lower}}";
+    static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface.qualified_name|lower}}";
     static constexpr const char* INTERFACE_NAME = "{{interface}}";
 
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
@@ -112,43 +112,43 @@ public:
 
     {% for property in interface.properties %}
     {% if property.type.is_model -%}
-    virtual facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() = 0;
+    virtual facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    facelift::ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}> {{property}}Property()
+    facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}> {{property}}Property()
     {
-        return facelift::ModelPropertyInterface<{{class}}, {{property|nestedType|fullyQualifiedCppName}}>();
+        return facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}>();
     }
 
     {% elif property.type.is_interface -%}
 
     // Service property
-    virtual {{property|returnType}} {{property}}() = 0;
+    virtual {{property.interfaceCppType}} {{property}}() = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    facelift::ServicePropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property()
+    facelift::ServicePropertyInterface<{{class}}, {{property.interfaceCppType}}> {{property}}Property()
     {
-        return facelift::ServicePropertyInterface<{{class}}, {{property|returnType}}>();
+        return facelift::ServicePropertyInterface<{{class}}, {{property.interfaceCppType}}>();
     }
 
     {% if (not property.readonly) %}
-    virtual void set{{property}}(const {{property|returnType}}& newValue) = 0;
+    virtual void set{{property}}(const {{property.cppType}}& newValue) = 0;
     {% endif %}
 
     {% else %}
-    virtual const {{property|returnType}}& {{property}}() const = 0;
+    virtual const {{property.interfaceCppType}}& {{property}}() const = 0;
 
-    facelift::PropertyInterface<{{class}}, {{property|returnType}}> {{property}}Property()
+    facelift::PropertyInterface<{{class}}, {{property.interfaceCppType}}> {{property}}Property()
     {
-        return facelift::PropertyInterface<{{class}}, {{property|returnType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed);
+        return facelift::PropertyInterface<{{class}}, {{property.interfaceCppType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed);
     }
 
-    typedef {{property|returnType}} PropertyType_{{property}};
+    typedef {{property.interfaceCppType}} PropertyType_{{property}};
 
     {% if (not property.readonly) %}
-    virtual void set{{property}}(const {{property|returnType}}& newValue) = 0;
+    virtual void set{{property}}(const {{property.cppType}}& newValue) = 0;
     {% endif %}
 
     {% endif %}
@@ -158,13 +158,13 @@ public:
     {% for operation in interface.operations %}
 
     {{operation.comment}}
-    virtual {{operation|returnType}} {{operation}}({% set comma = joiner(",") %}
-        {% for parameter in operation.parameters %}{{ comma() }}{{parameter|returnType}} {{parameter.name}}{% endfor %}) = 0;
+    virtual {{operation.cppType}} {{operation}}({% set comma = joiner(",") %}
+        {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %}) = 0;
     {% endfor %}
     {% for event in interface.signals %}
     {{event.comment}}
     Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
-        {% for parameter in event.parameters -%}{{ comma() }}{{parameter|returnType}} {{parameter.name}}{% endfor %});
+        {% for parameter in event.parameters -%}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %});
     {% endfor %}
 
 
@@ -185,5 +185,5 @@ protected:
 };
 
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 

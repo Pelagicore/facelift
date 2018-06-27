@@ -38,34 +38,34 @@
 #include "ipc.h"
 #include "FaceliftUtils.h"
 
-#include "{{interface|fullyQualifiedPath}}PropertyAdapter.h"
-#include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}PropertyAdapter.h"
+#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 
 class {{interface}}IPCQMLFrontendType;
 
 
-class {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>
+class {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>
 {
     Q_OBJECT
 
     // Q_PROPERTY(QObject* service READ service WRITE setService)
 public:
-    typedef {{interface|fullyQualifiedCppName}} ServiceType;
+    typedef {{interface.fullyQualifiedCppType}} ServiceType;
 
-    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface|fullyQualifiedName|lower|replace(".","/")}}";
+    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface.qualified_name|lower|replace(".","/")}}";
 
     {{interface}}IPCAdapter(QObject* parent = nullptr)
-        : facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>(parent)
+        : facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>(parent)
     {
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
     void setService(facelift::InterfaceBase *srvc) override
     {
-        facelift::IPCServiceAdapter<{{interface|fullyQualifiedCppName}}>::setService(srvc);
+        facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>::setService(srvc);
 
         {% for property in interface.properties %}
         {% if property.type.is_model %}
@@ -93,7 +93,7 @@ public:
     void appendDBUSIntrospectionData(QTextStream &s) const override
     {
         {% for property in interface.properties %}
-        addPropertySignature<{{interface|fullyQualifiedCppName}}::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
+        addPropertySignature<{{interface.fullyQualifiedCppType}}::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
         {% endfor %}
         {% for operation in interface.operations %}
 
@@ -106,7 +106,7 @@ public:
             addMethodSignature<
             {%- set comma = joiner(", ") -%}
             {%- for parameter in operation.parameters -%}
-                {{ comma() }}{{parameter|returnType}}
+                {{ comma() }}{{parameter.cppType}}
             {%- endfor -%}
             >(s, "{{operation.name}}", argumentNames);
         }
@@ -123,7 +123,7 @@ public:
             addSignalSignature<
             {%- set comma = joiner(", ") -%}
             {%- for parameter in signal.parameters -%}
-            {{ comma() }}{{parameter|returnType}}
+            {{ comma() }}{{parameter.cppType}}
             {%- endfor -%}
             >(s, "{{signal.name}}", argumentNames);
         }
@@ -147,7 +147,7 @@ public:
         {% for operation in interface.operations %}
         if (member == "{{operation.name}}") {
             {% for parameter in operation.parameters %}
-            {{parameter|returnType}} param_{{parameter.name}};
+            {{parameter.cppType}} param_{{parameter.name}};
             requestMessage >> param_{{parameter.name}};
 
             {% endfor %}
@@ -176,7 +176,7 @@ public:
         {% if (not property.readonly) %}
         if (member == "set{{property.name}}") {
             {% if (not property.type.is_interface) %}
-            {{property|returnType}} value;
+            {{property.cppType}} value;
             requestMessage >> value;
             theService->set{{property.name}}(value);
             {% else %}
@@ -235,7 +235,7 @@ public:
     void {{event}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in event.parameters -%}
-        {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
         sendSignal("{{event}}"
@@ -291,7 +291,7 @@ public:
         {% endfor %}
     }
 
-    {% if interface|hasModelProperty %}
+    {% if interface.hasModelProperty %}
     void setServiceRegistered(bool isRegistered) override
     {
         if (isRegistered) {
@@ -329,7 +329,7 @@ public:
 
         if (signalName == "{{event}}") {
             {% for parameter in event.parameters %}
-            {{parameter|returnType}} param_{{parameter.name}};
+            {{parameter.cppType}} param_{{parameter.name}};
             msg >> param_{{parameter.name}};
             {% endfor %}
             {{event}}(
@@ -370,15 +370,15 @@ public:
     }
     {% for operation in interface.operations %}
 
-    {{operation|returnType}} {{operation.name}}(
+    {{operation.cppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{ parameter|returnType }} {{ parameter.name }}
+        {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
         {%- endfor -%}  ) override
     {
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}
-            {{operation|returnType}} returnValue;
+            {{operation.cppType}} returnValue;
             sendMethodCallWithReturn("{{operation.name}}", returnValue
                 {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
@@ -406,7 +406,7 @@ public:
     {%- for property in interface.properties %}
 
     {% if (not property.readonly) %}
-    void set{{property}}(const {{property|returnType}}& newValue) override
+    void set{{property}}(const {{property.cppType}}& newValue) override
     {
         if (localInterface() == nullptr) {
             {% if (not property.type.is_interface) %}
@@ -420,9 +420,9 @@ public:
     }
     {% endif %}
     {% if property.type.is_model %}
-    {{property|nestedType|fullyQualifiedCppName}} {{property.name}}Data(int row)
+    {{property.nestedType.cppType}} {{property.name}}Data(int row)
     {
-        {{property|nestedType|fullyQualifiedCppName}} retval;
+        {{property.nestedType.cppType}} retval;
         if (m_{{property.name}}Cache.exists(row)) {
             retval = m_{{property.name}}Cache.get(row);
         } else {
@@ -452,7 +452,7 @@ public:
 private:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    facelift::MostRecentlyUsedCache<int, {{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}}Cache;
+    facelift::MostRecentlyUsedCache<int, {{property.nestedType.cppType}}> m_{{property.name}}Cache;
     {% endif %}
     {% endfor %}
 };
@@ -476,4 +476,4 @@ public:
     }
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

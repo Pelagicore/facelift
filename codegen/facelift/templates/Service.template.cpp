@@ -35,7 +35,7 @@
 
 #include "{{interface}}.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 constexpr const char* {{interface}}::FULLY_QUALIFIED_INTERFACE_NAME;
 
@@ -45,4 +45,4 @@ constexpr const char* {{interface}}::FULLY_QUALIFIED_INTERFACE_NAME;
     init({{interface}}::FULLY_QUALIFIED_INTERFACE_NAME);
 }
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

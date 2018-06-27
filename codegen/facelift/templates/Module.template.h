@@ -38,19 +38,19 @@
 #include "FaceliftModel.h"
 
 {% for struct in module.structs %}
-#include "{{struct|fullyQualifiedPath}}.h"
+#include "{{struct.fullyQualifiedPath}}.h"
 {% endfor %}
 
 {% for enum in module.enums %}
-#include "{{enum|fullyQualifiedPath}}.h"
+#include "{{enum.fullyQualifiedPath}}.h"
 {% endfor %}
 
 {% for interface in module.interfaces %}
-#include "{{interface|fullyQualifiedPath}}.h"
-#include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}.h"
+#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 /**
 * \brief {{module.name}} module singleton object
@@ -82,4 +82,4 @@ private:
 
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
