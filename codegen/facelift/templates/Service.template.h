@@ -128,9 +128,9 @@ public:
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    facelift::ServicePropertyInterface<{{class}}, {{property.interfaceCppType}}> {{property}}Property()
+    facelift::ServicePropertyInterface<{{class}}, {{property.cppType}}> {{property}}Property()
     {
-        return facelift::ServicePropertyInterface<{{class}}, {{property.interfaceCppType}}>();
+        return facelift::ServicePropertyInterface<{{class}}, {{property.cppType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed);
     }
 
     {% if (not property.readonly) %}

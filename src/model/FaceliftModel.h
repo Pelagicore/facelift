@@ -828,14 +828,28 @@ public:
 };
 
 
-template<typename Class, typename PropertyType>
+template<typename Class, typename ServiceType>
 class ServicePropertyInterface
 {
-    // TODO : implement
 public:
-    ServicePropertyInterface()
+    typedef void (Class::*ChangeSignal)();
+    typedef ServiceType* (Class::*GetterMethod)();
+
+    ServicePropertyInterface(Class *o, GetterMethod g, ChangeSignal s)
     {
+        object = o;
+        signal = s;
+        getter = g;
     }
+
+    ServiceType* value() const
+    {
+        return (object->*getter)();
+    }
+
+    Class *object;
+    ChangeSignal signal;
+    GetterMethod getter;
 
 };
 

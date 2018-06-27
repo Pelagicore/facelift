@@ -136,6 +136,13 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
     return false;
 }
 
+DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
+{
+    destroyed(this);
+    if (m_alreadyInitialized)
+        DBusManager::instance().objectRegistry().unregisterObject(objectPath(), DBusManager::instance().serviceName());
+}
+
 void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
 {
     m_service = service;
@@ -185,7 +192,7 @@ void DBusIPCProxyBinder::bindToIPC()
 
     if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
 
-        qDebug() << "Initializing IPC proxy. objectPath:" << objectPath();
+        qDebug() << "Initializing IPC proxy. objectPath:" << objectPath() << "Service name:" << m_serviceName;
 
         m_busWatcher.addWatchedService(m_serviceName);
         m_busWatcher.setConnection(connection());
@@ -233,4 +240,7 @@ QString DBusIPCMessage::toString() const
 }
 
 }
+
+int InterfacePropertyHandlerBase::s_nextInstanceID = 0;
+
 }

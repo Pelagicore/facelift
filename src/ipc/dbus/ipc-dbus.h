@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QDebug>
 
 #include <QDBusConnection>
@@ -578,10 +580,7 @@ public:
     {
     }
 
-    ~DBusIPCServiceAdapterBase()
-    {
-        destroyed(this);
-    }
+    ~DBusIPCServiceAdapterBase();
 
     virtual QString introspect(const QString &path) const = 0;
 
@@ -978,6 +977,79 @@ public:
 };
 
 }
+
+
+class InterfacePropertyHandlerBase {
+public:
+
+    QString generateObjectPath(const QString& parentPath)
+    {
+        QString path = parentPath + "/dynamic";
+        path += QString::number(s_nextInstanceID++);
+        return path;
+    }
+
+    static int s_nextInstanceID;
+};
+
+
+template<typename InterfaceType, typename InterfaceAdapterType>
+class InterfacePropertyIPCAdapterHandler : public InterfacePropertyHandlerBase {
+
+public:
+    void update(IPCServiceAdapterBase* parent, InterfaceType* service)
+    {
+        if (m_service != service) {
+            m_service = service;
+            auto serviceAdapter = new InterfaceAdapterType(service);
+            serviceAdapter->setObjectPath(generateObjectPath(parent->objectPath()));
+            serviceAdapter->setService(service);
+            serviceAdapter->init();
+            m_serviceAdapter = std::move(std::unique_ptr<InterfaceAdapterType>(serviceAdapter));
+        }
+    }
+
+    QString objectPath() const
+    {
+        if (m_serviceAdapter) {
+            return m_serviceAdapter->objectPath();
+        }
+        else
+            return "";
+    }
+
+    QPointer<InterfaceType> m_service;
+    std::unique_ptr<InterfaceAdapterType> m_serviceAdapter;
+};
+
+
+template<typename ProxyType>
+class InterfacePropertyIPCProxyHandler : public InterfacePropertyHandlerBase
+{
+
+public:
+
+    void update(const QString& objectPath)
+    {
+        if (m_proxy && (m_proxy->ipc()->objectPath() != objectPath)) {
+            m_proxy = nullptr;
+        }
+        if (!m_proxy) {
+            m_proxy = std::move(std::unique_ptr<ProxyType>(new ProxyType()));
+            m_proxy->ipc()->setObjectPath(objectPath);
+            m_proxy->connectToServer();
+        }
+    }
+
+    ProxyType* getValue() const
+    {
+        return m_proxy.get();
+    }
+
+private:
+    std::unique_ptr<ProxyType> m_proxy;
+};
+
 }
 
 QML_DECLARE_TYPEINFO(facelift::dbus::DBusIPCAttachedPropertyFactory, QML_HAS_ATTACHED_PROPERTIES)

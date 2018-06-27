@@ -33,4 +33,5 @@ module facelift.ipc 1.0;
 interface ObjectRegistry {
     readonly map<string> objects;
     bool registerObject(string objectPath, string serviceName);
+    bool unregisterObject(string objectPath, string serviceName);
 }
