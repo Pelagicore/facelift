@@ -747,6 +747,7 @@ public:
     void setServiceName(const QString &name)
     {
         m_serviceName = name;
+        m_explicitServiceName = true;
         checkInit();
     }
 
@@ -841,7 +842,6 @@ public:
     }
 
 private:
-    bool m_alreadyInitialized = false;
 
     QString m_serviceName;
     QString m_interfaceName;
@@ -851,6 +851,9 @@ private:
     facelift::ipc::ObjectRegistry* m_objectRegistry = nullptr;
 
     QDBusServiceWatcher m_busWatcher;
+    bool m_explicitServiceName = false;
+    bool m_alreadyInitialized = false;
+
 };
 
 

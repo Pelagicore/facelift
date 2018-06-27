@@ -138,7 +138,7 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
 
 DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
 {
-    destroyed(this);
+    emit destroyed(this);
     if (m_alreadyInitialized)
         DBusManager::instance().objectRegistry().unregisterObject(objectPath(), DBusManager::instance().serviceName());
 }
@@ -173,21 +173,25 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
 
 void DBusIPCProxyBinder::bindToIPC()
 {
-    if (m_serviceName.isEmpty()) {
+    if (!m_explicitServiceName) {
         auto& registry = DBusManager::instance().objectRegistry();
 
         if (registry.objects().contains(objectPath())) {
             m_serviceName = registry.objects()[objectPath()];
         }
 
-        if (m_serviceName.isEmpty()) {
-            QObject::connect(&registry, &facelift::ipc::ObjectRegistry::objectsChanged, this, [this] () {
-                if (DBusManager::instance().objectRegistry().objects().contains(objectPath())) {
-                    m_serviceName = DBusManager::instance().objectRegistry().objects()[objectPath()];
-                    this->checkInit();
+        QObject::connect(&registry, &facelift::ipc::ObjectRegistry::objectsChanged, this, [this, &registry] () {
+            if (registry.objects().contains(objectPath())) {
+                auto serviceName = registry.objects()[objectPath()];
+                if (serviceName != m_serviceName) {
+                    m_serviceName = serviceName;
+                    bindToIPC();
                 }
-            });
-        }
+            } else {
+                m_serviceName.clear();
+            }
+        });
+
     }
 
     if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
