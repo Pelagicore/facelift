@@ -167,7 +167,7 @@ public:
         if (member == "{{property.name}}Data") {
             int first, last;
             requestMessage >> first >> last;
-            QList<{{property|nestedType|fullyQualifiedCppName}}> list;
+            QList<{{property.nestedType.fullyQualifiedCppType}}> list;
             for (int i = first; i <= last; ++i)
                 list.append(theService->{{property.name}}().elementAt(i));
             replyMessage << list;
@@ -427,7 +427,7 @@ public:
             retval = m_{{property.name}}Cache.get(row);
         } else {
             static const int prefetch = 12;    // fetch 25 items around requested one
-            QList<{{property|nestedType|fullyQualifiedCppName}}> list;
+            QList<{{property.nestedType.fullyQualifiedCppType}}> list;
             int first = row > prefetch ? row - prefetch : 0;
             int last = row < m_{{property.name}}.size() - prefetch ? row + prefetch : m_{{property.name}}.size() - 1;
 
