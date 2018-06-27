@@ -344,7 +344,7 @@ public:
                 provider = qmlImpl->interfac();
             }
         } else {
-            provider = o->provider();
+            provider = o->providerPrivate();
         }
 
         return provider;
