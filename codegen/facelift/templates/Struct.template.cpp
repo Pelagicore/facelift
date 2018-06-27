@@ -37,7 +37,7 @@
 
 #include "{{struct}}.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
     {%- for field in struct.fields -%}
@@ -46,4 +46,4 @@ const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
     {%- endfor %}
 } };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

@@ -39,10 +39,10 @@
 #include "ipc.h"
 
 {% for interface in module.interfaces %}
-#include "{{interface|fullyQualifiedPath}}IPC.h"
+#include "{{interface.fullyQualifiedPath}}IPC.h"
 {% endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class ModuleIPC
 {
@@ -62,4 +62,4 @@ public:
     }
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

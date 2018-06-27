@@ -43,10 +43,10 @@
 
 {% for interface in module.interfaces %}
 #include "{{interface}}Dummy.h"
-#include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class ModuleDummy : public facelift::DummyModuleBase {
 
@@ -59,12 +59,12 @@ public:
         Q_UNUSED(minorVersion);
 
         {% for interface in module.interfaces %}
-        facelift::registerQmlComponent<{{interface|fullyQualifiedCppName}}Dummy>(uri, "{{interface.name}}Dummy");
-//          registerQmlComponentIfNotAlready<{{interface|fullyQualifiedCppName}}Dummy>(uri);
+        facelift::registerQmlComponent<{{interface.fullyQualifiedCppType}}Dummy>(uri, "{{interface.name}}Dummy");
+//          registerQmlComponentIfNotAlready<{{interface.fullyQualifiedCppType}}Dummy>(uri);
         {% endfor %}
     }
 
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 

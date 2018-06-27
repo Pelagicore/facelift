@@ -48,9 +48,6 @@ log = logging.getLogger(__name__)
 def parameterType(symbol):
     return symbol
 
-def fullyQualifiedPath(symbol):
-    return symbol.qualified_name.replace('.', '/')
-
 def toValidId(name):
     return name.replace('.', '_')
 
@@ -64,37 +61,35 @@ def getPrimitiveCppType(symbol):
         return 'float'
     return symbol;
 
-def qmlCompatibleType(symbol):
-    if symbol.type.is_interface:
+def qmlCompatibleType(self):
+    if self.is_interface:
         return "QObject*"
-    if symbol.type.is_enum:
-        return returnType(symbol.type) + "Gadget::Type"
-    if symbol.type.is_list:
+    if self.is_enum:
+        return cppTypeFromSymbol(self.type, True) + "Gadget::Type"
+    if self.is_list:
         return "QVariantList"
-    elif symbol.type.is_map:
+    if self.is_map:
         return "QVariantMap"
-    return returnType(symbol.type)
+    return cppTypeFromSymbol(self.type, True)
 
 def fullyQualifiedCppName(type):
-    try:
-        if type.is_primitive:
-            return getPrimitiveCppType(type)
-    except AttributeError:
-        pass
-    s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
-    return s
+    if type.is_primitive:
+        return getPrimitiveCppType(type)
+    else:
+        s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
+        return s
 
-def namespaceOpen(symbol):
+def namespaceCppOpen(symbol):
     parts = symbol.qualified_name.split('.')
     ns = ' '.join(['namespace %s {' % x for x in parts])
     return ns
 
-def namespaceClose(symbol):
+def namespaceCppClose(symbol):
     parts = symbol.qualified_name.split('.')
     ns = '} ' * len(parts)
     return ns
 
-def returnTypeFromSymbol(type):
+def cppTypeFromSymbol(type, isInterfaceType):
     if type.is_void or type.is_primitive:
         if type.name == 'string':
             return 'QString'
@@ -102,25 +97,19 @@ def returnTypeFromSymbol(type):
             return 'float'
         return type
     elif type.is_list:
-        return 'QList<{0}>'.format(returnTypeFromSymbol(type.nested))
+        return 'QList<{0}>'.format(cppTypeFromSymbol(type.nested, isInterfaceType))
     elif type.is_interface:
-        return '{0}*'.format(fullyQualifiedCppName(type))
+        return fullyQualifiedCppName(type) + ("*" if isInterfaceType else "")
     elif type.is_map:
-        return 'QMap<QString, {0}>'.format(returnTypeFromSymbol(type.nested))
+        return 'QMap<QString, {0}>'.format(cppTypeFromSymbol(type.nested, isInterfaceType))
     else:
         return fullyQualifiedCppName(type)
-
-def returnType(symbol):
-    return returnTypeFromSymbol(symbol.type)
 
 def cppBool(b):
     if b:
         return "true"
     else:
         return "false"
-
-def nestedType(symbol):
-    return symbol.type.nested
 
 def requiredIncludeFromType(symbol, suffix):
     typeName = ''
@@ -133,18 +122,19 @@ def requiredIncludeFromType(symbol, suffix):
     else:
         return ""
 
-def requiredInclude(symbol):
-    if not symbol.type.is_primitive:
-        type = symbol.type.nested if symbol.type.nested else symbol.type
-        return requiredIncludeFromType(type, ".h")
-    return ""
-
-def requiredQMLInclude(symbol):
-    type = symbol.type.nested if symbol.type.nested else symbol.type
-    if not type.is_primitive and not type.is_struct and not type.is_enum:
-        return requiredIncludeFromType(type, "QMLFrontend.h")
-    else:
+def requiredQMLInclude(self):
+    type = self.nested if self.nested else self
+    if type.is_primitive or type.is_struct or type.is_enum:
         return ""
+    else:
+        return requiredIncludeFromType(type, "QMLFrontend.h")
+
+def requiredIPCInclude(self):
+    type = self.nested if self.nested else self
+    if type.is_primitive or type.is_struct or type.is_enum:
+        return ""
+    else:
+        return requiredIncludeFromType(type, "IPC.h")
 
 def hasContainerParameter(parameters):
     for param in parameters:
@@ -164,10 +154,80 @@ def hasModelProperty(interface):
             return True
     return False
 
+def fullyQualifiedCppType(type):
+    s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
+    return s
+
+######### Property extensions
+
+def fullyQualifiedPath(self):
+    return self.qualified_name.replace('.', '/')
+
+def storageType(self):
+    return cppTypeFromSymbol(self.type, False)
+
+def cppType(self):
+    return cppTypeFromSymbol(self.type, False)
+
+def interfaceCppType(self):
+    return cppTypeFromSymbol(self.type, True)
+
+def nestedType(self):
+    return self.type.nested
+
+def requiredInclude(self):
+    if self.is_primitive:
+        return ""
+    else:
+        type = self.nested if self.nested else self
+        return requiredIncludeFromType(type, ".h")
+
+setattr(qface.idl.domain.Operation, 'storageType', property(storageType))
+
+setattr(qface.idl.domain.TypeSymbol, 'cppType', property(cppType))
+setattr(qface.idl.domain.Operation, 'cppType', property(cppType))
+setattr(qface.idl.domain.Property, 'cppType', property(cppType))
+setattr(qface.idl.domain.Parameter, 'cppType', property(cppType))
+setattr(qface.idl.domain.Field, 'cppType', property(cppType))
+
+setattr(qface.idl.domain.TypeSymbol, 'interfaceCppType', property(interfaceCppType))
+setattr(qface.idl.domain.Operation, 'interfaceCppType', property(interfaceCppType))
+setattr(qface.idl.domain.Property, 'interfaceCppType', property(interfaceCppType))
+setattr(qface.idl.domain.Parameter, 'interfaceCppType', property(interfaceCppType))
+setattr(qface.idl.domain.Field, 'interfaceCppType', property(interfaceCppType))
+
+setattr(qface.idl.domain.Property, 'nestedType', property(nestedType))
+
+setattr(qface.idl.domain.TypeSymbol, 'requiredInclude', property(requiredInclude))
+setattr(qface.idl.domain.TypeSymbol, 'qmlCompatibleType', property(qmlCompatibleType))
+setattr(qface.idl.domain.TypeSymbol, 'requiredQMLInclude', property(requiredQMLInclude))
+setattr(qface.idl.domain.TypeSymbol, 'requiredIPCInclude', property(requiredIPCInclude))
+
+setattr(qface.idl.domain.TypeSymbol, 'fullyQualifiedPath', property(fullyQualifiedPath))
+setattr(qface.idl.domain.Interface, 'fullyQualifiedPath', property(fullyQualifiedPath))
+setattr(qface.idl.domain.Module, 'fullyQualifiedPath', property(fullyQualifiedPath))
+setattr(qface.idl.domain.Struct, 'fullyQualifiedPath', property(fullyQualifiedPath))
+setattr(qface.idl.domain.Enum, 'fullyQualifiedPath', property(fullyQualifiedPath))
+
+setattr(qface.idl.domain.Enum, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
+setattr(qface.idl.domain.TypeSymbol, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
+setattr(qface.idl.domain.Struct, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
+setattr(qface.idl.domain.Module, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
+setattr(qface.idl.domain.Interface, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
+
+setattr(qface.idl.domain.Interface, 'hasPropertyWithReadyFlag', property(hasPropertyWithReadyFlag))
+setattr(qface.idl.domain.Interface, 'hasModelProperty', property(hasModelProperty))
+
+setattr(qface.idl.domain.Module, 'namespaceCppOpen', property(namespaceCppOpen))
+setattr(qface.idl.domain.Module, 'namespaceCppClose', property(namespaceCppClose))
+
 def hasReturnValue(self):
     return not self.type.name == 'void'
 
 setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
+
+##############################
+
 
 def run_generation(input, output, dependency):
     FileSystem.strict = True
@@ -180,22 +240,9 @@ def run_generation(input, output, dependency):
 
     system = FileSystem.parse(list(input) + list(dependency))
     generator = Generator(search_path=Path(here / 'facelift/templates'))
-    generator.register_filter('returnType', returnType)
     generator.register_filter('cppBool', cppBool)
-    generator.register_filter('parameterType', parameterType)
-    generator.register_filter('nestedType', nestedType)
-    generator.register_filter('requiredInclude', requiredInclude)
-    generator.register_filter('requiredQMLInclude', requiredQMLInclude)
-    generator.register_filter('namespaceOpen', namespaceOpen)
-    generator.register_filter('namespaceClose', namespaceClose)
-    generator.register_filter('fullyQualifiedName', fullyQualifiedName)
-    generator.register_filter('fullyQualifiedCppName', fullyQualifiedCppName)
-    generator.register_filter('fullyQualifiedPath', fullyQualifiedPath)
     generator.register_filter('toValidId', toValidId)
     generator.register_filter('hasContainerParameter', hasContainerParameter)
-    generator.register_filter('hasPropertyWithReadyFlag', hasPropertyWithReadyFlag)
-    generator.register_filter('hasModelProperty', hasModelProperty)
-    generator.register_filter('qmlCompatibleType', qmlCompatibleType)
     generator.destination = output
 
     ctx = {'output': output}

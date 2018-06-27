@@ -45,7 +45,7 @@
 
 #include "{{class}}.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 
 /**
@@ -63,7 +63,7 @@ public:
 
     {% if property.type.is_model -%}
 
-    {{property|nestedType|fullyQualifiedCppName}} {{property.name}}ElementAt(size_t index) override {
+    {{property.nestedType.fullyQualifiedCppType}} {{property.name}}ElementAt(size_t index) override {
         return wrapped()->{{property.name}}ElementAt(index);
     }
 
@@ -73,25 +73,25 @@ public:
 
     {% elif property.type.is_list -%}
 
-    const {{property|returnType}}& {{property}}() const override {
+    const {{property.cppType}}& {{property}}() const override {
         return wrapped()->{{property}}();
     }
 
     {% elif property.type.is_interface -%}
 
     // Service property
-    {{property|returnType}}* {{property}}() override {
+    {{property.cppType}}* {{property}}() override {
         return wrapped()->{{property}}();
     }
 
     {% else %}
 
-    const {{property|returnType}}& {{property}}() const override {
+    const {{property.cppType}}& {{property}}() const override {
         return wrapped()->{{property}}();
     }
 
     {% if (not property.readonly) %}
-    void set{{property}}(const {{property|returnType}}& newValue) override {
+    void set{{property}}(const {{property.cppType}}& newValue) override {
         return wrapped()->set{{property}}(newValue);
     }
     {% endif %}
@@ -102,11 +102,11 @@ public:
 
 
     {% for operation in interface.operations %}
-    {{operation|returnType}} {{operation}}(
+    {{operation.cppType}} {{operation}}(
         {% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}
         {{ comma() }}
-        {{parameter|returnType}} {{parameter.name}}
+        {{parameter.cppType}} {{parameter.name}}
         {% endfor %}
     ) override {
         return wrapped()->{{operation}}(
@@ -135,5 +135,5 @@ public:
 };
 
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 

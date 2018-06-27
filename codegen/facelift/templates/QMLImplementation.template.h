@@ -40,7 +40,7 @@
 #include "{{interface}}PropertyAdapter.h"
 #include "{{interface}}QMLFrontend.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class {{interface}}QMLImplementation;
 
@@ -60,17 +60,17 @@ public:
     {{interface}}QMLImplementationFrontend({{interface}}QMLImplementation *qmlImpl);
 
     {% for operation in interface.operations %}
-    {{operation|returnType}} {{operation.name}}(
+    {{operation.cppType}} {{operation.name}}(
     {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
         {%- endfor -%}
     ) override;
     {% endfor %}
 
     {% for property in interface.properties %}
         {% if (not property.readonly) %}
-    void set{{property}}(const {{property|returnType}}& newValue) override;
+    void set{{property}}(const {{property.cppType}}& newValue) override;
         {% endif %}
     {% endfor %}
 
@@ -119,10 +119,10 @@ public:
     }
 
     {% for operation in interface.operations %}
-    {{operation|returnType}} {{operation.name}}(
+    {{operation.cppType}} {{operation.name}}(
         {%- set comma = joiner(", ") %}
         {% for parameter in operation.parameters %}
-        {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
         {%- endfor %})
     {
         QJSValueList args;
@@ -136,7 +136,7 @@ public:
 
         {% endif %}
         {% if operation.hasReturnValue %}
-        {{operation|returnType}} returnValue;
+        {{operation.cppType}} returnValue;
         auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
         facelift::fromJSValue(returnValue, jsReturnValue, engine);
         return returnValue;
@@ -167,16 +167,16 @@ public:
 
     {% for property in interface.properties %}
     {% if property.type.is_list or property.type.is_map %}
-    Q_PROPERTY({{property|qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{property.type.qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
 
-    facelift::QMLImpl{{property.type.name|capitalize}}Property<{{property|nestedType|returnType}}> m_{{property.name}}QMLProperty;
+    facelift::QMLImpl{{property.type.name|capitalize}}Property<{{property.nestedType.interfaceCppType}}> m_{{property.name}}QMLProperty;
 
-    {{property|qmlCompatibleType}} {{property.name}}() const
+    {{property.type.qmlCompatibleType}} {{property.name}}() const
     {
         return m_{{property.name}}QMLProperty.elementsAsVariant();
     }
 
-    void set{{property.name}}({{property|qmlCompatibleType}} v)
+    void set{{property.name}}({{property.type.qmlCompatibleType}} v)
     {
         m_{{property.name}}QMLProperty.setElementsAsVariant(v);
     }
@@ -188,7 +188,7 @@ public:
     // TODO : interface
 
     {% elif property.type.is_struct %}
-    // This property can contain either a {{property|returnType}} (gadget), or a {{property|returnType}}QObjectWrapper
+    // This property can contain either a {{property.cppType}} (gadget), or a {{property.cppType}}QObjectWrapper
     Q_PROPERTY(QVariant {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
 
     QVariant {{property.name}}() const
@@ -201,17 +201,17 @@ public:
 
     void set{{property.name}}(const QVariant& var)
     {
-        if (var.canConvert<{{property|returnType}}>()) {
-            interface().m_{{property.name}} = facelift::fromVariant<{{property|returnType}}>(var);
+        if (var.canConvert<{{property.cppType}}>()) {
+            interface().m_{{property.name}} = facelift::fromVariant<{{property.cppType}}>(var);
             m_{{property.name}}.clear();
             emit {{property.name}}Changed();
-        } else if (var.canConvert<{{property|returnType}}QObjectWrapper*>()) {
-            auto value = qvariant_cast<{{property|returnType}}QObjectWrapper*>(var);
+        } else if (var.canConvert<{{property.cppType}}QObjectWrapper*>()) {
+            auto value = qvariant_cast<{{property.cppType}}QObjectWrapper*>(var);
             if (m_{{property.name}}.object() != value) {
                 m_{{property.name}}.reset(value);
                 sync{{property.name}}();
                 if (m_{{property.name}}.isSet()) {
-                    m_{{property.name}}.addConnection(QObject::connect(m_{{property.name}}.object(), &{{property|returnType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}}));
+                    m_{{property.name}}.addConnection(QObject::connect(m_{{property.name}}.object(), &{{property.cppType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}}));
                 }
                 emit {{property.name}}Changed();
             }
@@ -221,25 +221,25 @@ public:
     void sync{{property.name}}()
     {
         checkInterface();
-        {{property|returnType}} value;
+        {{property.cppType}} value;
         if (m_{{property.name}}.isSet()) {
             value = m_{{property.name}}.object()->gadget();
             interface().m_{{property.name}} = value;
         }
     }
 
-    facelift::QObjectWrapperPointer<{{property|returnType}}QObjectWrapper> m_{{property.name}};
+    facelift::QObjectWrapperPointer<{{property.cppType}}QObjectWrapper> m_{{property.name}};
 
     {% else %}
-    Q_PROPERTY({{property|qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{property.type.qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
 
-    const {{property|qmlCompatibleType}}& {{property.name}}() const
+    const {{property.type.qmlCompatibleType}}& {{property.name}}() const
     {
         checkInterface();
         return interface().m_{{property.name}};
     }
 
-    void set{{property.name}}(const {{property|qmlCompatibleType}}& value)
+    void set{{property.name}}(const {{property.type.qmlCompatibleType}}& value)
     {
         checkInterface();
         interface().m_{{property.name}} = value;
@@ -261,7 +261,7 @@ public:
 
     QJSValue m_set{{property.name}};
 
-    void requestSet{{property.name}}(const {{property|returnType}}& value)
+    void requestSet{{property.name}}(const {{property.cppType}}& value)
     {
         checkInterface();
         QJSValueList args;
@@ -294,7 +294,7 @@ public:
     Q_INVOKABLE void {{event}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in event.parameters -%}
-    {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+    {{ comma() }}{{parameter.cppType}} {{parameter.name}}
     {%- endfor -%} )
     {
         emit m_interface->{{event.name}}(
@@ -324,10 +324,10 @@ inline QObject* {{interface}}QMLImplementationFrontend::impl()
 }
 
 {% for operation in interface.operations %}
-inline {{operation|returnType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
+inline {{operation.cppType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
-    {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+    {{ comma() }}{{parameter.cppType}} {{parameter.name}}
     {%- endfor -%} )
 {
     return m_impl->{{operation.name}}(
@@ -341,7 +341,7 @@ inline {{operation|returnType}} {{interface}}QMLImplementationFrontend::{{operat
 
 {% for property in interface.properties %}
     {% if (not property.readonly) %}
-inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{property|returnType}}& newValue)
+inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{property.cppType}}& newValue)
 {
     m_impl->requestSet{{property}}(newValue);
 }
@@ -349,4 +349,4 @@ inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{prop
     {% endif %}
 {% endfor %}
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

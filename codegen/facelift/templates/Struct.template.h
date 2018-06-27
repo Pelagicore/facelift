@@ -45,10 +45,10 @@
 
 // Dependencies
 {% for field in struct.fields %}
-{{field|requiredInclude}}
+{{field.type.requiredInclude}}
 {% endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class {{struct.name}}QObjectWrapper;
 
@@ -59,7 +59,7 @@ class {{struct.name}}QObjectWrapper;
 {{struct.comment}}
 class {{struct.name}} : public facelift::Structure<
     {%- for field in struct.fields -%}
-        {{ comma() }}{{field|returnType}}
+        {{ comma() }}{{field.cppType}}
     {%- endfor -%} >
 {
     Q_GADGET
@@ -72,7 +72,7 @@ public:
 
     static const QString &classID()
     {
-        static auto id = QStringLiteral("{{struct|fullyQualifiedName}}");
+        static auto id = QStringLiteral("{{struct.qualified_name}}");
         return id;
     }
 
@@ -105,7 +105,7 @@ public:
         return *this;
     }
 
-    Q_INVOKABLE {{struct|fullyQualifiedCppName}} clone() const
+    Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const
     {
         {{struct.name}} s;
         s.setValue(asTuple());
@@ -119,25 +119,25 @@ public:
 
 {% for field in struct.fields %}
     {{field.comment}}
-    Q_PROPERTY({{field|qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}})
+    Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}})
 
-    {{field|qmlCompatibleType}} qmlCompatible{{field.name}}() const
+    {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const
     {
         return facelift::toQMLCompatibleType({{field.name}}());
     }
 
-    const {{field|returnType}} &{{field.name}}() const
+    const {{field.cppType}} &{{field.name}}() const
     {
         return m_{{field.name}};
     }
 
-    void qmlCompatibleSet{{field.name}}({{field|qmlCompatibleType}} value)
+    void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
     {
         // qDebug() << "Setting field {{field.name}} with value:" << value;
         facelift::assignFromQmlType(m_{{field.name}}, value);
     }
 
-    void set{{field.name}}({{field|returnType}} value)
+    void set{{field.name}}({{field.cppType}} value)
     {
         // qDebug() << "Setting field {{field.name}} with value:" << value;
         m_{{field.name}} = value;
@@ -146,20 +146,20 @@ public:
 
 private:
 {% for field in struct.fields %}
-    {{field|returnType}}& m_{{field}};
+    {{field.cppType}}& m_{{field}};
 {% endfor -%}
 };
 
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 
-inline QTextStream &operator <<(QTextStream &outStream, const {{struct|fullyQualifiedCppName}} &f)
+inline QTextStream &operator <<(QTextStream &outStream, const {{struct.fullyQualifiedCppType}} &f)
 {
     outStream << f.toString();
     return outStream;
 }
 
-inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f)
+inline QDebug operator<< (QDebug d, const {{struct.fullyQualifiedCppType}} &f)
 {
     QString s;
     QTextStream stream(&s);
@@ -168,11 +168,11 @@ inline QDebug operator<< (QDebug d, const {{struct|fullyQualifiedCppName}} &f)
     return d;
 }
 
-Q_DECLARE_METATYPE(QList<{{struct|fullyQualifiedCppName}}>)   // Needed for list properties
-//Q_DECLARE_METATYPE(QMap<QString, {{struct|fullyQualifiedCppName}}>)   // TODO: Needed for map properties?
-Q_DECLARE_METATYPE({{struct|fullyQualifiedCppName}})
+Q_DECLARE_METATYPE(QList<{{struct.fullyQualifiedCppType}}>)   // Needed for list properties
+//Q_DECLARE_METATYPE(QMap<QString, {{struct.fullyQualifiedCppType}}>)   // TODO: Needed for map properties?
+Q_DECLARE_METATYPE({{struct.fullyQualifiedCppType}})
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 {{struct.comment}}
 
@@ -191,7 +191,7 @@ public:
 
     static const QString& classID()
     {
-        return {{struct|fullyQualifiedCppName}}::classID();
+        return {{struct.fullyQualifiedCppType}}::classID();
     }
 
     {{struct.name}}QObjectWrapper(QObject* parent = nullptr) : StructQObjectWrapper(parent)
@@ -215,38 +215,38 @@ public:
 
 {% for field in struct.fields %}
     {{field.comment}}
-    Q_PROPERTY({{field|qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}} NOTIFY {{field}}Changed)
+    Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}} NOTIFY {{field}}Changed)
 
-    {{field|qmlCompatibleType}} qmlCompatible{{field.name}}() const
+    {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const
     {
         return facelift::toQMLCompatibleType({{field.name}}());
     }
 
-    void qmlCompatibleSet{{field.name}}({{field|qmlCompatibleType}} value)
+    void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
     {
         assignFromQmlType(m_{{field.name}}, value);
     }
 
     Q_SIGNAL void {{field}}Changed();
 
-    const {{field|returnType}}& {{field.name}}() const
+    const {{field.cppType}}& {{field.name}}() const
     {
         return m_{{field.name}}.value();
     }
 
-    void set{{field.name}}({{field|returnType}} value)
+    void set{{field.name}}({{field.cppType}} value)
     {
         m_{{field.name}} = value;
     }
 
-    facelift::Property<{{field|returnType}}> m_{{field.name}};
+    facelift::Property<{{field.cppType}}> m_{{field.name}};
 
 {% endfor %}
 
     /**
      * This property gives you access to the underlying gadget object
      */
-    Q_PROPERTY({{struct | fullyQualifiedCppName}} gadget READ gadget)
+    Q_PROPERTY({{struct.fullyQualifiedCppType}} gadget READ gadget)
 
     {{struct.name}} gadget() const
     {
@@ -258,7 +258,7 @@ public:
         return s;
     }
 
-    void assignFromGadget(const {{struct | fullyQualifiedCppName}} &gadget)
+    void assignFromGadget(const {{struct.fullyQualifiedCppType}} &gadget)
     {
         {% for field in struct.fields %}
         m_{{field.name}} = gadget.{{field.name}}();
@@ -278,7 +278,7 @@ public:
 
     void setSerialized(const QByteArray &array)
     {
-        {{struct | fullyQualifiedCppName}} v;
+        {{struct.fullyQualifiedCppType}} v;
         v.deserialize(array);
         assignFromGadget(v);
     }
@@ -290,14 +290,14 @@ public:
 };
 
 
-class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}>
+class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{struct.fullyQualifiedCppType}}>
 {
-    typedef facelift::TQMLImplListProperty<{{struct | fullyQualifiedCppName}}> Base;
+    typedef facelift::TQMLImplListProperty<{{struct.fullyQualifiedCppType}}> Base;
 };
 
-class QMLImplMapProperty{{struct}} : public facelift::TQMLImplMapProperty<{{struct | fullyQualifiedCppName}}>
+class QMLImplMapProperty{{struct}} : public facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}>
 {
-    typedef facelift::TQMLImplMapProperty<{{struct | fullyQualifiedCppName}}> Base;
+    typedef facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}> Base;
 };
 
 
@@ -311,23 +311,23 @@ public:
     {
     }
 
-    Q_INVOKABLE {{struct|fullyQualifiedCppName}} create()
+    Q_INVOKABLE {{struct.fullyQualifiedCppType}} create()
     {
         return {{struct}}();
     }
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 
 namespace facelift {
 
 template<>
-class QMLImplListProperty<{{struct | fullyQualifiedCppName}}> : public {{module|fullyQualifiedCppName}}::QMLImplListProperty{{struct}}
+class QMLImplListProperty<{{struct.fullyQualifiedCppType}}> : public {{module.fullyQualifiedCppType}}::QMLImplListProperty{{struct}}
 {
 };
 
 template<>
-class QMLImplMapProperty<{{struct | fullyQualifiedCppName}}> : public {{module|fullyQualifiedCppName}}::QMLImplMapProperty{{struct}}
+class QMLImplMapProperty<{{struct.fullyQualifiedCppType}}> : public {{module.fullyQualifiedCppType}}::QMLImplMapProperty{{struct}}
 {
 };
 

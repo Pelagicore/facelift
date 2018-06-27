@@ -29,7 +29,7 @@
 *********************************************************************#}
 
 {% set class = '{0}'.format(interface) %}
-{% set hasReadyFlags = interface|hasPropertyWithReadyFlag %}
+{% set hasReadyFlags = interface.hasPropertyWithReadyFlag %}
 {%- macro printif(name) -%}
 {%- if name -%}{{name}}
 {% endif -%}
@@ -49,21 +49,21 @@
 
 // Dependencies
 {% for property in interface.properties -%}
-{{- printif(property|requiredInclude) }}
-{{- printif(property|requiredQMLInclude) }}
+{{- printif(property.type.requiredInclude) }}
+{{- printif(property.type.requiredQMLInclude) }}
 {%- endfor -%}
 {% for operation in interface.operations -%}
 {% for parameter in operation.parameters -%}
-{{- printif(parameter|requiredInclude) }}
+{{- printif(parameter.type.requiredInclude) }}
 {%- endfor %}
 {%- endfor %}
 {% for event in interface.signals -%}
 {% for parameter in event.parameters -%}
-{{- printif(parameter|requiredInclude) }}
+{{- printif(parameter.type.requiredInclude) }}
 {%- endfor %}
 {%- endfor %}
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 /**
 * \class {{class}}QMLFrontend
@@ -101,7 +101,7 @@ public:
         connect(m_provider, &{{class}}::{{event.name}}, this, [this] (
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
-                {{ comma() }}{{parameter|returnType}} {{parameter.name}}
+                {{ comma() }}{{parameter.cppType}} {{parameter.name}}
             {%- endfor -%}) {
             emit {{class}}QMLFrontend::{{event.name}}(
             {%- set comma2 = joiner(", ") -%}
@@ -125,7 +125,7 @@ public:
     }
     {% if hasReadyFlags %}
 
-    Q_PROPERTY({{module|fullyQualifiedCppName}}::{{class}}ReadyFlags readyFlags READ readyFlags NOTIFY readyFlagsChanged)
+    Q_PROPERTY({{module.fullyQualifiedCppType}}::{{class}}ReadyFlags readyFlags READ readyFlags NOTIFY readyFlagsChanged)
     {{class}}ReadyFlags readyFlags() const
     {
         return m_provider->readyFlags();
@@ -142,22 +142,22 @@ public:
         return &m_{{property}}Model;
     }
 
-    facelift::ModelListModel<{{property|nestedType|fullyQualifiedCppName}}> m_{{property}}Model;
+    facelift::ModelListModel<{{property.nestedType.fullyQualifiedCppType}}> m_{{property}}Model;
 
     {% elif property.type.is_list or property.type.is_map %}
-    // Using {{property|qmlCompatibleType}}, since exposing {{property|returnType}} to QML does not seem to work
-    Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}}
+    // Using {{property.type.qmlCompatibleType}}, since exposing {{property.interfaceCppType}} to QML does not seem to work
+    Q_PROPERTY({{property.type.qmlCompatibleType}} {{property}} READ {{property}}
                {%- if not property.readonly %} WRITE set{{property}}{% endif %} NOTIFY {{property.name}}Changed)
-    {{property|qmlCompatibleType}} {{property}}() const
+    {{property.type.qmlCompatibleType}} {{property}}() const
     {
         return facelift::toQMLCompatibleType(m_provider->{{property}}());
     }
         {% if not property.readonly %}
-    void set{{property}}(const {{property|qmlCompatibleType}}& newValue)
+    void set{{property}}(const {{property.type.qmlCompatibleType}}& newValue)
     {
         // qDebug() << "Request to set property {{property}} to " << newValue;
         Q_ASSERT(m_provider);
-        {{property|returnType}} tmp;
+        {{property.cppType}} tmp;
         facelift::assignFromQmlType(tmp, newValue);
         m_provider->set{{property}}(tmp);
     }
@@ -165,16 +165,16 @@ public:
     {%- elif property.type.is_interface %}
     Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
 
-    {{property|qmlCompatibleType}} {{property}}()
+    {{property.type.qmlCompatibleType}} {{property}}()
     {
         return facelift::getQMLFrontend(m_provider->{{property}}());
     }
     {% else %}
         {% if property.readonly %}
-    Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{property.type.qmlCompatibleType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
         {%- else %}
-    Q_PROPERTY({{property|qmlCompatibleType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
-    void set{{property}}(const {{property|returnType}}& newValue)
+    Q_PROPERTY({{property.type.qmlCompatibleType}} {{property}} READ {{property}} WRITE set{{property}} NOTIFY {{property.name}}Changed)
+    void set{{property}}(const {{property.cppType}}& newValue)
     {
         // qDebug() << "Request to set property {{property}} to " << newValue;
         Q_ASSERT(m_provider);
@@ -182,7 +182,7 @@ public:
     }
         {%- endif %}
 
-    const {{property|returnType}}& {{property}}() const
+    const {{property.cppType}}& {{property}}() const
     {
         Q_ASSERT(m_provider);
         // qDebug() << "Read property {{property}}. Value: " << m_provider->{{property}}() ;
@@ -193,10 +193,10 @@ public:
     {% endfor %}
 
     {% for operation in interface.operations %}
-    Q_INVOKABLE {{operation|returnType}} {{operation}}(
+    Q_INVOKABLE {{operation.cppType}} {{operation}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{parameter|qmlCompatibleType}} {{parameter.name}}
+        {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
     )
     {
@@ -205,10 +205,10 @@ public:
                 {%- set comma = joiner(", ") -%}
                 {%- for parameter in operation.parameters -%}
                 {{ comma() }}
-                {%- if parameter|returnType == parameter|qmlCompatibleType -%}
+                {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
                 {{parameter.name}}
                 {%- else -%}
-                facelift::toProviderCompatibleType<{{parameter|returnType}}, {{parameter|qmlCompatibleType}}>({{parameter.name}})
+                facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
                 {%- endif -%}
                 {%- endfor -%}
                 );
@@ -220,7 +220,7 @@ public:
     Q_SIGNAL void {{event}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in event.parameters -%}
-        {{ comma() }}{{parameter|qmlCompatibleType}} {{parameter.name}}
+        {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
     );
     {% endfor %}
@@ -229,8 +229,8 @@ public:
 };
 
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 
 {% if hasReadyFlags %}
-Q_DECLARE_METATYPE({{module|fullyQualifiedCppName}}::{{class}}ReadyFlags)
+Q_DECLARE_METATYPE({{module.fullyQualifiedCppType}}::{{class}}ReadyFlags)
 {% endif %}

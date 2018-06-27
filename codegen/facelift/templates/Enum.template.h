@@ -39,7 +39,7 @@
 
 #include "FaceliftModel.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 class {{enum}}Gadget
 {
@@ -58,12 +58,12 @@ public:
 
 typedef {{enum}}Gadget::Type {{enum}};
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
 
-Q_DECLARE_METATYPE({{enum|fullyQualifiedCppName}}Gadget::Type)
+Q_DECLARE_METATYPE({{enum.fullyQualifiedCppType}}Gadget::Type)
 
 /*
-template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {
+template <> inline QVariant toVariant(const {{enum.fullyQualifiedCppType}}& v) {
     return static_cast<int>(v);
 }
 */
@@ -71,20 +71,20 @@ template <> inline QVariant toVariant(const {{enum|fullyQualifiedCppName}}& v) {
 
 namespace facelift {
 
-template<> inline const QList<{{enum|fullyQualifiedCppName}}>& validValues<{{enum|fullyQualifiedCppName}}>() {
-    static QList<{{enum|fullyQualifiedCppName}}> values = {
+template<> inline const QList<{{enum.fullyQualifiedCppType}}>& validValues<{{enum.fullyQualifiedCppType}}>() {
+    static QList<{{enum.fullyQualifiedCppType}}> values = {
     {% for member in enum.members %}
-    {{enum|fullyQualifiedCppName}}::{{member}},
+    {{enum.fullyQualifiedCppType}}::{{member}},
     {% endfor %}
     };
     return values;
 }
 
-template <> inline QString enumToString(const {{enum|fullyQualifiedCppName}}& v) {
+template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v) {
     const char* s = "Invalid";
     switch(v) {
     {% for member in enum.members %}
-    case {{enum|fullyQualifiedCppName}}::{{member}}:
+    case {{enum.fullyQualifiedCppType}}::{{member}}:
         s = "{{member}}";
         break;
     {% endfor %}
@@ -96,18 +96,18 @@ template <> inline QString enumToString(const {{enum|fullyQualifiedCppName}}& v)
 
 }
 
-inline void assignFromString(const QString &s, {{enum|fullyQualifiedCppName}}& v)
+inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v)
 {
     {% for member in enum.members %}
     if (s == "{{member}}")
-        v = {{enum|fullyQualifiedCppName}}::{{member}};
+        v = {{enum.fullyQualifiedCppType}}::{{member}};
     else
     {% endfor %}
     qFatal("No enum value matching string");
 }
 
 
-inline QTextStream &operator <<(QTextStream &outStream, const {{enum|fullyQualifiedCppName}}& f) {
+inline QTextStream &operator <<(QTextStream &outStream, const {{enum.fullyQualifiedCppType}}& f) {
     outStream << facelift::toString(f);
     return outStream;
 }

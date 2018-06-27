@@ -39,7 +39,7 @@
 #include "{{class}}.h"
 #include "FaceliftProperty.h"
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 /**
  * A partial implementation of the service interface, using the Property helper class
@@ -62,43 +62,43 @@ public:
 
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    facelift::Model<{{property|nestedType|fullyQualifiedCppName}}>& {{property.name}}() override
+    facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() override
     {
         return m_{{property.name}};
     }
 
-    facelift::ModelProperty<{{property|nestedType|fullyQualifiedCppName}}> m_{{property.name}};
+    facelift::ModelProperty<{{property.nestedType.fullyQualifiedCppType}}> m_{{property.name}};
 
     {% elif property.type.is_list %}
 
-    const {{property|returnType}}& {{property}}() const override
+    const {{property.interfaceCppType}}& {{property}}() const override
     {
         return m_{{property.name}}.value();
     }
 
-    facelift::ListProperty<{{property|nestedType|returnType}}> m_{{property.name}};
+    facelift::ListProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
 
     {% elif property.type.is_interface -%}
 
     // Service property
-    {{property|returnType}} {{property}}() override
+    {{property.interfaceCppType}} {{property}}() override
     {
         return m_{{property.name}}.value();
     }
 
-    facelift::ServiceProperty<{{property.type|fullyQualifiedCppName}}> m_{{property.name}};
+    facelift::ServiceProperty<{{property.type.fullyQualifiedCppType}}> m_{{property.name}};
 
     // TODO
 
     {% else %}
-    const {{property|returnType}} &{{property}}() const override
+    const {{property.interfaceCppType}} &{{property}}() const override
     {
         return m_{{property.name}}.value();
     }
-    facelift::Property<{{property|returnType}}> m_{{property.name}};
+    facelift::Property<{{property.interfaceCppType}}> m_{{property.name}};
 
     {% endif %}
     {% endfor %}
 };
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}

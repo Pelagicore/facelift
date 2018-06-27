@@ -40,21 +40,21 @@
 #include <QMLModel.h>
 
 {% for interface in module.interfaces %}
-#include "{{interface|fullyQualifiedPath}}QMLImplementation.h"
-#include "{{interface|fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}QMLImplementation.h"
+#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
 #ifdef ENABLE_IPC
-#include "{{module|fullyQualifiedPath}}/ModuleIPC.h"
+#include "{{module.fullyQualifiedPath}}/ModuleIPC.h"
 #endif
 
 #ifdef ENABLE_DESKTOP_TOOLS
-#include "{{module|fullyQualifiedPath}}/ModuleMonitor.h"
-#include "{{module|fullyQualifiedPath}}/ModuleDummy.h"
+#include "{{module.fullyQualifiedPath}}/ModuleMonitor.h"
+#include "{{module.fullyQualifiedPath}}/ModuleDummy.h"
 #include "ServiceMonitorQMLComponent.h"
 #endif
 
-{{module|namespaceOpen}}
+{{module.namespaceCppOpen}}
 
 Module::Module() : facelift::ModuleBase()
 {
@@ -70,10 +70,10 @@ void Module::registerTypes()
 #endif
 
     {% for enum in module.enums %}
-    facelift::qRegisterMetaType<{{enum|fullyQualifiedCppName}}>();
+    facelift::qRegisterMetaType<{{enum.fullyQualifiedCppType}}>();
     {% endfor %}
     {% for struct in module.structs %}
-    qRegisterMetaType<{{struct|fullyQualifiedCppName}}>();
+    qRegisterMetaType<{{struct.fullyQualifiedCppType}}>();
     {% endfor %}
 
 #ifdef ENABLE_DESKTOP_TOOLS
@@ -113,7 +113,7 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
     // register enumeration gadgets
     {% for enum in module.enums %}
-    ::qmlRegisterUncreatableType<{{enum|fullyQualifiedCppName}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
+    ::qmlRegisterUncreatableType<{{enum.fullyQualifiedCppType}}Gadget>(uri, majorVersion, minorVersion, "{{enum}}", "");
     {% endfor %}
 
     // Register components used to implement an interface in QML
@@ -128,7 +128,7 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     {
         facelift::registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri, "{{interface.name}}QML");
 
-        QString path = STRINGIFY(QML_MODEL_LOCATION) "/{{interface|fullyQualifiedPath}}.qml";
+        QString path = STRINGIFY(QML_MODEL_LOCATION) "/{{interface.fullyQualifiedPath}}.qml";
 
         if (QFile::exists(path)) {
             qDebug() << "Registering QML service implementation : " << path;
@@ -149,4 +149,4 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
 }
 
-{{module|namespaceClose}}
+{{module.namespaceCppClose}}
