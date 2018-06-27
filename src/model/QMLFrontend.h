@@ -42,6 +42,8 @@
 
 namespace facelift {
 
+class IPCAttachedPropertyFactoryBase;
+
 /*!
  * This is the base class which all QML frontends extend
  */
@@ -92,6 +94,12 @@ protected:
         m_provider = &provider;
         connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
     }
+
+    InterfaceBase * providerPrivate() {
+        return m_provider;
+    }
+
+    friend class IPCAttachedPropertyFactoryBase;
 
 private:
     InterfaceBase *m_provider = nullptr;
