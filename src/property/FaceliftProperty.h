@@ -306,8 +306,9 @@ public:
     template<typename Class, typename PropertyType>
     ServiceProperty &bind(const ServicePropertyInterface<Class, PropertyType> &property)
     {
-        Q_UNUSED(property);
-        // TODO : implement
+        this->bind([property] () {
+                return property.value();
+            }).addTrigger(property.object, property.signal);
         return *this;
     }
 

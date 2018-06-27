@@ -75,7 +75,7 @@ public:
         if (isMaster()) {
             auto objects = m_objects.value();
             if (!objects.contains(objectPath)) {
-                qDebug() << "Object registered at path" << objectPath;
+                qDebug() << "Object registered at path" << objectPath << "service name:" << serviceName;
                 objects[objectPath] = serviceName;
                 m_objects = objects;
                 return true;
@@ -98,11 +98,19 @@ public:
         }
     }
 
-    void unregisterObject(QString objectPath)
+    bool unregisterObject(QString objectPath, QString serviceName) override
     {
-        auto objects = m_objects.value();
-        objects.remove(objectPath);
-        m_objects = objects;
+        init();
+        if (isMaster()) {
+            Q_UNUSED(serviceName);
+            auto objects = m_objects.value();
+            Q_ASSERT(objects[objectPath] == serviceName);
+            auto r = (objects.remove(objectPath) != 0);
+            m_objects = objects;
+            return r;
+        } else {
+            return m_objectRegistryProxy->unregisterObject(objectPath, serviceName);
+        }
     }
 
     bool isMaster() const

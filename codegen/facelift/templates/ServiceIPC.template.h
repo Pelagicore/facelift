@@ -41,6 +41,10 @@
 #include "{{interface.fullyQualifiedPath}}PropertyAdapter.h"
 #include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 
+{% for property in interface.properties %}
+{{property.type.requiredIPCInclude}}
+{% endfor %}
+
 {{module.namespaceCppOpen}}
 
 
@@ -68,6 +72,7 @@ public:
         facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>::setService(srvc);
 
         {% for property in interface.properties %}
+
         {% if property.type.is_model %}
         facelift::ModelBase *{{property.name}} = &(service()->{{property.name}}());
         connect({{property.name}}, static_cast<void (facelift::ModelBase::*)(int, int)>
@@ -192,21 +197,28 @@ public:
         return facelift::IPCHandlingResult::OK;
     }
 
+    {% for property in interface.properties %}{% if property.type.is_interface %}
+    facelift::InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCAdapter> m_{{property.name}};
+    {% endif %}
+    {% endfor %}
+
     void connectSignals() override
     {
-        auto theService = service();
-        {% if (not interface.properties and not interface.signals) %}
-        Q_UNUSED(theService);
-        {% endif %}
-
         // Properties
         {% for property in interface.properties %}
-        connect(theService, &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
+        {% if property.type.is_interface %}
+        m_{{property.name}}.update(this, service()->{{property.name}}());
+        QObject::connect(service(), &{{interface}}::{{property.name}}Changed, [this] () {
+            m_{{property.name}}.update(this, service()->{{property.name}}());
+        });
+        {% endif %}
+        connect(service(), &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
+
         {% endfor %}
 
         // Signals
         {% for signal in interface.signals %}
-        connect(theService, &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
+        connect(service(), &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
         {% endfor %}
     }
 
@@ -221,8 +233,9 @@ public:
 
         {% for property in interface.properties %}
         {% if property.type.is_interface %}
-        // TODO
-        qWarning("Property of interface type not supported over IPC");
+
+        msg << m_{{property.name}}.objectPath();
+
         {% elif property.type.is_model %}
         msg << theService->{{property.name}}().size();
         {% else %}
@@ -277,12 +290,15 @@ public:
         {% for property in interface.properties %}
 
         {% if property.type.is_interface %}
-        // qFatal("Property of interface type not supported");
-        qWarning() << "TODO: handle interface properties";
+        QString {{property.name}}_objectPath;
+        msg >> {{property.name}}_objectPath;
+        m_{{property.name}}Proxy.update({{property.name}}_objectPath);
+        m_{{property.name}} = m_{{property.name}}Proxy.getValue();
         {% elif property.type.is_model %}
         int {{property.name}}Size;
         msg >> {{property.name}}Size;
         m_{{property.name}}.setSize({{property.name}}Size);
+
         {% else %}
         PropertyType_{{property.name}} {{property.name}};
         msg >> {{property.name}};
@@ -450,7 +466,11 @@ public:
     {% endfor %}
 
 private:
+
     {% for property in interface.properties %}
+    {% if property.type.is_interface %}
+    facelift::InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
+    {% endif %}
     {% if property.type.is_model %}
     facelift::MostRecentlyUsedCache<int, {{property.nestedType.cppType}}> m_{{property.name}}Cache;
     {% endif %}
