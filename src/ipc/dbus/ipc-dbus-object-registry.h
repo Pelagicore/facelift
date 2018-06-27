@@ -102,7 +102,6 @@ public:
     {
         init();
         if (isMaster()) {
-            Q_UNUSED(serviceName);
             auto objects = m_objects.value();
             Q_ASSERT(objects[objectPath] == serviceName);
             auto r = (objects.remove(objectPath) != 0);
