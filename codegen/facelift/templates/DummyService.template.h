@@ -55,6 +55,12 @@ public:
     }
 
     {% for operation in interface.operations %}
+
+    {% if operation.isAsync %}
+    void {{operation}}(
+        {% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override { }
+    {% else %}
+
     {{operation.cppType}} {{operation}}(
             {% set comma = joiner(",") %}
             {% for parameter in operation.parameters %}
@@ -81,6 +87,7 @@ public:
         {% endif %}
 
     }
+    {% endif %}
     {% endfor %}
 
     {% for property in interface.properties %}

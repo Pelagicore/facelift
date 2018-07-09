@@ -150,21 +150,38 @@ public:
         {% endif %}
 
         {% for operation in interface.operations %}
+
         if (member == "{{operation.name}}") {
+
             {% for parameter in operation.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
             requestMessage >> param_{{parameter.name}};
-
             {% endfor %}
+
+            {% if operation.isAsync %}
+
+            facelift::ASyncRequestID requestID = s_nextRequestID++;
+
+            theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
+                facelift::AsyncAnswer<{{operation.cppType}}>([this, requestID] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) {
+                sendSignal("{{operation.name}}Result", requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
+            }));
+
+            replyMessage << requestID;
+
+            {% else %}
             {% if operation.hasReturnValue %}
-            replyMessage << theService->{{operation.name}}(
-            {%- else %}
-            theService->{{operation.name}}(
+            replyMessage <<
             {%- endif %}
+            theService->{{operation.name}}(
             {% set comma = joiner(", ") %}
             {% for parameter in operation.parameters -%}
                 {{ comma() }}param_{{parameter.name}}
-            {%- endfor -%}  );
+            {%- endfor -%});
+
+            {% endif %}
+
+
         } else
         {% endfor %}
         {% for property in interface.properties %}
@@ -341,6 +358,26 @@ public:
     {
         QString signalName;
         msg >> signalName;
+
+        {% for operation in interface.operations %}
+        {% if operation.isAsync %}
+        if (signalName == "{{operation.name}}Result") {
+            facelift::ASyncRequestID id;
+            msg >> id;
+            if (m_{{operation.name}}Requests.contains(id)) {
+                {% if operation.hasReturnValue %}
+                {{operation.cppType}} returnValue;
+                msg >> returnValue;
+                m_{{operation.name}}Requests[id](returnValue);
+                {% else %}
+                m_{{operation.name}}Requests[id]();
+                {% endif %}
+                m_{{operation.name}}Requests.remove(id);
+            }
+        }
+        {% endif %}
+        {% endfor %}
+
         {% for event in interface.signals %}
 
         if (signalName == "{{event}}") {
@@ -386,6 +423,28 @@ public:
     }
     {% for operation in interface.operations %}
 
+    {% if operation.isAsync %}
+    void {{operation}}(
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override {
+        if (localInterface() == nullptr) {
+            facelift::ASyncRequestID id;
+            sendMethodCallWithReturn("{{operation.name}}", id
+            {%- for parameter in operation.parameters -%}
+            , {{parameter.name}}
+            {%- endfor -%}  );
+            m_{{operation.name}}Requests.insert(id, answer);
+        } else {
+            localInterface()->{{operation.name}}(
+            {%- for parameter in operation.parameters -%}
+                {{parameter.name}},
+            {%- endfor -%} answer);
+        }
+    }
+
+    QMap<facelift::ASyncRequestID, facelift::AsyncAnswer<{{operation.cppType}}>> m_{{operation.name}}Requests;
+
+    {% else %}
+
     {{operation.cppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
@@ -418,6 +477,7 @@ public:
             {%- endfor -%} );
         }
     }
+    {% endif %}
     {% endfor %}
     {%- for property in interface.properties %}
 

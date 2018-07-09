@@ -60,12 +60,22 @@ public:
     {{interface}}QMLImplementationFrontend({{interface}}QMLImplementation *qmlImpl);
 
     {% for operation in interface.operations %}
+    {% if operation.isAsync %}
+    void {{operation}}(
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override
+    {
+        Q_ASSERT(false);  // TODO: implement
+    }
+    {% else %}
+
     {{operation.cppType}} {{operation.name}}(
     {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter.cppType}} {{parameter.name}}
         {%- endfor -%}
     ) override;
+    {% endif %}
+
     {% endfor %}
 
     {% for property in interface.properties %}
@@ -119,6 +129,10 @@ public:
     }
 
     {% for operation in interface.operations %}
+    {% if operation.isAsync %}
+    // TODO: implement
+    {% else %}
+
     {{operation.cppType}} {{operation.name}}(
         {%- set comma = joiner(", ") %}
         {% for parameter in operation.parameters %}
@@ -144,6 +158,8 @@ public:
         checkMethod(m_{{operation}}, "{{operation}}").call(args);
         {% endif %}
     }
+
+    {% endif %}
 
     Q_PROPERTY(QJSValue {{operation.name}} READ {{operation.name}}JSFunction WRITE set{{operation.name}}JSFunction)
 
@@ -324,6 +340,10 @@ inline QObject* {{interface}}QMLImplementationFrontend::impl()
 }
 
 {% for operation in interface.operations %}
+
+{% if operation.isAsync %}
+// TODO
+{% else %}
 inline {{operation.cppType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
@@ -336,6 +356,7 @@ inline {{operation.cppType}} {{interface}}QMLImplementationFrontend::{{operation
         {{ comma() }}{{parameter.name}}
         {%- endfor -%} );
 }
+{% endif %}
 
 {% endfor %}
 

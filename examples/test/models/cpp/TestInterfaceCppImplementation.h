@@ -104,6 +104,13 @@ public:
     {
     }
 
+    void asyncMethod(int arg, facelift::AsyncAnswer<int> answer) override
+    {
+        QTimer::singleShot(1000, [answer, arg]() mutable {
+            answer(arg + 10);
+        });
+    }
+
     void setstructProperty2(const TestStruct2 & /*newValue*/) override
     {
     }

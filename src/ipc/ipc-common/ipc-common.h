@@ -38,6 +38,8 @@
 
 namespace facelift {
 
+typedef int ASyncRequestID;
+
 enum class IPCHandlingResult {
     OK,
     INVALID
@@ -180,6 +182,7 @@ private:
 
 protected:
     bool m_providerReady = false;
+    static ASyncRequestID s_nextRequestID;
 
 };
 
