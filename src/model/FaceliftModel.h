@@ -38,6 +38,7 @@
 #include <QJSValue>
 #include <QTimer>
 #include <QMap>
+#include <memory>
 
 #include <array>
 
@@ -1000,8 +1001,154 @@ public:
 
 };
 
+
+template<typename Type, typename Sfinae = void>
+struct QMLModelTypeHandler
+{
+    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+    {
+        return engine->toScriptValue(facelift::toQMLCompatibleType(v));
+    }
+
+    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        v = engine->fromScriptValue<Type>(value);
+    }
+
+};
+
+
+template<typename Type>
+QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+{
+    return QMLModelTypeHandler<Type>::toJSValue(v, engine);
 }
 
+
+template<typename Type>
+void fromJSValue(Type &v, const QJSValue &jsValue, QQmlEngine *engine)
+{
+    QMLModelTypeHandler<Type>::fromJSValue(v, jsValue, engine);
+}
+
+
+template<typename CallBack>
+class TAsyncAnswerMaster
+{
+
+public:
+    TAsyncAnswerMaster(CallBack callback) : m_callback(callback)
+    {
+    }
+
+    ~TAsyncAnswerMaster()
+    {
+        if (!m_isAlreadyAnswered) {
+            qWarning() << "No answer provided to asynchronous call";
+        }
+    }
+
+    template<typename ... Types>
+    void call(const Types & ... args)
+    {
+        setAnswered();
+        m_callback(args ...);
+    }
+
+private:
+    void setAnswered()
+    {
+        Q_ASSERT(m_isAlreadyAnswered == false);
+        m_isAlreadyAnswered = true;
+    }
+
+protected:
+    bool m_isAlreadyAnswered = false;
+    CallBack m_callback;
+
+};
+
+
+template<typename ReturnType>
+class AsyncAnswer
+{
+    typedef std::function<void (const ReturnType &)> CallBack;
+
+public:
+    class Master : public TAsyncAnswerMaster<CallBack>
+    {
+public:
+        using TAsyncAnswerMaster<CallBack>::m_callback;
+        Master(CallBack callback) : TAsyncAnswerMaster<CallBack>(callback)
+        {
+        }
+    };
+
+    AsyncAnswer()
+    {
+    }
+
+    AsyncAnswer(CallBack callback) : m_master(new Master(callback))
+    {
+    }
+
+    AsyncAnswer(const AsyncAnswer &other) : m_master(other.m_master)
+    {
+    }
+
+    AsyncAnswer &operator=(const AsyncAnswer &other)
+    {
+        m_master = other.m_master;
+        return *this;
+    }
+
+    void operator()(const ReturnType &returnValue)
+    {
+        m_master->call(returnValue);
+    }
+
+private:
+    std::shared_ptr<Master> m_master;
+};
+
+template<>
+class AsyncAnswer<void>
+{
+    typedef std::function<void ()> CallBack;
+
+public:
+    class Master : public TAsyncAnswerMaster<CallBack>
+    {
+public:
+        using TAsyncAnswerMaster<CallBack>::m_callback;
+
+        Master(CallBack callback) : TAsyncAnswerMaster<CallBack>(callback)
+        {
+        }
+    };
+
+    AsyncAnswer()
+    {
+    }
+
+    AsyncAnswer(CallBack callback) : m_master(new Master(callback))
+    {
+    }
+
+    AsyncAnswer(const AsyncAnswer &other) : m_master(other.m_master)
+    {
+    }
+
+    void operator()()
+    {
+        m_master->call();
+    }
+
+private:
+    std::shared_ptr<Master> m_master;
+};
+
+}
 
 template<typename ElementType>
 inline QTextStream &operator <<(QTextStream &outStream, const facelift::Map<ElementType> &f) {

@@ -158,6 +158,11 @@ def fullyQualifiedCppType(type):
     s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
     return s
 
+def isAsync(self):
+    if self.tags.get('async'):
+        return True
+    return False
+
 ######### Property extensions
 
 def fullyQualifiedPath(self):
@@ -220,6 +225,8 @@ setattr(qface.idl.domain.Interface, 'hasModelProperty', property(hasModelPropert
 
 setattr(qface.idl.domain.Module, 'namespaceCppOpen', property(namespaceCppOpen))
 setattr(qface.idl.domain.Module, 'namespaceCppClose', property(namespaceCppClose))
+
+setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
 
 def hasReturnValue(self):
     return not self.type.name == 'void'

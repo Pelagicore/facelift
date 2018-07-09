@@ -66,6 +66,9 @@ interface TestInterface {
     list<TestEnum> method4(TestStruct2 s);
     list<TestStruct> method5();
 
+    @async: true
+    int asyncMethod(int arg);
+
     signal event1(TestStruct p);
     signal eventEnum(TestEnum p);
     signal eventInt(int p);

@@ -41,7 +41,7 @@ Item {
 
     // Instantiate our implementation and store it as a typed property 
     readonly property MyInterface myInterface: MyInterfaceImplementation {
-        // Create an instance of the create QML type registered under the name "MyInterfaceImplementation".
+        // Create an instance of the QML type registered under the name "MyInterfaceImplementation".
         // The exact type depends on what has been registered during the plugin initialization, but the interface implemented by any type 
         // registered under the name "MyInterface" should be the same. That enables the UI code to be reused whatever implementation is registered.
         onCounterReset: print("Counter has been reset")
@@ -49,7 +49,9 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: myInterface.resetCounter();
+        onClicked: myInterface.resetCounterAsync(function(i) {
+            print("resetCounterAsync completed with value" + i);
+        });
     }
 
     Text {

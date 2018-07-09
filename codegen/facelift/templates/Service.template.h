@@ -157,9 +157,17 @@ public:
     {% endfor %}
     {% for operation in interface.operations %}
 
+    {% if operation.isAsync %}
+    virtual void {{operation}}(
+        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) = 0;
+    {% else %}
+
     {{operation.comment}}
     virtual {{operation.cppType}} {{operation}}({% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %}) = 0;
+
+    {% endif %}
+
     {% endfor %}
     {% for event in interface.signals %}
     {{event.comment}}

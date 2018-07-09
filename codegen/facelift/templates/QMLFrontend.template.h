@@ -193,6 +193,30 @@ public:
     {% endfor %}
 
     {% for operation in interface.operations %}
+
+    {% if operation.isAsync %}
+    Q_INVOKABLE void {{operation}}(
+        {%- set comma = joiner(", ") -%}
+        {%- for parameter in operation.parameters -%}
+            {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
+        {%- endfor -%}
+        {{ comma() }}QJSValue callback)
+    {
+        Q_ASSERT(m_provider);
+        m_provider->{{operation}}(
+            {%- for parameter in operation.parameters -%}
+            {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
+            {{parameter.name}},
+            {%- else -%}
+            facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
+            {%- endif -%}
+            {%- endfor -%}
+            facelift::AsyncAnswer<{{operation.cppType}}>([this, callback]({% if operation.hasReturnValue %}const {{operation.cppType}} &returnValue{% endif %}) mutable {
+            callJSCallback({% if operation.hasReturnValue %}returnValue, {% endif %}callback);
+        }));
+    }
+    {% else %}
+
     Q_INVOKABLE {{operation.cppType}} {{operation}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
@@ -213,6 +237,7 @@ public:
                 {%- endfor -%}
                 );
     }
+    {% endif %}
 
     {% endfor -%}
 

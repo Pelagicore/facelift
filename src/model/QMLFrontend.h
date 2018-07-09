@@ -89,6 +89,26 @@ public:
 
 protected:
 
+    template<typename Type> void callJSCallback(const Type& value, QJSValue& callback)
+    {
+        if (callback.isCallable()) {
+            QJSValueList args;
+            args.append(facelift::toJSValue(value, qmlEngine(this)));
+            callback.call(args);
+        } else {
+            qCritical("Provided JS object is not callable");
+        }
+    }
+
+    void callJSCallback(QJSValue& callback)
+    {
+        if (callback.isCallable()) {
+            callback.call(QJSValueList());
+        } else {
+            qCritical("Provided JS object is not callable");
+        }
+    }
+
     void setProvider(InterfaceBase &provider)
     {
         m_provider = &provider;

@@ -57,6 +57,13 @@ public:
         counterReset();
     }
 
+    void resetCounterAsync(facelift::AsyncAnswer<int> answer) override {
+        QTimer::singleShot(1000, [this, answer]() mutable {
+            resetCounter();
+            answer(10);
+        });
+    }
+
 private:
     QTimer m_timer;
 
