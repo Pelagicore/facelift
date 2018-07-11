@@ -78,7 +78,7 @@ class IPCServiceAdapterBase : public QObject
     Q_OBJECT
 
 public:
-    Q_PROPERTY(facelift::InterfaceBase * service READ service WRITE checkedSetService)
+    Q_PROPERTY(facelift::InterfaceBase *service READ service WRITE checkedSetService)
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)

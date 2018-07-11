@@ -456,8 +456,9 @@ public:
 
     void setProperty(Property<QMap<QString, ElementType> > &property)
     {
-        if (m_property == nullptr)
+        if (m_property == nullptr) {
             m_property = &property;
+        }
     }
 
     int size() const override

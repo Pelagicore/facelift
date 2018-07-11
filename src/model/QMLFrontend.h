@@ -58,7 +58,7 @@ public:
     }
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
-    virtual InterfaceBase * provider() {
+    virtual InterfaceBase *provider() {
         Q_ASSERT(m_provider != nullptr);
         qWarning() << "Accessing private provider implementation object";
         return m_provider;
@@ -88,8 +88,8 @@ public:
     }
 
 protected:
-
-    template<typename Type> void callJSCallback(const Type& value, QJSValue& callback)
+    template<typename Type>
+    void callJSCallback(const Type &value, QJSValue &callback)
     {
         if (callback.isCallable()) {
             QJSValueList args;
@@ -100,7 +100,7 @@ protected:
         }
     }
 
-    void callJSCallback(QJSValue& callback)
+    void callJSCallback(QJSValue &callback)
     {
         if (callback.isCallable()) {
             callback.call(QJSValueList());
@@ -115,7 +115,8 @@ protected:
         connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
     }
 
-    InterfaceBase * providerPrivate() {
+    InterfaceBase *providerPrivate()
+    {
         return m_provider;
     }
 
@@ -206,10 +207,11 @@ int registerSingletonQmlComponent(const char *uri, const char *name = ProviderTy
 
 
 template<typename ProviderType>
-typename ProviderType::QMLFrontendType* getQMLFrontend(ProviderType* provider) {
-    if (provider == nullptr)
+typename ProviderType::QMLFrontendType *getQMLFrontend(ProviderType *provider)
+{
+    if (provider == nullptr) {
         return nullptr;
-    else {
+    } else {
         if (provider->m_qmlFrontend == nullptr) {
             // No QML frontend instantiated yet => create one
             provider->m_qmlFrontend = new typename ProviderType::QMLFrontendType(provider);

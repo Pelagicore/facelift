@@ -250,17 +250,17 @@ struct DummyModelTypeHandler<Type, typename ::std::enable_if<::std::is_base_of<S
 
 
 template<typename Type>
-struct DummyModelTypeHandler<Type*, typename ::std::enable_if<::std::is_base_of<InterfaceBase, Type>::value>::type>
+struct DummyModelTypeHandler<Type *, typename ::std::enable_if<::std::is_base_of<InterfaceBase, Type>::value>::type>
 {
 
-    static void writeJSON(QJsonValue &json, const Type * value)
+    static void writeJSON(QJsonValue &json, const Type *value)
     {
         Q_UNUSED(json);
         Q_UNUSED(value);
         Q_ASSERT(false);
     }
 
-    static void readJSON(const QJsonValue &json, Type * value)
+    static void readJSON(const QJsonValue &json, Type *value)
     {
         Q_UNUSED(json);
         Q_UNUSED(value);
