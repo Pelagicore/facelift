@@ -190,6 +190,11 @@ function(facelift_generate_code )
     # Delete work folder
     file(REMOVE_RECURSE ${WORK_PATH})
 
+    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
+    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
+    file(GLOB_RECURSE CODEGEN_FILES ${CODEGEN_LOCATION}/*)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_FILES};${QFACE_FILES}")
+
 endfunction()
 
 
@@ -199,9 +204,6 @@ function(facelift_add_interface TARGET_NAME)
     set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
     set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
-    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
 
     facelift_load_variables()
     set(LIBRARY_NAME ${TARGET_NAME})
@@ -218,9 +220,6 @@ function(facelift_add_interface TARGET_NAME)
     set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
     set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
     set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
-
-    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_EXECUTABLE_LOCATION};${QFACE_FILES}")
 
     facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH})
 
@@ -267,8 +266,9 @@ function(facelift_add_interface TARGET_NAME)
 
     set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "${MODULE_COMPILE_DEFINITIONS}")
 
-    # Add a dummy target to make the QFace files visible in the IDE
-    add_custom_target(FaceliftPackage_${LIBRARY_NAME} SOURCES ${QFACE_FILES})
+    # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
+    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
+    target_sources(${LIBRARY_NAME} PRIVATE ${QFACE_FILES})
 
 endfunction()
 
