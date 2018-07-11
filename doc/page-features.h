@@ -2,6 +2,56 @@
 
 \page Features
 
+
+\section async Asynchronous methods
+
+In addition to standard methods, which block the caller until the method execution is finished and
+provide an immediate return value, Facelift supports asynchronous methods. Asynchronous methods have
+been introduced to support operations which potentially last a long time, or which are not able to
+produce a return value immediately.
+
+\subsection async-sub1 Declaration
+
+Methods can be marked as asynchronous using the "async" decorator, as in the following QFace definition:
+
+\code
+module facelift.example 1.0;
+
+interface MyInterface {
+
+    @async : true
+    int myAsyncMethod(int inputArgument);
+
+}
+\endcode
+
+\subsection async-sub2 Usage from QML UI code
+In order for the method's return value to be provided asynchronously, the method needs to be called
+with a JavaScript function object as argument, in addition to the "normal" input parameters. The
+JavaScript function should accept an argument, unless the method is defined as returning "void".
+\code
+    myInterface.myAsyncMethod(integerInputArgument, function(integerResult) {
+        print("myAsyncMethod finished execution with result " + integerResult);
+    });
+\endcode
+
+\subsection async-sub3 C++ method implementation
+In order for a C++ implementation to provide its return value asynchronously, an asynchronous method
+takes an additional argument. That argument defines an "operator()" method, which means it can be called
+as if it was a std::function. Although it can be called synchronously, that object would typically have
+to be copied so that it can be called after the method returns. Here is an example of C++ implementation
+of an asynchronous method, which involves a copy of the "answer" object, since it is captured by a
+lambda function:
+\code
+    void myAsyncMethod(int inputArgument, facelift::AsyncAnswer<int> answer) override {
+        // We simply provide our return value after 1000 ms
+        QTimer::singleShot(1000, [this, answer]() mutable {
+            int returnValue = 10;
+            answer(returnValue);
+        });
+    }
+\endcode
+
 \section Property Ready Flag
 
 \subsection sub1 QFace Syntax
