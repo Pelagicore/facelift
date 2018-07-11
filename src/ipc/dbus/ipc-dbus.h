@@ -798,7 +798,7 @@ public:
     }
 
     template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value)
+    DBusIPCMessage sendSetterCall(const char *methodName, const PropertyType &value)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         msg << value;
@@ -808,6 +808,7 @@ public:
                 "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
                 qPrintable(methodName), qPrintable(objectPath()));
         }
+        return replyMessage;
     }
 
     template<typename ... Args>
@@ -894,19 +895,35 @@ public:
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value)
     {
-        m_ipcBinder.sendSetterCall(methodName, value);
+        DBusIPCMessage msg = m_ipcBinder.sendSetterCall(methodName, value);
+        if (msg.isReplyMessage()) {
+            deserializeSpecificPropertyValues(msg);
+        }
     }
 
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... args)
     {
-        auto msg = m_ipcBinder.sendMethodCall(methodName, args ...);
+        DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
+        if (msg.isReplyMessage()) {
+            deserializeSpecificPropertyValues(msg);
+        }
     }
 
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
     {
-        auto msg = m_ipcBinder.sendMethodCall(methodName, args ...);
+        DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
+        if (msg.isReplyMessage()) {
+            IPCTypeHandler<ReturnType>::read(msg, returnValue);
+            deserializeSpecificPropertyValues(msg);
+        }
+    }
+
+    template<typename ReturnType, typename ... Args>
+    void sendMethodCallWithReturnNoSync(const char *methodName, ReturnType &returnValue, const Args & ... args)
+    {
+        DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
             IPCTypeHandler<ReturnType>::read(msg, returnValue);
         }
