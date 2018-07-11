@@ -168,8 +168,9 @@ public:
     }
 
     template<typename PropertyType>
-    typename TypeToWidget<PropertyType>::PanelType * addProperty(PropertyInterface<ProviderType, PropertyType> property,
-            QString propertyName) {
+    typename TypeToWidget<PropertyType>::PanelType *addProperty(PropertyInterface<ProviderType, PropertyType> property,
+            QString propertyName)
+    {
         typedef typename TypeToWidget<PropertyType>::PanelType PanelType;
         auto widget = new PanelType(*new PropertyType(), propertyName);
 
@@ -187,8 +188,9 @@ public:
     }
 
     template<typename PropertyType, typename SetterFunction>
-    typename TypeToWidget<PropertyType>::PanelType * addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName,
-            SetterFunction setter) {
+    typename TypeToWidget<PropertyType>::PanelType *addProperty(PropertyInterface<ProviderType, PropertyType> property, QString propertyName,
+            SetterFunction setter)
+    {
         auto widget = addProperty(property, propertyName);
 
         widget->enableEdition();

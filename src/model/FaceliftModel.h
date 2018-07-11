@@ -52,7 +52,8 @@ namespace facelift {
 
 typedef int ModelElementID;
 
-template<typename ElementType> using Map = QMap<QString, ElementType>;
+template<typename ElementType>
+using Map = QMap<QString, ElementType>;
 
 
 class StructureBase
@@ -601,8 +602,9 @@ struct TypeHandler<QMap<QString, ElementType> >
     static QVariantMap toQMLCompatibleType(const QMap<QString, ElementType> &map)
     {
         QVariantMap variantMap;
-        for (auto i = map.constBegin(); i != map.constEnd(); ++i)
+        for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
             variantMap.insert(i.key(), QVariant::fromValue(TypeHandler<ElementType>::toQMLCompatibleType(i.value())));
+        }
 
         return variantMap;
     }
@@ -612,10 +614,11 @@ struct TypeHandler<QMap<QString, ElementType> >
         field.clear();
         for (auto i = qmlValue.constBegin(); i != qmlValue.constEnd(); ++i) {
             QVariant value = i.value();
-            if (value.canConvert<ElementType>())
+            if (value.canConvert<ElementType>()) {
                 field.insert(i.key(), value.value<ElementType>());
-            else
+            } else {
                 qFatal("Bad map item value type");
+            }
         }
     }
 };
@@ -674,7 +677,6 @@ class InterfaceBase : public QObject
     Q_OBJECT
 
 public:
-
     typedef void QMLFrontendType;
 
     InterfaceBase(QObject *parent = nullptr) :
@@ -795,7 +797,7 @@ class PropertyInterface
 
 public:
     typedef void (Class::*ChangeSignal)();
-    typedef const PropertyType & (Class::*GetterMethod)() const;
+    typedef const PropertyType &(Class::*GetterMethod)() const;
 
     PropertyInterface(Class *o, GetterMethod g, ChangeSignal s)
     {
@@ -834,7 +836,7 @@ class ServicePropertyInterface
 {
 public:
     typedef void (Class::*ChangeSignal)();
-    typedef ServiceType* (Class::*GetterMethod)();
+    typedef ServiceType * (Class::*GetterMethod)();
 
     ServicePropertyInterface(Class *o, GetterMethod g, ChangeSignal s)
     {
@@ -843,7 +845,7 @@ public:
         getter = g;
     }
 
-    ServiceType* value() const
+    ServiceType *value() const
     {
         return (object->*getter)();
     }
@@ -942,7 +944,7 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
         Q_UNUSED(connections);
     }
 
-    static QMLFrontendType* toQMLCompatibleType(Type *v)
+    static QMLFrontendType *toQMLCompatibleType(Type *v)
     {
         return getQMLFrontend(v);
     }
@@ -1077,7 +1079,7 @@ class AsyncAnswer
 public:
     class Master : public TAsyncAnswerMaster<CallBack>
     {
-public:
+    public:
         using TAsyncAnswerMaster<CallBack>::m_callback;
         Master(CallBack callback) : TAsyncAnswerMaster<CallBack>(callback)
         {
@@ -1119,7 +1121,7 @@ class AsyncAnswer<void>
 public:
     class Master : public TAsyncAnswerMaster<CallBack>
     {
-public:
+    public:
         using TAsyncAnswerMaster<CallBack>::m_callback;
 
         Master(CallBack callback) : TAsyncAnswerMaster<CallBack>(callback)
@@ -1151,9 +1153,10 @@ private:
 }
 
 template<typename ElementType>
-inline QTextStream &operator <<(QTextStream &outStream, const facelift::Map<ElementType> &f) {
+inline QTextStream &operator<<(QTextStream &outStream, const facelift::Map<ElementType> &f)
+{
     outStream << "[";
-    for(const auto& e : f.toStdMap()) {
+    for (const auto &e : f.toStdMap()) {
         outStream << e.first << "=" << e.second << ", ";
     }
     outStream << "]";

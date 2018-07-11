@@ -64,7 +64,8 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 
 }
 
-facelift::ipc::ObjectRegistry& DBusManager::objectRegistry() {
+facelift::ipc::ObjectRegistry &DBusManager::objectRegistry()
+{
     if (m_objectRegistry == nullptr) {
         m_objectRegistry = new DBusObjectRegistry(*this);
         m_objectRegistry->init();
@@ -139,8 +140,9 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
 DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
 {
     emit destroyed(this);
-    if (m_alreadyInitialized)
+    if (m_alreadyInitialized) {
         DBusManager::instance().objectRegistry().unregisterObject(objectPath(), DBusManager::instance().serviceName());
+    }
 }
 
 void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
@@ -151,8 +153,9 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
 
             if (dbusManager().isDBusConnected()) {
 
-                if (!m_serviceName.isEmpty())
+                if (!m_serviceName.isEmpty()) {
                     DBusManager::instance().registerServiceName(m_serviceName);
+                }
 
                 DBusManager::instance().objectRegistry().registerObject(objectPath(), DBusManager::instance().serviceName());
 
@@ -174,7 +177,7 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
 void DBusIPCProxyBinder::bindToIPC()
 {
     if (!m_explicitServiceName) {
-        auto& registry = DBusManager::instance().objectRegistry();
+        auto &registry = DBusManager::instance().objectRegistry();
 
         if (registry.objects().contains(objectPath())) {
             m_serviceName = registry.objects()[objectPath()];

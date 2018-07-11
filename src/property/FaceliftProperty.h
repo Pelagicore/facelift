@@ -62,7 +62,7 @@ public:
 
     template<typename ServiceType>
     void init(QObject *ownerObject, void (ServiceType::*changeSignal)(), void (ServiceType::*readySignal)(),
-              const char *name = "Unknown")
+            const char *name = "Unknown")
     {
         init(ownerObject, changeSignal, name);
         m_readySignal = static_cast<ChangeSignal>(readySignal);
@@ -389,8 +389,9 @@ public:
             }
         }
 
-        if (bModified)
+        if (bModified) {
             this->triggerValueChangedSignal();
+        }
     }
 
     void addElement(ElementType element)
@@ -407,8 +408,9 @@ public:
     const ElementType *elementPointerById(ModelElementID id) const
     {
         for (const auto &element : this->value()) {
-            if (element.id() == id)
+            if (element.id() == id) {
                 return &element;
+            }
         }
         return nullptr;
     }

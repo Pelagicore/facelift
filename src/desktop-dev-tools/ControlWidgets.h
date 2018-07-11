@@ -85,13 +85,15 @@ public:
         return m_propertyName;
     }
 
-    virtual void enableEdition() {
+    virtual void enableEdition()
+    {
         Q_ASSERT(false);
     }
 
     Q_SIGNAL void valueChanged();
 
-    virtual void refreshWidgetFromValue() {
+    virtual void refreshWidgetFromValue()
+    {
         Q_ASSERT(false);
     }
 
@@ -127,7 +129,8 @@ public:
         return m_value;
     }
 
-    void init() {
+    void init()
+    {
     }
 
 protected:
@@ -352,7 +355,8 @@ public:
         this->addWidget(widget);
     }
 
-    void init() {
+    void init()
+    {
         Q_ASSERT(false);
     }
 

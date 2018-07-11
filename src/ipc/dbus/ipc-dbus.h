@@ -361,7 +361,7 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBas
 
 
 template<typename Type>
-struct IPCTypeHandler<Type*, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
+struct IPCTypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
     static void writeDBUSSignature(QTextStream &s)
     {
@@ -528,15 +528,16 @@ public:
         return m_busConnection;
     }
 
-    QString serviceName() const {
+    QString serviceName() const
+    {
         return m_busConnection.baseService();
     }
 
-    facelift::ipc::ObjectRegistry& objectRegistry();
+    facelift::ipc::ObjectRegistry &objectRegistry();
 
 private:
     QDBusConnection m_busConnection;
-    DBusObjectRegistry* m_objectRegistry = nullptr;
+    DBusObjectRegistry *m_objectRegistry = nullptr;
     bool m_dbusConnected;
 };
 
@@ -546,7 +547,6 @@ class DBusIPCServiceAdapterBase : public IPCServiceAdapterBase
     Q_OBJECT
 
 public:
-
     static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
     static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
     static constexpr const char *SIGNAL_TRIGGERED_SIGNAL_NAME = "SignalTriggered";
@@ -842,13 +842,12 @@ public:
     }
 
 private:
-
     QString m_serviceName;
     QString m_interfaceName;
 
     IPCRequestHandler *m_serviceObject = nullptr;
 
-    facelift::ipc::ObjectRegistry* m_objectRegistry = nullptr;
+    facelift::ipc::ObjectRegistry *m_objectRegistry = nullptr;
 
     QDBusServiceWatcher m_busWatcher;
     bool m_explicitServiceName = false;
@@ -982,10 +981,10 @@ public:
 }
 
 
-class InterfacePropertyHandlerBase {
+class InterfacePropertyHandlerBase
+{
 public:
-
-    QString generateObjectPath(const QString& parentPath)
+    QString generateObjectPath(const QString &parentPath)
     {
         QString path = parentPath + "/dynamic";
         path += QString::number(s_nextInstanceID++);
@@ -997,10 +996,11 @@ public:
 
 
 template<typename InterfaceType, typename InterfaceAdapterType>
-class InterfacePropertyIPCAdapterHandler : public InterfacePropertyHandlerBase {
+class InterfacePropertyIPCAdapterHandler : public InterfacePropertyHandlerBase
+{
 
 public:
-    void update(IPCServiceAdapterBase* parent, InterfaceType* service)
+    void update(IPCServiceAdapterBase *parent, InterfaceType *service)
     {
         if (m_service != service) {
             m_service = service;
@@ -1016,9 +1016,9 @@ public:
     {
         if (m_serviceAdapter) {
             return m_serviceAdapter->objectPath();
-        }
-        else
+        } else {
             return "";
+        }
     }
 
     QPointer<InterfaceType> m_service;
@@ -1031,8 +1031,7 @@ class InterfacePropertyIPCProxyHandler : public InterfacePropertyHandlerBase
 {
 
 public:
-
-    void update(const QString& objectPath)
+    void update(const QString &objectPath)
     {
         if (m_proxy && (m_proxy->ipc()->objectPath() != objectPath)) {
             m_proxy = nullptr;
@@ -1044,7 +1043,7 @@ public:
         }
     }
 
-    ProxyType* getValue() const
+    ProxyType *getValue() const
     {
         return m_proxy.get();
     }

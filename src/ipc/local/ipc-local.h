@@ -122,8 +122,8 @@ public:
         Q_UNUSED(returnValue);
 
         qCritical("Error message received when calling method '%s' on service at path '%s'."
-                  "This likely indicates that the server you are trying to access is not available yet",
-                  qPrintable(methodName), qPrintable(ipc()->objectPath()));
+                "This likely indicates that the server you are trying to access is not available yet",
+                qPrintable(methodName), qPrintable(ipc()->objectPath()));
     }
 
     template<typename PropertyType>
@@ -132,8 +132,8 @@ public:
         Q_UNUSED(value);
 
         qCritical("Error message received when calling method '%s' on service at path '%s'."
-                  "This likely indicates that the server you are trying to access is not available yet",
-                  qPrintable(methodName), qPrintable(ipc()->objectPath()));
+                "This likely indicates that the server you are trying to access is not available yet",
+                qPrintable(methodName), qPrintable(ipc()->objectPath()));
     }
 
 private:

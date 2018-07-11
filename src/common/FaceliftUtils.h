@@ -161,11 +161,13 @@ void generateToString(QTextStream &message, const FirstParameterTypes &firstPara
 }
 
 
-template <typename Key, typename Value>
+template<typename Key, typename Value>
 class MostRecentlyUsedCache
 {
 public:
-    MostRecentlyUsedCache(unsigned int size = 50) : m_size(size) {}
+    MostRecentlyUsedCache(unsigned int size = 50) : m_size(size)
+    {
+    }
 
     bool exists(const Key &key) const
     {
@@ -213,7 +215,7 @@ public:
 
 private:
     unsigned int m_size;
-    std::list<std::pair<Key, Value>> m_list;  // first item is most recently used
+    std::list<std::pair<Key, Value> > m_list;  // first item is most recently used
     std::unordered_map<Key, decltype(m_list.begin())> m_map;
 };
 
