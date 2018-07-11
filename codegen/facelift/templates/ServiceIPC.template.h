@@ -72,7 +72,6 @@ public:
         facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>::setService(srvc);
 
         {% for property in interface.properties %}
-
         {% if property.type.is_model %}
         facelift::ModelBase *{{property.name}} = &(service()->{{property.name}}());
         connect({{property.name}}, static_cast<void (facelift::ModelBase::*)(int, int)>
@@ -150,38 +149,30 @@ public:
         {% endif %}
 
         {% for operation in interface.operations %}
-
         if (member == "{{operation.name}}") {
-
             {% for parameter in operation.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
             requestMessage >> param_{{parameter.name}};
             {% endfor %}
-
             {% if operation.isAsync %}
-
             facelift::ASyncRequestID requestID = s_nextRequestID++;
-
             theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
                 facelift::AsyncAnswer<{{operation.cppType}}>([this, requestID] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) {
                 sendSignal("{{operation.name}}Result", requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
             }));
-
             replyMessage << requestID;
-
             {% else %}
             {% if operation.hasReturnValue %}
-            replyMessage <<
-            {%- endif %}
+            replyMessage << theService->{{operation.name}}(
+            {%- else %}
             theService->{{operation.name}}(
-            {% set comma = joiner(", ") %}
-            {% for parameter in operation.parameters -%}
+            {%- endif %}
+            {%- set comma = joiner(", ") -%}
+            {%- for parameter in operation.parameters -%}
                 {{ comma() }}param_{{parameter.name}}
             {%- endfor -%});
-
+            serializeSpecificPropertyValues(replyMessage);
             {% endif %}
-
-
         } else
         {% endfor %}
         {% for property in interface.properties %}
@@ -201,6 +192,7 @@ public:
             {{property.cppType}} value;
             requestMessage >> value;
             theService->set{{property.name}}(value);
+            serializeSpecificPropertyValues(replyMessage);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
@@ -230,7 +222,6 @@ public:
         });
         {% endif %}
         connect(service(), &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
-
         {% endfor %}
 
         // Signals
@@ -337,8 +328,8 @@ public:
         }
         facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>::setServiceRegistered(isRegistered);
     }
-    {% endif %}
 
+    {% endif %}
     void bindLocalService({{interface}} *service) override
     {
         Q_UNUSED(service);
@@ -375,11 +366,10 @@ public:
                 m_{{operation.name}}Requests.remove(id);
             }
         }
+
         {% endif %}
         {% endfor %}
-
         {% for event in interface.signals %}
-
         if (signalName == "{{event}}") {
             {% for parameter in event.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
@@ -391,8 +381,8 @@ public:
                 {{ comma() }}param_{{parameter.name}}
             {%- endfor -%}  );
         }
-        {% endfor %}
 
+        {% endfor %}
         {% for property in interface.properties %}
         {% if property.type.is_model %}
         if (signalName == "{{property.name}}DataChanged") {
@@ -418,6 +408,7 @@ public:
         } else if (signalName == "{{property.name}}EndRemove") {
             emit m_{{property.name}}.endRemoveElements();
         }
+
         {% endif %}
         {% endfor %}
     }
@@ -440,11 +431,7 @@ public:
             {%- endfor -%} answer);
         }
     }
-
-    QMap<facelift::ASyncRequestID, facelift::AsyncAnswer<{{operation.cppType}}>> m_{{operation.name}}Requests;
-
     {% else %}
-
     {{operation.cppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
@@ -454,16 +441,19 @@ public:
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}
             {{operation.cppType}} returnValue;
-            sendMethodCallWithReturn("{{operation.name}}", returnValue
+            auto msg = ipc()->sendMethodCall("{{operation.name}}"
                 {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
                 {%- endfor -%} );
+            msg >> returnValue;
+            deserializeSpecificPropertyValues(msg);
             return returnValue;
             {% else %}
-            sendMethodCall("{{operation.name}}"
+            auto msg = ipc()->sendMethodCall("{{operation.name}}"
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
+            deserializeSpecificPropertyValues(msg);
             {% endif %}
         } else {
             {% if (operation.hasReturnValue) %}
@@ -486,7 +476,8 @@ public:
     {
         if (localInterface() == nullptr) {
             {% if (not property.type.is_interface) %}
-            sendSetterCall("set{{property}}", newValue);
+            auto msg = ipc()->sendMethodCall("set{{property}}", newValue);
+            deserializeSpecificPropertyValues(msg);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
@@ -526,7 +517,11 @@ public:
     {% endfor %}
 
 private:
-
+    {% for operation in interface.operations %}
+    {% if operation.isAsync %}
+    QMap<facelift::ASyncRequestID, facelift::AsyncAnswer<{{operation.cppType}}>> m_{{operation.name}}Requests;
+    {% endif %}
+    {% endfor %}
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
     facelift::InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
