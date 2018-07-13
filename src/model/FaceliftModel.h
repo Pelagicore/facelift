@@ -585,7 +585,6 @@ struct TypeHandler<QMap<QString, ElementType> >
 
     static QString toString(const QMap<QString, ElementType> &map)
     {
-
         QString s;
         QTextStream str(&s);
         str << "[ ";
@@ -907,7 +906,7 @@ inline int qRegisterMetaType()
 template<typename Type>
 struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
-    typedef typename Type::QMLFrontendType QMLFrontendType;
+    typedef typename Type::QMLFrontendType* QMLType;
 
     static void write(BinarySeralizer &msg, const Type &param)
     {
@@ -932,7 +931,6 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
         return QString::number(s, 16);
     }
 
-
     template<typename ReceiverType, typename Function>
     static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
             QList<QMetaObject::Connection> &connections)
@@ -944,7 +942,7 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
         Q_UNUSED(connections);
     }
 
-    static QMLFrontendType *toQMLCompatibleType(Type *v)
+    static QMLType toQMLCompatibleType(Type *v)
     {
         return getQMLFrontend(v);
     }

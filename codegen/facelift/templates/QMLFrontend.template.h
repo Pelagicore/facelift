@@ -217,7 +217,7 @@ public:
     }
     {% else %}
 
-    Q_INVOKABLE {{operation.cppType}} {{operation}}(
+    Q_INVOKABLE {{operation.type.qmlCompatibleType}} {{operation}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
@@ -225,7 +225,7 @@ public:
     )
     {
         Q_ASSERT(m_provider);
-        return m_provider->{{operation}}(
+        {% if operation.hasReturnValue %} return facelift::toQMLCompatibleType{% endif %}(m_provider->{{operation}}(
                 {%- set comma = joiner(", ") -%}
                 {%- for parameter in operation.parameters -%}
                 {{ comma() }}
@@ -235,7 +235,7 @@ public:
                 facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
                 {%- endif -%}
                 {%- endfor -%}
-                );
+                ));
     }
     {% endif %}
 

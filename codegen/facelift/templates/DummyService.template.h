@@ -61,7 +61,7 @@ public:
         {% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override { }
     {% else %}
 
-    {{operation.cppType}} {{operation}}(
+    {{operation.interfaceCppType}} {{operation}}(
             {% set comma = joiner(",") %}
             {% for parameter in operation.parameters %}
             {{ comma() }}
@@ -82,7 +82,7 @@ public:
         );
 
         {% if (operation.hasReturnValue) %}
-        {{operation.cppType}} returnValue = {};
+        {{operation.interfaceCppType}} returnValue = {};
         return returnValue;
         {% endif %}
 

@@ -82,6 +82,7 @@ public:
 
         m_interfaceListProperty.addElement(new Interface2Implementation(this, ""));
         m_interfaceMapProperty = facelift::Map<facelift::test::TestInterface2*>({{"key1", new Interface2Implementation(this, "blabla")}});
+        m_interfaceProperty = new Interface2Implementation(this, "");
     }
 
     void setintProperty(const int &newValue) override
@@ -151,4 +152,10 @@ public:
     {
         return QList<TestStruct>();
     }
+
+    TestInterface2 *methodWithSubInterface() override
+    {
+        return m_interfaceProperty;
+    }
+
 };
