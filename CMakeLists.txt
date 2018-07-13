@@ -16,7 +16,8 @@ option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should 
 option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" ON)
-option(FACELIFT_BUILD_TEST "Enable build of tests" OFF)
+option(FACELIFT_BUILD_TESTS "Enable build of tests" OFF)
+option(FACELIFT_BUILD_OBSOLETE_TEST "Enable build of obsolete tests" OFF)
 option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ${DEBUG_BUILD})
 
 find_package(Qt5 REQUIRED Core Gui Qml Quick)
@@ -56,10 +57,15 @@ if(FACELIFT_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(FACELIFT_BUILD_TEST)
+if(FACELIFT_BUILD_OBSOLETE_TEST)
     enable_testing()
     add_subdirectory(test)
     add_subdirectory(examples/test)
+endif()
+
+if(FACELIFT_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
 
 add_subdirectory(doc)
