@@ -1,0 +1,100 @@
+/**********************************************************************
+**
+** Copyright (C) 2018 Luxoft Sweden AB
+**
+** This file is part of the FaceLift project
+**
+** Permission is hereby granted, free of charge, to any person
+** obtaining a copy of this software and associated documentation files
+** (the "Software"), to deal in the Software without restriction,
+** including without limitation the rights to use, copy, modify, merge,
+** publish, distribute, sublicense, and/or sell copies of the Software,
+** and to permit persons to whom the Software is furnished to do so,
+** subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be
+** included in all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+** NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+** ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+** CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+** SOFTWARE.
+**
+** SPDX-License-Identifier: MIT
+**
+**********************************************************************/
+
+module tests.combined 1.0
+
+interface CombinedInterface {
+    readonly bool qmlImplementationUsed;
+    void initialize();
+
+    readonly bool boolProperty;
+    readonly CombiEnum enumProperty;
+    CombiEnum writableEnumProperty;
+    int intProperty;
+    CombiStruct structProperty;
+    CombiStruct2 structProperty2;
+
+    readonly CombinedInterface2 interfaceProperty;
+    readonly list<CombinedInterface2> interfaceListProperty;
+    readonly list<int> intListProperty;
+    readonly list<bool> boolListProperty;
+    readonly list<CombiEnum> enumListProperty;
+
+    list<string> stringListProperty;
+
+    readonly list<CombiStruct> structListProperty;
+
+    readonly map<CombinedInterface2> interfaceMapProperty;
+    readonly map<CombiStruct> structMapProperty;
+    map<int> intMapProperty;
+
+    @hasReadyFlag: true
+    int readyProperty;
+
+    string method1();
+    CombiStruct2 method2(int intParam, bool boolParam);
+    CombiEnum method3();
+    list<CombiEnum> method4(CombiStruct2 s);
+    list<CombiStruct> method5();
+
+    signal event1(CombiStruct p);
+    signal eventCombiEnum(CombiEnum p);
+    signal eventInt(int p);
+    signal eventBoolAndCombiStruct(bool p, CombiStruct q);
+    signal eventWithList(list<int> p, bool q);
+    signal eventWithMap(map<int> p);
+    signal eventWithStructWithList(StructWithList p)
+}
+
+interface CombinedInterface2 {
+    void doSomething();
+}
+
+struct CombiStruct {
+    string aString;
+    int anInt;
+}
+
+struct CombiStruct2 {
+    CombiStruct cs;
+    CombiEnum e;
+}
+
+struct StructWithList {
+    list<int> listOfInts;
+    list<CombiStruct> listOfStructs;
+    CombiEnum enumField;
+}
+
+enum CombiEnum {
+    E1,
+    E2,
+    E3,
+}

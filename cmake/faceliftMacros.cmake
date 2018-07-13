@@ -334,7 +334,7 @@ macro(_facelift_add_target_start)
         set(UNITY_BUILD ON)
     endif()
 
-    if(ARGUMENT_USE_QML_COMPILER)
+    if(ARGUMENT_USE_QML_COMPILER OR CMAKE_AUTOMOC)
         #qml compiler adds private definitions of V4 to RESOURCES BIN
         #combining set of resources in one file leads to redefinition error message
         set(UNITY_BUILD OFF)
@@ -458,8 +458,8 @@ function(facelift_add_test TEST_NAME)
     facelift_add_executable(${TEST_NAME} ${ARGN})
 
     set_target_properties(${TEST_NAME} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
     )
 
     add_test(
@@ -571,7 +571,7 @@ endfunction()
 
 # Add a FILE and install it at the given DESTINATION in both the build folder and in the installation folder
 # The DESTINATION parameter must be a relative path
-# If specified, the RELATIVE_PATH_VARIABLE_NAME variable is set in the caller's scope and contains the path where the 
+# If specified, the RELATIVE_PATH_VARIABLE_NAME variable is set in the caller's scope and contains the path where the
 # file is located, relative to the RELATIVE_PATH_BASE parameter. That relative path is valid in both the build folder
 # and the installation folder
 function(facelift_install_file)
@@ -596,7 +596,7 @@ endfunction()
 function(facelift_add_qml_plugin PLUGIN_NAME)
 
     set(options )
-    set(oneValueArgs URI VERSION)
+    set(oneValueArgs URI VERSION OUTPUT_BASE_DIRECTORY)
     set(multiValueArgs )
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -605,6 +605,10 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
     if(NOT ARGUMENT_VERSION)
         # Default to version 1.0 if no version is specified
         set(ARGUMENT_VERSION "1.0")
+    endif()
+
+    if(NOT ARGUMENT_OUTPUT_BASE_DIRECTORY)
+        set(ARGUMENT_OUTPUT_BASE_DIRECTORY "imports")
     endif()
 
     string(REPLACE "." ";" VERSION_LIST "${ARGUMENT_VERSION}")
@@ -619,7 +623,7 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
         COMPILE_DEFINITIONS "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}"
     )
 
-    set(INSTALL_PATH imports/${PLUGIN_PATH})
+    set(INSTALL_PATH ${ARGUMENT_OUTPUT_BASE_DIRECTORY}/${PLUGIN_PATH})
 
     set_target_properties(${PLUGIN_NAME} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
