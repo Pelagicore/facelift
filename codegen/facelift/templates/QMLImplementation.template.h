@@ -68,7 +68,7 @@ public:
     }
     {% else %}
 
-    {{operation.cppType}} {{operation.name}}(
+    {{operation.interfaceCppType}} {{operation.name}}(
     {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter.cppType}} {{parameter.name}}
@@ -133,7 +133,7 @@ public:
     // TODO: implement
     {% else %}
 
-    {{operation.cppType}} {{operation.name}}(
+    {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") %}
         {% for parameter in operation.parameters %}
         {{ comma() }}{{parameter.cppType}} {{parameter.name}}
@@ -150,7 +150,7 @@ public:
 
         {% endif %}
         {% if operation.hasReturnValue %}
-        {{operation.cppType}} returnValue;
+        {{operation.interfaceCppType}} returnValue;
         auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
         facelift::fromJSValue(returnValue, jsReturnValue, engine);
         return returnValue;
@@ -344,7 +344,7 @@ inline QObject* {{interface}}QMLImplementationFrontend::impl()
 {% if operation.isAsync %}
 // TODO
 {% else %}
-inline {{operation.cppType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
+inline {{operation.interfaceCppType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
     {{ comma() }}{{parameter.cppType}} {{parameter.name}}

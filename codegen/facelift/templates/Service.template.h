@@ -163,7 +163,7 @@ public:
     {% else %}
 
     {{operation.comment}}
-    virtual {{operation.cppType}} {{operation}}({% set comma = joiner(",") %}
+    virtual {{operation.interfaceCppType}} {{operation}}({% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %}) = 0;
 
     {% endif %}

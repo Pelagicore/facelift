@@ -69,6 +69,8 @@ interface TestInterface {
     @async: true
     int asyncMethod(int arg);
 
+    TestInterface2 methodWithSubInterface();
+
     signal event1(TestStruct p);
     signal eventEnum(TestEnum p);
     signal eventInt(int p);

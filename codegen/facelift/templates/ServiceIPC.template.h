@@ -432,7 +432,7 @@ public:
         }
     }
     {% else %}
-    {{operation.cppType}} {{operation.name}}(
+    {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
@@ -440,7 +440,7 @@ public:
     {
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}
-            {{operation.cppType}} returnValue;
+            {{operation.interfaceCppType}} returnValue;
             sendMethodCallWithReturn("{{operation.name}}", returnValue
                 {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
