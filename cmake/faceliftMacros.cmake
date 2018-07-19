@@ -168,21 +168,33 @@ function(facelift_generate_code )
     # find_package(PythonInterp) causes some issues if the another version has been searched before, and it is not needed anyway on non-Win32 platforms
     if(WIN32)
         find_package(PythonInterp 3.0 REQUIRED)
-        set(CODEGEN_COMMAND ${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND} )
-    else()
-        set(CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND})
     endif()
 
-    string(REPLACE ";" " " CODEGEN_COMMAND_WITH_SPACES "${CODEGEN_COMMAND}")
-    message("Calling facelift code generator. Command:\n" ${CODEGEN_COMMAND_WITH_SPACES})
+    string(REPLACE ";" " " BASE_CODEGEN_COMMAND_WITH_SPACES "${BASE_CODEGEN_COMMAND}")
+    message("Calling facelift code generator. Command:\n${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
 
-    execute_process(COMMAND ${CODEGEN_COMMAND}
+    if(NOT DEFINED ENV{LANG}) # e.g. Qt Creator was started from the Apple Dock
+        set(ENV{LANG} "en_US.UTF-8")
+        # --> http://click.pocoo.org/5/python3/#python-3-surrogate-handling
+        # --> https://apple.stackexchange.com/questions/54765/how-can-i-have-qt-creator-to-recognize-my-environment-variables
+        set(LANG_SET_BY_FACELIFT true)
+    else()
+        set(LANG_SET_BY_FACELIFT false)
+    endif()
+
+    execute_process(COMMAND ${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND}
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
+        OUTPUT_VARIABLE CODEGEN_OUTPUT
+        ERROR_VARIABLE CODEGEN_ERROR
     )
 
+    if(LANG_SET_BY_FACELIFT)
+        unset(ENV{LANG})
+    endif()
+
     if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
-        message(FATAL_ERROR "Facelift code generation failed. Command \"${CODEGEN_COMMAND_WITH_SPACES}\". PYTHONPATH=$ENV{PYTHONPATH} Return code: ${CODEGEN_RETURN_CODE}\n")
+        message(FATAL_ERROR "Facelift code generation failed!\nCommand: ${BASE_CODEGEN_COMMAND_WITH_SPACES} with PYTHONPATH=$ENV{PYTHONPATH}\nReturn code: ${CODEGEN_RETURN_CODE}\nOutput: ${CODEGEN_OUTPUT}\nError: ${CODEGEN_ERROR}\n")
     endif()
 
     facelift_synchronize_folders(${WORK_PATH} ${ARGUMENT_OUTPUT_PATH})
