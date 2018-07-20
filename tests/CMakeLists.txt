@@ -18,3 +18,8 @@ add_test(NAME combined-ipc-cpp COMMAND test-driver.sh combined/tst_combined_ipc.
 add_test(NAME combined-ipc-qml COMMAND test-driver.sh combined/tst_combined_ipc.qml qml combined/combined-server.qml)
 add_test(NAME combined-inprocess-cpp COMMAND test-driver.sh combined/tst_combined_inprocess.qml cpp)
 add_test(NAME combined-inprocess-qml COMMAND test-driver.sh combined/tst_combined_inprocess.qml qml)
+
+add_subdirectory(models)
+add_test(NAME models-local-cpp COMMAND test-driver.sh models/tst_models_local.qml cpp)
+add_test(NAME models-ipc-cpp COMMAND test-driver.sh models/tst_models_ipc.qml cpp models/models-server.qml)
+add_test(NAME models-inprocess-cpp COMMAND test-driver.sh models/tst_models_inprocess.qml cpp)
