@@ -314,6 +314,11 @@ public:
     virtual void bindLocalService(InterfaceType *service) = 0;
 
 protected:
+    void setReady(bool isReady)
+    {
+        m_serviceReady = isReady;
+    }
+
     QPointer<IPCAdapterType> m_localAdapter;
     Property<bool> m_serviceReady;
 
