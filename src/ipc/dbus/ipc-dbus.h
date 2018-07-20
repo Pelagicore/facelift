@@ -1021,11 +1021,10 @@ public:
     {
         if (m_service != service) {
             m_service = service;
-            auto serviceAdapter = new InterfaceAdapterType(service);
-            serviceAdapter->setObjectPath(generateObjectPath(parent->objectPath()));
-            serviceAdapter->setService(service);
-            serviceAdapter->init();
-            m_serviceAdapter = std::move(std::unique_ptr<InterfaceAdapterType>(serviceAdapter));
+            m_serviceAdapter = new InterfaceAdapterType(service); // This object will be deleted together with the service itself
+            m_serviceAdapter->setObjectPath(generateObjectPath(parent->objectPath()));
+            m_serviceAdapter->setService(service);
+            m_serviceAdapter->init();
         }
     }
 
@@ -1039,7 +1038,7 @@ public:
     }
 
     QPointer<InterfaceType> m_service;
-    std::unique_ptr<InterfaceAdapterType> m_serviceAdapter;
+    InterfaceAdapterType* m_serviceAdapter = nullptr;
 };
 
 
