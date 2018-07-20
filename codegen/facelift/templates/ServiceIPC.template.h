@@ -540,6 +540,10 @@ public:
     {
     }
 
+    {{interface}}IPCQMLFrontendType(QQmlEngine *engine) : {{interface}}QMLFrontend(engine)
+    {
+    }
+
     facelift::IPCProxyBinder *ipc()
     {
         auto p = static_cast<{{interface}}IPCProxy*>(provider());

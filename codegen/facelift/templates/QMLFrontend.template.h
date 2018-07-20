@@ -43,6 +43,7 @@
 #pragma once
 
 #include <QtCore>
+#include <QQmlEngine>
 
 #include "QMLFrontend.h"
 #include "{{class}}.h"
@@ -80,8 +81,11 @@ class {{class}}QMLFrontend : public facelift::QMLFrontendBase
 
 public:
 
-    {{class}}QMLFrontend(QObject* parent = nullptr)
-        : facelift::QMLFrontendBase(parent)
+    {{class}}QMLFrontend(QObject* parent) : facelift::QMLFrontendBase(parent)
+    {
+    }
+
+    {{class}}QMLFrontend(QQmlEngine* engine) : facelift::QMLFrontendBase(engine)
     {
     }
 
