@@ -53,8 +53,17 @@ class QMLFrontendBase : public QObject, public QQmlParserStatus
     Q_INTERFACES(QQmlParserStatus)
 
 public:
-    QMLFrontendBase(QObject *parent = nullptr) : QObject(parent)
+    QMLFrontendBase(QObject *parent) : QObject(parent)
     {
+    }
+
+    /**
+     *  This constructor is used when instantiating a singleton
+     */
+    QMLFrontendBase(QQmlEngine *engine) : QMLFrontendBase(static_cast<QObject*>(engine))
+    {
+        // store the reference to the engine since we can not get it from the "qmlEngine()" global function
+        m_qmlEngine = engine;
     }
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
@@ -93,7 +102,9 @@ protected:
     {
         if (callback.isCallable()) {
             QJSValueList args;
-            args.append(facelift::toJSValue(value, qmlEngine(this)));
+            QQmlEngine *engine = (m_qmlEngine ? m_qmlEngine : qmlEngine(this));
+            Q_ASSERT(engine != nullptr);
+            args.append(facelift::toJSValue(value, engine));
             callback.call(args);
         } else {
             qCritical("Provided JS object is not callable");
@@ -124,7 +135,7 @@ protected:
 
 private:
     InterfaceBase *m_provider = nullptr;
-
+    QQmlEngine* m_qmlEngine = nullptr;
 };
 
 /*!
@@ -136,8 +147,12 @@ class TQMLFrontend : public ProviderType::QMLFrontendType
 {
 
 public:
-    TQMLFrontend(QObject *parent = nullptr) :
-        ProviderType::QMLFrontendType(parent)
+    TQMLFrontend(QObject *parent = nullptr) : ProviderType::QMLFrontendType(parent)
+    {
+        this->init(m_provider);
+    }
+
+    TQMLFrontend(QQmlEngine *engine) : ProviderType::QMLFrontendType(engine)
     {
         this->init(m_provider);
     }
@@ -168,7 +183,7 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(scriptEngine);
     Q_UNUSED(engine);
-    auto obj = new Type();
+    auto obj = new Type(engine);
     obj->componentComplete();
     qDebug() << "Singleton created" << obj;
     return obj;
