@@ -156,6 +156,12 @@ struct TypeHandlerBase
         return v;
     }
 
+    template<typename Type>
+    static QVariant toQmlContainerElement(const Type& v)
+    {
+        return QVariant::fromValue(v);
+    }
+
     template<typename Type, typename QmlType>
     static void assignFromQmlType(Type &field, const QmlType &qmlValue)
     {
@@ -345,6 +351,11 @@ struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, 
         return v;
     }
 
+    static QVariant toQmlContainerElement(const Type& v)
+    {
+        return QVariant::fromValue(v);
+    }
+
     static void assignFromQmlType(Type &field, const Type &qmlValue)
     {
         field = qmlValue;
@@ -381,6 +392,11 @@ struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::typ
     }
 
     static const Type &toQMLCompatibleType(const Type &v)
+    {
+        return v;
+    }
+
+    static Type toQmlContainerElement(const Type &v)
     {
         return v;
     }
@@ -522,7 +538,7 @@ struct TypeHandler<QList<ElementType> >
     {
         QVariantList variantList;
         for (const auto &e : list) {
-            variantList.append(QVariant::fromValue(TypeHandler<ElementType>::toQMLCompatibleType(e)));
+            variantList.append(TypeHandler<ElementType>::toQmlContainerElement(e));
         }
         return variantList;
     }
@@ -602,7 +618,7 @@ struct TypeHandler<QMap<QString, ElementType> >
     {
         QVariantMap variantMap;
         for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
-            variantMap.insert(i.key(), QVariant::fromValue(TypeHandler<ElementType>::toQMLCompatibleType(i.value())));
+            variantMap.insert(i.key(), TypeHandler<ElementType>::toQmlContainerElement(i.value()));
         }
 
         return variantMap;
@@ -947,6 +963,10 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
         return getQMLFrontend(v);
     }
 
+    static QVariant toQmlContainerElement(Type *v)
+    {
+        return QVariant::fromValue(toQMLCompatibleType(v));
+    }
 };
 
 

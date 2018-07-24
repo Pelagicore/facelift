@@ -76,8 +76,7 @@ function initialized() {
     compare(api.boolListProperty.length, 3);
     compare(api.boolListProperty[2], true);
     compare(api.enumListProperty.length, 1);
-    verify(api.enumListProperty[0] == CombiEnum.E2)   // replace with:
-    //compare(api.enumListProperty[0], CombiEnum.E2); // once types are fixed
+    compare(api.enumListProperty[0], CombiEnum.E2);
     compare(api.stringListProperty.length, 3);
     compare(api.stringListProperty[0], "one");
 
@@ -87,6 +86,9 @@ function initialized() {
         compare(api.structListProperty[0].aString, "ok");
         compare(api.structListProperty[1].aString, "nok");
     }
+
+    compare(api.enumMapProperty.one, CombiEnum.E1);
+    compare(api.enumMapProperty.two, CombiEnum.E2);
 
     compare(api.intMapProperty.one, 1);
     compare(api.intMapProperty.two, 2);

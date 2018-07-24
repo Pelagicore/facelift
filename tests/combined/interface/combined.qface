@@ -53,6 +53,7 @@ interface CombinedInterface {
 
     readonly map<CombinedInterface2> interfaceMapProperty;
     readonly map<CombiStruct> structMapProperty;
+    readonly map<CombiEnum> enumMapProperty;
     map<int> intMapProperty;
 
     @hasReadyFlag: true
