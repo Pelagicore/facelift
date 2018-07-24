@@ -818,15 +818,50 @@ public:
 };
 
 
+class ModelBase : public QObject
+{
+    Q_OBJECT
+
+public:
+    Q_SIGNAL void dataChanged(int first, int last);
+
+    void dataChanged(int index)
+    {
+        dataChanged(index, index);
+    }
+
+    Q_SIGNAL void beginInsertElements(int first, int last);
+    Q_SIGNAL void beginRemoveElements(int first, int last);
+
+    Q_SIGNAL void endInsertElements();
+    Q_SIGNAL void endRemoveElements();
+
+    virtual int size() const = 0;
+
+};
+
+
+template<typename ElementType>
+class Model : public ModelBase
+{
+public:
+    virtual ElementType elementAt(int index) const = 0;
+
+};
+
+
 template<typename Class, typename PropertyType>
 class ModelPropertyInterface
 {
-
 public:
-    ModelPropertyInterface()
+    ModelPropertyInterface(Class* o, facelift::Model<PropertyType>& p)
     {
+        object = o;
+        property = &p;
     }
 
+    Class* object;
+    facelift::Model<PropertyType>* property = nullptr;
 };
 
 
@@ -967,39 +1002,6 @@ inline const QList<Type> &validValues()
 {
     return QList<Type>();
 }
-
-
-class ModelBase : public QObject
-{
-
-    Q_OBJECT
-
-public:
-    Q_SIGNAL void dataChanged(int first, int last);
-
-    void dataChanged(int index)
-    {
-        dataChanged(index, index);
-    }
-
-    Q_SIGNAL void beginInsertElements(int first, int last);
-    Q_SIGNAL void beginRemoveElements(int first, int last);
-
-    Q_SIGNAL void endInsertElements();
-    Q_SIGNAL void endRemoveElements();
-
-    virtual int size() const = 0;
-
-};
-
-
-template<typename ElementType>
-class Model : public ModelBase
-{
-public:
-    virtual ElementType elementAt(int index) const = 0;
-
-};
 
 
 template<typename Type, typename Sfinae = void>
