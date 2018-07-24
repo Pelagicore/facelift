@@ -41,6 +41,13 @@ Window {
     visible: true
 
     AdvancedModel {
+        id: advancedModel
         IPC.enabled: true
     }
+
+    AdvancedAppPanel {
+        advancedModel: AdvancedModelIPCProxy {
+        }
+    }
+
 }

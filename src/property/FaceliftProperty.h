@@ -470,17 +470,26 @@ public:
     {
     }
 
-    template<typename Class, typename PropertyType>
-    ModelProperty &bind(const ModelPropertyInterface<Class, PropertyType> &property)
+    template<typename Class>
+    ModelProperty &bind(const ModelPropertyInterface<Class, ElementType> &property)
     {
-        Q_UNUSED(property);
-        // TODO : implement
+        facelift::Model<ElementType>* modelProperty = property.property;
+        this->setGetter([this, modelProperty](int index) {
+            return modelProperty->elementAt(index);
+        });
+        this->setSize(property.property->size());
+        QObject::connect(modelProperty, &facelift::ModelBase::beginInsertElements, this, &facelift::ModelBase::beginInsertElements);
+        QObject::connect(modelProperty, &facelift::ModelBase::endInsertElements, this, &facelift::ModelBase::endInsertElements);
+        QObject::connect(modelProperty, &facelift::ModelBase::beginRemoveElements, this, &facelift::ModelBase::beginRemoveElements);
+        QObject::connect(modelProperty, &facelift::ModelBase::endRemoveElements, this, &facelift::ModelBase::endRemoveElements);
+        QObject::connect(modelProperty, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged),
+                (facelift::ModelBase*)this, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged));
         return *this;
     }
 
     ElementType elementAt(int index) const override
     {
-        if (m_elementGetter != nullptr) {
+        if (m_elementGetter) {
             return m_elementGetter(index);
         } else {
             return m_elements[index];
@@ -508,7 +517,7 @@ public:
 
     int size() const override
     {
-        if (m_elementGetter != nullptr) {
+        if (m_elementGetter) {
             return m_size;
         } else {
             return m_elements.size();
@@ -529,16 +538,6 @@ public:
     {
         m_elements = elements;
         notifyDataChanged();
-    }
-
-    QList<ElementType> asList() const
-    {
-        QList<ElementType> list;
-        auto elementCount = size();
-        for (int i = 0; i < elementCount; i++) {
-            list.append(elementAt(i));
-        }
-        return list;
     }
 
     QString toString() const override

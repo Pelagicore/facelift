@@ -479,10 +479,21 @@ public:
     }
 
     template<typename ListElementType>
+    static QList<ListElementType> modelAsList(const ModelProperty<ListElementType> &property) {
+        auto size = property.size();
+        QList<ListElementType> list;
+        for (int i = 0; i < size; i++) {
+            list.append(property.elementAt(i));
+        }
+        return list;
+    }
+
+    template<typename ListElementType>
     void writeJSONProperty(QJsonObject &json, const ModelProperty<ListElementType> &property,
             const char *propertyName) const
     {
-        json[propertyName] = toJsonArray(property.asList());
+        auto list = modelAsList(property);
+        json[propertyName] = toJsonArray(list);
     }
 
     template<typename ElementType>
@@ -602,7 +613,7 @@ public:
         widget->setValueWidget(widgetForNewElement);
 
         QObject::connect(widget->createNewElementButton, &QPushButton::clicked, [&property, widgetForNewElement]() {
-                auto v = property.asList();
+                auto v = modelAsList(property);
                 ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());     // ensure structs are cloned to get a new ID
                 v.append(clone);
                 property.setElements(v);

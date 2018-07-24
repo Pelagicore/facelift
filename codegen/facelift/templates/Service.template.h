@@ -118,7 +118,7 @@ public:
 
     facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}> {{property}}Property()
     {
-        return facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}>();
+        return facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}>(this, {{property.name}}());
     }
 
     {% elif property.type.is_interface -%}

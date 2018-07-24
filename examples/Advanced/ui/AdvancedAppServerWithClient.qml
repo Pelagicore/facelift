@@ -28,22 +28,26 @@
 **
 **********************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.4
+import QtQuick.Window 2.2
 import advanced 1.0
 
 
-Item {
-    id: root
-    height: 386
+Window {
     width: 360
+    height: 420
+    color: "linen"
+    title: "Server"
+    visible: true
 
-    //AdvancedModelIPCProxy {
     AdvancedModel {
         id: advancedModel
+        IPC.enabled: true
     }
 
     AdvancedAppPanel {
-        advancedModel: advancedModel
+        advancedModel: AdvancedModelIPCProxy {
+        }
     }
 
 }
