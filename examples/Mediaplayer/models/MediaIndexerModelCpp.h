@@ -46,8 +46,13 @@ public:
     MediaIndexerModelCpp(QObject *parent = nullptr) :
         MediaIndexerModelPropertyAdapter(parent)
     {
-        m_files.setSize(m_service.files().size());
-        m_files.setGetter([this](int index) {
+        connect(&m_service, &MediaIndexerService::filesChanged, this, &MediaIndexerModelCpp::onFilesChanged);
+        onFilesChanged();
+    }
+
+    void onFilesChanged()
+    {
+        m_files.reset(m_service.files().size(), [this](int index) {
             const auto &files = m_service.files();
             MediaFile file;
             file.settitle(files[index].title);
@@ -55,14 +60,6 @@ public:
             file.seturl(files[index].url);
             return file;
         });
-
-        connect(&m_service, &MediaIndexerService::filesChanged, this, &MediaIndexerModelCpp::onFilesChanged);
-    }
-
-    void onFilesChanged()
-    {
-        m_files.setSize(m_service.files().size());
-        m_files.notifyDataChanged();
     }
 
 private:

@@ -34,8 +34,8 @@ import advanced 1.0
 
 Item {
     id: root
-    height: 386
-    width: 360
+    height: 500
+    width: 500
 
     //AdvancedModelIPCProxy {
     AdvancedModel {
@@ -43,6 +43,7 @@ Item {
     }
 
     AdvancedAppPanel {
+        anchors.fill: parent
         advancedModel: advancedModel
     }
 

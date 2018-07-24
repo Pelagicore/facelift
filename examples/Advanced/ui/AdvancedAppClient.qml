@@ -28,17 +28,22 @@
 **
 **********************************************************************/
 
-module advanced 1.0
+import QtQuick 2.4
+import QtQuick.Window 2.2
+import advanced 1.0
 
-struct MyStruct {
-    string name
-    bool enabled
-}
 
-interface AdvancedModel {
-    readonly model<MyStruct> theModel;
-    void deleteModelItem(MyStruct item);
-    void insertNewModelItemAfter(MyStruct item);
-    void renameModelItem(MyStruct item, string name);
-    void resetModel();
+Window {
+    height: 500
+    width: 500
+    color: "linen"
+    title: "Client"
+    visible: true
+
+    AdvancedAppPanel {
+        anchors.fill: parent
+        advancedModel: AdvancedModelIPCProxy {
+        }
+    }
+
 }

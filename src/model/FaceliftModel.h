@@ -852,6 +852,9 @@ public:
     Q_SIGNAL void endInsertElements();
     Q_SIGNAL void endRemoveElements();
 
+    Q_SIGNAL void beginResetModel();
+    Q_SIGNAL void endResetModel();
+
     virtual int size() const = 0;
 
 };

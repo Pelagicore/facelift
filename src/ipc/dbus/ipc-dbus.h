@@ -594,7 +594,7 @@ public:
     }
 
     template<typename ... Args>
-    void sendSignal(const char *signalName, const Args & ... args)
+    void sendSignal(const QString& signalName, const Args & ... args)
     {
         DBusIPCMessage msg(objectPath(), interfaceName(), SIGNAL_TRIGGERED_SIGNAL_NAME);
         msg << signalName;
@@ -707,6 +707,49 @@ public:
         return introspectionData;
     }
 
+    void connectModel(const QString& name, facelift::ModelBase &model)
+    {
+        connect(&model, static_cast<void (facelift::ModelBase::*)(int, int)>
+                (&facelift::ModelBase::dataChanged), this, [this, name] (int first, int last) {
+            this->sendSignal(name + "DataChanged", first, last);
+        });
+        connect(&model, &facelift::ModelBase::beginRemoveElements, this, [this, name] (int first, int last) {
+            this->sendSignal(name + "BeginRemove", first, last);
+        });
+        connect(&model, &facelift::ModelBase::endRemoveElements, this, [this, name] () {
+            this->sendSignal(name + "EndRemove");
+        });
+        connect(&model, &facelift::ModelBase::beginInsertElements, this, [this, name] (int first, int last) {
+            this->sendSignal(name + "BeginInsert", first, last);
+        });
+        connect(&model, &facelift::ModelBase::endInsertElements, this, [this, name] () {
+            this->sendSignal(name + "EndInsert");
+        });
+        connect(&model, &facelift::ModelBase::beginResetModel, this, [this, name] () {
+            this->sendSignal(name + "BeginReset");
+        });
+        connect(&model, &facelift::ModelBase::endResetModel, this, [this, name] () {
+            this->sendSignal(name + "EndReset");
+        });
+    }
+
+    template<typename ElementType>
+    void handleModelRequest(facelift::Model<ElementType>& model,
+            facelift::dbus::DBusIPCMessage &requestMessage, facelift::dbus::DBusIPCMessage &replyMessage) {
+        int first, last;
+        requestMessage >> first >> last;
+        QList<ElementType> list;
+
+        // Make sure we do not request items which are out of range
+        first = qMin(first, model.size() - 1);
+        last = qMin(last, model.size() - 1);
+
+        for (int i = first; i <= last; ++i)
+            list.append(model.elementAt(i));
+
+        replyMessage << list;
+    }
+
 protected:
     QPointer<ServiceType> m_service;
 
@@ -798,7 +841,7 @@ public:
     }
 
     template<typename PropertyType>
-    DBusIPCMessage sendSetterCall(const char *methodName, const PropertyType &value)
+    DBusIPCMessage sendSetterCall(const QString& methodName, const PropertyType &value)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         msg << value;
@@ -812,7 +855,7 @@ public:
     }
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args)
+    DBusIPCMessage sendMethodCall(const QString& methodName, const Args & ... args)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
@@ -902,7 +945,7 @@ public:
     }
 
     template<typename ... Args>
-    void sendMethodCall(const char *methodName, const Args & ... args)
+    void sendMethodCall(const QString& methodName, const Args & ... args)
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
@@ -911,7 +954,7 @@ public:
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
+    void sendMethodCallWithReturn(const QString& methodName, ReturnType &returnValue, const Args & ... args)
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
@@ -921,12 +964,75 @@ public:
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturnNoSync(const char *methodName, ReturnType &returnValue, const Args & ... args)
+    void sendMethodCallWithReturnNoSync(const QString& methodName, ReturnType &returnValue, const Args & ... args)
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
             msg >> returnValue;
         }
+    }
+
+    template<typename ElementType>
+    void handleModelSignal(facelift::Model<ElementType>& model, facelift::MostRecentlyUsedCache<int, ElementType>& cache,
+            const QString& modelName, const QString& signalName, facelift::dbus::DBusIPCMessage &msg) {
+
+        if (signalName == modelName + "DataChanged") {
+            int first, last;
+            msg >> first >> last;
+            for (int i = first; i <= last; ++i) {
+                if (cache.exists(i))
+                    cache.remove(i);
+            }
+            emit model.dataChanged(first, last);
+        } else if (signalName == modelName + "BeginInsert") {
+            cache.clear();
+            int first, last;
+            msg >> first >> last;
+            emit model.beginInsertElements(first, last);
+        } else if (signalName == modelName + "EndInsert") {
+            emit model.endInsertElements();
+        } else if (signalName == modelName + "BeginRemove") {
+            cache.clear();
+            int first, last;
+            msg >> first >> last;
+            emit model.beginRemoveElements(first, last);
+        } else if (signalName == modelName + "EndRemove") {
+            emit model.endRemoveElements();
+        } else if (signalName == modelName + "BeginReset") {
+            cache.clear();
+            emit model.beginResetModel();
+        } else if (signalName == modelName + "EndReset") {
+            cache.clear();
+            emit model.endResetModel();
+        }
+    }
+
+    template<typename ElementType>
+    ElementType modelData(facelift::Model<ElementType>& model, facelift::MostRecentlyUsedCache<int, ElementType>& cache,
+            const QString& modelName, int row) {
+        ElementType retval;
+        if (cache.exists(row)) {
+            retval = cache.get(row);
+        } else {
+            static const int prefetch = 12;    // fetch 25 items around requested one
+            QList<ElementType> list;
+            int first = row > prefetch ? row - prefetch : 0;
+            int last = row < model.size() - prefetch ? row + prefetch : model.size() - 1;
+
+            while (cache.exists(first) && first < last)
+                ++first;
+            while (cache.exists(last) && last > first)
+                --last;
+
+            this->sendMethodCallWithReturnNoSync(modelName + "Data", list, first, last);
+            Q_ASSERT(list.size() == (last - first + 1));
+
+            for (int i = first; i <= last; ++i)
+                cache.insert(i, list.at(i - first));
+
+            retval = list.at(row - first);
+        }
+        return retval;
     }
 
     DBusIPCProxyBinder *ipc()
@@ -1038,6 +1144,7 @@ public:
             return "";
         }
     }
+
 
     QPointer<InterfaceType> m_service;
     QPointer<InterfaceAdapterType> m_serviceAdapter;
