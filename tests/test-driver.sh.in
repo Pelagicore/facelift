@@ -16,7 +16,7 @@ export QT_LOGGING_RULES="*=false;*.warning=true;*.critical=true"
 if [[ $3 ]] ; then
     echo "INVOKING: ${QML_BINARY} $SRC_FOLDER/tests/$3 -I $BUILD_FOLDER/imports/$2"
     ${QML_BINARY} "$SRC_FOLDER/tests/$3" -I "$BUILD_FOLDER/imports/$2" &
-    sleep 0.1
+    sleep 0.3
 fi
 
 # execute test provided in $1 with backend provided in $2 (cpp or qml)

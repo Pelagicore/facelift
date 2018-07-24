@@ -69,6 +69,7 @@ CombinedInterfaceQMLImplementation {
         enumListProperty = [ CombiEnum.E2 ];
         stringListProperty = [ "one", "two", "three" ];
 
+        enumMapProperty = { one: CombiEnum.E1, two: CombiEnum.E2 };
         intMapProperty = { one: 1, two: 2 };
     }
 

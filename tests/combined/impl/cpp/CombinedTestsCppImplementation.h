@@ -90,6 +90,7 @@ public:
         c.setaString("nok");
         m_structListProperty = { s, c };
 
+        m_enumMapProperty = QMap<QString, CombiEnum> { { "one", CombiEnum::E1 }, { "two", CombiEnum::E2 } };
         m_intMapProperty = QMap<QString, int> { { "one", 1 }, { "two", 2 } };
 
         m_readyProperty = 42;
