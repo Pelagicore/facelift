@@ -44,14 +44,27 @@ public:
     AdvancedModelCpp(QObject *parent = nullptr) :
         AdvancedModelPropertyAdapter(parent)
     {
+        resetModel();
+    }
+
+    void resetModel() override {
+        qWarning() << "Resetting model";
+
+        m_theModel.beginResetModel();
+
+        m_renamedItems.clear();
+        m_items.clear();
+
+        int count = qrand() % 100;
+
         int i = 0;
-        for (; i < 100; i++)
+        for (; i < count; i++)
             m_items.append(i);
 
         m_nextAvailableID = i;
 
-        m_theModel.setSize(m_items.size());
-        m_theModel.setGetter(std::bind(&AdvancedModelCpp::getItem, this, std::placeholders::_1));
+        m_theModel.reset(m_items.size(), std::bind(&AdvancedModelCpp::getItem, this, std::placeholders::_1));
+        m_theModel.endResetModel();
     }
 
     MyStruct getItem(int index)
@@ -74,7 +87,6 @@ public:
         if (index != -1) {
             emit m_theModel.beginRemoveElements(index, index);
             m_items.remove(index);
-            m_theModel.setSize(m_items.size());
             emit m_theModel.endRemoveElements();
             qWarning() << "Deleted" << item;
         }
@@ -87,7 +99,6 @@ public:
         if (index != -1) {
             emit m_theModel.beginInsertElements(index, index);
             m_items.insert(index, m_nextAvailableID++);
-            m_theModel.setSize(m_items.size());
             emit m_theModel.endInsertElements();
             qWarning() << "Duplicated" << item;
         }

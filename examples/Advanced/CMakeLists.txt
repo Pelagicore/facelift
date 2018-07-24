@@ -12,4 +12,5 @@ facelift_add_qml_plugin(AdvancedPlugin
 
 add_example_script(advanced ui/AdvancedApp.qml)
 add_example_script(advanced-server ui/AdvancedAppServer.qml)
+add_example_script(advanced-client ui/AdvancedAppClient.qml)
 add_example_script(advanced-server-in-process ui/AdvancedAppServerWithClient.qml)

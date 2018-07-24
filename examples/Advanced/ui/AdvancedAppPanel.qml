@@ -34,84 +34,101 @@ import advanced 1.0
 
 Item {
     id: root
-    height: 386
-    width: 360
 
     property AdvancedModel advancedModel
 
-    Component {
-        id: delegate
+    Rectangle {
+        id: resetButton
+        width: parent.width
+        height: 60
+        color: "red"
 
-        Rectangle {
-            height: 30
-            width: parent.width
-            color: (index % 2) == 0 ? "gray" : "lightgray"
+        Text {
+            anchors.centerIn: parent
+            text: "ResetModel"
+        }
 
-            Row {
-                anchors.fill: parent
-                anchors.margins: 4
-                spacing: 4
+        MouseArea {
+            anchors.fill: parent
+            onClicked: advancedModel.resetModel();
+        }
+    }
 
-                Text {
-                    width: 80
-                    text: modelData.name
-                }
+    Rectangle {
+        anchors.margins: 10
 
-                Rectangle {
-                    width: 60
-                    height: parent.height
-                    color: "lightsteelblue"
+        anchors.left: parent.left
+        anchors.right: parent.right
 
+        anchors.top: resetButton.bottom
+        anchors.bottom: parent.bottom
+
+        ListView {
+            anchors.fill: parent
+    
+            model: advancedModel.theModel
+            delegate: Rectangle {
+                height: 30
+                width: parent.width
+                color: (index % 2) == 0 ? "gray" : "lightgray"
+    
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    spacing: 4
+    
                     Text {
-                        text: "Rename"
+                        width: 80
+                        text: modelData.name
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: advancedModel.renameModelItem(modelData, "x" + modelData.name);
+    
+                    Rectangle {
+                        width: 60
+                        height: parent.height
+                        color: "lightsteelblue"
+    
+                        Text {
+                            text: "Rename"
+                        }
+    
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: advancedModel.renameModelItem(modelData, "x" + modelData.name);
+                        }
                     }
-                }
-
-                Rectangle {
-                    width: 60
-                    height: parent.height
-                    color: "green"
-
-                    Text {
-                        text: "Insert"
+    
+                    Rectangle {
+                        width: 60
+                        height: parent.height
+                        color: "green"
+    
+                        Text {
+                            text: "Insert"
+                        }
+    
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: advancedModel.insertNewModelItemAfter(modelData);
+                        }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: advancedModel.insertNewModelItemAfter(modelData);
-                    }
-                }
-
-                Rectangle {
-                    width: 60
-                    height: parent.height
-                    color: "red"
-
-                    Text {
-                        text: "Remove"
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: advancedModel.deleteModelItem(modelData);
+    
+                    Rectangle {
+                        width: 60
+                        height: parent.height
+                        color: "red"
+    
+                        Text {
+                            text: "Remove"
+                        }
+    
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: advancedModel.deleteModelItem(modelData);
+                        }
                     }
                 }
             }
         }
-    }
-
-    ListView {
-        id: mediaList
-        width: 280
-        height: 286
-        anchors.centerIn: parent
-
-        model: advancedModel.theModel
-        delegate: delegate
+        
     }
 }

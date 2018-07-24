@@ -73,23 +73,7 @@ public:
 
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        facelift::ModelBase *{{property.name}} = &(service()->{{property.name}}());
-        connect({{property.name}}, static_cast<void (facelift::ModelBase::*)(int, int)>
-                (&facelift::ModelBase::dataChanged), this, [this] (int first, int last) {
-            sendSignal("{{property.name}}DataChanged", first, last);
-        });
-        connect({{property.name}}, &facelift::ModelBase::beginRemoveElements, this, [this] (int first, int last) {
-            sendSignal("{{property.name}}BeginRemove", first, last);
-        });
-        connect({{property.name}}, &facelift::ModelBase::endRemoveElements, this, [this] () {
-            sendSignal("{{property.name}}EndRemove");
-        });
-        connect({{property.name}}, &facelift::ModelBase::beginInsertElements, this, [this] (int first, int last) {
-            sendSignal("{{property.name}}BeginInsert", first, last);
-        });
-        connect({{property.name}}, &facelift::ModelBase::endInsertElements, this, [this] () {
-            sendSignal("{{property.name}}EndInsert");
-        });
+        connectModel("{{property.name}}", service()->{{property.name}}());
         {% endif %}
         {% endfor %}
     }
@@ -178,12 +162,7 @@ public:
         {% for property in interface.properties %}
         {% if property.type.is_model %}
         if (member == "{{property.name}}Data") {
-            int first, last;
-            requestMessage >> first >> last;
-            QList<{{property.nestedType.fullyQualifiedCppType}}> list;
-            for (int i = first; i <= last; ++i)
-                list.append(theService->{{property.name}}().elementAt(i));
-            replyMessage << list;
+            handleModelRequest(theService->{{property.name}}(), requestMessage, replyMessage);
         } else
         {% endif %}
         {% if (not property.readonly) %}
@@ -284,12 +263,6 @@ public:
         , IPCAdapterType>(parent)
     {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
-
-        {% for property in interface.properties %}
-        {% if property.type.is_model %}
-        m_{{property.name}}.setGetter(std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
-        {% endif %}
-        {% endfor %}
     }
 
     void deserializeSpecificPropertyValues(facelift::IPCMessage &msg) override
@@ -305,8 +278,9 @@ public:
         {% elif property.type.is_model %}
         int {{property.name}}Size;
         msg >> {{property.name}}Size;
-        m_{{property.name}}.setSize({{property.name}}Size);
-
+        m_{{property.name}}.beginResetModel();
+        m_{{property.name}}.reset({{property.name}}Size, std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
+        m_{{property.name}}.endResetModel();
         {% else %}
         PropertyType_{{property.name}} {{property.name}};
         msg >> {{property.name}};
@@ -321,8 +295,7 @@ public:
         if (isRegistered) {
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-            emit m_{{property.name}}.beginInsertElements(0, m_{{property.name}}.size() - 1);
-            emit m_{{property.name}}.endInsertElements();
+            m_{{property.name}}.reset(m_{{property.name}}.size(), std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
         {% endif %}
         {% endfor %}
         }
@@ -385,30 +358,7 @@ public:
         {% endfor %}
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        if (signalName == "{{property.name}}DataChanged") {
-            int first, last;
-            msg >> first >> last;
-            for (int i = first; i <= last; ++i) {
-                if (m_{{property.name}}Cache.exists(i))
-                    m_{{property.name}}Cache.remove(i);
-            }
-            emit m_{{property.name}}.dataChanged(first, last);
-        } else if (signalName == "{{property.name}}BeginInsert") {
-            m_{{property.name}}Cache.clear();
-            int first, last;
-            msg >> first >> last;
-            emit m_{{property.name}}.beginInsertElements(first, last);
-        } else if (signalName == "{{property.name}}EndInsert") {
-            emit m_{{property.name}}.endInsertElements();
-        } else if (signalName == "{{property.name}}BeginRemove") {
-            m_{{property.name}}Cache.clear();
-            int first, last;
-            msg >> first >> last;
-            emit m_{{property.name}}.beginRemoveElements(first, last);
-        } else if (signalName == "{{property.name}}EndRemove") {
-            emit m_{{property.name}}.endRemoveElements();
-        }
-
+        handleModelSignal(m_{{property.name}}, m_{{property.name}}Cache, "{{property.name}}", signalName, msg);
         {% endif %}
         {% endfor %}
     }
@@ -485,29 +435,7 @@ public:
     {% if property.type.is_model %}
     {{property.nestedType.cppType}} {{property.name}}Data(int row)
     {
-        {{property.nestedType.cppType}} retval;
-        if (m_{{property.name}}Cache.exists(row)) {
-            retval = m_{{property.name}}Cache.get(row);
-        } else {
-            static const int prefetch = 12;    // fetch 25 items around requested one
-            QList<{{property.nestedType.fullyQualifiedCppType}}> list;
-            int first = row > prefetch ? row - prefetch : 0;
-            int last = row < m_{{property.name}}.size() - prefetch ? row + prefetch : m_{{property.name}}.size() - 1;
-
-            while (m_{{property.name}}Cache.exists(first) && first < last)
-                ++first;
-            while (m_{{property.name}}Cache.exists(last) && last > first)
-                --last;
-
-            sendMethodCallWithReturnNoSync("{{property.name}}Data", list, first, last);
-            Q_ASSERT(list.size() == (last - first + 1));
-
-            for (int i = first; i <= last; ++i)
-                m_{{property.name}}Cache.insert(i, list.at(i - first));
-
-            retval = list.at(row - first);
-        }
-        return retval;
+        return modelData(m_{{property.name}}, m_{{property.name}}Cache, "{{property.name}}", row);
     }
     {% endif %}
     {% endfor %}

@@ -34,8 +34,8 @@ import advanced 1.0
 
 
 Window {
-    width: 160
-    height: 120
+    height: 500
+    width: 500
     color: "linen"
     title: "Server"
     visible: true
@@ -46,8 +46,8 @@ Window {
     }
 
     AdvancedAppPanel {
-        advancedModel: AdvancedModelIPCProxy {
-        }
+        anchors.fill: parent
+        advancedModel: advancedModel
     }
 
 }

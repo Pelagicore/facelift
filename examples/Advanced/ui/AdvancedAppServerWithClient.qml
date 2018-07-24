@@ -46,6 +46,7 @@ Window {
     }
 
     AdvancedAppPanel {
+        anchors.fill: parent
         advancedModel: AdvancedModelIPCProxy {
         }
     }

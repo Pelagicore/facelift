@@ -539,7 +539,9 @@ public:
         auto jsonValue = json[propertyName];
         if (jsonValue.isArray()) {
             auto elements = readJSONArray<ListElementType>(jsonValue);
-            property.setElements(elements);
+            property.reset(elements.size(), [elements] (int index) {
+                return elements[index];
+            });
         } else {
             qWarning() << "Expected array in property " << propertyName;
         }
@@ -616,7 +618,9 @@ public:
                 auto v = modelAsList(property);
                 ListElementType clone = TypeToWidget<ListElementType>::clone(widgetForNewElement->value());     // ensure structs are cloned to get a new ID
                 v.append(clone);
-                property.setElements(v);
+                property.reset(v.size(), [v] (int index) {
+                    return v[index];
+                });
             });
 
         addPropertyWidget_(property, *widget);

@@ -433,45 +433,57 @@ public:
 
     ModelProperty()
     {
+        QObject::connect(this, &facelift::ModelBase::beginInsertElements, this, [this] (int first, int last) {
+            m_size += last - first + 1;
+        });
+        QObject::connect(this, &facelift::ModelBase::beginRemoveElements, this, [this] (int first, int last) {
+            m_size -= last - first + 1;
+        });
+        QObject::connect(this, &facelift::ModelBase::beginResetModel, this, [this] () {
+            m_resettingModel = true;
+        });
+        QObject::connect(this, &facelift::ModelBase::endResetModel, this, [this] () {
+            m_resettingModel = false;
+        });
     }
 
     template<typename Class>
     ModelProperty &bind(const ModelPropertyInterface<Class, ElementType> &property)
     {
         facelift::Model<ElementType>* modelProperty = property.property;
-        this->setGetter([this, modelProperty](int index) {
-            return modelProperty->elementAt(index);
-        });
-        this->setSize(property.property->size());
         QObject::connect(modelProperty, &facelift::ModelBase::beginInsertElements, this, &facelift::ModelBase::beginInsertElements);
         QObject::connect(modelProperty, &facelift::ModelBase::endInsertElements, this, &facelift::ModelBase::endInsertElements);
         QObject::connect(modelProperty, &facelift::ModelBase::beginRemoveElements, this, &facelift::ModelBase::beginRemoveElements);
         QObject::connect(modelProperty, &facelift::ModelBase::endRemoveElements, this, &facelift::ModelBase::endRemoveElements);
+        QObject::connect(modelProperty, &facelift::ModelBase::beginResetModel, this, &facelift::ModelBase::beginResetModel);
+        QObject::connect(modelProperty, &facelift::ModelBase::endResetModel, this, [this, modelProperty] () {
+            m_size = modelProperty->size();
+        });
+        QObject::connect(modelProperty, &facelift::ModelBase::endResetModel, this, &facelift::ModelBase::endResetModel);
         QObject::connect(modelProperty, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged),
                 (facelift::ModelBase*)this, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged));
+
+        this->beginResetModel();
+        this->reset(property.property->size(), [this, modelProperty](int index) {
+            return modelProperty->elementAt(index);
+        });
+        this->endResetModel();
         return *this;
     }
 
     ElementType elementAt(int index) const override
     {
-        if (m_elementGetter) {
-            return m_elementGetter(index);
-        } else {
-            return m_elements[index];
-        }
+        Q_ASSERT(m_elementGetter);
+        Q_ASSERT(!m_resettingModel);
+        Q_ASSERT(index < size());
+        return m_elementGetter(index);
     }
 
-    void setGetter(ElementGetter getter)
+    void reset(int size, ElementGetter getter)
     {
+        m_size = size;
         m_elementGetter = getter;
-    }
-
-    void setSize(int size)
-    {
-        if (m_size != size) {
-            m_size = size;
-            notifyDataChanged();
-        }
+        notifyDataChanged();
     }
 
     void notifyDataChanged()
@@ -482,11 +494,7 @@ public:
 
     int size() const override
     {
-        if (m_elementGetter) {
-            return m_size;
-        } else {
-            return m_elements.size();
-        }
+        return m_size;
     }
 
     bool isDirty() const override
@@ -499,12 +507,6 @@ public:
         m_modified = false;
     }
 
-    void setElements(const QList<ElementType> &elements)
-    {
-        m_elements = elements;
-        notifyDataChanged();
-    }
-
     QString toString() const override
     {
         return QString("Model ") + name();
@@ -512,9 +514,8 @@ public:
 
 private:
     ElementGetter m_elementGetter;
-    QList<ElementType> m_elements;
     int m_size = 0;
-
+    bool m_resettingModel = false;
     bool m_modified = false;
 };
 

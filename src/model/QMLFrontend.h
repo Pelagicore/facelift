@@ -252,8 +252,20 @@ public:
         QObject::connect(m_property, &facelift::ModelBase::endInsertElements, this, &ModelListModelBase::onEndInsertElements);
         QObject::connect(m_property, &facelift::ModelBase::beginRemoveElements, this, &ModelListModelBase::onBeginRemoveElements);
         QObject::connect(m_property, &facelift::ModelBase::endRemoveElements, this, &ModelListModelBase::onEndRemoveElements);
+        QObject::connect(m_property, &facelift::ModelBase::beginResetModel, this, &ModelListModelBase::onBeginResetModel);
+        QObject::connect(m_property, &facelift::ModelBase::endResetModel, this, &ModelListModelBase::onEndResetModel);
         QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
                 &ModelListModelBase::onDataChanged);
+    }
+
+    void onBeginResetModel()
+    {
+        beginResetModel();
+    }
+
+    void onEndResetModel()
+    {
+        endResetModel();
     }
 
     void onBeginInsertElements(int first, int last)
