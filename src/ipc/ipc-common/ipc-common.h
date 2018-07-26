@@ -250,11 +250,13 @@ public:
 
     void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter);
 
+protected:
+    bool m_inProcess = false;
+
 private:
+    bool m_alreadyInitialized = false;
     QString m_objectPath;
     bool m_enabled = true;
-    bool m_inProcess = false;
-    bool m_alreadyInitialized = false;
     bool m_componentCompleted = false;
 
 };
