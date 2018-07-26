@@ -151,6 +151,8 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
     if (!m_alreadyInitialized) {
         if (!interfaceName().isEmpty()) {
 
+            registerLocalService();
+
             if (dbusManager().isDBusConnected()) {
 
                 if (!m_serviceName.isEmpty()) {
@@ -169,7 +171,6 @@ void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
                 }
             }
 
-            registerLocalService();
         }
     }
 }
@@ -184,7 +185,7 @@ void DBusIPCProxyBinder::bindToIPC()
         }
 
         QObject::connect(&registry, &facelift::ipc::ObjectRegistry::objectsChanged, this, [this, &registry] () {
-            if (registry.objects().contains(objectPath())) {
+            if (registry.objects().contains(objectPath()) && !m_inProcess) {
                 auto serviceName = registry.objects()[objectPath()];
                 if (serviceName != m_serviceName) {
                     m_serviceName = serviceName;

@@ -895,7 +895,6 @@ private:
 
     QDBusServiceWatcher m_busWatcher;
     bool m_explicitServiceName = false;
-    bool m_alreadyInitialized = false;
 
 };
 
