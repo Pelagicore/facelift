@@ -15,7 +15,7 @@ if(Qt5DBus_FOUND)
         SOURCES ipc-dbus.cpp ipc-dbus-object-registry.cpp
         HEADERS ipc-dbus.h ipc-dbus-serialization.h ipc-dbus-object-registry.h
         SOURCES_GLOB_RECURSE ${GENERATED_FILE_PATH}/ipc/*.cpp ${GENERATED_FILE_PATH}/types/*.cpp
-        HEADERS_GLOB_RECURSE ${GENERATED_FILE_PATH}/ipc/*.h ${GENERATED_FILE_PATH}/types/*.h
+        HEADERS_GLOB_RECURSE_NO_INSTALL ${GENERATED_FILE_PATH}/ipc/*.h ${GENERATED_FILE_PATH}/types/*.h
         LINK_LIBRARIES FaceliftIPCLibLocal Qt5::DBus
         PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/..
     )
