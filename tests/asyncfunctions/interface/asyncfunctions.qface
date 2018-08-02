@@ -1,0 +1,42 @@
+module tests.asyncfunctions 1.0
+
+interface AsyncFunctionsInterface {
+
+ /*
+    "Generates C++ code which fails compiling. TODO: Fix"
+  */
+
+  /*@async: true
+    EnumValue compareEnums(EnumValue arg1, EnumValue arg2);
+  */
+
+    @async: true
+    int getIntValueAsync();
+
+    @async: true
+    string getStringValueAsync();
+
+    @async: true
+    Container getContainerValueAsync();
+
+    @async: true
+    int calculateSumAsync(int arg1 , int arg2 , int arg3);
+
+    @async: true
+    string append(string  arg1, string arg2);
+}
+
+
+enum EnumValue
+{
+    V1,
+    V2,
+    V3
+}
+
+struct Container
+{
+    int integerData
+    string stringData;
+    map<int> mapData;
+}
