@@ -32,7 +32,7 @@
 
 #include <QQmlExtensionPlugin>
 
-class AsyncTestsPlugin : public QQmlExtensionPlugin
+class AsyncFunctionsPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pelagicore.facelift.tests")

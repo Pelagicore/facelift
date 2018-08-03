@@ -30,25 +30,19 @@
 
 #pragma once
 
-#include "tests/asynctests/AsyncTestsInterfacePropertyAdapter.h"
+#include "tests/asyncfunctions/AsyncFunctionsInterfacePropertyAdapter.h"
 
 
-using namespace tests::asynctests;
+using namespace tests::asyncfunctions;
 
 
-class AsyncTestsInterfaceCppImplementation : public AsyncTestsInterfacePropertyAdapter
+class AsyncFunctionsInterfaceCppImplementation : public AsyncFunctionsInterfacePropertyAdapter
 {
     public:
-    
-    AsyncTestsInterfaceCppImplementation(QObject *parent = nullptr) : AsyncTestsInterfacePropertyAdapter(parent)
+
+    AsyncFunctionsInterfaceCppImplementation(QObject *parent = nullptr) : AsyncFunctionsInterfacePropertyAdapter(parent)
     {
         qDebug() << "C++ implementation is used.";
-    }
-
-    
-    void setvalue(const int& newValue) override
-    {
-        m_value= newValue;
     }
 
     void getIntValueAsync(facelift::AsyncAnswer<int> answer) override
@@ -60,8 +54,8 @@ class AsyncTestsInterfaceCppImplementation : public AsyncTestsInterfacePropertyA
             answer(returnValue);
         });
     }
-    
-    void 
+
+    void
     getStringValueAsync(facelift::AsyncAnswer<QString> answer) override
     {
         qDebug()<<" C++ Implementation getStringValueAsync ";
@@ -70,7 +64,7 @@ class AsyncTestsInterfaceCppImplementation : public AsyncTestsInterfacePropertyA
         });
     }
 
-    void 
+    void
     getContainerValueAsync(facelift::AsyncAnswer<Container> answer) override
     {
         qDebug()<<" C++ Implementation getStringValueAsync ";
@@ -95,22 +89,6 @@ class AsyncTestsInterfaceCppImplementation : public AsyncTestsInterfacePropertyA
     }
 
 
-
-//    void addEnumsAsync(QList<tests::asynctests::AsyncEnums> args, facelift::AsyncAnswer<tests::asynctests::AsyncEnums> answer) override
-    //{
-/*        QTimer::singleShot(1000, [this, answer,args]() mutable {
-            int sum=0;
-            for(auto it: args)
-            {
-                sum+it;
-            }
-            answer(sum);
-        });*/
-    //}
-
-
-    
-    
     void append(QString str1, QString str2, facelift::AsyncAnswer<QString> answer) override
     {
         QTimer::singleShot(1000,[this,answer,str1,str2]() mutable {
@@ -118,27 +96,4 @@ class AsyncTestsInterfaceCppImplementation : public AsyncTestsInterfacePropertyA
         });
     }
 
-
-    AsyncEnums compareEnums(tests::asynctests::AsyncEnums arg1,tests::asynctests::AsyncEnums arg2)
-    {
-        AsyncEnums e = AsyncEnums::EASYNC1;
-        if( arg1==arg2)
-            e =  AsyncEnums::EASYNC0;
-        return e;
-    }
-
-  /*  bool compareEnums(tests::asynctests::AsyncEnums arg1,tests::asynctests::AsyncEnums arg2,facelift::AsyncAnswer<bool> answer) 
-    {
-        QTimer::singleShot(1000,[this,answer,str1,str2]() {
-            answer(arg1==arg2);
-        });
-    }*/
-
-
-  
-
-    int calculateSum(int arg1,int arg2,int arg3) override
-    {
-        return arg1+arg2+arg3;
-    }
 };

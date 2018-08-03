@@ -28,26 +28,26 @@
 **
 **********************************************************************/
 
-#include "AsyncTestsPlugin.h"
-#include "tests/asynctests/Module.h"
+#include "AsyncFunctionsPlugin.h"
+#include "tests/asyncfunctions/Module.h"
 #if defined(QML_IMPL_LOCATION)
-#  include "tests/asynctests/AsyncTestsInterfaceQMLImplementation.h"
+#  include "tests/asyncfunctions/AsyncFunctionsInterfaceQMLImplementation.h"
 #else
-#  include "impl/cpp/AsyncTestsCppImplementation.h"
+#  include "impl/cpp/AsyncFunctionsCppImplementation.h"
 #endif
 
 
-using namespace tests::asynctests;
+using namespace tests::asyncfunctions;
 
-void AsyncTestsPlugin::registerTypes(const char *uri)
+void AsyncFunctionsPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
     Module::registerUncreatableQmlTypes(uri);
 
 #if defined(QML_IMPL_LOCATION)
-    facelift::registerQmlComponent<AsyncTestsInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
-            "/impl/qml/AsyncTestsQmlImplementation.qml", "AsyncTestsInterfaceAPI");
+    facelift::registerQmlComponent<AsyncFunctionsInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
+            "/impl/qml/AsyncFunctionsQmlImplementation.qml", "AsyncFunctionsInterfaceAPI");
 #else
-    facelift::registerQmlComponent<AsyncTestsInterfaceCppImplementation>(uri, "AsyncTestsInterfaceAPI");
+    facelift::registerQmlComponent<AsyncFunctionsInterfaceCppImplementation>(uri, "AsyncFunctionsInterfaceAPI");
 #endif
 }

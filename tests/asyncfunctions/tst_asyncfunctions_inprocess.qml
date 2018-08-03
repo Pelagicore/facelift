@@ -1,4 +1,3 @@
-
 /**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
@@ -29,20 +28,28 @@
 **
 **********************************************************************/
 
-
 import QtTest 1.2
-import tests.asynctests 1.0
-import "combined_asynctests.js" as CommonJs
+
+import tests.asyncfunctions 1.0
+import "common_asyncfunctions.js" as CommonJs
+
 
 TestCase {
-    name: "asynctests-local"
+    name: "asyncfunctions-inprocess"
 
-    AsyncTestsInterfaceAPI {
+    AsyncFunctionsInterfaceAPI {
+        IPC.enabled: true
+        IPC.objectPath: "/tests/asyncfunctions/inprocess"
+    }
+
+    AsyncFunctionsInterfaceIPCProxy {
         id: api
+        ipc.objectPath: "/tests/asyncfunctions/inprocess"
     }
 
 
-    function test_getMultiValuesUsingAsncFunctions() {
-      CommonJs.testAll();  
+    function test_asyncfunctions_inprocess() {
+        CommonJs.commonCode();
     }
+
 }

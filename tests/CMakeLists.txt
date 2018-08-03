@@ -21,12 +21,8 @@ add_test(NAME combined-inprocess-qml COMMAND test-driver.sh combined/tst_combine
 
 
 
-add_subdirectory(asynctests)
-add_test(NAME asynctests-local-cpp COMMAND test-driver.sh asynctests/tst_asynctests_local.qml cpp)
-add_test(NAME asynctests-local-qml COMMAND test-driver.sh asynctests/tst_asynctests_local.qml qml)
-add_test(NAME asynctests-ipc-cpp COMMAND test-driver.sh asynctests/tst_asynctests_ipc.qml cpp asynctests/asynctests-server.qml)
-add_test(NAME asynctests-ipc-qml COMMAND test-driver.sh asynctests/tst_asynctests_ipc.qml qml asynctests/asynctests-server.qml)
-add_test(NAME asynctests-inprocess-cpp COMMAND test-driver.sh asynctests/tst_asynctests_inprocess.qml cpp)
-add_test(NAME asynctests-inprocess-qml COMMAND test-driver.sh asynctests/tst_asynctests_inprocess.qml qml)
+add_subdirectory(asyncfunctions)
+add_test(NAME asyncfunctions-local-cpp COMMAND test-driver.sh asyncfunctions/tst_asyncfunctions_local.qml cpp)
+add_test(NAME asyncfunctions-inprocess-cpp COMMAND test-driver.sh asyncfunctions/tst_asyncfunctions_inprocess.qml cpp)
 
 

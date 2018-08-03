@@ -1,13 +1,9 @@
-module tests.asynctests 1.0
+module tests.asyncfunctions 1.0
 
-interface AsyncTestsInterface {
-        
-    int value;
+interface AsyncFunctionsInterface {
 
-    int calculateSum(int arg1,int arg2 ,int arg3);
-
-    AsyncEnums compareEnums(AsyncEnums arg1, AsyncEnums arg2);
-
+/*    @async: true
+    AsyncEnums compareEnums(AsyncEnums arg1, AsyncEnums arg2);*/
 
     @async: true
     int getIntValueAsync();
@@ -23,13 +19,6 @@ interface AsyncTestsInterface {
 
     @async: true
     string append(string  arg1, string arg2);
-
-
-/*  @async: true
-    AsyncEnums addEnumsAsync( list<AsyncEnums> args);
-
-    @async: true
-    AsyncEnums addEnumsAsync(AsyncEnums arg1, AsyncEnums arg2);*/
 }
 
 
