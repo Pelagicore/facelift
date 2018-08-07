@@ -57,8 +57,10 @@ public:
     {% for operation in interface.operations %}
 
     {% if operation.isAsync %}
-    void {{operation}}(
-        {% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override { }
+    void {{operation}}({% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override {
+        {{operation.cppType}} v = {};
+        answer(v);
+    }
     {% else %}
 
     {{operation.interfaceCppType}} {{operation}}(
