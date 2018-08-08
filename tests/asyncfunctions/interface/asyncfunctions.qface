@@ -1,0 +1,37 @@
+module tests.asyncfunctions 1.0
+
+interface AsyncFunctionsInterface {
+
+/*    @async: true
+    AsyncEnums compareEnums(AsyncEnums arg1, AsyncEnums arg2);*/
+
+    @async: true
+    int getIntValueAsync();
+
+    @async: true
+    string getStringValueAsync();
+
+    @async: true
+    Container getContainerValueAsync();
+
+    @async: true
+    int calculateSumAsync(int arg1 , int arg2 , int arg3);
+
+    @async: true
+    string append(string  arg1, string arg2);
+}
+
+
+enum AsyncEnums
+{
+    EASYNC0=0,
+    EASYNC1,
+    EASYNC2
+}
+
+struct Container
+{
+    int idata;
+    string sdata;
+    map<int> mdata;
+}
