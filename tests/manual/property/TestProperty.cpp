@@ -34,23 +34,104 @@
 #include "FaceliftProperty.h"
 #include "TestProperty.h"
 
-#define EXPECT_TRUE(cond) if (!(cond)) { qFatal("Expectation wrong:" #cond "%s", qPrintable(__PRETTY_FUNCTION__)); };
+#define EXPECT_TRUE(cond) if (!(cond)) { qFatal("Expectation wrong at %s:%i / " #cond " / function: %s ", qPrintable(__FILE__), __LINE__, qPrintable(__PRETTY_FUNCTION__)); };
+
+class SignalSpy : public QObject {
+
+public:
+    template <typename Func>
+    SignalSpy(const typename QtPrivate::FunctionPointer<Func>::Object *obj, Func sig)
+    {
+        QObject::connect(obj, sig, this, [this] () {
+            m_wasTriggered = true;
+        });
+    }
+
+    bool wasTriggered() const
+    {
+        return m_wasTriggered;
+    }
+
+    void reset()
+    {
+        m_wasTriggered = false;
+    }
+
+private :
+    bool m_wasTriggered = false;
+};
+
+
+static void testInteger()
+{
+    TestPropertyClass c;
+    facelift::Property<int> prop = 7;
+    SignalSpy signalSpy(&c, &TestPropertyClass::aSignal);
+    prop.init(&c, &TestPropertyClass::aSignal);
+
+    prop = 7;  // We expect no signal to be triggered here
+    EXPECT_TRUE(!signalSpy.wasTriggered());
+
+    prop = 8;  // We expect the signal to be triggered here
+    EXPECT_TRUE(signalSpy.wasTriggered());
+}
+
+
+static void testService()
+{
+    TestPropertyClass c;
+    facelift::ServiceProperty<QObject> prop;
+    SignalSpy signalSpy(&c, &TestPropertyClass::aSignal);
+    prop.init(&c, &TestPropertyClass::aSignal);
+
+    signalSpy.reset();
+    prop = nullptr;  // We expect no signal to be triggered here
+    EXPECT_TRUE(!signalSpy.wasTriggered());
+
+    signalSpy.reset();
+    QObject o;
+    prop = &o;  // We expect the signal to be triggered here
+    EXPECT_TRUE(signalSpy.wasTriggered());
+
+    signalSpy.reset();
+    prop = &o;  // We expect no signal to be triggered here
+    EXPECT_TRUE(!signalSpy.wasTriggered());
+
+    signalSpy.reset();
+    auto o2 = new QObject();
+    prop = o2;  // We expect a signal to be triggered here
+    EXPECT_TRUE(signalSpy.wasTriggered());
+
+    // Assign the same object another time => no signal
+    signalSpy.reset();
+    prop = o2;  // We expect no signal to be triggered here
+    EXPECT_TRUE(!signalSpy.wasTriggered());
+
+    // Delete the previously assigned object and allocate a new one (which is going to have the same address as the previous one) => signal
+    signalSpy.reset();
+    qWarning() << o2;
+    delete o2;
+    o2 = new QObject();
+    qWarning() << o2;
+    prop = o2;  // We expect a signal to be triggered here
+    EXPECT_TRUE(signalSpy.wasTriggered());
+
+    signalSpy.reset();
+    qWarning() << o2;
+    o2 = new QObject();
+    qWarning() << o2;
+    prop = o2;  // We expect a signal to be triggered here
+    EXPECT_TRUE(signalSpy.wasTriggered());
+
+}
 
 int main(int argc, char *argv[])
 {
     Q_UNUSED(argc);
     Q_UNUSED(argv);
 
-    TestPropertyClass c;
-    facelift::Property<int> intProperty = 7;
-    bool signalTriggered = false;
-    QObject::connect(&c, &TestPropertyClass::aSignal, [&] () {
-        signalTriggered = true;
-    });
-    intProperty.init(&c, &TestPropertyClass::aSignal);
-
-    intProperty = 9;  // We expect the signal to be triggered here
-    EXPECT_TRUE(signalTriggered);
+    testInteger();
+    testService();
 
     return 0;
 }
