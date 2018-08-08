@@ -58,6 +58,9 @@ public:
 
     {% if operation.isAsync %}
     void {{operation}}({% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override {
+        {% for parameter in operation.parameters %}
+        Q_UNUSED({{parameter.name}});
+        {% endfor %}
         {{operation.cppType}} v = {};
         answer(v);
     }

@@ -283,7 +283,7 @@ protected:
 
     Type m_value = {};  /// The current value
 
-private:
+protected:
     void reevaluate()
     {
         Q_ASSERT(m_getterFunction);
@@ -297,7 +297,9 @@ private:
 
 };
 
-
+/**
+ * Specialization used to store a reference to an interface.
+ */
 template<typename Type>
 class ServiceProperty : public Property<Type *>
 {
@@ -312,9 +314,42 @@ public:
         return *this;
     }
 
-    using Property<Type *>::operator=;
+    Type *operator=(Type *right)
+    {
+        ServiceProperty::setValue(right);
+        return this->m_value;
+    }
+
+    void setValue(Type *newValue)
+    {
+        if (newValue != m_pointer) {
+            m_valueChanged = true;
+            // Store as a QPointer in order to be able to detect object destructions and generate a change signal even if the same
+            // pointer is assigned later on
+            m_pointer = newValue;
+        }
+
+        Property<Type *>::setValue(newValue);
+    }
+
+    bool isDirty() const override
+    {
+        return ((this->m_previousValue != this->value()) || m_valueChanged);
+    }
+
+    void clean() override
+    {
+        Property<Type *>::clean();
+        m_valueChanged = false;
+    }
+
     using Property<Type *>::bind;
 
+private:
+
+    bool m_valueChanged = false;
+
+    QPointer<Type> m_pointer;
 };
 
 template<typename ElementType>
