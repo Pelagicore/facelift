@@ -84,7 +84,7 @@ class FaceliftIPCLibLocal_EXPORT IPCServiceAdapterBase : public QObject
     Q_OBJECT
 
 public:
-    Q_PROPERTY(facelift::InterfaceBase *service READ service WRITE checkedSetService)
+    Q_PROPERTY(QObject *service READ service WRITE checkedSetService)
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
@@ -112,13 +112,13 @@ public:
 
     virtual InterfaceBase *service() const = 0;
 
-    void checkedSetService(InterfaceBase *service)
+    void checkedSetService(QObject *service)
     {
         setService(service);
         onValueChanged();
     }
 
-    virtual void setService(InterfaceBase *service) = 0;
+    virtual void setService(QObject *service) = 0;
 
     const QString &objectPath() const
     {
@@ -164,27 +164,32 @@ public:
     Q_SIGNAL void destroyed(IPCServiceAdapterBase *adapter);
 
     template<typename ServiceType>
-    ServiceType *toProvider(InterfaceBase *s)
+    ServiceType *bindToProvider(QObject *s)
     {
         auto service = qobject_cast<ServiceType *>(s);
         if (service == nullptr) {
-            typedef typename ServiceType::QMLFrontendType QMLFrontendType;
-            auto *qmlFrontend = qobject_cast<QMLFrontendType *>(service);
+            auto *qmlFrontend = qobject_cast<QMLFrontendBase *>(s);
             if (qmlFrontend != nullptr) {
-                service = qmlFrontend->m_provider;
-            } else {
-                qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s)));
+                service = qobject_cast<ServiceType *>(qmlFrontend->providerPrivate());
             }
         }
-        Q_ASSERT(service != nullptr);
-        QObject::connect(service, &InterfaceBase::componentCompleted, this, &IPCServiceAdapterBase::onProviderCompleted);
+        if (service != nullptr) {
+            if (service->isComponentCompleted()) {
+                onProviderCompleted();
+            }
+            else {
+                QObject::connect(service, &InterfaceBase::componentCompleted, this, &IPCServiceAdapterBase::onProviderCompleted);
+            }
+        } else {
+            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s)));
+        }
         return service;
     }
 
 private:
     QString m_objectPath;
     QString m_interfaceName;
-    bool m_enabled = false;
+    bool m_enabled = true;
 
 protected:
     bool m_providerReady = false;

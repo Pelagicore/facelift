@@ -99,6 +99,7 @@ DBusIPCServiceAdapterBase *DBusIPCAttachedPropertyFactory::qmlAttachedProperties
 
         if (factory != nullptr) {
             serviceAdapter = factory(provider);
+            serviceAdapter->setEnabled(false);  // We disable by default to force people to write "IPC.enabled: true"
         } else {
             qFatal("No factory found for interface '%s'", qPrintable(interfaceID));
         }

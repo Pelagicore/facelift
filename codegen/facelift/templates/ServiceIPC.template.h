@@ -69,7 +69,7 @@ public:
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void setService(facelift::InterfaceBase *srvc) override
+    void setService(QObject *srvc) override
     {
         facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>::setService(srvc);
 
