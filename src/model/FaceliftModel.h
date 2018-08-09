@@ -735,6 +735,17 @@ public:
         return m_interfaceName;
     }
 
+    void setComponentCompleted() {
+        if (!m_componentCompleted) {
+            m_componentCompleted = true;
+            emit componentCompleted();
+        }
+    }
+
+    bool isComponentCompleted() const {
+        return m_componentCompleted;
+    }
+
     Q_SIGNAL void componentCompleted();
 
 protected:
@@ -753,6 +764,7 @@ private:
     QString m_interfaceName;
 
     bool m_ready = true;
+    bool m_componentCompleted = false;
 
 };
 

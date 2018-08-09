@@ -308,7 +308,7 @@ public:
 
     void setService(InterfaceBase *service) override
     {
-        m_service = toProvider<InterfaceType>(service);
+        m_service = bindToProvider<InterfaceType>(service);
     }
 
 private:
@@ -377,6 +377,7 @@ public:
 
             if (factory != nullptr) {
                 serviceAdapter = factory(provider);
+                serviceAdapter->setEnabled(false);  // We disable by default to force people to write "IPC.enabled: true"
             } else {
                 qFatal("No factory found for interface '%s'", qPrintable(interfaceID));
             }

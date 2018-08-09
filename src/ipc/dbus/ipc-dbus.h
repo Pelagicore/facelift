@@ -684,9 +684,9 @@ public:
         return m_service;
     }
 
-    void setService(InterfaceBase *service) override
+    void setService(QObject *service) override
     {
-        m_service = toProvider<ServiceType>(service);
+        m_service = bindToProvider<ServiceType>(service);
     }
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;

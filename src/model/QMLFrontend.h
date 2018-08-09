@@ -43,6 +43,7 @@
 namespace facelift {
 
 class IPCAttachedPropertyFactoryBase;
+class IPCServiceAdapterBase;
 
 /*!
  * This is the base class which all QML frontends extend
@@ -93,7 +94,7 @@ public:
 
     void componentComplete() override
     {
-        emit m_provider->componentCompleted();
+        m_provider->setComponentCompleted();
     }
 
 protected:
@@ -132,6 +133,7 @@ protected:
     }
 
     friend class IPCAttachedPropertyFactoryBase;
+    friend class IPCServiceAdapterBase;
 
 private:
     InterfaceBase *m_provider = nullptr;
@@ -169,7 +171,7 @@ public:
     void componentComplete() override
     {
         // notify anyone interested that we are ready (such as an IPC attached property)
-        emit m_provider.componentCompleted();
+        m_provider.setComponentCompleted();
     }
 
 private:

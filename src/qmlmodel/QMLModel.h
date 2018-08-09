@@ -119,7 +119,7 @@ public:
     void componentComplete() override
     {
         assignImplementationID();
-        m_interface->componentCompleted();
+        m_interface->setComponentCompleted();
     }
 
     facelift::InterfaceBase *interfac() const
