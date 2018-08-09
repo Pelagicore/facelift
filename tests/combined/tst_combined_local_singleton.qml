@@ -28,34 +28,42 @@
 **
 **********************************************************************/
 
-#include "CombinedTestsPlugin.h"
-#include "tests/combined/Module.h"
-#include "tests/combined/CombinedInterfaceIPC.h"
-#if defined(QML_IMPL_LOCATION)
-#  include "tests/combined/CombinedInterfaceQMLImplementation.h"
-#else
-#  include "impl/cpp/CombinedTestsCppImplementation.h"
-#endif
+import QtTest 1.2
+import tests.combined 1.0
+import "check_combined.js" as Check
+
+TestCase {
+    name: "combined-local-singleton"
+
+    property var api: CombinedInterfaceSingleton
 
 
-using namespace tests::combined;
+    SignalSpy {
+        id: readyFlagsChangedSpy
+        target: api
+        signalName: "readyFlagsChanged"
+    }
 
-void CombinedTestsPlugin::registerTypes(const char *uri)
-{
-    Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
 
-#if defined(QML_IMPL_LOCATION)
-    facelift::registerQmlComponent<CombinedInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
-            "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceAPI");
+    function initTestCase() {
+        compare(api.interfaceProperty, null);
 
-    facelift::registerSingletonQmlComponent<CombinedInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
-            "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceSingleton");
-    facelift::registerSingletonQmlComponent<CombinedInterfaceIPCProxy>(uri, "CombinedInterfaceIPCProxySingleton");
-#else
-    facelift::registerQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceAPI");
+        // hasReadyFlag is only supported by C++ backend:
+        if (!api.qmlImplementationUsed) {
+            verify(!api.readyFlags.readyProperty);
+        }
 
-    facelift::registerSingletonQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceSingleton");
-    facelift::registerSingletonQmlComponent<CombinedInterfaceIPCProxy>(uri, "CombinedInterfaceIPCProxySingleton");
-#endif
+        Check.defaults();
+        Check.initialized();
+
+        if (!api.qmlImplementationUsed) {
+            readyFlagsChangedSpy.wait(2000);
+            verify(api.readyFlags.readyProperty);
+            compare(api.readyProperty, 42);
+        }
+    }
+
+    function test_setter() {
+        Check.setter();
+    }
 }

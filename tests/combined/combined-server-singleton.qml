@@ -28,34 +28,9 @@
 **
 **********************************************************************/
 
-#include "CombinedTestsPlugin.h"
-#include "tests/combined/Module.h"
-#include "tests/combined/CombinedInterfaceIPC.h"
-#if defined(QML_IMPL_LOCATION)
-#  include "tests/combined/CombinedInterfaceQMLImplementation.h"
-#else
-#  include "impl/cpp/CombinedTestsCppImplementation.h"
-#endif
+import tests.combined 1.0
 
-
-using namespace tests::combined;
-
-void CombinedTestsPlugin::registerTypes(const char *uri)
-{
-    Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
-
-#if defined(QML_IMPL_LOCATION)
-    facelift::registerQmlComponent<CombinedInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
-            "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceAPI");
-
-    facelift::registerSingletonQmlComponent<CombinedInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
-            "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceSingleton");
-    facelift::registerSingletonQmlComponent<CombinedInterfaceIPCProxy>(uri, "CombinedInterfaceIPCProxySingleton");
-#else
-    facelift::registerQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceAPI");
-
-    facelift::registerSingletonQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceSingleton");
-    facelift::registerSingletonQmlComponent<CombinedInterfaceIPCProxy>(uri, "CombinedInterfaceIPCProxySingleton");
-#endif
+CombinedInterfaceIPCAdapter {
+    enabled: true
+    service: CombinedInterfaceSingleton
 }
