@@ -11,16 +11,17 @@ QML_BINARY=@_qt5Core_install_prefix@/bin/qml
 QML_TEST_RUNNER=@_qt5Core_install_prefix@/bin/qmltestrunner
 
 export QT_LOGGING_RULES="*=false;*.warning=true;*.critical=true"
+export QT_QPA_PLATFORM="minimal"
 
 # start optional server provided in $3
 if [[ $3 ]] ; then
-    echo "INVOKING: ${QML_BINARY} $SRC_FOLDER/tests/$3 -I $BUILD_FOLDER/imports/$2"
+    echo "SERVER: ${QML_BINARY} $SRC_FOLDER/tests/$3 -I $BUILD_FOLDER/imports/$2"
     ${QML_BINARY} "$SRC_FOLDER/tests/$3" -I "$BUILD_FOLDER/imports/$2" &
     sleep 0.3
 fi
 
 # execute test provided in $1 with backend provided in $2 (cpp or qml)
-echo "Invoking: $QML_TEST_RUNNER -input $SRC_FOLDER/tests/$1 -import $BUILD_FOLDER/imports/$2"
+echo "CLIENT: $QML_TEST_RUNNER -input $SRC_FOLDER/tests/$1 -import $BUILD_FOLDER/imports/$2"
 $QML_TEST_RUNNER -input "$SRC_FOLDER/tests/$1" -import "$BUILD_FOLDER/imports/$2"
 
 EXIT_CODE=$?
