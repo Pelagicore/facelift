@@ -839,6 +839,9 @@ class ModelBase : public QObject
     Q_OBJECT
 
 public:
+
+    ModelBase();
+
     Q_SIGNAL void dataChanged(int first, int last);
 
     void dataChanged(int index)
@@ -855,7 +858,14 @@ public:
     Q_SIGNAL void beginResetModel();
     Q_SIGNAL void endResetModel();
 
+    Q_SIGNAL void elementCountChanged();
+
     virtual int size() const = 0;
+
+private:
+    void onModelChanged();
+
+    int m_previousElementCount = 0;
 
 };
 

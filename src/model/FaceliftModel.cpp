@@ -61,4 +61,19 @@ void ModuleBase::registerQmlTypes(const char *uri, int majorVersion, int minorVe
     qmlRegisterUncreatableType<facelift::InterfaceBase>(uri, majorVersion, minorVersion, "InterfaceBase", "");
 }
 
+ModelBase::ModelBase()
+{
+    QObject::connect(this, &ModelBase::endResetModel, this, &ModelBase::onModelChanged);
+    QObject::connect(this, &ModelBase::endInsertElements, this, &ModelBase::onModelChanged);
+    QObject::connect(this, &ModelBase::endRemoveElements, this, &ModelBase::onModelChanged);
+}
+
+void ModelBase::onModelChanged()
+{
+    if (m_previousElementCount != size()) {
+        m_previousElementCount = size();
+        emit elementCountChanged();
+    }
+}
+
 }
