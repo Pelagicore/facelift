@@ -1,4 +1,6 @@
 
+option(IGNORE_AUTO_UNITY_BUILD "Disable unity build even if AUTO_UNITY_BUILD option is ON" OFF)
+
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
 
@@ -361,7 +363,11 @@ macro(_facelift_add_target_start)
 
     set(UNITY_BUILD ${ARGUMENT_UNITY_BUILD})
     if(${AUTO_UNITY_BUILD})
-        set(UNITY_BUILD ON)
+        if (${IGNORE_AUTO_UNITY_BUILD})
+            message("Unity build disabled for ${TARGET_NAME}")
+        else()
+            set(UNITY_BUILD ON)
+        endif()
     endif()
 
     if(ARGUMENT_USE_QML_COMPILER OR CMAKE_AUTOMOC)
