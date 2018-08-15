@@ -126,13 +126,7 @@ public:
             {% endfor %}
 
             {% for event in interface.signals %}
-            addSignalWidget<
-                        {% set comma = joiner(",") %}
-                        {% for parameter in event.parameters %}
-                        {{ comma() }}
-                        {{parameter.cppType}}
-                        {% endfor %}
-                >("{{event.name}}", { {
+            addSignalWidget("{{event.name}}", { {
                         {% for parameter in event.parameters %}
                         "{{parameter}}",
                         {% endfor %}

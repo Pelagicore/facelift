@@ -113,7 +113,7 @@ public:
             addSignalSignature<
             {%- set comma = joiner(", ") -%}
             {%- for parameter in signal.parameters -%}
-            {{ comma() }}{{parameter.cppType}}
+            {{ comma() }}{{parameter.interfaceCppType}}
             {%- endfor -%}
             >(s, "{{signal.name}}", argumentNames);
         }
@@ -138,7 +138,7 @@ public:
         if (member == "{{operation.name}}") {
             {% for parameter in operation.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
-            requestMessage >> param_{{parameter.name}};
+            deserializeValue(requestMessage, param_{{parameter.name}});
             {% endfor %}
             {% if operation.isAsync %}
             facelift::ASyncRequestID requestID = s_nextRequestID++;
@@ -146,17 +146,19 @@ public:
                 facelift::AsyncAnswer<{{operation.cppType}}>([this, requestID] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) {
                 sendSignal("{{operation.name}}Result", requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
             }));
-            replyMessage << requestID;
+            serializeValue(replyMessage, requestID);
             {% else %}
             {% if operation.hasReturnValue %}
-            replyMessage << theService->{{operation.name}}(
-            {%- else %}
-            theService->{{operation.name}}(
+            auto returnValue =
             {%- endif %}
+            theService->{{operation.name}}(
             {%- set comma = joiner(", ") -%}
             {%- for parameter in operation.parameters -%}
                 {{ comma() }}param_{{parameter.name}}
             {%- endfor -%});
+            {% if operation.hasReturnValue %}
+            serializeValue(replyMessage, returnValue);
+            {%- endif %}
             serializeSpecificPropertyValues(replyMessage);
             {% endif %}
         } else
@@ -188,7 +190,7 @@ public:
     }
 
     {% for property in interface.properties %}{% if property.type.is_interface %}
-    facelift::InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCAdapter> m_{{property.name}};
+    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCAdapter> m_{{property.name}};
     {% endif %}
     {% endfor %}
 
@@ -228,7 +230,7 @@ public:
         {% elif property.type.is_model %}
         msg << theService->{{property.name}}().size();
         {% else %}
-        msg << theService->{{property.name}}();
+        serializeValue(msg, theService->{{property.name}}());
         {% endif %}
         {% endfor %}
     }
@@ -237,7 +239,7 @@ public:
     void {{event}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in event.parameters -%}
-        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+        {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
         sendSignal("{{event}}"
@@ -263,6 +265,11 @@ public:
     {{interface}}IPCProxy(QObject *parent = nullptr)
         : facelift::IPCProxy<{{interface}}PropertyAdapter
         , IPCAdapterType>(parent)
+        {% for property in interface.properties %}
+        {% if property.type.is_interface %}
+        , m_{{property.name}}Proxy(*this)
+        {% endif %}
+        {% endfor %}
     {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
@@ -285,7 +292,7 @@ public:
         m_{{property.name}}.endResetModel();
         {% else %}
         PropertyType_{{property.name}} {{property.name}};
-        msg >> {{property.name}};
+        deserializeValue(msg, {{property.name}});
         m_{{property.name}}.setValue({{property.name}});
         {% endif %}
         {% endfor %}
@@ -323,7 +330,7 @@ public:
     void deserializeSignal(facelift::IPCMessage &msg) override
     {
         QString signalName;
-        msg >> signalName;
+        deserializeValue(msg, signalName);
 
         {% for operation in interface.operations %}
         {% if operation.isAsync %}
@@ -347,8 +354,8 @@ public:
         {% for event in interface.signals %}
         if (signalName == "{{event}}") {
             {% for parameter in event.parameters %}
-            {{parameter.cppType}} param_{{parameter.name}};
-            msg >> param_{{parameter.name}};
+            {{parameter.interfaceCppType}} param_{{parameter.name}};
+            deserializeValue(msg, param_{{parameter.name}});
             {% endfor %}
             {{event}}(
             {%- set comma = joiner(", ") -%}
@@ -450,7 +457,7 @@ private:
     {% endfor %}
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
-    facelift::InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
+    InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
     {% endif %}
     {% if property.type.is_model %}
     facelift::MostRecentlyUsedCache<int, {{property.nestedType.cppType}}> m_{{property.name}}Cache;

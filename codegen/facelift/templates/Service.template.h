@@ -67,6 +67,8 @@
 {{module.namespaceCppOpen}}
 
 class {{class}}QMLFrontend;
+class {{class}}IPCAdapter;
+class {{class}}IPCProxy;
 
 {% if hasReadyFlags %}
 class {{classExport}} {{class}}ReadyFlags
@@ -102,6 +104,8 @@ public:
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
 
     typedef {{class}}QMLFrontend QMLFrontendType;
+    typedef {{class}}IPCAdapter IPCAdapterType;
+    typedef {{class}}IPCProxy IPCProxyType;
 
     friend QMLFrontendType;
 
@@ -174,7 +178,7 @@ public:
     {% for event in interface.signals %}
     {{event.comment}}
     Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
-        {% for parameter in event.parameters -%}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %});
+        {% for parameter in event.parameters -%}{{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}{% endfor %});
     {% endfor %}
 
 

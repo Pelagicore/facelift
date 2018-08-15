@@ -206,7 +206,7 @@ public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
-    IPCProxyBinderBase(QObject *parent) : QObject(parent)
+    IPCProxyBinderBase(InterfaceBase& owner, QObject *parent) : QObject(parent), m_owner(owner)
     {
     }
 
@@ -261,6 +261,10 @@ public:
 
     void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter);
 
+    InterfaceBase& owner() {
+        return m_owner;
+    }
+
 protected:
     bool m_inProcess = false;
 
@@ -269,6 +273,7 @@ private:
     QString m_objectPath;
     bool m_enabled = true;
     bool m_componentCompleted = false;
+    InterfaceBase& m_owner;
 
 };
 

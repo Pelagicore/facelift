@@ -312,7 +312,7 @@ public:
     Q_INVOKABLE void {{event}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in event.parameters -%}
-    {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+    {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%} )
     {
         emit m_interface->{{event.name}}(
