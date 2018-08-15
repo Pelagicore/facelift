@@ -75,7 +75,7 @@ class LocalIPCProxyBinder : public IPCProxyBinderBase
     Q_OBJECT
 
 public:
-    LocalIPCProxyBinder(QObject *parent = nullptr) : IPCProxyBinderBase(parent)
+    LocalIPCProxyBinder(InterfaceBase& owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent)
     {
     }
 
@@ -306,7 +306,7 @@ public:
         return m_service;
     }
 
-    void setService(InterfaceBase *service) override
+    void setService(InterfaceBase *service)
     {
         m_service = bindToProvider<InterfaceType>(service);
     }

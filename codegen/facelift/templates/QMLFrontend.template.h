@@ -58,11 +58,13 @@
 {% for operation in interface.operations -%}
 {% for parameter in operation.parameters -%}
 {{- printif(parameter.type.requiredInclude) }}
+{{- printif(parameter.type.requiredQMLInclude) }}
 {%- endfor %}
 {%- endfor %}
 {% for event in interface.signals -%}
 {% for parameter in event.parameters -%}
 {{- printif(parameter.type.requiredInclude) }}
+{{- printif(parameter.type.requiredQMLInclude) }}
 {%- endfor %}
 {%- endfor %}
 
@@ -102,22 +104,18 @@ public:
         m_{{property}}Model.init(m_provider->{{property}}());
         {% endif %}
         {% endfor %}
+
         {% for event in interface.signals %}
-        {% if event.parameters|hasContainerParameter %}
+        {% if event.parameters|hasQMLIncompatibleParameter %}
         connect(m_provider, &{{class}}::{{event.name}}, this, [this] (
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
-                {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+                {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
             {%- endfor -%}) {
             emit {{class}}QMLFrontend::{{event.name}}(
             {%- set comma2 = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
-                {{comma2()}}
-                {%- if parameter.type.is_list or parameter.type.is_map -%}
-                    facelift::toQMLCompatibleType({{parameter.name}})
-                {%- else -%}
-                    {{parameter.name}}
-                {%- endif -%}
+                {{comma2()}} facelift::toQMLCompatibleType({{parameter.name}})
             {%- endfor -%});
         });
         {% else %}

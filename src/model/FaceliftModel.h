@@ -987,14 +987,14 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
 {
     typedef typename Type::QMLFrontendType* QMLType;
 
-    static void write(BinarySeralizer &msg, const Type &param)
+    static void write(BinarySeralizer &msg, const Type* param)
     {
         Q_UNUSED(msg);
         Q_UNUSED(param);
         NOT_IMPLEMENTED();
     }
 
-    static void read(BinarySeralizer &msg, Type &param)
+    static void read(BinarySeralizer &msg, Type* &param)
     {
         Q_UNUSED(msg);
         Q_UNUSED(param);

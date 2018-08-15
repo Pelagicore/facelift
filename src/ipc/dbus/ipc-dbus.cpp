@@ -248,8 +248,7 @@ QString DBusIPCMessage::toString() const
     return str;
 }
 
-}
 
-int InterfacePropertyHandlerBase::s_nextInstanceID = 0;
+}
 
 }

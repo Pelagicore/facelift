@@ -147,9 +147,9 @@ def requiredIPCInclude(self):
     else:
         return requiredIncludeFromType(type, "IPC.h")
 
-def hasContainerParameter(parameters):
+def hasQMLIncompatibleParameter(parameters):
     for param in parameters:
-        if param.type.is_list or param.type.is_map:
+        if param.type.is_list or param.type.is_map or param.type.is_interface:
             return True
     return False
 
@@ -268,7 +268,7 @@ def run_generation(input, output, dependency, libraryName):
     generator = Generator(search_path=Path(here / 'facelift/templates'))
     generator.register_filter('cppBool', cppBool)
     generator.register_filter('toValidId', toValidId)
-    generator.register_filter('hasContainerParameter', hasContainerParameter)
+    generator.register_filter('hasQMLIncompatibleParameter', hasQMLIncompatibleParameter)
     generator.destination = output
 
     ctx = {'output': output}
