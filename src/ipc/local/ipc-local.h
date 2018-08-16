@@ -47,6 +47,7 @@ private:
     QString m_s;
 };
 
+
 template<typename Type>
 LocalIPCMessage &operator<<(LocalIPCMessage &msg, const Type &v)
 {
@@ -86,6 +87,51 @@ public:
 };
 
 
+template<typename InterfaceType, typename InterfaceAdapterType>
+class InterfacePropertyIPCAdapterHandler
+{
+public:
+    void update(IPCServiceAdapterBase *parent, InterfaceType *service)
+    {
+        Q_UNUSED(parent);
+        Q_UNUSED(service);
+    }
+
+    QString generateObjectPath(const QString &parentPath)
+    {
+        Q_UNUSED(parentPath);
+        return QString();
+    }
+
+    QString objectPath() const
+    {
+        return QString();
+    }
+};
+
+
+template<typename ProxyType>
+class InterfacePropertyIPCProxyHandler
+{
+public:
+    void update(const QString &objectPath)
+    {
+        Q_UNUSED(objectPath);
+    }
+
+    ProxyType *getValue() const
+    {
+        return nullptr;
+    }
+
+    QString generateObjectPath(const QString &parentPath)
+    {
+        Q_UNUSED(parentPath);
+        return QString();
+    }
+};
+
+
 template<typename AdapterType, typename IPCAdapterType>
 class LocalIPCProxy : public IPCProxyBase<AdapterType, IPCAdapterType>
 {
@@ -106,46 +152,71 @@ public:
         m_ipcBinder.connectToServer();
     }
 
+    virtual void setServiceRegistered(bool isRegistered)
+    {
+        Q_UNUSED(isRegistered);
+    }
+
     virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
     virtual void deserializeSpecificPropertyValues(LocalIPCMessage &msg) = 0;
 
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... /*args*/)
     {
-        Q_UNUSED(methodName);
-        qCritical("IPC unavailable");
+        qCritical() << "IPC unavailable for method" << methodName;
     }
 
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... /*args*/)
     {
         Q_UNUSED(returnValue);
+        qCritical() << "IPC unavailable for method" << methodName;
+    }
 
-        qCritical("Error message received when calling method '%s' on service at path '%s'."
-                "This likely indicates that the server you are trying to access is not available yet",
-                qPrintable(methodName), qPrintable(ipc()->objectPath()));
+    template<typename ReturnType, typename ... Args>
+    void sendMethodCallWithReturnNoSync(const QString& methodName, ReturnType &returnValue, const Args & ... /*args*/)
+    {
+        Q_UNUSED(returnValue);
+        qCritical() << "IPC unavailable for method" << methodName;
     }
 
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value)
     {
         Q_UNUSED(value);
+        qCritical() << "IPC unavailable for method" << methodName;
+    }
 
-        qCritical("Error message received when calling method '%s' on service at path '%s'."
-                "This likely indicates that the server you are trying to access is not available yet",
-                qPrintable(methodName), qPrintable(ipc()->objectPath()));
+    template<typename ElementType>
+    void handleModelSignal(facelift::Model<ElementType>& model,
+                           facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName,
+                           const QString& signalName, LocalIPCMessage &msg)
+    {
+        Q_UNUSED(model);
+        Q_UNUSED(cache);
+        Q_UNUSED(modelName);
+        Q_UNUSED(signalName);
+        Q_UNUSED(msg);
+    }
+
+    template<typename ElementType>
+    ElementType modelData(facelift::Model<ElementType>& model,
+                          facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName, int row)
+    {
+        Q_UNUSED(model);
+        Q_UNUSED(cache);
+        Q_UNUSED(modelName);
+        Q_UNUSED(row);
+        return ElementType();
     }
 
 private:
     LocalIPCProxyBinder m_ipcBinder;
-
 };
-
 
 
 class LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
 {
-
     Q_OBJECT
 
 public:
@@ -157,16 +228,12 @@ public:
     {
         registerLocalService();
     }
-
-private:
 };
-
 
 
 template<typename InterfaceType>
 class LocalIPCServiceAdapter : public facelift::LocalIPCServiceAdapterBase
 {
-
 public:
     typedef InterfaceType TheServiceType;
 
@@ -217,6 +284,21 @@ public:
     void sendSignal(const char *signalName, const Args & ... /*args*/)
     {
         Q_UNUSED(signalName);
+    }
+
+    void connectModel(const QString& name, facelift::ModelBase &model)
+    {
+        Q_UNUSED(name);
+        Q_UNUSED(model);
+    }
+
+    template<typename ElementType>
+    void handleModelRequest(facelift::Model<ElementType>& model,
+                            LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage)
+    {
+        Q_UNUSED(model);
+        Q_UNUSED(requestMessage);
+        Q_UNUSED(replyMessage);
     }
 
     InterfaceBase *service() const override
@@ -276,6 +358,7 @@ private:
     QMap<QString, IPCAdapterFactory> m_factories;
 
 };
+
 
 class LocalIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
 {

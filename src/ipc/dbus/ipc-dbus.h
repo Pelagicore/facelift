@@ -735,7 +735,9 @@ public:
 
     template<typename ElementType>
     void handleModelRequest(facelift::Model<ElementType>& model,
-            facelift::dbus::DBusIPCMessage &requestMessage, facelift::dbus::DBusIPCMessage &replyMessage) {
+                            facelift::dbus::DBusIPCMessage &requestMessage,
+                            facelift::dbus::DBusIPCMessage &replyMessage)
+    {
         int first, last;
         requestMessage >> first >> last;
         QList<ElementType> list;
@@ -972,9 +974,10 @@ public:
     }
 
     template<typename ElementType>
-    void handleModelSignal(facelift::Model<ElementType>& model, facelift::MostRecentlyUsedCache<int, ElementType>& cache,
-            const QString& modelName, const QString& signalName, facelift::dbus::DBusIPCMessage &msg) {
-
+    void handleModelSignal(facelift::Model<ElementType>& model,
+                           facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName,
+                           const QString& signalName, facelift::dbus::DBusIPCMessage &msg)
+    {
         if (signalName == modelName + "DataChanged") {
             int first, last;
             msg >> first >> last;
@@ -1007,8 +1010,9 @@ public:
     }
 
     template<typename ElementType>
-    ElementType modelData(facelift::Model<ElementType>& model, facelift::MostRecentlyUsedCache<int, ElementType>& cache,
-            const QString& modelName, int row) {
+    ElementType modelData(facelift::Model<ElementType>& model,
+                          facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName, int row)
+    {
         ElementType retval;
         if (cache.exists(row)) {
             retval = cache.get(row);
