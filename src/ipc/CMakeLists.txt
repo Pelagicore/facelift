@@ -11,7 +11,7 @@ facelift_add_library(FaceliftIPCLib
     LINK_LIBRARIES FaceliftIPCLibLocal
 )
 
-if(FACELIFT_ENABLE_DBUS_IPC OR (NOT FACELIFT_DISABLE_DBUS_IPC))
+if(FACELIFT_DBUS_IPC_ENABLED)
     add_subdirectory(dbus)
     message("DBus IPC backend enabled")
     target_link_libraries(FaceliftIPCLib FaceliftIPCLibDBus)

@@ -20,4 +20,8 @@ if(Qt5DBus_FOUND)
         PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/..
     )
     target_compile_definitions(FaceliftIPCLibDBus PUBLIC DBUS_IPC_ENABLED)
+else()
+    if(FACELIFT_ENABLE_DBUS_IPC)
+        message(FATAL_ERROR "DBus IPC was explicitly enabled, but QtDBus is not available.")
+    endif()
 endif()

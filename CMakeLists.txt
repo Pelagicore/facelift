@@ -19,6 +19,14 @@ option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" ON)
 option(FACELIFT_BUILD_TESTS "Enable build of tests" OFF)
 option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ${DEBUG_BUILD})
 
+if (FACELIFT_ENABLE_DBUS_IPC AND FACELIFT_DISABLE_DBUS_IPC)
+    message(FATAL_ERROR "DBus IPC cannot be enabled and disabled at the same time.")
+else()
+    if (FACELIFT_ENABLE_DBUS_IPC OR (NOT FACELIFT_DISABLE_DBUS_IPC))
+        set(FACELIFT_DBUS_IPC_ENABLED ON)
+    endif()
+endif()
+
 find_package(Qt5 REQUIRED Core Gui Qml Quick)
 
 set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
