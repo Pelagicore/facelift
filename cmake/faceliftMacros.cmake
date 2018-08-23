@@ -147,7 +147,7 @@ endfunction()
 function(facelift_generate_code )
 
     set(options)
-    set(oneValueArgs INTERFACE_DEFINITION_FOLDER OUTPUT_PATH)
+    set(oneValueArgs INTERFACE_DEFINITION_FOLDER OUTPUT_PATH LIBRARY_NAME)
     set(multiValueArgs IMPORT_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -166,6 +166,10 @@ function(facelift_generate_code )
     foreach(IMPORT_FOLDER ${ARGUMENT_IMPORT_FOLDERS})
         set(BASE_CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND} --dependency ${IMPORT_FOLDER})
     endforeach()
+
+    if(ARGUMENT_LIBRARY_NAME)
+        set(BASE_CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND} --library ${ARGUMENT_LIBRARY_NAME})
+    endif()
 
     # find_package(PythonInterp) causes some issues if the another version has been searched before, and it is not needed anyway on non-Win32 platforms
     if(WIN32)
@@ -235,7 +239,7 @@ function(facelift_add_interface TARGET_NAME)
     set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
     set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
 
-    facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH})
+    facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH} LIBRARY_NAME ${TARGET_NAME})
 
     # Get the list of generated files
     facelift_add_library(${LIBRARY_NAME}_types
@@ -385,6 +389,10 @@ endmacro()
 macro(_facelift_add_target_finish)
 
     target_compile_definitions(${TARGET_NAME} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
+
+    # create a valid preprocessor macro base on the target name
+    string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${TARGET_NAME}_LIBRARY")
+    target_compile_definitions(${TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION})
 
     # We assume every lib links against QtCore at least
     target_link_libraries(${TARGET_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})

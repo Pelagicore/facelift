@@ -35,6 +35,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "ipc.h"
 #include "FaceliftUtils.h"
 
@@ -51,7 +53,7 @@
 class {{interface}}IPCQMLFrontendType;
 
 
-class {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>
+class {{classExport}} {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>
 {
     Q_OBJECT
 
@@ -247,7 +249,7 @@ public:
 };
 
 
-class {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>
+class {{classExport}} {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>
 {
     Q_OBJECT
 
@@ -457,7 +459,7 @@ private:
 };
 
 
-class {{interface}}IPCQMLFrontendType : public {{interface}}QMLFrontend
+class {{classExport}} {{interface}}IPCQMLFrontendType : public {{interface}}QMLFrontend
 {
     Q_OBJECT
 

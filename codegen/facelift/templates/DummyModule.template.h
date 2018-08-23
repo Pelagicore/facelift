@@ -35,6 +35,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include <QString>
 #include <QQmlEngine>
 
@@ -48,7 +50,7 @@
 
 {{module.namespaceCppOpen}}
 
-class ModuleDummy : public facelift::DummyModuleBase {
+class {{classExport}} ModuleDummy : public facelift::DummyModuleBase {
 
 public:
 

@@ -30,6 +30,12 @@
 
 #pragma once
 
+#if defined(FaceliftIPCLibDBus_LIBRARY)
+#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
+#endif
+
 #include <memory>
 
 #include <QDebug>
@@ -61,7 +67,7 @@ namespace dbus {
 using namespace facelift;
 
 
-class DBusIPCMessage
+class FaceliftIPCLibDBus_EXPORT DBusIPCMessage
 {
 
 public:
@@ -245,7 +251,7 @@ appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const 
 }
 
 
-struct AppendDBUSSignatureFunction
+struct FaceliftIPCLibDBus_EXPORT AppendDBUSSignatureFunction
 {
     AppendDBUSSignatureFunction(QTextStream &s) :
         s(s)
@@ -503,7 +509,7 @@ DBusIPCMessage &operator>>(DBusIPCMessage &msg, Property<Type> &property)
 
 class DBusObjectRegistry;
 
-class DBusManager
+class FaceliftIPCLibDBus_EXPORT DBusManager
 {
 
 public:
@@ -542,7 +548,7 @@ private:
 };
 
 
-class DBusIPCServiceAdapterBase : public IPCServiceAdapterBase
+class FaceliftIPCLibDBus_EXPORT DBusIPCServiceAdapterBase : public IPCServiceAdapterBase
 {
     Q_OBJECT
 
@@ -757,7 +763,7 @@ protected:
 
 };
 
-class IPCRequestHandler
+class FaceliftIPCLibDBus_EXPORT IPCRequestHandler
 {
 
 public:
@@ -771,7 +777,7 @@ public:
 
 };
 
-class DBusIPCProxyBinder : public IPCProxyBinderBase
+class FaceliftIPCLibDBus_EXPORT DBusIPCProxyBinder : public IPCProxyBinderBase
 {
     Q_OBJECT
 
@@ -1055,7 +1061,7 @@ private:
 };
 
 
-class DBusIPCAdapterFactoryManager
+class FaceliftIPCLibDBus_EXPORT DBusIPCAdapterFactoryManager
 {
 public:
     typedef DBusIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
@@ -1097,7 +1103,7 @@ private:
 };
 
 
-class DBusIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
+class FaceliftIPCLibDBus_EXPORT DBusIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
 {
 public:
     static DBusIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
@@ -1107,7 +1113,7 @@ public:
 }
 
 
-class InterfacePropertyHandlerBase
+class FaceliftIPCLibDBus_EXPORT InterfacePropertyHandlerBase
 {
 public:
     QString generateObjectPath(const QString &parentPath)

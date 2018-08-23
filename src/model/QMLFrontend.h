@@ -47,7 +47,7 @@ class IPCAttachedPropertyFactoryBase;
 /*!
  * This is the base class which all QML frontends extend
  */
-class QMLFrontendBase : public QObject, public QQmlParserStatus
+class FaceliftModelLib_EXPORT QMLFrontendBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
@@ -238,7 +238,7 @@ typename ProviderType::QMLFrontendType *getQMLFrontend(ProviderType *provider)
 }
 
 
-class ModelListModelBase : public QAbstractListModel
+class FaceliftModelLib_EXPORT ModelListModelBase : public QAbstractListModel
 {
     Q_OBJECT
 

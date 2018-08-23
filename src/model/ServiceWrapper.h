@@ -35,7 +35,7 @@
 namespace facelift {
 
 
-class ServiceWrapperBase
+class FaceliftModelLib_EXPORT ServiceWrapperBase
 {
 
 protected:

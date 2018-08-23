@@ -35,6 +35,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "ServiceMonitor.h"
 
 {% for interface in module.interfaces %}
@@ -43,7 +45,7 @@
 
 {{module.namespaceCppOpen}}
 
-class ModuleMonitor : public facelift::ModuleMonitorBase {
+class {{classExport}} ModuleMonitor : public facelift::ModuleMonitorBase {
 
 public:
     static void registerTypes();

@@ -42,6 +42,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include <QtCore>
 #include <QQmlEngine>
 
@@ -75,7 +77,7 @@
 /**
  * This is the class registered as a QML component for the {{interface}} interface
  */
-class {{class}}QMLFrontend : public facelift::QMLFrontendBase
+class {{classExport}} {{class}}QMLFrontend : public facelift::QMLFrontendBase
 {
     Q_OBJECT
 

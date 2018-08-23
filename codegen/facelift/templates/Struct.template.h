@@ -36,6 +36,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include <QObject>
 #include <QAbstractListModel>
 #include <QTextStream>
@@ -57,7 +59,7 @@ class {{struct.name}}QObjectWrapper;
 */
 
 {{struct.comment}}
-class {{struct.name}} : public facelift::Structure<
+class {{classExport}} {{struct.name}} : public facelift::Structure<
     {%- for field in struct.fields -%}
         {{ comma() }}{{field.cppType}}
     {%- endfor -%} >
@@ -181,7 +183,7 @@ Q_DECLARE_METATYPE({{struct.fullyQualifiedCppType}})
 * \ingroup {{struct.module.name|toValidId}}
 * \inqmlmodule {{struct.module.name}}
 */
-class {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
+class {{classExport}} {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
 {
     Q_OBJECT
 
@@ -301,7 +303,7 @@ class QMLImplMapProperty{{struct}} : public facelift::TQMLImplMapProperty<{{stru
 };
 
 
-class {{struct}}Factory : public facelift::StructureFactoryBase {
+class {{classExport}} {{struct}}Factory : public facelift::StructureFactoryBase {
 
     Q_OBJECT
 

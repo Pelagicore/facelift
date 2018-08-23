@@ -89,6 +89,17 @@ def namespaceCppClose(symbol):
     ns = '} ' * len(parts)
     return ns
 
+def classExportDefines(libraryName):
+    defines = "#if defined(" + libraryName + "_LIBRARY)\n"
+    defines += "#  define " + libraryName + "_EXPORT Q_DECL_EXPORT\n"
+    defines += "#else\n"
+    defines += "#  define " + libraryName + "_EXPORT Q_DECL_IMPORT\n"
+    defines += "#endif"
+    return defines
+
+def classExport(libraryName):
+    return libraryName + "_EXPORT"
+
 def cppTypeFromSymbol(type, isInterfaceType):
     if type.is_void or type.is_primitive:
         if type.name == 'string':
@@ -235,8 +246,16 @@ setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
 
 ##############################
 
+def generateFile(generator, outputPath, templatePath, context, libraryName, libraryType):
+    if libraryName:
+        context.update({'classExportDefines': classExportDefines(libraryName + "_" + libraryType)})
+        context.update({'classExport': classExport(libraryName + "_" + libraryType)})
+    else:
+        context.update({'classExportDefines': ""})
+        context.update({'classExport': ""})
+    generator.write(outputPath, templatePath, context)
 
-def run_generation(input, output, dependency):
+def run_generation(input, output, dependency, libraryName):
     FileSystem.strict = True
     Generator.strict = True
 
@@ -259,41 +278,42 @@ def run_generation(input, output, dependency):
             module_path = '/'.join(module.name_parts)
             log.debug('process module %s' % module.module_name)
             ctx.update({'path': module_path})
-            generator.write('module/{{path}}/Module.h', 'Module.template.h', ctx)
-            generator.write('module/{{path}}/Module.cpp', 'Module.template.cpp', ctx)
-            generator.write('ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx)
-            generator.write('devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx)
-            generator.write('devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx)
-            generator.write('devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx)
+            generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "types")
+            generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "types")
+            generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "ipc")
+            generateFile(generator, 'devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
+            generateFile(generator, 'devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx, libraryName, "desktop_dev_tools")
+            generateFile(generator, 'devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx, libraryName, "desktop_dev_tools")
             for interface in module.interfaces:
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})
-                generator.write('types/{{path}}/{{interface}}.h', 'Service.template.h', ctx)
-                generator.write('types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx)
-                generator.write('types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx)
-                generator.write('types/{{path}}/{{interface}}QMLImplementation.h', 'QMLImplementation.template.h', ctx)
-                generator.write('types/{{path}}/{{interface}}QMLFrontend.h', 'QMLFrontend.template.h', ctx)
-                generator.write('devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx)
-                generator.write('devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx)
-                generator.write('ipc/{{path}}/{{interface}}IPC.h', 'ServiceIPC.template.h', ctx)
+                generateFile(generator, 'types/{{path}}/{{interface}}.h', 'Service.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}QMLImplementation.h', 'QMLImplementation.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}QMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "desktop_dev_tools")
+                generateFile(generator, 'devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
+                generateFile(generator, 'ipc/{{path}}/{{interface}}IPC.h', 'ServiceIPC.template.h', ctx, libraryName, "ipc")
             for enum in module.enums:
                 ctx.update({'enum': enum})
-                generator.write('types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx)
-                generator.write('types/{{path}}/{{enum}}.cpp', 'Enum.template.cpp', ctx)
+                generateFile(generator, 'types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{enum}}.cpp', 'Enum.template.cpp', ctx, libraryName, "types")
             for struct in module.structs:
                 ctx.update({'struct': struct})
-                generator.write('types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx)
-                generator.write('types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx)
+                generateFile(generator, 'types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx, libraryName, "types")
 
 
 @click.command()
+@click.option('--library', default="")
 @click.option('--output', default=".")
 @click.option('--input', '-i', multiple=True)
 @click.option('--dependency', '-d', multiple=True)
-def generate(input, output, dependency):
+def generate(input, output, dependency, library):
     """Takes several files or directories as input and generates the code
     in the given output directory."""
-    run_generation(input, output, dependency)
+    run_generation(input, output, dependency, library)
 
 
 if __name__ == '__main__':
