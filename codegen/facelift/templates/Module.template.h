@@ -35,6 +35,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "FaceliftModel.h"
 
 {% for struct in module.structs %}
@@ -58,7 +60,7 @@
 * \inqmlmodule {{module.name}}
 * This singleton can be used to create instances of the types defined in the {{module.name}} module/package.
 */
-class Module : public facelift::ModuleBase {
+class {{classExport}} Module : public facelift::ModuleBase {
 
 public:
     Module();

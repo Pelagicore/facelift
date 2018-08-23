@@ -35,6 +35,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "QMLModel.h"
 
 #include "{{interface}}PropertyAdapter.h"
@@ -48,7 +50,7 @@ class {{interface}}QMLImplementation;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter,
+class {{classExport}} {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter,
                                                public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation>
 {
     Q_OBJECT
@@ -95,7 +97,7 @@ public:
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend>
+class {{classExport}} {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend>
 {
     Q_OBJECT
 

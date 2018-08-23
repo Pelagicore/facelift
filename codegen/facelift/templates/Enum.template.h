@@ -35,13 +35,15 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include <QtCore>
 
 #include "FaceliftModel.h"
 
 {{module.namespaceCppOpen}}
 
-class {{enum}}Gadget
+class {{classExport}} {{enum}}Gadget
 {
     Q_GADGET
 public:

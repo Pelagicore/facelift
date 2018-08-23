@@ -35,6 +35,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "{{interface.fullyQualifiedPath}}.h"
 #include "ServiceMonitor.h"
 
@@ -43,7 +45,7 @@
 /**
  * Dummy implementation of the {{interface}} API
  */
-class {{interface}}Monitor : public facelift::ServiceMonitor<{{interface}}> {
+class {{classExport}} {{interface}}Monitor : public facelift::ServiceMonitor<{{interface}}> {
 
     Q_OBJECT
 

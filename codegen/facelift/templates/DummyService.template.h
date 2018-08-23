@@ -37,6 +37,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "{{interface.fullyQualifiedPath}}PropertyAdapter.h"
 #include "DummyModel.h"
 
@@ -45,7 +47,7 @@
 /**
  * Dummy implementation of the {{class}} API
  */
-class {{class}}Dummy : public {{class}}PropertyAdapter {
+class {{classExport}} {{class}}Dummy : public {{class}}PropertyAdapter {
 
     Q_OBJECT
 

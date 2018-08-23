@@ -36,6 +36,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include "{{class}}.h"
 #include "FaceliftProperty.h"
 
@@ -44,7 +46,7 @@
 /**
  * A partial implementation of the service interface, using the Property helper class
  */
-class {{class}}PropertyAdapter : public {{class}} {
+class {{classExport}} {{class}}PropertyAdapter : public {{class}} {
 
 public:
     {{class}}PropertyAdapter(QObject* parent = nullptr) : {{class}}(parent)

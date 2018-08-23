@@ -30,6 +30,12 @@
 
 #pragma once
 
+#if defined(FaceliftIPCLibLocal_LIBRARY)
+#  define FaceliftIPCLibLocal_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCLibLocal_EXPORT Q_DECL_IMPORT
+#endif
+
 #include <QDebug>
 
 #include "FaceliftModel.h"
@@ -51,7 +57,7 @@ class IPCServiceAdapterBase;
 /**
  * This class maintains a registry of IPC services registered locally, which enables local proxies to get a direct reference to them
  */
-class InterfaceManager : public QObject
+class FaceliftIPCLibLocal_EXPORT InterfaceManager : public QObject
 {
     Q_OBJECT
 
@@ -72,7 +78,7 @@ private:
 
 };
 
-class IPCServiceAdapterBase : public QObject
+class FaceliftIPCLibLocal_EXPORT IPCServiceAdapterBase : public QObject
 {
 
     Q_OBJECT
@@ -187,7 +193,7 @@ protected:
 };
 
 
-class IPCProxyBinderBase : public QObject
+class FaceliftIPCLibLocal_EXPORT IPCProxyBinderBase : public QObject
 {
     Q_OBJECT
 
@@ -327,7 +333,7 @@ protected:
 };
 
 
-class IPCAttachedPropertyFactoryBase : public QObject
+class FaceliftIPCLibLocal_EXPORT IPCAttachedPropertyFactoryBase : public QObject
 {
 
     Q_OBJECT

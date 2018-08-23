@@ -34,7 +34,7 @@
 
 namespace facelift {
 
-class LocalIPCMessage
+class FaceliftIPCLibLocal_EXPORT LocalIPCMessage
 {
 
 public:
@@ -215,7 +215,7 @@ private:
 };
 
 
-class LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
+class FaceliftIPCLibLocal_EXPORT LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
 {
     Q_OBJECT
 
@@ -317,7 +317,7 @@ private:
 };
 
 
-class LocalIPCAdapterFactoryManager
+class FaceliftIPCLibLocal_EXPORT LocalIPCAdapterFactoryManager
 {
 public:
     typedef LocalIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
@@ -360,7 +360,7 @@ private:
 };
 
 
-class LocalIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
+class FaceliftIPCLibLocal_EXPORT LocalIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
 {
     Q_OBJECT
 

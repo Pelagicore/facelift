@@ -39,6 +39,8 @@
 
 #pragma once
 
+{{classExportDefines}}
+
 #include <QtCore>
 #include "FaceliftModel.h"
 
@@ -67,7 +69,7 @@
 class {{class}}QMLFrontend;
 
 {% if hasReadyFlags %}
-class {{class}}ReadyFlags
+class {{classExport}} {{class}}ReadyFlags
 {
     Q_GADGET
 
@@ -87,7 +89,7 @@ public:
 {% endif %}
 
 {{interface.comment}}
-class {{class}} : public facelift::InterfaceBase {
+class {{classExport}} {{class}} : public facelift::InterfaceBase {
 
     Q_OBJECT
 

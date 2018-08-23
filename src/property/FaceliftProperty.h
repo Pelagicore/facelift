@@ -30,6 +30,12 @@
 
 #pragma once
 
+#if defined(FaceliftPropertyLib_LIBRARY)
+#  define FaceliftPropertyLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftPropertyLib_EXPORT Q_DECL_IMPORT
+#endif
+
 #include <vector>
 #include <assert.h>
 #include <QString>
@@ -42,7 +48,7 @@
 
 namespace facelift {
 
-class PropertyBase
+class FaceliftPropertyLib_EXPORT PropertyBase
 {
 
 public:
