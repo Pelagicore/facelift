@@ -59,6 +59,8 @@ def getPrimitiveCppType(symbol):
         return 'QString'
     if symbol.name == 'real':
         return 'float'
+    if symbol.name == 'var':
+        return 'QVariant'
     return symbol;
 
 def qmlCompatibleType(self):
@@ -70,6 +72,9 @@ def qmlCompatibleType(self):
         return "QVariantList"
     if self.is_map:
         return "QVariantMap"
+    if self.is_var:
+        return "QVariant"
+
     return cppTypeFromSymbol(self.type, True)
 
 def fullyQualifiedCppName(type):
@@ -95,6 +100,8 @@ def cppTypeFromSymbol(type, isInterfaceType):
             return 'QString'
         if type.name == 'real':
             return 'float'
+        if type.name == 'var':
+            return 'QVariant'
         return type
     elif type.is_list:
         return 'QList<{0}>'.format(cppTypeFromSymbol(type.nested, isInterfaceType))
