@@ -455,11 +455,16 @@ function(facelift_add_library TARGET_NAME)
 
         if(__INTERFACE)
         else()
-            # Set the installed headers location
-            target_include_directories(${TARGET_NAME}
-                PUBLIC
-                    $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
-            )
+            # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
+            if(HEADERS)
+                # Set the installed headers location
+                target_include_directories(${TARGET_NAME}
+                    PUBLIC
+                        $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
+                )
+            else()
+                message(WARNING "No include header defined for target: ${TARGET_NAME}")
+            endif()
         endif()
 
     endif()
@@ -471,11 +476,16 @@ function(facelift_add_library TARGET_NAME)
 
         if(__INTERFACE)
         else()
-            # Set the installed headers location
-            target_include_directories(${TARGET_NAME}
-                PUBLIC
-                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
-            )
+            # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
+            if(HEADERS)
+                # Set the installed headers location
+                target_include_directories(${TARGET_NAME}
+                    PUBLIC
+                        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
+                )
+            else()
+                message(WARNING "No include header defined for target: ${TARGET_NAME}")
+            endif()
         endif()
 
     endif()
