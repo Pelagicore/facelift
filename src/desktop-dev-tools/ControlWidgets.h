@@ -165,7 +165,7 @@ public:
         }
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
         widget->setEnabled(true);
     }
@@ -205,7 +205,7 @@ public:
         addWidget(widget);
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
         widget->setEnabled(true);
     }
@@ -240,7 +240,7 @@ public:
         this->addWidget(widget);
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
         widget->setEnabled(true);
     }
@@ -275,7 +275,7 @@ public:
         addWidget(widget);
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
         widget->setEnabled(true);
     }
@@ -309,7 +309,7 @@ public:
         addWidget(widget);
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
         widget->setReadOnly(false);
     }
@@ -342,7 +342,7 @@ public:
     {
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
     }
 
@@ -375,7 +375,7 @@ public:
         this->addWidget(listContentWidget);
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
     }
 
@@ -503,7 +503,7 @@ public:
         create_widget_panel(fieldNames);
     }
 
-    void enableEdition()
+    void enableEdition() override
     {
         widget->setEnabled(true);
         for (auto &panel : m_childPanels) {
