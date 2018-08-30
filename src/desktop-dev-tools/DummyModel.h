@@ -167,6 +167,7 @@ struct DummyModelTypeHandler<QList<ElementType> >
         value.clear();
         auto array = json.toArray();
         for (const auto &jsonObject : array) {
+            Q_UNUSED(jsonObject);
         }
     }
 

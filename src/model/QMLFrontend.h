@@ -161,7 +161,7 @@ public:
     {
     }
 
-    virtual const QString &implementationID()
+    const QString &implementationID() override
     {
         return m_provider.implementationID();
     }

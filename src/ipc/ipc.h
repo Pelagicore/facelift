@@ -32,8 +32,6 @@
 
 #include "ipc-common/ipc-common.h"
 
-#include "FaceliftProperty.h"
-
 #ifdef DBUS_IPC_ENABLED
 #include "dbus/ipc-dbus.h"
 

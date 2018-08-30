@@ -977,11 +977,15 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
 
     static void write(BinarySeralizer &msg, const Type &param)
     {
+        Q_UNUSED(msg);
+        Q_UNUSED(param);
         NOT_IMPLEMENTED();
     }
 
     static void read(BinarySeralizer &msg, Type &param)
     {
+        Q_UNUSED(msg);
+        Q_UNUSED(param);
         NOT_IMPLEMENTED();
     }
 

@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #include "ipc.h"
-#include "QMLModel.h"
 
 namespace facelift {
 
