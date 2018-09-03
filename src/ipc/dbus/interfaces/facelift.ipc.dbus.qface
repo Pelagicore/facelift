@@ -28,7 +28,7 @@
 **
 **********************************************************************/
 
-module facelift.ipc 1.0;
+module facelift.ipc.dbus 1.0;
 
 interface ObjectRegistry {
     readonly map<string> objects;

@@ -530,6 +530,8 @@ function(facelift_export_project)
     set(multiValueArgs BUILD_FILES INSTALLED_FILES)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+    set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
     set(CONFIG_DESTINATION_PATH "${CMAKE_BINARY_DIR}")
     set(VERSION_FILE_PATH ${CONFIG_DESTINATION_PATH}/${PROJECT_NAME}ConfigVersion.cmake)
     write_basic_package_version_file(${VERSION_FILE_PATH} COMPATIBILITY SameMajorVersion)

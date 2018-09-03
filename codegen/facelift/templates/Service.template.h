@@ -103,9 +103,9 @@ public:
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
 
-    typedef {{class}}QMLFrontend QMLFrontendType;
-    typedef {{class}}IPCAdapter IPCAdapterType;
-    typedef {{class}}IPCProxy IPCProxyType;
+    using QMLFrontendType = {{class}}QMLFrontend;
+    using IPCAdapterType = {{class}}IPCAdapter;
+    using IPCProxyType = {{class}}IPCProxy;
 
     friend QMLFrontendType;
 

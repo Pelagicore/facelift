@@ -31,14 +31,14 @@
 #pragma once
 
 #include "ipc-dbus.h"
-#include "facelift/ipc/ObjectRegistryIPC.h"
+#include "facelift/ipc/dbus/ObjectRegistryIPC.h"
 
 #include <QDBusContext>
 
 namespace facelift {
 namespace dbus {
 
-class DBusObjectRegistry : public facelift::ipc::ObjectRegistryPropertyAdapter
+class DBusObjectRegistry : public facelift::ipc::dbus::ObjectRegistryPropertyAdapter
 {
 
     Q_OBJECT
@@ -56,14 +56,15 @@ public:
         if (!m_initialized) {
             m_initialized = true;
             if (m_dbusManager.registerServiceName(SERVICE_NAME)) {
-                m_objectRegistryAdapter = new facelift::ipc::ObjectRegistryIPCAdapter();
+                m_objectRegistryAdapter = new facelift::ipc::dbus::ObjectRegistryIPCAdapter();
                 m_objectRegistryAdapter->setService(this);
                 m_objectRegistryAdapter->init();
             } else {
-                m_objectRegistryProxy = new facelift::ipc::ObjectRegistryIPCProxy();
+                m_objectRegistryProxy = new facelift::ipc::dbus::ObjectRegistryIPCProxy();
                 m_objectRegistryProxy->ipc()->setServiceName(SERVICE_NAME);
                 m_objectRegistryProxy->connectToServer();
-                QObject::connect(m_objectRegistryProxy, &facelift::ipc::ObjectRegistry::objectsChanged, this, &DBusObjectRegistry::objectsChanged);
+                QObject::connect(m_objectRegistryProxy, &facelift::ipc::dbus::ObjectRegistry::objectsChanged, this,
+                        &DBusObjectRegistry::objectsChanged);
             }
         }
     }
@@ -92,7 +93,7 @@ public:
     const QMap<QString, QString> &objects() const override
     {
         if (isMaster()) {
-            return facelift::ipc::ObjectRegistryPropertyAdapter::objects();
+            return facelift::ipc::dbus::ObjectRegistryPropertyAdapter::objects();
         } else {
             return m_objectRegistryProxy->objects();
         }
@@ -118,8 +119,8 @@ public:
     }
 
 private:
-    facelift::ipc::ObjectRegistryIPCProxy *m_objectRegistryProxy = nullptr;
-    facelift::ipc::ObjectRegistryIPCAdapter *m_objectRegistryAdapter = nullptr;
+    facelift::ipc::dbus::ObjectRegistryIPCProxy *m_objectRegistryProxy = nullptr;
+    facelift::ipc::dbus::ObjectRegistryIPCAdapter *m_objectRegistryAdapter = nullptr;
     DBusManager &m_dbusManager;
     bool m_initialized = false;
 };

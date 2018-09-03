@@ -75,7 +75,7 @@ class LocalIPCProxyBinder : public IPCProxyBinderBase
     Q_OBJECT
 
 public:
-    LocalIPCProxyBinder(InterfaceBase& owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent)
+    LocalIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent)
     {
     }
 
@@ -137,9 +137,18 @@ class LocalIPCProxy : public IPCProxyBase<AdapterType, IPCAdapterType>
 {
 
 public:
+    typedef qint32 MemberIDType;
+
     LocalIPCProxy(QObject *parent = nullptr) : IPCProxyBase<AdapterType, IPCAdapterType>(parent)
+        , m_ipcBinder(*this)
     {
         this->initBinder(m_ipcBinder);
+    }
+
+    template<typename T>
+    MemberIDType memberID(T id, const char *) const
+    {
+        return static_cast<MemberIDType>(id);
     }
 
     LocalIPCProxyBinder *ipc()
@@ -158,7 +167,11 @@ public:
     }
 
     virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
-    virtual void deserializeSpecificPropertyValues(LocalIPCMessage &msg) = 0;
+
+    virtual void deserializePropertyValues(LocalIPCMessage &msg)
+    {
+        Q_UNUSED(msg);
+    };
 
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... /*args*/)
@@ -166,18 +179,32 @@ public:
         qCritical() << "IPC unavailable for method" << methodName;
     }
 
-    template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... /*args*/)
+    template<typename Type>
+    void serializeValue(LocalIPCMessage &msg, const Type &v)
     {
-        Q_UNUSED(returnValue);
-        qCritical() << "IPC unavailable for method" << methodName;
+        Q_UNUSED(msg);
+        Q_UNUSED(v);
+    }
+
+    template<typename Type>
+    void deserializeValue(LocalIPCMessage &msg, Type &v)
+    {
+        Q_UNUSED(msg);
+        Q_UNUSED(v);
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturnNoSync(const QString& methodName, ReturnType &returnValue, const Args & ... /*args*/)
+    void sendMethodCallWithReturn(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/)
     {
         Q_UNUSED(returnValue);
-        qCritical() << "IPC unavailable for method" << methodName;
+        qCritical() << "IPC unavailable for method" << memberID;
+    }
+
+    template<typename ReturnType, typename ... Args>
+    void sendMethodCallWithReturnNoSync(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/)
+    {
+        Q_UNUSED(returnValue);
+        qCritical() << "IPC unavailable for method" << memberID;
     }
 
     template<typename PropertyType>
@@ -188,9 +215,9 @@ public:
     }
 
     template<typename ElementType>
-    void handleModelSignal(facelift::Model<ElementType>& model,
-                           facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName,
-                           const QString& signalName, LocalIPCMessage &msg)
+    void handleModelSignal(facelift::Model<ElementType> &model,
+            facelift::MostRecentlyUsedCache<int, ElementType> &cache, const QString &modelName,
+            const QString &signalName, LocalIPCMessage &msg)
     {
         Q_UNUSED(model);
         Q_UNUSED(cache);
@@ -200,8 +227,8 @@ public:
     }
 
     template<typename ElementType>
-    ElementType modelData(facelift::Model<ElementType>& model,
-                          facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName, int row)
+    ElementType modelData(facelift::Model<ElementType> &model,
+            facelift::MostRecentlyUsedCache<int, ElementType> &cache, const QString &modelName, int row)
     {
         Q_UNUSED(model);
         Q_UNUSED(cache);
@@ -236,14 +263,35 @@ class LocalIPCServiceAdapter : public facelift::LocalIPCServiceAdapterBase
 {
 public:
     typedef InterfaceType TheServiceType;
+    typedef qint32 MemberIDType;
 
     LocalIPCServiceAdapter(QObject *parent = nullptr) : facelift::LocalIPCServiceAdapterBase(parent)
     {
     }
 
+    template<typename T>
+    MemberIDType memberID(T id, const char *) const
+    {
+        return static_cast<MemberIDType>(id);
+    }
+
     InterfaceType *service()
     {
         return m_service;
+    }
+
+    template<typename Type>
+    void serializeValue(LocalIPCMessage &msg, const Type &v)
+    {
+        Q_UNUSED(msg);
+        Q_UNUSED(v);
+    }
+
+    template<typename Type>
+    void deserializeValue(LocalIPCMessage &msg, Type &v)
+    {
+        Q_UNUSED(msg);
+        Q_UNUSED(v);
     }
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
@@ -278,23 +326,26 @@ public:
     {
     }
 
-    virtual void serializeSpecificPropertyValues(LocalIPCMessage &msg) = 0;
-
-    template<typename ... Args>
-    void sendSignal(const char *signalName, const Args & ... /*args*/)
+    virtual void serializePropertyValues(LocalIPCMessage &msg)
     {
-        Q_UNUSED(signalName);
+        Q_UNUSED(msg);
     }
 
-    void connectModel(const QString& name, facelift::ModelBase &model)
+    template<typename ... Args>
+    void sendSignal(MemberIDType memberID, const Args & ... /*args*/)
+    {
+        Q_UNUSED(memberID);
+    }
+
+    void connectModel(const QString &name, facelift::ModelBase &model)
     {
         Q_UNUSED(name);
         Q_UNUSED(model);
     }
 
     template<typename ElementType>
-    void handleModelRequest(facelift::Model<ElementType>& model,
-                            LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage)
+    void handleModelRequest(facelift::Model<ElementType> &model,
+            LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage)
     {
         Q_UNUSED(model);
         Q_UNUSED(requestMessage);
@@ -306,7 +357,7 @@ public:
         return m_service;
     }
 
-    void setService(InterfaceBase *service)
+    void setService(QObject *service)
     {
         m_service = bindToProvider<InterfaceType>(service);
     }

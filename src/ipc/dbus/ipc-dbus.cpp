@@ -64,7 +64,7 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 
 }
 
-facelift::ipc::ObjectRegistry &DBusManager::objectRegistry()
+facelift::ipc::dbus::ObjectRegistry &DBusManager::objectRegistry()
 {
     if (m_objectRegistry == nullptr) {
         m_objectRegistry = new DBusObjectRegistry(*this);
@@ -81,34 +81,6 @@ DBusManager &DBusManager::instance()
     return i;
 }
 
-DBusIPCAdapterFactoryManager &DBusIPCAdapterFactoryManager::instance()
-{
-    static DBusIPCAdapterFactoryManager factory;
-    return factory;
-}
-
-DBusIPCServiceAdapterBase *DBusIPCAttachedPropertyFactory::qmlAttachedProperties(QObject *object)
-{
-    auto provider = getProvider(object);
-
-    DBusIPCServiceAdapterBase *serviceAdapter = nullptr;
-
-    if (provider != nullptr) {
-        auto interfaceID = provider->interfaceID();
-        auto factory = DBusIPCAdapterFactoryManager::instance().getFactory(interfaceID);
-
-        if (factory != nullptr) {
-            serviceAdapter = factory(provider);
-            serviceAdapter->setEnabled(false);  // We disable by default to force people to write "IPC.enabled: true"
-        } else {
-            qFatal("No factory found for interface '%s'", qPrintable(interfaceID));
-        }
-    } else {
-        qFatal("Can't attach IPC to object with bad type: %s", object->metaObject()->className());
-    }
-
-    return serviceAdapter;
-}
 
 bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const QDBusConnection &connection)
 {
@@ -185,7 +157,7 @@ void DBusIPCProxyBinder::bindToIPC()
             m_serviceName = registry.objects()[objectPath()];
         }
 
-        QObject::connect(&registry, &facelift::ipc::ObjectRegistry::objectsChanged, this, [this, &registry] () {
+        QObject::connect(&registry, &facelift::ipc::dbus::ObjectRegistry::objectsChanged, this, [this, &registry] () {
             if (registry.objects().contains(objectPath()) && !m_inProcess) {
                 auto serviceName = registry.objects()[objectPath()];
                 if (serviceName != m_serviceName) {
