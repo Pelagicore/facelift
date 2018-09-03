@@ -93,4 +93,34 @@ void IPCProxyBinderBase::connectToServer()
         }
     }
 }
+
+IPCAdapterFactoryManager &IPCAdapterFactoryManager::instance()
+{
+    static IPCAdapterFactoryManager factory;
+    return factory;
+}
+
+IPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObject *object)
+{
+    auto provider = getProvider(object);
+
+    IPCServiceAdapterBase *serviceAdapter = nullptr;
+
+    if (provider != nullptr) {
+        auto interfaceID = provider->interfaceID();
+        auto factory = IPCAdapterFactoryManager::instance().getFactory(interfaceID);
+
+        if (factory != nullptr) {
+            serviceAdapter = factory(provider);
+            serviceAdapter->setEnabled(false);  // We disable by default to force people to write "IPC.enabled: true"
+        } else {
+            qFatal("No factory found for interface '%s'", qPrintable(interfaceID));
+        }
+    } else {
+        qFatal("Can't attach IPC to object with bad type: %s", object->metaObject()->className());
+    }
+
+    return serviceAdapter;
+}
+
 }

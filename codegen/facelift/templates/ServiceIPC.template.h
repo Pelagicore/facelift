@@ -59,12 +59,33 @@ class {{classExport}} {{interface}}IPCAdapter: public facelift::IPCServiceAdapte
 
     // Q_PROPERTY(QObject* service READ service WRITE setService)
 public:
-    typedef {{interface.fullyQualifiedCppType}} ServiceType;
+
+    enum class MethodID {
+        {% for operation in interface.operations %}
+        {{operation.name}},
+        {{operation.name}}Result,
+        {% endfor %}
+        {% for property in interface.properties %}
+        {{property.name}},
+        {% endfor %}
+        {% for signal in interface.signals %}
+        {{signal.name}},
+        {% endfor %}
+    };
+
+    using ServiceType = {{interface.fullyQualifiedCppType}};
+    using BaseType = facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>;
+    using ThisType = {{interface}}IPCAdapter;
 
     static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface.qualified_name|lower|replace(".","/")}}";
 
     {{interface}}IPCAdapter(QObject* parent = nullptr)
         : facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>(parent)
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+        , m_{{property.name}}Handler(*this)
+    {% endif %}
+    {% endfor %}
     {
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
@@ -75,7 +96,7 @@ public:
 
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        connectModel("{{property.name}}", service()->{{property.name}}());
+        m_{{property.name}}Handler.connectModel(memberID(MethodID::{{property.name}}, "{{property.name}}"), service()->{{property.name}}());
         {% endif %}
         {% endfor %}
     }
@@ -135,7 +156,7 @@ public:
         {% endif %}
 
         {% for operation in interface.operations %}
-        if (member == "{{operation.name}}") {
+        if (member == memberID(MethodID::{{operation.name}}, "{{operation.name}}")) {
             {% for parameter in operation.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
             deserializeValue(requestMessage, param_{{parameter.name}});
@@ -144,7 +165,7 @@ public:
             facelift::ASyncRequestID requestID = s_nextRequestID++;
             theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
                 facelift::AsyncAnswer<{{operation.cppType}}>([this, requestID] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) {
-                sendSignal("{{operation.name}}Result", requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
+                sendSignal(memberID(MethodID::{{operation.name}}Result, "{{operation.name}}Result"), requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
             }));
             serializeValue(replyMessage, requestID);
             {% else %}
@@ -159,14 +180,14 @@ public:
             {% if operation.hasReturnValue %}
             serializeValue(replyMessage, returnValue);
             {%- endif %}
-            serializeSpecificPropertyValues(replyMessage);
+            serializePropertyValues(replyMessage);
             {% endif %}
         } else
         {% endfor %}
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        if (member == "{{property.name}}Data") {
-            handleModelRequest(theService->{{property.name}}(), requestMessage, replyMessage);
+        if (member == "{{property.name}}") {
+            m_{{property.name}}Handler.handleModelRequest(requestMessage, replyMessage);
         } else
         {% endif %}
         {% if (not property.readonly) %}
@@ -175,7 +196,7 @@ public:
             {{property.cppType}} value;
             requestMessage >> value;
             theService->set{{property.name}}(value);
-            serializeSpecificPropertyValues(replyMessage);
+            serializePropertyValues(replyMessage);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
@@ -213,10 +234,8 @@ public:
         {% endfor %}
     }
 
-    void serializeSpecificPropertyValues(facelift::IPCMessage& msg) override
+    void serializePropertyValues(facelift::IPCMessage& msg) override
     {
-        Q_UNUSED(msg);
-
         auto theService = service();
         {#% if (not interface.properties) %#}
         Q_UNUSED(theService);
@@ -233,7 +252,10 @@ public:
         serializeValue(msg, theService->{{property.name}}());
         {% endif %}
         {% endfor %}
+
+        BaseType::serializePropertyValues(msg);
     }
+
     {% for event in interface.signals %}
 
     void {{event}}(
@@ -242,12 +264,20 @@ public:
         {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
-        sendSignal("{{event}}"
+        sendSignal(memberID(MethodID::{{event}}, "{{event}}")
         {%- for parameter in event.parameters -%}
             , {{parameter.name}}
         {%- endfor -%}  );
     }
     {% endfor %}
+
+private:
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.cppType}}> m_{{property.name}}Handler;
+    {% endif %}
+    {% endfor %}
+
 };
 
 
@@ -258,9 +288,13 @@ class {{classExport}} {{interface}}IPCProxy : public facelift::IPCProxy<{{interf
     Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
-    typedef {{interface}}IPCAdapter IPCAdapterType;
+    using IPCAdapterType = {{interface}}IPCAdapter;
+    using ThisType = {{interface}}IPCProxy;
+    using BaseType = facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>;
+    using MethodID = IPCAdapterType::MethodID;
+
     // override the default QMLFrontend type to add the IPC related properties
-    typedef {{interface}}IPCQMLFrontendType QMLFrontendType;
+    using QMLFrontendType = {{interface}}IPCQMLFrontendType;
 
     {{interface}}IPCProxy(QObject *parent = nullptr)
         : facelift::IPCProxy<{{interface}}PropertyAdapter
@@ -269,14 +303,16 @@ public:
         {% if property.type.is_interface %}
         , m_{{property.name}}Proxy(*this)
         {% endif %}
+        {% if property.type.is_model %}
+        , m_{{property.name}}Handler(*this, m_{{property.name}})
+        {% endif %}
         {% endfor %}
     {
         ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void deserializeSpecificPropertyValues(facelift::IPCMessage &msg) override
+    void deserializePropertyValues(facelift::IPCMessage &msg) override
     {
-        Q_UNUSED(msg);
         {% for property in interface.properties %}
 
         {% if property.type.is_interface %}
@@ -296,6 +332,8 @@ public:
         m_{{property.name}}.setValue({{property.name}});
         {% endif %}
         {% endfor %}
+
+        BaseType::deserializePropertyValues(msg);
     }
 
     {% if interface.hasModelProperty %}
@@ -308,7 +346,7 @@ public:
         {% endif %}
         {% endfor %}
         }
-        facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>::setServiceRegistered(isRegistered);
+        BaseType::setServiceRegistered(isRegistered);
     }
 
     {% endif %}
@@ -367,7 +405,9 @@ public:
         {% endfor %}
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        handleModelSignal(m_{{property.name}}, m_{{property.name}}Cache, "{{property.name}}", signalName, msg);
+        if (signalName == "{{property.name}}") {
+            m_{{property.name}}Handler.handleSignal(msg);
+        }
         {% endif %}
         {% endfor %}
     }
@@ -378,7 +418,7 @@ public:
         {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override {
         if (localInterface() == nullptr) {
             facelift::ASyncRequestID id;
-            sendMethodCallWithReturnNoSync("{{operation.name}}", id
+            sendMethodCallWithReturnNoSync(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), id
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
@@ -400,7 +440,7 @@ public:
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}
             {{operation.interfaceCppType}} returnValue;
-            sendMethodCallWithReturn("{{operation.name}}", returnValue
+            sendMethodCallWithReturn(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), returnValue
                 {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
                 {%- endfor -%} );
@@ -444,7 +484,7 @@ public:
     {% if property.type.is_model %}
     {{property.nestedType.cppType}} {{property.name}}Data(int row)
     {
-        return modelData(m_{{property.name}}, m_{{property.name}}Cache, "{{property.name}}", row);
+        return m_{{property.name}}Handler.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
     }
     {% endif %}
     {% endfor %}
@@ -460,7 +500,7 @@ private:
     InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
     {% endif %}
     {% if property.type.is_model %}
-    facelift::MostRecentlyUsedCache<int, {{property.nestedType.cppType}}> m_{{property.name}}Cache;
+    facelift::IPCProxyModelPropertyHandler<ThisType, {{property.nestedType.cppType}}> m_{{property.name}}Handler;
     {% endif %}
     {% endfor %}
 };

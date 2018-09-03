@@ -54,13 +54,11 @@
 
 #include "ipc-common/ipc-common.h"
 
-#include "ipc-dbus-serialization.h"
-
 namespace facelift {
 
-namespace ipc {
+namespace ipc { namespace dbus {
 class ObjectRegistry;
-}
+} }
 
 namespace dbus {
 
@@ -166,83 +164,6 @@ private:
 
 class DBusIPCServiceAdapterBase;
 
-template<typename Type, typename Enable = void>
-struct IPCTypeRegisterHandler
-{
-    typedef Type SerializedType;
-
-    template<typename OwnerType>
-    static const Type & convertToSerializedType(const Type &v, OwnerType& adapter)
-    {
-        Q_UNUSED(adapter);
-        return v;
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(Type &v, const SerializedType& serializedValue, OwnerType& adapter)
-    {
-        Q_UNUSED(adapter);
-        v = serializedValue;
-    }
-
-};
-
-
-template<typename Type>
-struct IPCTypeRegisterHandler<QList<Type>>
-{
-    typedef QList<typename IPCTypeRegisterHandler<Type>::SerializedType> SerializedType;
-
-    template<typename OwnerType>
-    static SerializedType convertToSerializedType(const QList<Type> &v, OwnerType& adapter)
-    {
-        Q_UNUSED(v);
-        Q_UNUSED(adapter);
-        SerializedType convertedValue;
-        for (const auto& e : v) {
-            convertedValue.append(IPCTypeRegisterHandler<Type>::convertToSerializedType(e, adapter));
-        }
-        return convertedValue;
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(QList<Type>&v, const SerializedType& serializedValue, OwnerType& adapter)
-    {
-        for (const auto& e : serializedValue) {
-            Type c;
-            IPCTypeRegisterHandler<Type>::convertToDeserializedType(c, e, adapter);
-            v.append(c);
-        }
-    }
-
-};
-
-template<typename Type>
-struct IPCTypeRegisterHandler<QMap<QString, Type>>
-{
-    typedef QMap<QString, typename IPCTypeRegisterHandler<Type>::SerializedType> SerializedType;
-
-    template<typename OwnerType>
-    static SerializedType convertToSerializedType(const QMap<QString, Type> &v, OwnerType& adapter)
-    {
-        SerializedType convertedValue;
-        for (const auto& key : v.keys()) {
-            convertedValue.insert(key, IPCTypeRegisterHandler<Type>::convertToSerializedType(v[key], adapter));
-        }
-        return convertedValue;
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(QMap<QString, Type>&v, const SerializedType& serializedValue, OwnerType& adapter)
-    {
-        for (const auto& key : serializedValue.keys()) {
-            Type c;
-            IPCTypeRegisterHandler<Type>::convertToDeserializedType(c, serializedValue[key], adapter);
-            v.insert(key, c);
-        }
-    }
-
-};
 
 
 template<typename Type, typename Enable = void>
@@ -562,12 +483,6 @@ DBusIPCMessage &operator>>(DBusIPCMessage &msg, Property<Type> &property)
 }
 
 
-class InterfacePropertyHandlerBase
-{
-public:
-};
-
-
 class DBusObjectRegistry;
 
 class FaceliftIPCLibDBus_EXPORT DBusManager
@@ -600,7 +515,7 @@ public:
         return m_busConnection.baseService();
     }
 
-    facelift::ipc::ObjectRegistry &objectRegistry();
+    facelift::ipc::dbus::ObjectRegistry &objectRegistry();
 
 private:
     QDBusConnection m_busConnection;
@@ -675,19 +590,22 @@ public:
         template<typename Type>
         void operator()(const Type &v)
         {
-            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
+            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg,
+                    IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
         }
     };
 
 
-    template <typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v) {
+    template<typename Type>
+    void serializeValue(DBusIPCMessage &msg, const Type &v)
+    {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
     }
 
-    template <typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v) {
+    template<typename Type>
+    void deserializeValue(DBusIPCMessage &msg, Type &v)
+    {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
         IPCTypeHandler<Type>::read(msg, serializedValue);
@@ -695,7 +613,7 @@ public:
     }
 
     template<typename ... Args>
-    void sendSignal(const QString& signalName, const Args & ... args)
+    void sendSignal(const QString &signalName, const Args & ... args)
     {
         DBusIPCMessage msg(objectPath(), interfaceName(), SIGNAL_TRIGGERED_SIGNAL_NAME);
         serializeValue(msg, signalName);
@@ -735,13 +653,10 @@ public:
 
     virtual IPCHandlingResult handleMethodCallMessage(DBusIPCMessage &requestMessage, DBusIPCMessage &replyMessage) = 0;
 
-    void serializePropertyValues(DBusIPCMessage &msg)
+    virtual void serializePropertyValues(DBusIPCMessage &msg)
     {
         serializeValue(msg, m_service->ready());
-        serializeSpecificPropertyValues(msg);
     }
-
-    virtual void serializeSpecificPropertyValues(DBusIPCMessage &msg) = 0;
 
     void init(InterfaceBase *service);
 
@@ -750,67 +665,13 @@ public:
         return DBusManager::instance();
     }
 
-    QString generateObjectPath(const QString &parentPath)
+    InterfaceBase *service() const
     {
-        static int s_nextInstanceID = 0;
-        QString path = parentPath + "/dynamic";
-        path += QString::number(s_nextInstanceID++);
-        return path;
-    }
-
-    InterfaceBase* service() const {
         return m_service;
     }
 
-    template<typename InterfaceType>
-    typename InterfaceType::IPCAdapterType* getOrCreateAdapter(InterfaceType* service) {
-        typedef typename InterfaceType::IPCAdapterType InterfaceAdapterType;
-
-        if (service == nullptr)
-            return nullptr;
-
-        // Look for an existing adapter
-        for (auto & adapter : m_subAdapters) {
-            if (adapter->service() == service) {
-                return qobject_cast<InterfaceAdapterType*>(adapter.data());
-            }
-        }
-
-        auto serviceAdapter = new InterfaceAdapterType(service); // This object will be deleted together with the service itself
-        serviceAdapter->setObjectPath(this->generateObjectPath(this->objectPath()));
-        serviceAdapter->setService(service);
-        serviceAdapter->init();
-        m_subAdapters.append(serviceAdapter);
-
-        return serviceAdapter;
-    }
-
-    template<typename InterfaceType, typename InterfaceAdapterType>
-    class InterfacePropertyIPCAdapterHandler : public InterfacePropertyHandlerBase
-    {
-
-    public:
-        void update(DBusIPCServiceAdapterBase *parent, InterfaceType *service)
-        {
-            if (m_service != service) {
-                m_service = service;
-                m_serviceAdapter = parent->getOrCreateAdapter<InterfaceType>(service);
-            }
-        }
-
-        QString objectPath() const
-        {
-            return (m_serviceAdapter ? m_serviceAdapter->objectPath() :  "");
-        }
-
-        QPointer<InterfaceType> m_service;
-        QPointer<InterfaceAdapterType> m_serviceAdapter;
-    };
-
 protected:
     DBusVirtualObject m_dbusVirtualObject;
-
-    QList<QPointer<DBusIPCServiceAdapterBase>> m_subAdapters;
 
     QString m_introspectionData;
     QString m_serviceName;
@@ -827,10 +688,19 @@ class DBusIPCServiceAdapter : public DBusIPCServiceAdapterBase
 {
 public:
     typedef ServiceType TheServiceType;
+    typedef const char *MemberIDType;
 
     DBusIPCServiceAdapter(QObject *parent) : DBusIPCServiceAdapterBase(parent)
     {
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
+    }
+
+    template<typename T>
+    MemberIDType memberID(T member, const char *memberName) const
+    {
+        // DBus member IDs are strings
+        Q_UNUSED(member);
+        return memberName;
     }
 
     ServiceType *service() const override
@@ -867,62 +737,15 @@ public:
         return introspectionData;
     }
 
-    void connectModel(const QString& name, facelift::ModelBase &model)
-    {
-        connect(&model, static_cast<void (facelift::ModelBase::*)(int, int)>
-                (&facelift::ModelBase::dataChanged), this, [this, name] (int first, int last) {
-            this->sendSignal(name + "DataChanged", first, last);
-        });
-        connect(&model, &facelift::ModelBase::beginRemoveElements, this, [this, name] (int first, int last) {
-            this->sendSignal(name + "BeginRemove", first, last);
-        });
-        connect(&model, &facelift::ModelBase::endRemoveElements, this, [this, name] () {
-            this->sendSignal(name + "EndRemove");
-        });
-        connect(&model, &facelift::ModelBase::beginInsertElements, this, [this, name] (int first, int last) {
-            this->sendSignal(name + "BeginInsert", first, last);
-        });
-        connect(&model, &facelift::ModelBase::endInsertElements, this, [this, name] () {
-            this->sendSignal(name + "EndInsert");
-        });
-        connect(&model, &facelift::ModelBase::beginResetModel, this, [this, name] () {
-            this->sendSignal(name + "BeginReset");
-        });
-        connect(&model, &facelift::ModelBase::endResetModel, this, [this, name] () {
-            this->sendSignal(name + "EndReset");
-        });
-    }
-
-    template<typename ElementType>
-    void handleModelRequest(facelift::Model<ElementType>& model,
-                            facelift::dbus::DBusIPCMessage &requestMessage,
-                            facelift::dbus::DBusIPCMessage &replyMessage)
-    {
-        int first, last;
-        deserializeValue(requestMessage, first);
-        deserializeValue(requestMessage, last);
-        QList<ElementType> list;
-
-        // Make sure we do not request items which are out of range
-        first = qMin(first, model.size() - 1);
-        last = qMin(last, model.size() - 1);
-
-        for (int i = first; i <= last; ++i)
-            list.append(model.elementAt(i));
-
-        serializeValue(replyMessage, list);
-//        replyMessage << list;
-    }
-
 protected:
     QPointer<ServiceType> m_service;
 };
 
-class FaceliftIPCLibDBus_EXPORT IPCRequestHandler
+class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
 {
 
 public:
-    virtual ~IPCRequestHandler()
+    virtual ~DBusRequestHandler()
     {
     }
 
@@ -940,7 +763,7 @@ public:
     Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
     Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
 
-    DBusIPCProxyBinder(InterfaceBase& owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent)
+    DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent)
     {
         m_busWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration);
     }
@@ -1003,14 +826,16 @@ public:
         }
     }
 
-    template <typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v) {
+    template<typename Type>
+    void serializeValue(DBusIPCMessage &msg, const Type &v)
+    {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
     }
 
-    template <typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v) {
+    template<typename Type>
+    void deserializeValue(DBusIPCMessage &msg, Type &v)
+    {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
         IPCTypeHandler<SerializedType>::read(msg, serializedValue);
@@ -1019,7 +844,7 @@ public:
 
 
     template<typename PropertyType>
-    DBusIPCMessage sendSetterCall(const QString& methodName, const PropertyType &value)
+    DBusIPCMessage sendSetterCall(const QString &methodName, const PropertyType &value)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         serializeValue(msg, value);
@@ -1046,12 +871,13 @@ public:
         template<typename Type>
         void operator()(const Type &v)
         {
-            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
+            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg,
+                    IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
         }
     };
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const QString& methodName, const Args & ... args)
+    DBusIPCMessage sendMethodCall(const QString &methodName, const Args & ... args)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
@@ -1075,40 +901,19 @@ public:
         return DBusManager::instance();
     }
 
-    void setHandler(IPCRequestHandler *handler)
+    void setHandler(DBusRequestHandler *handler)
     {
         m_serviceObject = handler;
         checkInit();
     }
 
-    template<typename InterfaceType>
-    typename InterfaceType::IPCProxyType* getOrCreateSubProxy(const QString &objectPath) {
-        typedef typename InterfaceType::IPCProxyType InterfaceProxyType;
-
-        if (objectPath.isEmpty())
-            return nullptr;
-
-        if (m_subProxies.contains(objectPath))
-            return qobject_cast<InterfaceProxyType*>(&(m_subProxies[objectPath]->owner()));
-
-        auto proxy = new InterfaceProxyType();
-        proxy->ipc()->setObjectPath(objectPath);
-        proxy->connectToServer();
-
-        m_subProxies.insert(objectPath, proxy->ipc());
-
-        return proxy;
-    }
-
-    QMap<QString, DBusIPCProxyBinder*> m_subProxies;
-
 private:
     QString m_serviceName;
     QString m_interfaceName;
 
-    IPCRequestHandler *m_serviceObject = nullptr;
+    DBusRequestHandler *m_serviceObject = nullptr;
 
-    facelift::ipc::ObjectRegistry *m_objectRegistry = nullptr;
+    facelift::ipc::dbus::ObjectRegistry *m_objectRegistry = nullptr;
 
     QDBusServiceWatcher m_busWatcher;
     bool m_explicitServiceName = false;
@@ -1118,10 +923,12 @@ private:
 
 
 template<typename AdapterType, typename IPCAdapterType>
-class DBusIPCProxy : public IPCProxyBase<AdapterType, IPCAdapterType>, protected IPCRequestHandler
+class DBusIPCProxy : public IPCProxyBase<AdapterType, IPCAdapterType>, protected DBusRequestHandler
 {
 
 public:
+    typedef const char *MemberIDType;
+
     DBusIPCProxy(QObject *parent = nullptr) :
         IPCProxyBase<AdapterType, IPCAdapterType>(parent), m_ipcBinder(*this)
     {
@@ -1132,17 +939,24 @@ public:
         this->setImplementationID("DBus IPC Proxy");
     }
 
-    virtual void deserializeSpecificPropertyValues(DBusIPCMessage &msg) = 0;
+    template<typename T>
+    MemberIDType memberID(T member, const char *memberName) const
+    {
+        // DBus member IDs are strings
+        Q_UNUSED(member);
+        return memberName;
+    }
 
-
-    template <typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v) {
+    template<typename Type>
+    void serializeValue(DBusIPCMessage &msg, const Type &v)
+    {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
     }
 
-    template <typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v) {
+    template<typename Type>
+    void deserializeValue(DBusIPCMessage &msg, Type &v)
+    {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
         IPCTypeHandler<SerializedType>::read(msg, serializedValue);
@@ -1154,7 +968,6 @@ public:
         auto r = this->ready();
         deserializeValue(msg, r);
         this->setReady(r);
-        deserializeSpecificPropertyValues(msg);
     }
 
     void setServiceRegistered(bool isRegistered) override
@@ -1171,104 +984,36 @@ public:
     {
         DBusIPCMessage msg = m_ipcBinder.sendSetterCall(methodName, value);
         if (msg.isReplyMessage()) {
-            deserializeSpecificPropertyValues(msg);
+            deserializePropertyValues(msg);
         }
     }
 
     template<typename ... Args>
-    void sendMethodCall(const QString& methodName, const Args & ... args)
+    void sendMethodCall(const char *methodName, const Args & ... args)
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
-            deserializeSpecificPropertyValues(msg);
+            deserializePropertyValues(msg);
         }
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const QString& methodName, ReturnType &returnValue, const Args & ... args)
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
             deserializeValue(msg, returnValue);
-            deserializeSpecificPropertyValues(msg);
+            deserializePropertyValues(msg);
         }
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturnNoSync(const QString& methodName, ReturnType &returnValue, const Args & ... args)
+    void sendMethodCallWithReturnNoSync(const char *methodName, ReturnType &returnValue, const Args & ... args)
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
             deserializeValue(msg, returnValue);
         }
-    }
-
-    template<typename ElementType>
-    void handleModelSignal(facelift::Model<ElementType>& model,
-                           facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName,
-                           const QString& signalName, facelift::dbus::DBusIPCMessage &msg)
-    {
-        if (signalName == modelName + "DataChanged") {
-            int first, last;
-            deserializeValue(msg, first);
-            deserializeValue(msg, last);
-            for (int i = first; i <= last; ++i) {
-                if (cache.exists(i))
-                    cache.remove(i);
-            }
-            emit model.dataChanged(first, last);
-        } else if (signalName == modelName + "BeginInsert") {
-            cache.clear();
-            int first, last;
-            deserializeValue(msg, first);
-            deserializeValue(msg, last);
-            emit model.beginInsertElements(first, last);
-        } else if (signalName == modelName + "EndInsert") {
-            emit model.endInsertElements();
-        } else if (signalName == modelName + "BeginRemove") {
-            cache.clear();
-            int first, last;
-            deserializeValue(msg, first);
-            deserializeValue(msg, last);
-            emit model.beginRemoveElements(first, last);
-        } else if (signalName == modelName + "EndRemove") {
-            emit model.endRemoveElements();
-        } else if (signalName == modelName + "BeginReset") {
-            cache.clear();
-            emit model.beginResetModel();
-        } else if (signalName == modelName + "EndReset") {
-            cache.clear();
-            emit model.endResetModel();
-        }
-    }
-
-    template<typename ElementType>
-    ElementType modelData(facelift::Model<ElementType>& model,
-                          facelift::MostRecentlyUsedCache<int, ElementType>& cache, const QString& modelName, int row)
-    {
-        ElementType retval;
-        if (cache.exists(row)) {
-            retval = cache.get(row);
-        } else {
-            static const int prefetch = 12;    // fetch 25 items around requested one
-            QList<ElementType> list;
-            int first = row > prefetch ? row - prefetch : 0;
-            int last = row < model.size() - prefetch ? row + prefetch : model.size() - 1;
-
-            while (cache.exists(first) && first < last)
-                ++first;
-            while (cache.exists(last) && last > first)
-                --last;
-
-            this->sendMethodCallWithReturnNoSync(modelName + "Data", list, first, last);
-            Q_ASSERT(list.size() == (last - first + 1));
-
-            for (int i = first; i <= last; ++i)
-                cache.insert(i, list.at(i - first));
-
-            retval = list.at(row - first);
-        }
-        return retval;
     }
 
     DBusIPCProxyBinder *ipc()
@@ -1277,7 +1022,8 @@ public:
     }
 
     template<typename InterfaceType>
-    typename InterfaceType::IPCProxyType* getOrCreateSubProxy(const QString &objectPath) {
+    typename InterfaceType::IPCProxyType *getOrCreateSubProxy(const QString &objectPath)
+    {
         return m_ipcBinder.getOrCreateSubProxy<InterfaceType>(objectPath);
     }
 
@@ -1286,115 +1032,12 @@ public:
         m_ipcBinder.connectToServer();
     }
 
-    template<typename ProxyType>
-    class InterfacePropertyIPCProxyHandler
-    {
-
-    public:
-        InterfacePropertyIPCProxyHandler(DBusIPCProxy& owner) : m_owner(owner) {
-        }
-
-        void update(const QString &objectPath)
-        {
-            if (m_proxy && (m_proxy->ipc()->objectPath() != objectPath)) {
-                m_proxy = nullptr;
-            }
-            if (!m_proxy) {
-                m_proxy = m_owner.m_ipcBinder.template getOrCreateSubProxy<ProxyType>(objectPath);
-            }
-        }
-
-        ProxyType *getValue() const
-        {
-            return m_proxy;
-        }
-
-    private:
-        QPointer<ProxyType> m_proxy;
-        DBusIPCProxy& m_owner;
-    };
-
 private:
     DBusIPCProxyBinder m_ipcBinder;
     bool m_serviceRegistered = false;
 
 };
 
-
-template<typename Type>
-struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
-{
-    typedef QString SerializedType;
-
-    static SerializedType convertToSerializedType(Type * const &v, DBusIPCServiceAdapterBase& adapter)
-    {
-        return adapter.getOrCreateAdapter<Type>(v)->objectPath();
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(Type * &v, const SerializedType& serializedValue, OwnerType& owner)
-    {
-        v = owner.template getOrCreateSubProxy<Type>(serializedValue);
-    }
-
-};
-
-class DBusIPCAdapterFactoryManager
-{
-public:
-    typedef DBusIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
-
-    static DBusIPCAdapterFactoryManager &instance();
-
-    template<typename AdapterType>
-    static DBusIPCServiceAdapterBase *createInstance(InterfaceBase *i)
-    {
-        auto adapter = new AdapterType(i);
-        adapter->setService(i);
-        qDebug() << "Created adapter for interface " << i->interfaceID();
-        return adapter;
-    }
-
-    template<typename AdapterType>
-    static void registerType()
-    {
-        auto &i = instance();
-        const auto &typeID = AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME;
-        if (i.m_factories.contains(typeID)) {
-            qWarning() << "IPC type already registered" << typeID;
-        } else {
-            i.m_factories.insert(typeID, &DBusIPCAdapterFactoryManager::createInstance<AdapterType>);
-        }
-    }
-
-    IPCAdapterFactory getFactory(const QString &typeID) const
-    {
-        if (m_factories.contains(typeID)) {
-            return m_factories[typeID];
-        } else {
-            return nullptr;
-        }
-    }
-
-private:
-    QMap<QString, IPCAdapterFactory> m_factories;
-};
-
-
-class FaceliftIPCLibDBus_EXPORT DBusIPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
-{
-public:
-    static DBusIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
-
-};
-
-
-
-
 }
 
-
-
 }
-
-QML_DECLARE_TYPEINFO(facelift::dbus::DBusIPCAttachedPropertyFactory, QML_HAS_ATTACHED_PROPERTIES)
