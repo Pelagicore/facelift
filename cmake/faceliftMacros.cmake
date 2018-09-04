@@ -462,8 +462,6 @@ function(facelift_add_library TARGET_NAME)
                     PUBLIC
                         $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
                 )
-            else()
-                message(WARNING "No include header defined for target: ${TARGET_NAME}")
             endif()
         endif()
 
@@ -483,8 +481,6 @@ function(facelift_add_library TARGET_NAME)
                     PUBLIC
                         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
                 )
-            else()
-                message(WARNING "No include header defined for target: ${TARGET_NAME}")
             endif()
         endif()
 
