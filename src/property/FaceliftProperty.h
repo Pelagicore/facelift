@@ -505,7 +505,7 @@ public:
                 (facelift::ModelBase*)this, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged));
 
         this->beginResetModel();
-        this->reset(property.property->size(), [this, modelProperty](int index) {
+        this->reset(property.property->size(), [modelProperty](int index) {
             return modelProperty->elementAt(index);
         });
         this->endResetModel();

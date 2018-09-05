@@ -480,7 +480,8 @@ public:
     }
 
     template<typename ListElementType>
-    static QList<ListElementType> modelAsList(const ModelProperty<ListElementType> &property) {
+    static QList<ListElementType> modelAsList(const ModelProperty<ListElementType> &property)
+    {
         auto size = property.size();
         QList<ListElementType> list;
         for (int i = 0; i < size; i++) {
@@ -514,7 +515,7 @@ public:
         auto jsonArray = jsonValue.toArray();
         auto size = jsonArray.size();
         for (int i = 0; i < size; i++) {
-            ListElementType e;
+            ListElementType e {};
             DummyModelTypeHandler<ListElementType>::readJSON(jsonArray[i], e);
             elements.append(e);
         }

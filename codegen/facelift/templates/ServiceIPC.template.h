@@ -63,7 +63,7 @@ public:
     enum class MethodID {
         {% for operation in interface.operations %}
         {{operation.name}},
-        {{operation.name}}Result,
+        {{operation.name}}AsyncCallResult,
         {% endfor %}
         {% for property in interface.properties %}
         {{property.name}},
@@ -165,7 +165,7 @@ public:
             facelift::ASyncRequestID requestID = s_nextRequestID++;
             theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
                 facelift::AsyncAnswer<{{operation.cppType}}>([this, requestID] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) {
-                sendSignal(memberID(MethodID::{{operation.name}}Result, "{{operation.name}}Result"), requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
+                sendSignal(memberID(MethodID::{{operation.name}}AsyncCallResult, "{{operation.name}}AsyncCallResult"), requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
             }));
             serializeValue(replyMessage, requestID);
             {% else %}
@@ -372,7 +372,7 @@ public:
 
         {% for operation in interface.operations %}
         {% if operation.isAsync %}
-        if (signalName == "{{operation.name}}Result") {
+        if (signalName == "{{operation.name}}AsyncCallResult") {
             facelift::ASyncRequestID id;
             msg >> id;
             if (m_{{operation.name}}Requests.contains(id)) {
