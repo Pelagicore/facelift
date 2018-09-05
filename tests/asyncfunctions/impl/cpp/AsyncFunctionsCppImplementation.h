@@ -44,7 +44,7 @@ public:
 
     void getIntValueAsync(facelift::AsyncAnswer<int> answer) override
     {
-        QTimer::singleShot(1, [this, answer]() mutable {
+        QTimer::singleShot(1, [answer]() mutable {
             int returnValue = 10;
             answer(returnValue);
         });
@@ -52,14 +52,14 @@ public:
 
     void getStringValueAsync(facelift::AsyncAnswer<QString> answer) override
     {
-        QTimer::singleShot(1, [this, answer]() mutable {
+        QTimer::singleShot(1, [answer]() mutable {
             answer(QString("Test-String"));
         });
     }
 
     void getContainerValueAsync(facelift::AsyncAnswer<Container> answer) override
     {
-        QTimer::singleShot(1, [this, answer]() mutable {
+        QTimer::singleShot(1, [answer]() mutable {
             Container c;
             c.setintegerData(9);
             c.setstringData(QString("Test-String"));
@@ -72,14 +72,14 @@ public:
 
     void calculateSumAsync(int arg1, int arg2, int arg3, facelift::AsyncAnswer<int> answer) override
     {
-        QTimer::singleShot(1, [this, answer, arg1, arg2, arg3]() mutable {
+        QTimer::singleShot(1, [answer, arg1, arg2, arg3]() mutable {
             answer(arg1 + arg2 + arg3);
         });
     }
 
     void append(QString str1, QString str2, facelift::AsyncAnswer<QString> answer) override
     {
-        QTimer::singleShot(1, [this, answer, str1, str2]() mutable {
+        QTimer::singleShot(1, [answer, str1, str2]() mutable {
             answer(str1.append(str2));
         });
     }

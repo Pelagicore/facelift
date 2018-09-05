@@ -658,7 +658,7 @@ public:
         serializeValue(msg, m_service->ready());
     }
 
-    void init(InterfaceBase *service);
+    void doInit(InterfaceBase *service);
 
     DBusManager &dbusManager()
     {
@@ -717,7 +717,7 @@ public:
 
     void init() override final
     {
-        DBusIPCServiceAdapterBase::init(m_service);
+        DBusIPCServiceAdapterBase::doInit(m_service);
     }
 
     QString introspect(const QString &path) const override
@@ -925,6 +925,7 @@ private:
 template<typename AdapterType, typename IPCAdapterType>
 class DBusIPCProxy : public IPCProxyBase<AdapterType, IPCAdapterType>, protected DBusRequestHandler
 {
+    using IPCProxyBase<AdapterType, IPCAdapterType>::assignDefaultValue;
 
 public:
     typedef const char *MemberIDType;
@@ -1004,6 +1005,8 @@ public:
         if (msg.isReplyMessage()) {
             deserializeValue(msg, returnValue);
             deserializePropertyValues(msg);
+        } else {
+            assignDefaultValue(returnValue);
         }
     }
 
@@ -1013,6 +1016,8 @@ public:
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
             deserializeValue(msg, returnValue);
+        } else {
+            assignDefaultValue(returnValue);
         }
     }
 

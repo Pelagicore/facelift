@@ -135,6 +135,7 @@ public:
 template<typename AdapterType, typename IPCAdapterType>
 class LocalIPCProxy : public IPCProxyBase<AdapterType, IPCAdapterType>
 {
+    using IPCProxyBase<AdapterType, IPCAdapterType>::assignDefaultValue;
 
 public:
     typedef qint32 MemberIDType;
@@ -196,14 +197,14 @@ public:
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/)
     {
-        Q_UNUSED(returnValue);
+        assignDefaultValue(returnValue);
         qCritical() << "IPC unavailable for method" << memberID;
     }
 
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturnNoSync(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/)
     {
-        Q_UNUSED(returnValue);
+        assignDefaultValue(returnValue);
         qCritical() << "IPC unavailable for method" << memberID;
     }
 
@@ -357,7 +358,7 @@ public:
         return m_service;
     }
 
-    void setService(QObject *service)
+    void setService(QObject *service) override
     {
         m_service = bindToProvider<InterfaceType>(service);
     }

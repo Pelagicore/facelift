@@ -118,7 +118,7 @@ DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
     }
 }
 
-void DBusIPCServiceAdapterBase::init(InterfaceBase *service)
+void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
 {
     m_service = service;
     if (!m_alreadyInitialized) {

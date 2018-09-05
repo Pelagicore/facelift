@@ -372,6 +372,12 @@ public:
         m_serviceReady.init(this, &InterfaceBase::readyChanged, "ready");
     }
 
+    template<typename Type>
+    void assignDefaultValue(Type &v) const
+    {
+        v = Type {};
+    }
+
     template<typename BinderType>
     void initBinder(BinderType &binder)
     {
@@ -441,6 +447,7 @@ public:
         QPointer<ProxyType> m_proxy;
         IPCProxyBase &m_owner;
     };
+
 
 protected:
     void setReady(bool isReady)
