@@ -30,17 +30,22 @@
 
 #pragma once
 
+#if defined(FaceliftQMLModelLib_LIBRARY)
+#  define FaceliftQMLModelLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftQMLModelLib_EXPORT Q_DECL_IMPORT
+#endif
+
 #include "FaceliftModel.h"
 #include "QMLFrontend.h"
 #include "FaceliftProperty.h"
 
 namespace facelift {
 
-
 /**
  * Base class for
  */
-class ModelQMLImplementationBase : public QObject, public QQmlParserStatus
+class FaceliftQMLModelLib_EXPORT ModelQMLImplementationBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
@@ -231,7 +236,7 @@ protected:
 };
 
 
-class QMLModelImplementationFrontendBase
+class FaceliftQMLModelLib_EXPORT QMLModelImplementationFrontendBase
 {
 protected:
     QQmlEngine *qmlEngine()
@@ -279,7 +284,7 @@ protected:
 };
 
 
-class QMLImplListPropertyBase : public QObject
+class FaceliftQMLModelLib_EXPORT QMLImplListPropertyBase : public QObject
 {
     Q_OBJECT
 
@@ -383,7 +388,7 @@ class QMLImplListProperty : public TQMLImplListProperty<ElementType>
 };
 
 
-class QMLImplMapPropertyBase : public QObject
+class FaceliftQMLModelLib_EXPORT QMLImplMapPropertyBase : public QObject
 {
     Q_OBJECT
 
@@ -486,7 +491,7 @@ class QMLImplMapProperty : public TQMLImplMapProperty<ElementType>
 };
 
 
-class StructQObjectWrapperBase : public QObject
+class FaceliftQMLModelLib_EXPORT StructQObjectWrapperBase : public QObject
 {
     Q_OBJECT
 
@@ -538,7 +543,7 @@ protected:
 
 };
 
-class QObjectWrapperPointerBase
+class FaceliftQMLModelLib_EXPORT QObjectWrapperPointerBase
 {
 
 public:
