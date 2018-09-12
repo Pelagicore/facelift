@@ -175,7 +175,7 @@ public:
     };
 
     template<typename ... Args>
-    void sendMethodCall(const char *methodName, const Args & ... /*args*/)
+    void sendMethodCall(const char *methodName, const Args & ... /*args*/) const
     {
         qCritical() << "IPC unavailable for method" << methodName;
     }
@@ -195,21 +195,21 @@ public:
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/)
+    void sendMethodCallWithReturn(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/) const
     {
         assignDefaultValue(returnValue);
         qCritical() << "IPC unavailable for method" << memberID;
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturnNoSync(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/)
+    void sendMethodCallWithReturnNoSync(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/) const
     {
         assignDefaultValue(returnValue);
         qCritical() << "IPC unavailable for method" << memberID;
     }
 
     template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value)
+    void sendSetterCall(const char *methodName, const PropertyType &value) const
     {
         Q_UNUSED(value);
         qCritical() << "IPC unavailable for method" << methodName;

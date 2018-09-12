@@ -204,7 +204,7 @@ public:
         {%- for parameter in operation.parameters -%}
             {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
-        {{ comma() }}QJSValue callback)
+        {{ comma() }}QJSValue callback){% if operation.is_const %} const{% endif %}
     {
         Q_ASSERT(m_provider);
         m_provider->{{operation}}(
