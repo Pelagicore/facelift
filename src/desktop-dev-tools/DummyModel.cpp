@@ -101,7 +101,7 @@ void DummyModelBase::addWidget(PropertyWidgetBase &widget)
     m_widgets.append(&widget);
 }
 
-void DummyModelBase::appendLog(QString textToAppend)
+void DummyModelBase::appendLog(QString textToAppend) const
 {
     QString text = ui->logLabel->toPlainText() + "\n" + textToAppend;
     ui->logLabel->setPlainText(text);

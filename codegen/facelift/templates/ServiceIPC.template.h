@@ -414,8 +414,8 @@ public:
     {% for operation in interface.operations %}
 
     {% if operation.isAsync %}
-    void {{operation}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer) override {
+    void {{operation.name}}(
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer){% if operation.is_const %} const{% endif %} override {
         if (localInterface() == nullptr) {
             facelift::ASyncRequestID id;
             sendMethodCallWithReturnNoSync(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), id
@@ -435,7 +435,7 @@ public:
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
-        {%- endfor -%}  ) override
+        {%- endfor -%}  ){% if operation.is_const %} const{% endif %} override
     {
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}

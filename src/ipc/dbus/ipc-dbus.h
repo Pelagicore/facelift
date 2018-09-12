@@ -859,14 +859,14 @@ public:
 
     struct SerializeParameterFunction
     {
-        SerializeParameterFunction(DBusIPCMessage &msg, DBusIPCProxyBinder &parent) :
+        SerializeParameterFunction(DBusIPCMessage &msg, const DBusIPCProxyBinder &parent) :
             m_msg(msg),
             m_parent(parent)
         {
         }
 
         DBusIPCMessage &m_msg;
-        DBusIPCProxyBinder &m_parent;
+        const DBusIPCProxyBinder &m_parent;
 
         template<typename Type>
         void operator()(const Type &v)
@@ -877,7 +877,7 @@ public:
     };
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const QString &methodName, const Args & ... args)
+    DBusIPCMessage sendMethodCall(const QString &methodName, const Args & ... args) const
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
@@ -891,12 +891,12 @@ public:
         return replyMessage;
     }
 
-    QDBusConnection &connection()
+    QDBusConnection &connection() const
     {
         return manager().connection();
     }
 
-    DBusManager &manager()
+    DBusManager &manager() const
     {
         return DBusManager::instance();
     }
@@ -990,21 +990,21 @@ public:
     }
 
     template<typename ... Args>
-    void sendMethodCall(const char *methodName, const Args & ... args)
+    void sendMethodCall(const char *methodName, const Args & ... args) const
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
-            deserializePropertyValues(msg);
+            const_cast<DBusIPCProxy *>(this)->deserializePropertyValues(msg);
         }
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args)
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
     {
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
-            deserializeValue(msg, returnValue);
-            deserializePropertyValues(msg);
+            const_cast<DBusIPCProxy *>(this)->deserializeValue(msg, returnValue);
+            const_cast<DBusIPCProxy *>(this)->deserializePropertyValues(msg);
         } else {
             assignDefaultValue(returnValue);
         }

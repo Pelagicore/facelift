@@ -64,7 +64,7 @@ public:
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
     void {{operation}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} /*{{parameter.name}}*/, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> /*answer*/) override
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} /*{{parameter.name}}*/, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> /*answer*/){% if operation.is_const %} const{% endif %} override
     {
         Q_ASSERT(false);  // TODO: implement
     }
@@ -75,7 +75,7 @@ public:
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter.cppType}} {{parameter.name}}
         {%- endfor -%}
-    ) override;
+    ){% if operation.is_const %} const{% endif %} override;
     {% endif %}
 
     {% endfor %}
@@ -350,7 +350,7 @@ inline {{operation.interfaceCppType}} {{interface}}QMLImplementationFrontend::{{
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
     {{ comma() }}{{parameter.cppType}} {{parameter.name}}
-    {%- endfor -%} )
+    {%- endfor -%} ){% if operation.is_const %} const{% endif %}
 {
     return m_impl->{{operation.name}}(
         {%- set comma = joiner(", ") -%}

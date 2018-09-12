@@ -379,7 +379,7 @@ protected:
 
     void addWidget(PropertyWidgetBase &widget);
 
-    void appendLog(QString textToAppend);
+    void appendLog(QString textToAppend) const;
 
 private:
     Ui_DummyModelPanel *ui = nullptr;
@@ -658,7 +658,7 @@ public:
 
     template<typename ... ParameterTypes>
     void logMethodCall(const QString methodName, const ::std::array<const char *, sizeof ... (ParameterTypes)> &parameterNames,
-            const ParameterTypes & ... parameters)
+            const ParameterTypes & ... parameters) const
     {
         Q_UNUSED(parameterNames);
 
