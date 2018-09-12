@@ -212,7 +212,7 @@ public:
             {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
             {{parameter.name}},
             {%- else -%}
-            facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
+            facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}}),
             {%- endif -%}
             {%- endfor -%}
             facelift::AsyncAnswer<{{operation.cppType}}>([this, callback]({% if operation.hasReturnValue %}const {{operation.cppType}} &returnValue{% endif %}) mutable {
