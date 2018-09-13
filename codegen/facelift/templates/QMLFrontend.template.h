@@ -140,8 +140,8 @@ public:
     {% for property in interface.properties %}
     {{- printif(property.comment)}}
     {% if property.type.is_model %}
-    Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
-    QObject* {{property}}()
+    Q_PROPERTY(QAbstractListModel* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+    QAbstractListModel* {{property}}()
     {
         return &m_{{property}}Model;
     }
