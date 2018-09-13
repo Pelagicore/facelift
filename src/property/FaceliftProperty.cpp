@@ -83,18 +83,4 @@ void PropertyBase::doTriggerChangeSignal()
     }
 }
 
-void PropertyBase::setGetterFunctionContext(QObject *context)
-{
-    if (m_getterFunctionContext != nullptr) {
-        QObject::disconnect(m_getterFunctionContextConnection);
-    }
-    m_getterFunctionContext = context;
-
-    if (m_getterFunctionContext != nullptr) {
-        m_getterFunctionContextConnection = QObject::connect(m_getterFunctionContext, &QObject::destroyed, owner(), [this]() {
-                m_getterFunctionContext = nullptr;
-            });
-    }
-}
-
 }
