@@ -113,8 +113,6 @@ protected:
 
     void doBreakBinding();
 
-    void setGetterFunctionContext(QObject *context);
-
 private:
     void doTriggerChangeSignal();
 
@@ -128,7 +126,6 @@ private:
     bool m_asynchronousNotification = false;
 
 protected:
-    QObject *m_getterFunctionContext = nullptr;
     QMetaObject::Connection m_getterFunctionContextConnection;
     QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
 
@@ -202,20 +199,14 @@ public:
         return value();
     }
 
-    Property &bind(QObject *context, const GetterFunction &f)
+    Property &bind(const GetterFunction &f)
     {
         breakBinding();
 
-        setGetterFunctionContext(context);
         m_getterFunction = f;
         reevaluate();
 
         return *this;
-    }
-
-    Property &bind(const GetterFunction &f)
-    {
-        return bind(nullptr, f);
     }
 
     void setValue(const Type &right)
