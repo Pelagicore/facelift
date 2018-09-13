@@ -194,7 +194,7 @@ public:
         if (member == "set{{property.name}}") {
             {% if (not property.type.is_interface) %}
             {{property.cppType}} value;
-            requestMessage >> value;
+            deserializeValue(requestMessage, value);
             theService->set{{property.name}}(value);
             serializePropertyValues(replyMessage);
             {% else %}
@@ -244,10 +244,10 @@ public:
         {% for property in interface.properties %}
         {% if property.type.is_interface %}
 
-        msg << m_{{property.name}}.objectPath();
+        serializeValue(msg, m_{{property.name}}.objectPath());
 
         {% elif property.type.is_model %}
-        msg << theService->{{property.name}}().size();
+        serializeValue(msg, theService->{{property.name}}().size());
         {% else %}
         serializeValue(msg, theService->{{property.name}}());
         {% endif %}
@@ -317,12 +317,12 @@ public:
 
         {% if property.type.is_interface %}
         QString {{property.name}}_objectPath;
-        msg >> {{property.name}}_objectPath;
+        deserializeValue(msg, {{property.name}}_objectPath);
         m_{{property.name}}Proxy.update({{property.name}}_objectPath);
         m_{{property.name}} = m_{{property.name}}Proxy.getValue();
         {% elif property.type.is_model %}
         int {{property.name}}Size;
-        msg >> {{property.name}}Size;
+        deserializeValue(msg, {{property.name}}Size);
         m_{{property.name}}.beginResetModel();
         m_{{property.name}}.reset({{property.name}}Size, std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
         m_{{property.name}}.endResetModel();
@@ -374,11 +374,11 @@ public:
         {% if operation.isAsync %}
         if (signalName == "{{operation.name}}AsyncCallResult") {
             facelift::ASyncRequestID id;
-            msg >> id;
+            deserializeValue(msg, id);
             if (m_{{operation.name}}Requests.contains(id)) {
                 {% if operation.hasReturnValue %}
                 {{operation.cppType}} returnValue;
-                msg >> returnValue;
+                deserializeValue(msg, returnValue);
                 m_{{operation.name}}Requests[id](returnValue);
                 {% else %}
                 m_{{operation.name}}Requests[id]();
