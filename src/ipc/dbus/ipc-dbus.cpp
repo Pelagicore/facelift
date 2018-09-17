@@ -54,6 +54,27 @@
 namespace facelift {
 namespace dbus {
 
+DBusIPCMessage DBusIPCMessage::call(const QDBusConnection &connection)
+{
+    if (m_outputPayload) {
+        m_message << m_outputPayload->getContent();
+    }
+    qDebug() << "Sending IPC message : " << toString();
+    auto replyDbusMessage = connection.call(m_message);
+    DBusIPCMessage reply(replyDbusMessage);
+    return reply;
+}
+
+
+void DBusIPCMessage::send(const QDBusConnection &connection)
+{
+    if (m_outputPayload) {
+        m_message << m_outputPayload->getContent();
+    }
+    qDebug() << "Sending IPC message : " << toString();
+    bool successful = connection.send(m_message);
+    Q_ASSERT(successful);
+}
 
 DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {

@@ -47,6 +47,8 @@
 #include <QDBusInterface>
 #include <QDBusServiceWatcher>
 #include <QDBusContext>
+#include <QDataStream>
+#include <QByteArray>
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
@@ -63,6 +65,9 @@ class ObjectRegistry;
 namespace dbus {
 
 using namespace facelift;
+
+class OutputPayLoad;
+class InputPayLoad;
 
 
 class FaceliftIPCLibDBus_EXPORT DBusIPCMessage
@@ -89,20 +94,9 @@ public:
         m_message = QDBusMessage::createSignal(path, interface, signal);
     }
 
-    DBusIPCMessage call(const QDBusConnection &connection)
-    {
-        qDebug() << "Sending IPC message : " << toString();
-        auto replyDbusMessage = connection.call(m_message);
-        DBusIPCMessage reply(replyDbusMessage);
-        return reply;
-    }
+    DBusIPCMessage call(const QDBusConnection &connection);
 
-    void send(const QDBusConnection &connection)
-    {
-        qDebug() << "Sending IPC message : " << toString();
-        bool successful = connection.send(m_message);
-        Q_ASSERT(successful);
-    }
+    void send(const QDBusConnection &connection);
 
     QString member() const
     {
@@ -121,21 +115,6 @@ public:
         return DBusIPCMessage(m_message.createErrorReply(msg, member));
     }
 
-    template<typename Type>
-    void readNextParameter(Type &v)
-    {
-        auto asVariant = m_message.arguments()[m_readPos++];
-        //        qDebug() << asVariant;
-        v = asVariant.value<Type>();
-    }
-
-    template<typename Type>
-    void writeSimple(const Type &v)
-    {
-        //        qDebug() << "Writing to message : " << v;
-        msg() << v;
-    }
-
     QString signature() const
     {
         return m_message.signature();
@@ -151,16 +130,76 @@ public:
         return (m_message.type() == QDBusMessage::ErrorMessage);
     }
 
+    OutputPayLoad& outputPayLoad();
+
+    InputPayLoad& inputPayLoad();
+
 private:
-    QDBusMessage &msg()
-    {
-        return m_message;
-    }
 
     QDBusMessage m_message;
-
-    size_t m_readPos = 0;
+    std::unique_ptr<OutputPayLoad> m_outputPayload;
+    std::unique_ptr<InputPayLoad> m_inputPayload;
 };
+
+
+class OutputPayLoad {
+
+public:
+    OutputPayLoad() : m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
+    {
+    }
+
+    template<typename Type>
+    void writeSimple(const Type &v)
+    {
+//        qDebug() << "Writing to message : " << v;
+        m_dataStream << v;
+    }
+
+    const QByteArray& getContent() const {
+        return m_payloadArray;
+    }
+
+private:
+    QByteArray m_payloadArray;
+    QDataStream m_dataStream;
+};
+
+class InputPayLoad {
+
+public:
+    InputPayLoad(const QByteArray& payloadArray) : m_payloadArray(payloadArray), m_dataStream(m_payloadArray)
+    {
+    }
+
+    template<typename Type>
+    void readNextParameter(Type &v)
+    {
+        m_dataStream >> v;
+//        qDebug() << "Read from message : " << v;
+    }
+
+private:
+    QByteArray m_payloadArray;
+    QDataStream m_dataStream;
+};
+
+
+inline OutputPayLoad& DBusIPCMessage::outputPayLoad() {
+    if (m_outputPayload == nullptr) {
+        m_outputPayload = std::make_unique<OutputPayLoad>();
+    }
+    return *m_outputPayload;
+}
+
+inline InputPayLoad& DBusIPCMessage::inputPayLoad() {
+    if (m_inputPayload == nullptr) {
+        auto byteArray = m_message.arguments()[0].value<QByteArray>();
+        m_inputPayload = std::make_unique<InputPayLoad>(byteArray);
+    }
+    return *m_inputPayload;
+}
+
 
 class DBusIPCServiceAdapterBase;
 
@@ -174,12 +213,12 @@ struct IPCTypeHandler
         s << "i";
     }
 
-    static void write(DBusIPCMessage &msg, const Type &v)
+    static void write(OutputPayLoad &msg, const Type &v)
     {
         msg.writeSimple(v);
     }
 
-    static void read(DBusIPCMessage &msg, Type &v)
+    static void read(InputPayLoad &msg, Type &v)
     {
         msg.readNextParameter(v);
     }
@@ -195,12 +234,12 @@ struct IPCTypeHandler<float>
         s << "d";
     }
 
-    static void write(DBusIPCMessage &msg, const float &v)
+    static void write(OutputPayLoad &msg, const float &v)
     {
         msg.writeSimple((double)v);
     }
 
-    static void read(DBusIPCMessage &msg, float &v)
+    static void read(InputPayLoad &msg, float &v)
     {
         double d;
         msg.readNextParameter(d);
@@ -218,12 +257,12 @@ struct IPCTypeHandler<bool>
         s << "b";
     }
 
-    static void write(DBusIPCMessage &msg, const bool &v)
+    static void write(OutputPayLoad &msg, const bool &v)
     {
         msg.writeSimple(v);
     }
 
-    static void read(DBusIPCMessage &msg, bool &v)
+    static void read(InputPayLoad &msg, bool &v)
     {
         msg.readNextParameter(v);
     }
@@ -239,12 +278,12 @@ struct IPCTypeHandler<QString>
         s << "s";
     }
 
-    static void write(DBusIPCMessage &msg, const QString &v)
+    static void write(OutputPayLoad &msg, const QString &v)
     {
         msg.writeSimple(v);
     }
 
-    static void read(DBusIPCMessage &msg, QString &v)
+    static void read(InputPayLoad &msg, QString &v)
     {
         msg.readNextParameter(v);
     }
@@ -300,17 +339,17 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBas
         s << ")";
     }
 
-    static void write(DBusIPCMessage &msg, const Type &param)
+    static void write(OutputPayLoad &msg, const Type &param)
     {
-        for_each_in_tuple_const(param.asTuple(), StreamWriteFunction<DBusIPCMessage>(msg));
+        for_each_in_tuple_const(param.asTuple(), StreamWriteFunction<OutputPayLoad>(msg));
         param.id();
         msg << param.id();
     }
 
-    static void read(DBusIPCMessage &msg, Type &param)
+    static void read(InputPayLoad &msg, Type &param)
     {
         typename Type::FieldTupleTypes tuple;
-        for_each_in_tuple(tuple, StreamReadFunction<DBusIPCMessage>(msg));
+        for_each_in_tuple(tuple, StreamReadFunction<InputPayLoad>(msg));
         param.setValue(tuple);
         ModelElementID id;
         msg.readNextParameter(id);
@@ -328,12 +367,12 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::
         s << "i";
     }
 
-    static void write(DBusIPCMessage &msg, const Type &param)
+    static void write(OutputPayLoad &msg, const Type &param)
     {
         msg.writeSimple(static_cast<int>(param));
     }
 
-    static void read(DBusIPCMessage &msg, Type &param)
+    static void read(InputPayLoad &msg, Type &param)
     {
         int i;
         msg.readNextParameter(i);
@@ -351,7 +390,7 @@ struct IPCTypeHandler<QList<ElementType> >
         IPCTypeHandler<ElementType>::writeDBUSSignature(s);
     }
 
-    static void write(DBusIPCMessage &msg, const QList<ElementType> &list)
+    static void write(OutputPayLoad &msg, const QList<ElementType> &list)
     {
         int count = list.size();
         msg.writeSimple(count);
@@ -360,7 +399,7 @@ struct IPCTypeHandler<QList<ElementType> >
         }
     }
 
-    static void read(DBusIPCMessage &msg, QList<ElementType> &list)
+    static void read(InputPayLoad &msg, QList<ElementType> &list)
     {
         list.clear();
         int count;
@@ -384,7 +423,7 @@ struct IPCTypeHandler<QMap<QString, ElementType> >
         IPCTypeHandler<ElementType>::writeDBUSSignature(s);
     }
 
-    static void write(DBusIPCMessage &msg, const QMap<QString, ElementType> &map)
+    static void write(OutputPayLoad &msg, const QMap<QString, ElementType> &map)
     {
         int count = map.size();
         msg.writeSimple(count);
@@ -394,7 +433,7 @@ struct IPCTypeHandler<QMap<QString, ElementType> >
         }
     }
 
-    static void read(DBusIPCMessage &msg, QMap<QString, ElementType> &map)
+    static void read(InputPayLoad &msg, QMap<QString, ElementType> &map)
     {
         map.clear();
         int count;
@@ -458,7 +497,7 @@ appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const 
 
 
 template<typename Type>
-DBusIPCMessage &operator<<(DBusIPCMessage &msg, const Type &v)
+OutputPayLoad &operator<<(OutputPayLoad &msg, const Type &v)
 {
     IPCTypeHandler<Type>::write(msg, v);
     return msg;
@@ -466,7 +505,7 @@ DBusIPCMessage &operator<<(DBusIPCMessage &msg, const Type &v)
 
 
 template<typename Type>
-DBusIPCMessage &operator>>(DBusIPCMessage &msg, Type &v)
+InputPayLoad &operator>>(InputPayLoad &msg, Type &v)
 {
     IPCTypeHandler<Type>::read(msg, v);
     return msg;
@@ -474,7 +513,7 @@ DBusIPCMessage &operator>>(DBusIPCMessage &msg, Type &v)
 
 
 template<typename Type>
-DBusIPCMessage &operator>>(DBusIPCMessage &msg, Property<Type> &property)
+InputPayLoad &operator>>(InputPayLoad &msg, Property<Type> &property)
 {
     Type v;
     IPCTypeHandler<Type>::read(msg, v);
@@ -578,13 +617,13 @@ public:
 
     struct SerializeParameterFunction
     {
-        SerializeParameterFunction(DBusIPCMessage &msg, DBusIPCServiceAdapterBase &parent) :
+        SerializeParameterFunction(OutputPayLoad &msg, DBusIPCServiceAdapterBase &parent) :
             m_msg(msg),
             m_parent(parent)
         {
         }
 
-        DBusIPCMessage &m_msg;
+        OutputPayLoad &m_msg;
         DBusIPCServiceAdapterBase &m_parent;
 
         template<typename Type>
@@ -600,7 +639,7 @@ public:
     void serializeValue(DBusIPCMessage &msg, const Type &v)
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
+        IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
     }
 
     template<typename Type>
@@ -608,7 +647,7 @@ public:
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
-        IPCTypeHandler<Type>::read(msg, serializedValue);
+        IPCTypeHandler<Type>::read(msg.inputPayLoad(), serializedValue);
         IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
     }
 
@@ -618,7 +657,7 @@ public:
         DBusIPCMessage msg(objectPath(), interfaceName(), SIGNAL_TRIGGERED_SIGNAL_NAME);
         serializeValue(msg, signalName);
         auto argTuple = std::make_tuple(args ...);
-        for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
+        for_each_in_tuple(argTuple, SerializeParameterFunction(msg.outputPayLoad(), *this));
         msg.send(dbusManager().connection());
     }
 
@@ -830,7 +869,7 @@ public:
     void serializeValue(DBusIPCMessage &msg, const Type &v)
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
+        IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
     }
 
     template<typename Type>
@@ -871,7 +910,7 @@ public:
         template<typename Type>
         void operator()(const Type &v)
         {
-            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg,
+            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg.outputPayLoad(),
                     IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
         }
     };
@@ -960,7 +999,7 @@ public:
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
-        IPCTypeHandler<SerializedType>::read(msg, serializedValue);
+        IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
         IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
     }
 
