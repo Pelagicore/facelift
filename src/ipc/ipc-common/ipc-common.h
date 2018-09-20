@@ -47,8 +47,9 @@ namespace facelift {
 typedef int ASyncRequestID;
 
 enum class IPCHandlingResult {
-    OK,
-    INVALID
+    OK,          // Message is successfully handled
+    OK_ASYNC,    // Message is handled but it is an asynchronous request, so no reply should be sent for now
+    INVALID,     // Message is invalid and could not be handled
 };
 
 class IPCServiceAdapterBase;
@@ -249,7 +250,6 @@ private:
 
 protected:
     bool m_providerReady = false;
-    static ASyncRequestID s_nextRequestID;
 
 };
 
@@ -676,7 +676,7 @@ private:
 };
 
 
-class IPCAdapterFactoryManager
+class FaceliftIPCLibLocal_EXPORT IPCAdapterFactoryManager
 {
 public:
     typedef IPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);

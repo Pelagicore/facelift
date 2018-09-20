@@ -38,6 +38,8 @@
 #include <QJSValue>
 #include <QTimer>
 #include <QMap>
+#include <QPointer>
+
 #include <memory>
 
 #include <array>
@@ -1091,8 +1093,9 @@ class TAsyncAnswerMaster
 {
 
 public:
-    TAsyncAnswerMaster(CallBack callback) : m_callback(callback)
+    TAsyncAnswerMaster(QObject* context, CallBack callback) : m_callback(callback)
     {
+        m_context = context;
     }
 
     ~TAsyncAnswerMaster()
@@ -1106,7 +1109,8 @@ public:
     void call(const Types & ... args)
     {
         setAnswered();
-        m_callback(args ...);
+        if (m_context)
+            m_callback(args ...);
     }
 
 private:
@@ -1119,7 +1123,7 @@ private:
 protected:
     CallBack m_callback;
     bool m_isAlreadyAnswered = false;
-
+    QPointer<QObject> m_context;
 };
 
 
@@ -1133,7 +1137,7 @@ public:
     {
     public:
         using TAsyncAnswerMaster<CallBack>::m_callback;
-        Master(CallBack callback) : TAsyncAnswerMaster<CallBack>(callback)
+        Master(QObject* context, CallBack callback) : TAsyncAnswerMaster<CallBack>(context, callback)
         {
         }
     };
@@ -1142,7 +1146,7 @@ public:
     {
     }
 
-    AsyncAnswer(CallBack callback) : m_master(new Master(callback))
+    AsyncAnswer(QObject* context, CallBack callback) : m_master(new Master(context, callback))
     {
     }
 
@@ -1156,7 +1160,7 @@ public:
         return *this;
     }
 
-    void operator()(const ReturnType &returnValue)
+    void operator()(const ReturnType &returnValue) const
     {
         m_master->call(returnValue);
     }
@@ -1176,7 +1180,7 @@ public:
     public:
         using TAsyncAnswerMaster<CallBack>::m_callback;
 
-        Master(CallBack callback) : TAsyncAnswerMaster<CallBack>(callback)
+        Master(QObject* context, CallBack callback) : TAsyncAnswerMaster<CallBack>(context, callback)
         {
         }
     };
@@ -1185,7 +1189,7 @@ public:
     {
     }
 
-    AsyncAnswer(CallBack callback) : m_master(new Master(callback))
+    AsyncAnswer(QObject* context, CallBack callback) : m_master(new Master(context, callback))
     {
     }
 
