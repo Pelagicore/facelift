@@ -41,6 +41,12 @@ TestCase {
     }
 
 
+    CombinedSignalSpys {
+        id: spy
+        dest: api
+    }
+
+
     function initTestCase() {
         Check.defaults();
         Check.initialized();
@@ -48,7 +54,15 @@ TestCase {
         // readyFlag not supported over IPC
     }
 
+    function test_methods() {
+        Check.methods();
+    }
+
     function test_setter() {
         Check.setter(api);
+    }
+
+    function test_signals() {
+        Check.signals();
     }
 }

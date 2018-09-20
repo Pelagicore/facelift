@@ -44,6 +44,11 @@ TestCase {
         signalName: "readyFlagsChanged"
     }
 
+    CombinedSignalSpys {
+        id: spy
+        dest: api
+    }
+
 
     function initTestCase() {
         compare(api.interfaceProperty, null);
@@ -63,7 +68,15 @@ TestCase {
         }
     }
 
+    function test_methods() {
+        Check.methods();
+    }
+
     function test_setter() {
         Check.setter();
+    }
+
+    function test_signals() {
+        Check.signals();
     }
 }
