@@ -215,7 +215,7 @@ public:
             facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}}),
             {%- endif -%}
             {%- endfor -%}
-            facelift::AsyncAnswer<{{operation.cppType}}>([this, callback]({% if operation.hasReturnValue %}const {{operation.cppType}} &returnValue{% endif %}) mutable {
+            facelift::AsyncAnswer<{{operation.cppType}}>(this, [this, callback]({% if operation.hasReturnValue %}const {{operation.cppType}} &returnValue{% endif %}) mutable {
             callJSCallback({% if operation.hasReturnValue %}returnValue, {% endif %}callback);
         }));
     }

@@ -49,6 +49,9 @@
 #include <QDBusContext>
 #include <QDataStream>
 #include <QByteArray>
+#include <QDBusPendingReply>
+#include <QDBusPendingCallWatcher>
+
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
@@ -69,7 +72,6 @@ using namespace facelift;
 class OutputPayLoad;
 class InputPayLoad;
 
-
 class FaceliftIPCLibDBus_EXPORT DBusIPCMessage
 {
 
@@ -77,6 +79,15 @@ public:
     DBusIPCMessage() :
         DBusIPCMessage("dummy/dummy", "dummy.dummy", "gg")
     {
+    }
+
+    DBusIPCMessage(const DBusIPCMessage &other) : m_message(other.m_message)
+    {
+    }
+
+    DBusIPCMessage & operator=(const DBusIPCMessage &other) {
+        m_message = other.m_message;
+        return *this;
     }
 
     DBusIPCMessage(const QDBusMessage &msg)
@@ -95,6 +106,8 @@ public:
     }
 
     DBusIPCMessage call(const QDBusConnection &connection);
+
+    QDBusPendingCallWatcher* asyncCall(const QDBusConnection &connection);
 
     void send(const QDBusConnection &connection);
 
@@ -661,6 +674,12 @@ public:
         msg.send(dbusManager().connection());
     }
 
+    template<typename ReturnType>
+    void sendAsyncCallAnswer(DBusIPCMessage& replyMessage, const ReturnType returnValue) {
+        serializeValue(replyMessage, returnValue);
+        replyMessage.send(dbusManager().connection());
+    }
+
     template<typename Type>
     void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly) const
     {
@@ -873,14 +892,13 @@ public:
     }
 
     template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v)
+    void deserializeValue(DBusIPCMessage &msg, Type &v) const
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
-        IPCTypeHandler<SerializedType>::read(msg, serializedValue);
+        IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
         IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
     }
-
 
     template<typename PropertyType>
     DBusIPCMessage sendSetterCall(const QString &methodName, const PropertyType &value)
@@ -928,6 +946,22 @@ public:
                 qPrintable(methodName), qPrintable(objectPath()));
         }
         return replyMessage;
+    }
+
+    template<typename ReturnType, typename ... Args>
+    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
+    {
+        DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
+        auto argTuple = std::make_tuple(args ...);
+        for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
+        auto replyMessage = msg.asyncCall(connection());
+        QObject::connect(replyMessage, &QDBusPendingCallWatcher::finished, this, [this, answer, replyMessage]() {
+            DBusIPCMessage msg(replyMessage->reply());
+            ReturnType returnValue;
+            deserializeValue(msg, returnValue);
+            answer(returnValue);
+            replyMessage->deleteLater();
+        } );
     }
 
     QDBusConnection &connection() const
@@ -1058,6 +1092,12 @@ public:
         } else {
             assignDefaultValue(returnValue);
         }
+    }
+
+    template<typename ReturnType, typename ... Args>
+    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
+    {
+        m_ipcBinder.sendAsyncMethodCall(methodName, answer, args...);
     }
 
     DBusIPCProxyBinder *ipc()

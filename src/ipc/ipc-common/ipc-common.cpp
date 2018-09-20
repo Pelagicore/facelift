@@ -45,8 +45,6 @@ void InterfaceManager::registerAdapter(const QString &objectPath, IPCServiceAdap
     }
 }
 
-ASyncRequestID IPCServiceAdapterBase::s_nextRequestID = 0;
-
 IPCServiceAdapterBase *InterfaceManager::getAdapter(const QString &objectPath)
 {
     if (m_registry.contains(objectPath)) {

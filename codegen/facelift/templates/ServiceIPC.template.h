@@ -63,7 +63,6 @@ public:
     enum class MethodID {
         {% for operation in interface.operations %}
         {{operation.name}},
-        {{operation.name}}AsyncCallResult,
         {% endfor %}
         {% for property in interface.properties %}
         {{property.name}},
@@ -162,12 +161,11 @@ public:
             deserializeValue(requestMessage, param_{{parameter.name}});
             {% endfor %}
             {% if operation.isAsync %}
-            facelift::ASyncRequestID requestID = s_nextRequestID++;
             theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
-                facelift::AsyncAnswer<{{operation.cppType}}>([this, requestID] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) {
-                sendSignal(memberID(MethodID::{{operation.name}}AsyncCallResult, "{{operation.name}}AsyncCallResult"), requestID{% if operation.hasReturnValue %}, returnValue{% endif %});
+                facelift::AsyncAnswer<{{operation.cppType}}>(this, [this, replyMessage] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) mutable {
+                sendAsyncCallAnswer(replyMessage{% if operation.hasReturnValue %}, returnValue{% endif %});
             }));
-            serializeValue(replyMessage, requestID);
+            return facelift::IPCHandlingResult::OK_ASYNC;
             {% else %}
             {% if operation.hasReturnValue %}
             auto returnValue =
@@ -370,25 +368,6 @@ public:
         QString signalName;
         deserializeValue(msg, signalName);
 
-        {% for operation in interface.operations %}
-        {% if operation.isAsync %}
-        if (signalName == "{{operation.name}}AsyncCallResult") {
-            facelift::ASyncRequestID id;
-            deserializeValue(msg, id);
-            if (m_{{operation.name}}Requests.contains(id)) {
-                {% if operation.hasReturnValue %}
-                {{operation.cppType}} returnValue;
-                deserializeValue(msg, returnValue);
-                m_{{operation.name}}Requests[id](returnValue);
-                {% else %}
-                m_{{operation.name}}Requests[id]();
-                {% endif %}
-                m_{{operation.name}}Requests.remove(id);
-            }
-        }
-
-        {% endif %}
-        {% endfor %}
         {% for event in interface.signals %}
         if (signalName == "{{event}}") {
             {% for parameter in event.parameters %}
@@ -417,12 +396,10 @@ public:
     void {{operation.name}}(
         {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer){% if operation.is_const %} const{% endif %} override {
         if (localInterface() == nullptr) {
-            facelift::ASyncRequestID id;
-            sendMethodCallWithReturnNoSync(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), id
+            sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
-            m_{{operation.name}}Requests.insert(id, answer);
         } else {
             localInterface()->{{operation.name}}(
             {%- for parameter in operation.parameters -%}
@@ -490,11 +467,6 @@ public:
     {% endfor %}
 
 private:
-    {% for operation in interface.operations %}
-    {% if operation.isAsync %}
-    QMap<facelift::ASyncRequestID, facelift::AsyncAnswer<{{operation.cppType}}>> m_{{operation.name}}Requests;
-    {% endif %}
-    {% endfor %}
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
     InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;

@@ -54,6 +54,16 @@
 namespace facelift {
 namespace dbus {
 
+QDBusPendingCallWatcher* DBusIPCMessage::asyncCall(const QDBusConnection &connection)
+{
+    if (m_outputPayload) {
+        m_message << m_outputPayload->getContent();
+    }
+    qDebug() << "Sending IPC message : " << toString();
+    auto reply = new QDBusPendingCallWatcher(connection.asyncCall(m_message));
+    return reply;
+}
+
 DBusIPCMessage DBusIPCMessage::call(const QDBusConnection &connection)
 {
     if (m_outputPayload) {
@@ -116,15 +126,20 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
     } else if (dbusMsg.interface() == PROPERTIES_INTERFACE_NAME) {
         // TODO
     } else {
+        bool sendReply = true;
         if (requestMessage.member() == GET_PROPERTIES_MESSAGE_NAME) {
             serializePropertyValues(replyMessage);
         } else {
             auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
-            if (handlingResult != IPCHandlingResult::OK) {
+            if (handlingResult == IPCHandlingResult::INVALID) {
                 replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
+            } else if (handlingResult == IPCHandlingResult::OK_ASYNC) {
+                sendReply = false;
             }
         }
-        replyMessage.send(connection);
+        if (sendReply) {
+            replyMessage.send(connection);
+        }
         return true;
     }
 
