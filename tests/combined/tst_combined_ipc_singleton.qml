@@ -49,6 +49,10 @@ TestCase {
         Check.initialized();
     }
 
+    function test_methods() {
+        Check.methods();
+    }
+
     function test_setter() {
         Check.setter(api);
     }

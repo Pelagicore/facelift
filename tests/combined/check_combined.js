@@ -94,6 +94,39 @@ function initialized() {
     compare(api.intMapProperty.two, 2);
 }
 
+function methods() {
+    compare(api.method1(), "foo");
+
+    var cs2 = api.method2(12, true);
+    compare(cs2.cs.anInt, 13);
+    compare(cs2.cs.aString, "bar");
+    compare(cs2.e, CombiEnum.E2);
+
+    if (!api.qmlImplementationUsed) {
+        compare(api.method3(), CombiEnum.E3)
+    }
+
+    if (!api.qmlImplementationUsed) {
+        var cs = CombiStructFactory.create();
+        cs.aString = "hello";
+        cs.anInt = 14;
+        var cs25 = CombiStruct2Factory.create();
+        cs25.cs = cs;
+        cs25.e = CombiEnum.E2;
+        var lce = api.method4(cs25);
+        compare(lce[0], CombiEnum.E3);
+        compare(lce[1], CombiEnum.E1);
+    }
+
+    if (!api.qmlImplementationUsed) {
+        var lcs = api.method5();
+        compare(lcs[0].anInt, 1);
+        compare(lcs[0].aString, "A");
+        compare(lcs[1].anInt, 2);
+        compare(lcs[1].aString, "B");
+    }
+}
+
 function setter() {
     api.intProperty = -12;
     compare(api.intProperty, 0);

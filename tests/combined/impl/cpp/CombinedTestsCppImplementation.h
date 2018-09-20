@@ -150,26 +150,50 @@ public:
 
     QString method1() override
     {
-        return QString();
+        return QStringLiteral("foo");
     }
 
-    CombiStruct2 method2(int /*intParam*/, bool /*boolParam*/) override
+    CombiStruct2 method2(int intParam, bool boolParam) override
     {
-        return CombiStruct2();
+        if (intParam == 12 && boolParam) {
+            CombiStruct cs;
+            cs.setanInt(++intParam);
+            cs.setaString("bar");
+            CombiStruct2 cs2;
+            cs2.setcs(cs);
+            cs2.sete(CombiEnum::E2);
+            return cs2;
+        } else {
+            return CombiStruct2();
+        }
     }
 
     CombiEnum method3() override
     {
-        return CombiEnum();
+        return CombiEnum::E3;
     }
 
-    QList<CombiEnum> method4(CombiStruct2 /*s*/)  override
+    QList<CombiEnum> method4(CombiStruct2 s)  override
     {
+        if (s.cs().anInt() == 14 && s.cs().aString() == "hello" && s.e() == CombiEnum::E2) {
+            QList<CombiEnum> lce = { CombiEnum::E3, CombiEnum::E1 };
+            return lce;
+        }
         return QList<CombiEnum>();
     }
 
     QList<CombiStruct> method5() override
     {
-        return QList<CombiStruct>();
+        CombiStruct c1;
+        c1.setanInt(1);
+        c1.setaString("A");
+
+        CombiStruct c2;
+        c2.setanInt(2);
+        c2.setaString("B");
+
+        QList<CombiStruct> lcs = { c1, c2 };
+
+        return lcs;
     }
 };
