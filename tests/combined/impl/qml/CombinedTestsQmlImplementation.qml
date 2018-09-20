@@ -52,6 +52,43 @@ CombinedInterfaceQMLImplementation {
         stringListProperty = sl;
     }
 
+    method1: function() {
+        return "foo";
+    }
+
+    method2: function(intParam, boolParam) {
+        if (intParam === 12 && boolParam) {
+            var cs = CombiStructFactory.create();
+            cs.aString = "bar";
+            cs.anInt = ++intParam;
+            var cs2 = CombiStruct2Factory.create();
+            cs2.cs = cs;
+            cs2.e = CombiEnum.E2;
+            return cs2;
+         }
+    }
+
+    method3: function() {
+        return CombiEnum.E3;
+    }
+
+    method4: function(s) {
+        if (s.cs.anInt === 14 && s.cs.aString === "hello" && s.e === CombiEnum.E2) {
+            return [ CombiEnum.E3, CombiEnum.E1];
+        }
+    }
+
+    method5: function() {
+        var c1 = CombiStructFactory.create();
+        c1.anInt = 1;
+        c1.aString = "A";
+        var c2 = CombiStructFactory.create();
+        c2.anInt = 2;
+        c2.aString = "B";
+        return [ c1, c2 ];
+    }
+
+
     initialize: function() {
         boolProperty = true;
         enumProperty = CombiEnum.E2;
