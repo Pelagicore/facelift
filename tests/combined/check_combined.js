@@ -101,3 +101,64 @@ function setter() {
     api.stringListProperty = [ "11", "22"];
     compare(api.stringListProperty[0], "11");
 }
+
+function signals() {
+    compare(spy.event1Spy.count, 0);
+    compare(spy.eventCombiEnumSpy.count, 0);
+    compare(spy.eventIntSpy.count, 0);
+    compare(spy.eventBoolAndCombiStructSpy.count, 0);
+    compare(spy.eventWithListSpy.count, 0);
+    compare(spy.eventWithMapSpy.count, 0);
+    compare(spy.eventWithStructWithListSpy.count, 0);
+    spy.intPropertyChangedSpy.clear();
+
+    api.emitSignals();
+
+    spy.event1Spy.wait(2000);
+    compare(spy.event1Spy.count, 1);
+    compare(spy.event1Spy.signalArguments[0][0].anInt, 21);
+    compare(spy.event1Spy.signalArguments[0][0].aString, "ok");
+
+    if (!api.qmlImplementationUsed) {
+        spy.eventCombiEnumSpy.wait(2000);
+        compare(spy.eventCombiEnumSpy.count, 1);
+        compare(spy.eventCombiEnumSpy.signalArguments[0][0], CombiEnum.E2);
+    }
+
+    spy.eventIntSpy.wait(2000);
+    compare(spy.eventIntSpy.count, 1);
+    compare(spy.eventIntSpy.signalArguments[0][0], 7);
+
+    spy.eventBoolAndCombiStructSpy.wait(2000);
+    compare(spy.eventBoolAndCombiStructSpy.count, 1);
+    compare(spy.eventBoolAndCombiStructSpy.signalArguments[0][0], true);
+    compare(spy.eventBoolAndCombiStructSpy.signalArguments[0][1].anInt, 21);
+    compare(spy.eventBoolAndCombiStructSpy.signalArguments[0][1].aString, "ok");
+
+    spy.eventWithListSpy.wait(2000);
+    compare(spy.eventWithListSpy.count, 1);
+    compare(spy.eventWithListSpy.signalArguments[0][0][0], 1);
+    compare(spy.eventWithListSpy.signalArguments[0][0][4], 8);
+    compare(spy.eventWithListSpy.signalArguments[0][1], true);
+
+    if (!api.qmlImplementationUsed) {
+        spy.eventWithMapSpy.wait(2000);
+        compare(spy.eventWithMapSpy.count, 1);
+        compare(spy.eventWithMapSpy.signalArguments[0][0].one, 1);
+        compare(spy.eventWithMapSpy.signalArguments[0][0].two, 2);
+    }
+
+    if (!api.qmlImplementationUsed) {
+        spy.eventWithStructWithListSpy.wait(2000);
+        compare(spy.eventWithStructWithListSpy.count, 1);
+        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfInts[3], 5);
+        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfInts[4], 8);
+        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].anInt, 21);
+        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].aString, "ok");
+        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].enumField, CombiEnum.E2);
+    }
+
+    spy.intPropertyChangedSpy.wait(2000);
+    //compare(spy.intPropertyChangedSpy.count, 1);
+    compare(api.intProperty, 101);
+}

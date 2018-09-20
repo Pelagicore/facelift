@@ -96,6 +96,24 @@ public:
         m_readyProperty = 42;
     }
 
+    void emitSignals() override
+    {
+        emit event1(m_structProperty);
+        emit eventCombiEnum(CombiEnum::E2);
+        emit eventInt(7);
+        emit eventBoolAndCombiStruct(true, m_structProperty);
+        emit eventWithList(m_intListProperty, true);
+        emit eventWithMap(m_intMapProperty);
+
+        StructWithList swl;
+        swl.setlistOfInts(m_intListProperty);
+        swl.setlistOfStructs(m_structListProperty);
+        swl.setenumField(CombiEnum::E2);
+        emit eventWithStructWithList(swl);
+
+        m_intProperty = 101;
+    }
+
     void setintProperty(const int &newValue) override
     {
         m_intProperty = newValue > 0 ? newValue : 0;

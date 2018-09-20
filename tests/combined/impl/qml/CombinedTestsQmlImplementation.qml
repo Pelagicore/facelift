@@ -73,5 +73,16 @@ CombinedInterfaceQMLImplementation {
         intMapProperty = { one: 1, two: 2 };
     }
 
+    emitSignals: function() {
+        event1(structProperty);
+        //eventCombiEnum(CombiEnum.E2);
+        eventInt(7);
+        eventBoolAndCombiStruct(true, structProperty);
+        eventWithList(intListProperty, true);
+        //eventWithMapSpy(intMapProperty);
+        //eventWithStructWithList(structListProperty);
+        intProperty = 101;
+    }
+
     Component.onCompleted: console.log("QML implementation is used.");
 }
