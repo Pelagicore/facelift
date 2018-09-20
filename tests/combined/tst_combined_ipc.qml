@@ -54,6 +54,10 @@ TestCase {
         // readyFlag not supported over IPC
     }
 
+    function test_methods() {
+        Check.methods();
+    }
+
     function test_setter() {
         Check.setter(api);
     }
