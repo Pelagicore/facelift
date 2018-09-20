@@ -33,6 +33,7 @@ module tests.combined 1.0
 interface CombinedInterface {
     readonly bool qmlImplementationUsed;
     void initialize();
+    void emitSignals();
 
     readonly bool boolProperty;
     readonly CombiEnum enumProperty;

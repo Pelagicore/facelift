@@ -43,6 +43,12 @@ TestCase {
     property var api: CombinedInterfaceIPCProxySingleton
 
 
+    CombinedSignalSpys {
+        id: spy
+        dest: api
+    }
+
+
     function initTestCase() {
         Check.defaults();
         Check.initialized();
@@ -50,5 +56,9 @@ TestCase {
 
     function test_setter() {
         Check.setter(api);
+    }
+
+    function test_signals() {
+        Check.signals();
     }
 }

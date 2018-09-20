@@ -47,6 +47,12 @@ TestCase {
     }
 
 
+    CombinedSignalSpys {
+        id: spy
+        dest: api
+    }
+
+
     function initTestCase() {
         Check.defaults();
         Check.initialized();
@@ -56,5 +62,9 @@ TestCase {
 
     function test_setter() {
         Check.setter();
+    }
+
+    function test_signals() {
+        Check.signals();
     }
 }
