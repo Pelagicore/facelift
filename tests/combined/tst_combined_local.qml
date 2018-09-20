@@ -39,10 +39,16 @@ TestCase {
         id: api
     }
 
+
     SignalSpy {
         id: readyFlagsChangedSpy
         target: api
         signalName: "readyFlagsChanged"
+    }
+
+    CombinedSignalSpys {
+        id: spy
+        dest: api
     }
 
 
@@ -66,5 +72,9 @@ TestCase {
 
     function test_setter() {
         Check.setter();
+    }
+
+    function test_signals() {
+        Check.signals();
     }
 }
