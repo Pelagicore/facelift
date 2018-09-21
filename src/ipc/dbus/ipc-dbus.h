@@ -107,7 +107,7 @@ public:
 
     DBusIPCMessage call(const QDBusConnection &connection);
 
-    QDBusPendingCallWatcher* asyncCall(const QDBusConnection &connection);
+    void asyncCall(const QDBusConnection &connection, const QObject* context, std::function<void(DBusIPCMessage& message)> callback);
 
     void send(const QDBusConnection &connection);
 
@@ -680,6 +680,10 @@ public:
         replyMessage.send(dbusManager().connection());
     }
 
+    void sendAsyncCallAnswer(DBusIPCMessage& replyMessage) {
+        replyMessage.send(dbusManager().connection());
+    }
+
     template<typename Type>
     void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly) const
     {
@@ -875,12 +879,21 @@ public:
     void requestPropertyValues()
     {
         DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCServiceAdapterBase::GET_PROPERTIES_MESSAGE_NAME);
-        auto replyMessage = msg.call(connection());
-        if (replyMessage.isReplyMessage()) {
-            m_serviceObject->deserializePropertyValues(replyMessage);
-            m_serviceObject->setServiceRegistered(true);
+
+        auto replyHandler = [this] (DBusIPCMessage& replyMessage) {
+            if (replyMessage.isReplyMessage()) {
+                m_serviceObject->deserializePropertyValues(replyMessage);
+                m_serviceObject->setServiceRegistered(true);
+            } else {
+                qDebug() << "Service not yet available : " << objectPath();
+            }
+        };
+
+        if (isSynchronous()) {
+            auto replyMessage = msg.call(connection());
+            replyHandler(replyMessage);
         } else {
-            qDebug() << "Service not yet available : " << objectPath();
+            msg.asyncCall(connection(), this, replyHandler);
         }
     }
 
@@ -892,7 +905,7 @@ public:
     }
 
     template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v) const
+    void deserializeValue(DBusIPCMessage &msg, Type &v)
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
@@ -948,20 +961,30 @@ public:
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
+    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
-        auto replyMessage = msg.asyncCall(connection());
-        QObject::connect(replyMessage, &QDBusPendingCallWatcher::finished, this, [this, answer, replyMessage]() {
-            DBusIPCMessage msg(replyMessage->reply());
+        msg.asyncCall(connection(), this, [this, answer](DBusIPCMessage& msg) {
             ReturnType returnValue;
             deserializeValue(msg, returnValue);
             answer(returnValue);
-            replyMessage->deleteLater();
-        } );
+        });
     }
+
+    template<typename ... Args>
+    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
+    {
+        DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
+        auto argTuple = std::make_tuple(args ...);
+        for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
+        msg.asyncCall(connection(), this, [answer](DBusIPCMessage& msg) {
+            Q_UNUSED(msg);
+            answer();
+        });
+    }
+
 
     QDBusConnection &connection() const
     {
@@ -1078,7 +1101,7 @@ public:
     template<typename ReturnType, typename ... Args>
     void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
     {
-        m_ipcBinder.sendAsyncMethodCall(methodName, answer, args...);
+        const_cast<DBusIPCProxy *>(this)->m_ipcBinder.sendAsyncMethodCall(methodName, answer, args...);
     }
 
     DBusIPCProxyBinder *ipc()

@@ -40,8 +40,8 @@
 #include "ipc.h"
 #include "FaceliftUtils.h"
 
-#include "{{interface.fullyQualifiedPath}}PropertyAdapter.h"
-#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}PropertyAdapter.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
 
 {% for property in interface.properties %}
 {{property.type.requiredIPCInclude}}
@@ -50,10 +50,10 @@
 {{module.namespaceCppOpen}}
 
 
-class {{interface}}IPCQMLFrontendType;
+class {{interfaceName}}IPCQMLFrontendType;
 
 
-class {{classExport}} {{interface}}IPCAdapter: public facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>
+class {{classExport}} {{interfaceName}}IPCAdapter: public facelift::IPCServiceAdapter<{{interfaceName}}>
 {
     Q_OBJECT
 
@@ -72,14 +72,13 @@ public:
         {% endfor %}
     };
 
-    using ServiceType = {{interface.fullyQualifiedCppType}};
-    using BaseType = facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>;
-    using ThisType = {{interface}}IPCAdapter;
+    using ServiceType = {{interfaceName}};
+    using BaseType = facelift::IPCServiceAdapter<{{interfaceName}}>;
+    using ThisType = {{interfaceName}}IPCAdapter;
 
     static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface.qualified_name|lower|replace(".","/")}}";
 
-    {{interface}}IPCAdapter(QObject* parent = nullptr)
-        : facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>(parent)
+    {{interfaceName}}IPCAdapter(QObject* parent = nullptr) : BaseType(parent)
     {% for property in interface.properties %}
     {% if property.type.is_model %}
         , m_{{property.name}}Handler(*this)
@@ -91,7 +90,7 @@ public:
 
     void setService(QObject *srvc) override
     {
-        facelift::IPCServiceAdapter<{{interface.fullyQualifiedCppType}}>::setService(srvc);
+        BaseType::setService(srvc);
 
         {% for property in interface.properties %}
         {% if property.type.is_model %}
@@ -103,7 +102,7 @@ public:
     void appendDBUSIntrospectionData(QTextStream &s) const override
     {
         {% for property in interface.properties %}
-        addPropertySignature<{{interface.fullyQualifiedCppType}}::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
+        addPropertySignature<ServiceType::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
         {% endfor %}
         {% for operation in interface.operations %}
 
@@ -162,7 +161,7 @@ public:
             {% endfor %}
             {% if operation.isAsync %}
             theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
-                facelift::AsyncAnswer<{{operation.cppType}}>(this, [this, replyMessage] ({% if operation.hasReturnValue %}const {{operation.cppType}}& returnValue {% endif %}) mutable {
+                facelift::AsyncAnswer<{{operation.interfaceCppType}}>(this, [this, replyMessage] ({% if operation.hasReturnValue %} {{operation.interfaceCppType}} const & returnValue {% endif %}) mutable {
                 sendAsyncCallAnswer(replyMessage{% if operation.hasReturnValue %}, returnValue{% endif %});
             }));
             return facelift::IPCHandlingResult::OK_ASYNC;
@@ -217,16 +216,16 @@ public:
         {% for property in interface.properties %}
         {% if property.type.is_interface %}
         m_{{property.name}}.update(this, service()->{{property.name}}());
-        QObject::connect(service(), &{{interface}}::{{property.name}}Changed, [this] () {
+        QObject::connect(service(), &ServiceType::{{property.name}}Changed, [this] () {
             m_{{property.name}}.update(this, service()->{{property.name}}());
         });
         {% endif %}
-        connect(service(), &{{interface}}::{{property.name}}Changed, this, &{{interface}}IPCAdapter::onPropertyValueChanged);
+        connect(service(), &ServiceType::{{property.name}}Changed, this, &{{interfaceName}}IPCAdapter::onPropertyValueChanged);
         {% endfor %}
 
         // Signals
         {% for signal in interface.signals %}
-        connect(service(), &{{interface}}::{{signal}}, this, &{{interface}}IPCAdapter::{{signal}});
+        connect(service(), &ServiceType::{{signal}}, this, &{{interfaceName}}IPCAdapter::{{signal}});
         {% endfor %}
     }
 
@@ -277,24 +276,26 @@ private:
 };
 
 
-class {{classExport}} {{interface}}IPCProxy : public facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>
+{% set className = interfaceName + "IPCProxy" %}
+
+class {{className}}QMLFrontendType;
+
+class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}PropertyAdapter, {{interfaceName}}IPCAdapter>
 {
     Q_OBJECT
 
     Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
-    using IPCAdapterType = {{interface}}IPCAdapter;
-    using ThisType = {{interface}}IPCProxy;
-    using BaseType = facelift::IPCProxy<{{interface}}PropertyAdapter, {{interface}}IPCAdapter>;
+    using IPCAdapterType = {{interfaceName}}IPCAdapter;
+    using ThisType = {{className}};
+    using BaseType = facelift::IPCProxy<{{interfaceName}}PropertyAdapter, IPCAdapterType>;
     using MethodID = IPCAdapterType::MethodID;
 
     // override the default QMLFrontend type to add the IPC related properties
-    using QMLFrontendType = {{interface}}IPCQMLFrontendType;
+    using QMLFrontendType = {{className}}QMLFrontendType;
 
-    {{interface}}IPCProxy(QObject *parent = nullptr)
-        : facelift::IPCProxy<{{interface}}PropertyAdapter
-        , IPCAdapterType>(parent)
+    {{className}}(QObject *parent = nullptr) : BaseType(parent)
         {% for property in interface.properties %}
         {% if property.type.is_interface %}
         , m_{{property.name}}Proxy(*this)
@@ -304,7 +305,10 @@ public:
         {% endif %}
         {% endfor %}
     {
-        ipc()->setObjectPath({{interface}}IPCAdapter::IPC_SINGLETON_OBJECT_PATH);
+        ipc()->setObjectPath(IPCAdapterType::IPC_SINGLETON_OBJECT_PATH);
+        {% if generateAsyncProxy %}
+        ipc()->setSynchronous(false);
+        {% endif %}
     }
 
     void deserializePropertyValues(facelift::IPCMessage &msg) override
@@ -320,7 +324,7 @@ public:
         int {{property.name}}Size;
         deserializeValue(msg, {{property.name}}Size);
         m_{{property.name}}.beginResetModel();
-        m_{{property.name}}.reset({{property.name}}Size, std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
+        m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
         m_{{property.name}}.endResetModel();
         {% else %}
         PropertyType_{{property.name}} {{property.name}};
@@ -338,7 +342,7 @@ public:
         if (isRegistered) {
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-            m_{{property.name}}.reset(m_{{property.name}}.size(), std::bind(&{{interface}}IPCProxy::{{property.name}}Data, this, std::placeholders::_1));
+            m_{{property.name}}.reset(m_{{property.name}}.size(), std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
         {% endif %}
         {% endfor %}
         }
@@ -346,7 +350,7 @@ public:
     }
 
     {% endif %}
-    void bindLocalService({{interface}} *service) override
+    void bindLocalService({{interfaceName}} *service) override
     {
         Q_UNUSED(service);
 
@@ -392,7 +396,7 @@ public:
 
     {% if operation.isAsync %}
     void {{operation.name}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer){% if operation.is_const %} const{% endif %} override {
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} override {
         if (localInterface() == nullptr) {
             sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
             {%- for parameter in operation.parameters -%}
@@ -421,7 +425,7 @@ public:
                 {%- endfor -%} );
             return returnValue;
             {% else %}
-            sendMethodCall("{{operation.name}}"
+            sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
@@ -476,26 +480,27 @@ private:
 };
 
 
-class {{classExport}} {{interface}}IPCQMLFrontendType : public {{interface}}QMLFrontend
+class {{classExport}} {{className}}QMLFrontendType : public {{interfaceName}}QMLFrontend
 {
     Q_OBJECT
 
     Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
-    {{interface}}IPCQMLFrontendType(QObject *parent = nullptr) : {{interface}}QMLFrontend(parent)
+    {{className}}QMLFrontendType(QObject *parent = nullptr) : {{interfaceName}}QMLFrontend(parent)
     {
     }
 
-    {{interface}}IPCQMLFrontendType(QQmlEngine *engine) : {{interface}}QMLFrontend(engine)
+    {{className}}QMLFrontendType(QQmlEngine *engine) : {{interfaceName}}QMLFrontend(engine)
     {
     }
 
     facelift::IPCProxyBinder *ipc()
     {
-        auto p = static_cast<{{interface}}IPCProxy*>(provider());
+        auto p = static_cast<{{className}}*>(provider());
         return p->ipc();
     }
 };
+
 
 {{module.namespaceCppClose}}

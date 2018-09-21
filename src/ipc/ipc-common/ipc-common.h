@@ -346,6 +346,14 @@ public:
 
     QMap<QString, IPCProxyBinderBase *> m_subProxies;
 
+    void setSynchronous(bool isSynchronous) {
+        m_isSynchronous = isSynchronous;
+    }
+
+    bool isSynchronous() const {
+        return m_isSynchronous;
+    }
+
 protected:
     bool m_inProcess = false;
 
@@ -355,6 +363,7 @@ private:
     bool m_enabled = true;
     bool m_componentCompleted = false;
     InterfaceBase &m_owner;
+    bool m_isSynchronous = true;
 
 };
 

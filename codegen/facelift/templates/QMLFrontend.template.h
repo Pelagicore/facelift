@@ -28,7 +28,7 @@
 **
 *********************************************************************#}
 
-{% set class = '{0}'.format(interface) %}
+{% set className = interfaceName + "QMLFrontend" %}
 {% set hasReadyFlags = interface.hasPropertyWithReadyFlag %}
 {%- macro printif(name) -%}
 {%- if name -%}{{name}}
@@ -48,7 +48,7 @@
 #include <QQmlEngine>
 
 #include "QMLFrontend.h"
-#include "{{class}}.h"
+#include "{{interfaceName}}.h"
 
 // Dependencies
 {% for property in interface.properties -%}
@@ -70,35 +70,39 @@
 
 {{module.namespaceCppOpen}}
 
+
 /**
-* \class {{class}}QMLFrontend
+* \class {{className}}
 * \ingroup {{interface.module.name|toValidId}}
 * \inqmlmodule {{interface.module.name}}
 */
 
 /**
- * This is the class registered as a QML component for the {{interface}} interface
+ * This is the class registered as a QML component for the {{interfaceName}} interface
  */
-class {{classExport}} {{class}}QMLFrontend : public facelift::QMLFrontendBase
+class {{classExport}} {{className}} : public facelift::QMLFrontendBase
 {
     Q_OBJECT
 
+    using ProviderType = {{interfaceName}};
+    using ThisType = {{className}};
+
 public:
 
-    {{class}}QMLFrontend(QObject* parent) : facelift::QMLFrontendBase(parent)
+    {{className}}(QObject* parent) : facelift::QMLFrontendBase(parent)
     {
     }
 
-    {{class}}QMLFrontend(QQmlEngine* engine) : facelift::QMLFrontendBase(engine)
+    {{className}}(QQmlEngine* engine) : facelift::QMLFrontendBase(engine)
     {
     }
 
-    void init({{class}}& provider)
+    void init({{interfaceName}}& provider)
     {
         facelift::QMLFrontendBase::setProvider(provider);
         m_provider = &provider;
         {% for property in interface.properties %}
-        connect(m_provider, &{{class}}::{{property.name}}Changed, this, &{{class}}QMLFrontend::{{property.name}}Changed);
+        connect(m_provider, &ProviderType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
 
         {% if property.type.is_model %}
         m_{{property}}Model.init(m_provider->{{property}}());
@@ -107,30 +111,30 @@ public:
 
         {% for event in interface.signals %}
         {% if event.parameters|hasQMLIncompatibleParameter %}
-        connect(m_provider, &{{class}}::{{event.name}}, this, [this] (
+        connect(m_provider, &ProviderType::{{event.name}}, this, [this] (
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
                 {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
             {%- endfor -%}) {
-            emit {{class}}QMLFrontend::{{event.name}}(
+            emit ThisType::{{event.name}}(
             {%- set comma2 = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
                 {{comma2()}} facelift::toQMLCompatibleType({{parameter.name}})
             {%- endfor -%});
         });
         {% else %}
-        connect(m_provider, &{{class}}::{{event.name}}, this, &{{class}}QMLFrontend::{{event.name}});
+        connect(m_provider, &ProviderType::{{event.name}}, this, &{{className}}::{{event.name}});
         {% endif %}
         {% endfor %}
 
         {% if hasReadyFlags %}
-        connect(m_provider, &{{class}}::readyFlagsChanged, this, &{{class}}QMLFrontend::readyFlagsChanged);
+        connect(m_provider, &ProviderType::readyFlagsChanged, this, &{{className}}::readyFlagsChanged);
         {% endif %}
     }
     {% if hasReadyFlags %}
 
-    Q_PROPERTY({{module.fullyQualifiedCppType}}::{{class}}ReadyFlags readyFlags READ readyFlags NOTIFY readyFlagsChanged)
-    {{class}}ReadyFlags readyFlags() const
+    Q_PROPERTY({{module.fullyQualifiedCppType}}::{{interfaceName}}ReadyFlags readyFlags READ readyFlags NOTIFY readyFlagsChanged)
+    {{interfaceName}}ReadyFlags readyFlags() const
     {
         return m_provider->readyFlags();
     }
@@ -204,7 +208,7 @@ public:
         {%- for parameter in operation.parameters -%}
             {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
-        {{ comma() }}QJSValue callback){% if operation.is_const %} const{% endif %}
+        {{ comma() }}QJSValue callback = NO_OPERATION_JS_CALLBACK){% if operation.is_const %} const{% endif %}
     {
         Q_ASSERT(m_provider);
         m_provider->{{operation}}(
@@ -215,8 +219,8 @@ public:
             facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}}),
             {%- endif -%}
             {%- endfor -%}
-            facelift::AsyncAnswer<{{operation.cppType}}>(this, [this, callback]({% if operation.hasReturnValue %}const {{operation.cppType}} &returnValue{% endif %}) mutable {
-            callJSCallback({% if operation.hasReturnValue %}returnValue, {% endif %}callback);
+            facelift::AsyncAnswer<{{operation.interfaceCppType}}>(this, [this, callback]({% if operation.hasReturnValue %} {{operation.interfaceCppType}} const &returnValue{% endif %}) mutable {
+            callJSCallback(callback{% if operation.hasReturnValue %}, returnValue{% endif %});
         }));
     }
     {% else %}
@@ -254,12 +258,8 @@ public:
     );
     {% endfor %}
 
-    QPointer<{{class}}> m_provider;
+    QPointer<ProviderType> m_provider;
 };
 
 
 {{module.namespaceCppClose}}
-
-{% if hasReadyFlags %}
-Q_DECLARE_METATYPE({{module.fullyQualifiedCppType}}::{{class}}ReadyFlags)
-{% endif %}

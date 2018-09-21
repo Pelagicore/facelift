@@ -44,6 +44,18 @@ here = Path(__file__).dirname()
 logging.config.dictConfig(yaml.load(open(here / 'facelift/facelift-log.yaml')))
 log = logging.getLogger(__name__)
 
+global generateAsyncProxy
+generateAsyncProxy = False
+
+def generateAsync():
+    global generateAsyncProxy
+    return generateAsyncProxy
+
+def interfaceNameSuffix():
+    if generateAsync():
+        return "Async"
+    else:
+        return ""
 
 def parameterType(symbol):
     return symbol
@@ -52,6 +64,8 @@ def toValidId(name):
     return name.replace('.', '_')
 
 def fullyQualifiedName(symbol):
+    if symbol.type.is_interface:
+        return symbol.qualified_name + interfaceNameSuffix()
     return symbol.qualified_name
 
 def getPrimitiveCppType(symbol):
@@ -172,7 +186,7 @@ def fullyQualifiedCppType(type):
 def isAsync(self):
     if self.tags.get('async'):
         return True
-    return False
+    return generateAsync()
 
 ######### Property extensions
 
@@ -256,6 +270,7 @@ def generateFile(generator, outputPath, templatePath, context, libraryName, libr
     generator.write(outputPath, templatePath, context)
 
 def run_generation(input, output, dependency, libraryName):
+    global generateAsyncProxy
     FileSystem.strict = True
     Generator.strict = True
 
@@ -287,6 +302,9 @@ def run_generation(input, output, dependency, libraryName):
             for interface in module.interfaces:
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})
+                ctx.update({'interfaceName': interface.name})
+                generateAsyncProxy = False
+                ctx.update({'generateAsyncProxy': generateAsyncProxy})
                 generateFile(generator, 'types/{{path}}/{{interface}}.h', 'Service.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx, libraryName, "types")
@@ -295,6 +313,14 @@ def run_generation(input, output, dependency, libraryName):
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "desktop_dev_tools")
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
                 generateFile(generator, 'ipc/{{path}}/{{interface}}IPC.h', 'ServiceIPC.template.h', ctx, libraryName, "ipc")
+                generateAsyncProxy = True
+                ctx.update({'generateAsyncProxy': generateAsyncProxy})
+                ctx.update({'interfaceName': interface.name + interfaceNameSuffix()})
+                generateFile(generator, 'types/{{path}}/{{interface}}Async.h', 'Service.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}Async.cpp', 'Service.template.cpp', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}AsyncPropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPC.h', 'ServiceIPC.template.h', ctx, libraryName, "ipc")
             for enum in module.enums:
                 ctx.update({'enum': enum})
                 generateFile(generator, 'types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx, libraryName, "types")

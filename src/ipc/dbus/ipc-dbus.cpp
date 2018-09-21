@@ -54,14 +54,18 @@
 namespace facelift {
 namespace dbus {
 
-QDBusPendingCallWatcher* DBusIPCMessage::asyncCall(const QDBusConnection &connection)
+void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject* context, std::function<void(DBusIPCMessage& message)> callback)
 {
     if (m_outputPayload) {
         m_message << m_outputPayload->getContent();
     }
     qDebug() << "Sending IPC message : " << toString();
     auto reply = new QDBusPendingCallWatcher(connection.asyncCall(m_message));
-    return reply;
+    QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
+        DBusIPCMessage msg(reply->reply());
+        callback(msg);
+        reply->deleteLater();
+    });
 }
 
 DBusIPCMessage DBusIPCMessage::call(const QDBusConnection &connection)

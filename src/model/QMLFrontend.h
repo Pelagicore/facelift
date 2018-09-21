@@ -54,6 +54,9 @@ class FaceliftModelLib_EXPORT QMLFrontendBase : public QObject, public QQmlParse
     Q_INTERFACES(QQmlParserStatus)
 
 public:
+
+    static const QJSValue NO_OPERATION_JS_CALLBACK;
+
     QMLFrontendBase(QObject *parent) : QObject(parent)
     {
     }
@@ -98,26 +101,33 @@ public:
     }
 
 protected:
-    template<typename Type>
-    void callJSCallback(const Type &value, QJSValue &callback)
-    {
-        if (callback.isCallable()) {
-            QJSValueList args;
-            QQmlEngine *engine = (m_qmlEngine ? m_qmlEngine : qmlEngine(this));
-            Q_ASSERT(engine != nullptr);
-            args.append(facelift::toJSValue(value, engine));
-            callback.call(args);
-        } else {
-            qCritical("Provided JS object is not callable");
-        }
+    void appendJSValue(QJSValueList& list, QQmlEngine * engine) {
+        Q_UNUSED(list);
+        Q_UNUSED(engine);
     }
 
-    void callJSCallback(QJSValue &callback)
+    template<typename Arg1Type, typename  ... Args>
+    void appendJSValue(QJSValueList& list, QQmlEngine * engine,  const Arg1Type & arg1, const Args & ...args) {
+        list.append(facelift::toJSValue(arg1, engine));
+        appendJSValue(list, engine, args...);
+    }
+
+    template<typename  ... Args>
+    void callJSCallback(QJSValue &callback, const Args & ...args)
     {
-        if (callback.isCallable()) {
-            callback.call(QJSValueList());
-        } else {
-            qCritical("Provided JS object is not callable");
+        if (!callback.isUndefined()) {
+            if (callback.isCallable()) {
+                QQmlEngine *engine = (m_qmlEngine ? m_qmlEngine : qmlEngine(this));
+                Q_ASSERT(engine != nullptr);
+                QJSValueList jsList;
+                appendJSValue(jsList, engine, args...);
+                auto returnValue = callback.call(jsList);
+                if (returnValue.isError()) {
+                    qCritical("Error executing JS callback");
+                }
+            } else {
+                qCritical("Provided JS object is not callable");
+            }
         }
     }
 
@@ -138,6 +148,7 @@ protected:
 private:
     InterfaceBase *m_provider = nullptr;
     QQmlEngine* m_qmlEngine = nullptr;
+
 };
 
 /*!

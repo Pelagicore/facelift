@@ -42,6 +42,7 @@
 
 {% for interface in module.interfaces %}
 #include "{{interface.fullyQualifiedPath}}IPC.h"
+#include "{{interface.fullyQualifiedPath}}AsyncIPC.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}
@@ -55,6 +56,7 @@ public:
         facelift::qmlRegisterType<{{interface}}IPCAdapter>(uri, "{{interface}}IPCAdapter");
         facelift::IPCAdapterFactoryManager::registerType<{{interface}}IPCAdapter>();
         facelift::registerQmlComponent<{{interface}}IPCProxy>(uri, "{{interface}}IPCProxy");
+        facelift::registerQmlComponent<{{interface}}AsyncIPCProxy>(uri, "{{interface}}AsyncIPCProxy");
 
         {% endfor %}
         qmlRegisterUncreatableType<facelift::IPCProxyBinderBase>(uri, majorVersion, minorVersion, "IPCProxyBinder",

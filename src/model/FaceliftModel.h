@@ -1197,7 +1197,7 @@ public:
     {
     }
 
-    void operator()()
+    void operator()() const
     {
         m_master->call();
     }
