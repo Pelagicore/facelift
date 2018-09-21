@@ -201,13 +201,6 @@ public:
         qCritical() << "IPC unavailable for method" << memberID;
     }
 
-    template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturnNoSync(MemberIDType memberID, ReturnType &returnValue, const Args & ... /*args*/) const
-    {
-        assignDefaultValue(returnValue);
-        qCritical() << "IPC unavailable for method" << memberID;
-    }
-
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value) const
     {

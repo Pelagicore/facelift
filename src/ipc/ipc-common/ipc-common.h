@@ -657,7 +657,7 @@ public:
                 --last;
             }
 
-            m_proxy.sendMethodCallWithReturnNoSync(requestMemberID, list, first, last);
+            m_proxy.sendMethodCallWithReturn(requestMemberID, list, first, last);
             Q_ASSERT(list.size() == (last - first + 1));
 
             for (int i = first; i <= last; ++i) {

@@ -178,7 +178,6 @@ public:
             {% if operation.hasReturnValue %}
             serializeValue(replyMessage, returnValue);
             {%- endif %}
-            serializePropertyValues(replyMessage);
             {% endif %}
         } else
         {% endfor %}
@@ -194,7 +193,6 @@ public:
             {{property.cppType}} value;
             deserializeValue(requestMessage, value);
             theService->set{{property.name}}(value);
-            serializePropertyValues(replyMessage);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
