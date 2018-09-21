@@ -59,11 +59,11 @@ public:
     {% for operation in interface.operations %}
 
     {% if operation.isAsync %}
-    void {{operation}}({% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer){% if operation.is_const %} const{% endif %} override {
+    void {{operation}}({% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} override {
         {% for parameter in operation.parameters %}
         Q_UNUSED({{parameter.name}});
         {% endfor %}
-        {{operation.cppType}} v = {};
+        {{operation.interfaceCppType}} v = {};
         answer(v);
     }
     {% else %}

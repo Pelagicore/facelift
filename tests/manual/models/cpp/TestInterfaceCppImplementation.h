@@ -158,4 +158,9 @@ public:
         return m_interfaceProperty;
     }
 
+    void asyncMethodWithSubInterface(facelift::AsyncAnswer<TestInterface2 *> answer) override
+    {
+        answer(m_interfaceProperty);
+    }
+
 };

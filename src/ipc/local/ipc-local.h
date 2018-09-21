@@ -175,8 +175,16 @@ public:
     };
 
     template<typename ... Args>
-    void sendMethodCall(const char *methodName, const Args & ... /*args*/) const
+    void sendMethodCall(MemberIDType methodName, const Args & ... /*args*/) const
     {
+        qCritical() << "IPC unavailable for method" << methodName;
+    }
+
+    template<typename ReturnType, typename ... Args>
+    void sendAsyncMethodCall(MemberIDType methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
+    {
+        Q_UNUSED(methodName);
+        Q_UNUSED(answer);
         qCritical() << "IPC unavailable for method" << methodName;
     }
 
@@ -343,6 +351,16 @@ public:
     {
         Q_UNUSED(model);
         Q_UNUSED(requestMessage);
+        Q_UNUSED(replyMessage);
+    }
+
+    template<typename ReturnType>
+    void sendAsyncCallAnswer(LocalIPCMessage& replyMessage, const ReturnType returnValue) {
+        Q_UNUSED(replyMessage);
+        Q_UNUSED(returnValue);
+    }
+
+    void sendAsyncCallAnswer(LocalIPCMessage& replyMessage) {
         Q_UNUSED(replyMessage);
     }
 

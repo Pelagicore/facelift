@@ -33,16 +33,16 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{interface}}.h"
+#include "{{interfaceName}}.h"
 
 {{module.namespaceCppOpen}}
 
-constexpr const char* {{interface}}::FULLY_QUALIFIED_INTERFACE_NAME;
+constexpr const char* {{interfaceName}}::FULLY_QUALIFIED_INTERFACE_NAME;
 
-{{interface}}::{{interface}}(QObject* parent)
+{{interfaceName}}::{{interfaceName}}(QObject* parent)
     : facelift::InterfaceBase(parent)
 {
-    init({{interface}}::FULLY_QUALIFIED_INTERFACE_NAME);
+    init(FULLY_QUALIFIED_INTERFACE_NAME);
 }
 
 {{module.namespaceCppClose}}

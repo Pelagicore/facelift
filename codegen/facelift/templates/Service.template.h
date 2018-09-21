@@ -28,7 +28,6 @@
 **
 *********************************************************************#}
 
-{% set class = '{0}'.format(interface) %}
 {% set comma = joiner(",") %}
 {% set hasReadyFlags = interface.hasPropertyWithReadyFlag -%}
 
@@ -66,12 +65,12 @@
 
 {{module.namespaceCppOpen}}
 
-class {{class}}QMLFrontend;
-class {{class}}IPCAdapter;
-class {{class}}IPCProxy;
+class {{interfaceName}}QMLFrontend;
+class {{interfaceName}}IPCAdapter;
+class {{interfaceName}}IPCProxy;
 
 {% if hasReadyFlags %}
-class {{classExport}} {{class}}ReadyFlags
+class {{classExport}} {{interfaceName}}ReadyFlags
 {
     Q_GADGET
 
@@ -91,7 +90,7 @@ public:
 {% endif %}
 
 {{interface.comment}}
-class {{classExport}} {{class}} : public facelift::InterfaceBase {
+class {{classExport}} {{interfaceName}} : public facelift::InterfaceBase {
 
     Q_OBJECT
 
@@ -103,13 +102,14 @@ public:
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
 
-    using QMLFrontendType = {{class}}QMLFrontend;
-    using IPCAdapterType = {{class}}IPCAdapter;
-    using IPCProxyType = {{class}}IPCProxy;
+    using QMLFrontendType = {{interfaceName}}QMLFrontend;
+    using IPCAdapterType = {{interfaceName}}IPCAdapter;
+    using IPCProxyType = {{interfaceName}}IPCProxy;
+    using ThisType = {{interfaceName}};
 
     friend QMLFrontendType;
 
-    {{class}}(QObject* parent = nullptr);
+    {{interfaceName}}(QObject* parent = nullptr);
 
     static void registerTypes(const char* uri)
     {
@@ -122,9 +122,9 @@ public:
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}> {{property}}Property()
+    facelift::ModelPropertyInterface<ThisType, {{property.nestedType.fullyQualifiedCppType}}> {{property}}Property()
     {
-        return facelift::ModelPropertyInterface<{{class}}, {{property.nestedType.fullyQualifiedCppType}}>(this, {{property.name}}());
+        return facelift::ModelPropertyInterface<ThisType, {{property.nestedType.fullyQualifiedCppType}}>(this, {{property.name}}());
     }
 
     {% elif property.type.is_interface -%}
@@ -134,9 +134,9 @@ public:
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    facelift::ServicePropertyInterface<{{class}}, {{property.cppType}}> {{property}}Property()
+    facelift::ServicePropertyInterface<ThisType, {{property.cppType}}> {{property}}Property()
     {
-        return facelift::ServicePropertyInterface<{{class}}, {{property.cppType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed);
+        return facelift::ServicePropertyInterface<ThisType, {{property.cppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
 
     {% if (not property.readonly) %}
@@ -146,9 +146,9 @@ public:
     {% else %}
     virtual const {{property.interfaceCppType}}& {{property}}() const = 0;
 
-    facelift::PropertyInterface<{{class}}, {{property.interfaceCppType}}> {{property}}Property()
+    facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}> {{property}}Property()
     {
-        return facelift::PropertyInterface<{{class}}, {{property.interfaceCppType}}>(this, &{{class}}::{{property}}, &{{class}}::{{property}}Changed);
+        return facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
 
     typedef {{property.interfaceCppType}} PropertyType_{{property}};
@@ -165,7 +165,7 @@ public:
 
     {% if operation.isAsync %}
     virtual void {{operation}}(
-        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.cppType}}> answer){% if operation.is_const %} const{% endif %} = 0;
+        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} = 0;
     {% else %}
 
     {{operation.comment}}
@@ -187,17 +187,20 @@ public:
 
 
     {% if hasReadyFlags %}
-    const {{class}}ReadyFlags &readyFlags() const
+    const {{interfaceName}}ReadyFlags &readyFlags() const
     {
         return m_readyFlags;
     }
     Q_SIGNAL void readyFlagsChanged();
 
 protected:
-    {{class}}ReadyFlags m_readyFlags;
+    {{interfaceName}}ReadyFlags m_readyFlags;
     {% endif %}
 };
 
 
 {{module.namespaceCppClose}}
 
+{% if hasReadyFlags %}
+Q_DECLARE_METATYPE({{module.fullyQualifiedCppType}}::{{interfaceName}}ReadyFlags)
+{% endif %}
