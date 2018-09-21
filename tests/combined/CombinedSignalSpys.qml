@@ -43,4 +43,9 @@ QtObject {
         target: dest
         signalName: "intPropertyChanged"
     }
+
+    readonly property var stringListPropertyChangedSpy: SignalSpy {
+        target: dest
+        signalName: "stringListPropertyChanged"
+    }
 }

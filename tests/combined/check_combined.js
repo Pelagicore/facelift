@@ -128,10 +128,14 @@ function methods() {
 }
 
 function setter() {
+    spy.intPropertyChangedSpy.clear();
     api.intProperty = -12;
+    spy.intPropertyChangedSpy.wait(2000);  // needed in IPC case only
     compare(api.intProperty, 0);
 
+    spy.stringListPropertyChangedSpy.clear();
     api.stringListProperty = [ "11", "22"];
+    spy.stringListPropertyChangedSpy.wait(2000);  // needed in IPC case only
     compare(api.stringListProperty[0], "11");
 }
 

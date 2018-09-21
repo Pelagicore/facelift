@@ -901,7 +901,7 @@ public:
     }
 
     template<typename PropertyType>
-    DBusIPCMessage sendSetterCall(const QString &methodName, const PropertyType &value)
+    void sendSetterCall(const QString &methodName, const PropertyType &value)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         serializeValue(msg, value);
@@ -911,7 +911,6 @@ public:
                 "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
                 qPrintable(methodName), qPrintable(objectPath()));
         }
-        return replyMessage;
     }
 
     struct SerializeParameterFunction
@@ -1056,19 +1055,13 @@ public:
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value)
     {
-        DBusIPCMessage msg = m_ipcBinder.sendSetterCall(methodName, value);
-        if (msg.isReplyMessage()) {
-            deserializePropertyValues(msg);
-        }
+        m_ipcBinder.sendSetterCall(methodName, value);
     }
 
     template<typename ... Args>
     void sendMethodCall(const char *methodName, const Args & ... args) const
     {
-        DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
-        if (msg.isReplyMessage()) {
-            const_cast<DBusIPCProxy *>(this)->deserializePropertyValues(msg);
-        }
+        m_ipcBinder.sendMethodCall(methodName, args ...);
     }
 
     template<typename ReturnType, typename ... Args>
@@ -1077,18 +1070,6 @@ public:
         DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
         if (msg.isReplyMessage()) {
             const_cast<DBusIPCProxy *>(this)->deserializeValue(msg, returnValue);
-            const_cast<DBusIPCProxy *>(this)->deserializePropertyValues(msg);
-        } else {
-            assignDefaultValue(returnValue);
-        }
-    }
-
-    template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturnNoSync(const char *methodName, ReturnType &returnValue, const Args & ... args)
-    {
-        DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
-        if (msg.isReplyMessage()) {
-            deserializeValue(msg, returnValue);
         } else {
             assignDefaultValue(returnValue);
         }
