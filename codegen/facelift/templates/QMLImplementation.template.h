@@ -312,13 +312,18 @@ public:
     Q_INVOKABLE void {{event}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in event.parameters -%}
-    {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
+    {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
     {%- endfor -%} )
     {
         emit m_interface->{{event.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in event.parameters -%}
-        {{ comma() }}{{parameter.name}}
+        {{ comma() }}
+        {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
+        {{parameter.name}}
+        {%- else -%}
+        facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
+        {%- endif -%}
         {%- endfor -%} );
     }
     {% endfor %}
