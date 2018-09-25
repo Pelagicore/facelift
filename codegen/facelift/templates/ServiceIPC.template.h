@@ -451,7 +451,7 @@ public:
     {
         if (localInterface() == nullptr) {
             {% if (not property.type.is_interface) %}
-            sendSetterCall("set{{property}}", newValue);
+            sendSetterCall(memberID(MethodID::{{property.name}}, "set{{property.name}}"), newValue);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}

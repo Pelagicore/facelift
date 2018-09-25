@@ -68,10 +68,12 @@ InterfaceManager &InterfaceManager::instance()
 
 void IPCProxyBinderBase::onLocalAdapterAvailable(IPCServiceAdapterBase *adapter)
 {
-    if (adapter->objectPath() == this->objectPath()) {
-        qDebug() << "Local server found for " << objectPath();
-        m_inProcess = true;
-        emit localAdapterAvailable(adapter);
+    if (isSynchronous()) { // If our proxy is asynchronous, just ignore local adapters and always go through IPC
+        if (adapter->objectPath() == this->objectPath()) {
+            qDebug() << "Local server found for " << objectPath();
+            m_inProcess = true;
+            emit localAdapterAvailable(adapter);
+        }
     }
 }
 
