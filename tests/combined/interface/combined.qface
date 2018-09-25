@@ -62,9 +62,10 @@ interface CombinedInterface {
 
     string method1();
     CombiStruct2 method2(int intParam, bool boolParam);
-    CombiEnum method3();
+    CombiEnum method3(CombiEnum e);
     list<CombiEnum> method4(CombiStruct2 s);
     list<CombiStruct> method5();
+    int method6(int i);
 
     signal event1(CombiStruct p);
     signal eventCombiEnum(CombiEnum p);

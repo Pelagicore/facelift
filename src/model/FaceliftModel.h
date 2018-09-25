@@ -1070,7 +1070,22 @@ struct QMLModelTypeHandler
     {
         v = engine->fromScriptValue<Type>(value);
     }
+};
 
+template<typename Type>
+struct QMLModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+{
+    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+    {
+        Q_UNUSED(engine)
+        return QJSValue(v);
+    }
+
+    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        Q_UNUSED(engine)
+        v = static_cast<Type>(value.toInt());
+    }
 };
 
 

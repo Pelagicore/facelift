@@ -168,9 +168,11 @@ public:
         }
     }
 
-    CombiEnum method3() override
+    CombiEnum method3(CombiEnum e) override
     {
-        return CombiEnum::E3;
+        if (e == CombiEnum::E2)
+            return CombiEnum::E3;
+        return CombiEnum::E1;
     }
 
     QList<CombiEnum> method4(CombiStruct2 s)  override
@@ -195,5 +197,12 @@ public:
         QList<CombiStruct> lcs = { c1, c2 };
 
         return lcs;
+    }
+
+    int method6(int i) override
+    {
+        if (i == 17)
+            return 42;
+        return 0;
     }
 };

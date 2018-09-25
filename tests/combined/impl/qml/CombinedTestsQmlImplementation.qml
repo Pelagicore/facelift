@@ -68,8 +68,9 @@ CombinedInterfaceQMLImplementation {
          }
     }
 
-    method3: function() {
-        return CombiEnum.E3;
+    method3: function(e) {
+        if (e === CombiEnum.E2)
+            return CombiEnum.E3;
     }
 
     method4: function(s) {
@@ -86,6 +87,11 @@ CombinedInterfaceQMLImplementation {
         c2.anInt = 2;
         c2.aString = "B";
         return [ c1, c2 ];
+    }
+
+    method6: function(i) {
+        if (i === 17)
+            return 42;
     }
 
 
@@ -106,18 +112,30 @@ CombinedInterfaceQMLImplementation {
         enumListProperty = [ CombiEnum.E2 ];
         stringListProperty = [ "one", "two", "three" ];
 
+        var cs1 = CombiStructFactory.create();
+        cs1.aString = "ok";
+        cs1.anInt = 21;
+        var cs2 = CombiStructFactory.create();
+        cs2.aString = "nok";
+        structListProperty = [ cs1, cs2 ]
+
         enumMapProperty = { one: CombiEnum.E1, two: CombiEnum.E2 };
         intMapProperty = { one: 1, two: 2 };
     }
 
     emitSignals: function() {
         event1(structProperty);
-        //eventCombiEnum(CombiEnum.E2);
+        eventCombiEnum(CombiEnum.E2);
         eventInt(7);
         eventBoolAndCombiStruct(true, structProperty);
         eventWithList(intListProperty, true);
-        //eventWithMapSpy(intMapProperty);
-        //eventWithStructWithList(structListProperty);
+        eventWithMap(intMapProperty);
+
+        var swl = StructWithListFactory.create();
+        swl.listOfInts = intListProperty;
+        swl.listOfStructs = structListProperty;
+        swl.enumField = CombiEnum.E2;
+        eventWithStructWithList(swl);
         intProperty = 101;
     }
 

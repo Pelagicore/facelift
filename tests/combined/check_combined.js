@@ -80,12 +80,10 @@ function initialized() {
     compare(api.stringListProperty.length, 3);
     compare(api.stringListProperty[0], "one");
 
-    if (!api.qmlImplementationUsed) {
-        compare(api.structListProperty.length, 2);
-        compare(api.structListProperty[0].anInt, 21);
-        compare(api.structListProperty[0].aString, "ok");
-        compare(api.structListProperty[1].aString, "nok");
-    }
+    compare(api.structListProperty.length, 2);
+    compare(api.structListProperty[0].anInt, 21);
+    compare(api.structListProperty[0].aString, "ok");
+    compare(api.structListProperty[1].aString, "nok");
 
     compare(api.enumMapProperty.one, CombiEnum.E1);
     compare(api.enumMapProperty.two, CombiEnum.E2);
@@ -102,9 +100,7 @@ function methods() {
     compare(cs2.cs.aString, "bar");
     compare(cs2.e, CombiEnum.E2);
 
-    if (!api.qmlImplementationUsed) {
-        compare(api.method3(), CombiEnum.E3)
-    }
+    compare(api.method3(CombiEnum.E2), CombiEnum.E3)
 
     if (!api.qmlImplementationUsed) {
         var cs = CombiStructFactory.create();
@@ -125,6 +121,8 @@ function methods() {
         compare(lcs[1].anInt, 2);
         compare(lcs[1].aString, "B");
     }
+
+    compare(api.method6(17), 42)
 }
 
 function setter() {
@@ -156,11 +154,9 @@ function signals() {
     compare(spy.event1Spy.signalArguments[0][0].anInt, 21);
     compare(spy.event1Spy.signalArguments[0][0].aString, "ok");
 
-    if (!api.qmlImplementationUsed) {
-        spy.eventCombiEnumSpy.wait(2000);
-        compare(spy.eventCombiEnumSpy.count, 1);
-        compare(spy.eventCombiEnumSpy.signalArguments[0][0], CombiEnum.E2);
-    }
+    spy.eventCombiEnumSpy.wait(2000);
+    compare(spy.eventCombiEnumSpy.count, 1);
+    compare(spy.eventCombiEnumSpy.signalArguments[0][0], CombiEnum.E2);
 
     spy.eventIntSpy.wait(2000);
     compare(spy.eventIntSpy.count, 1);
@@ -178,22 +174,18 @@ function signals() {
     compare(spy.eventWithListSpy.signalArguments[0][0][4], 8);
     compare(spy.eventWithListSpy.signalArguments[0][1], true);
 
-    if (!api.qmlImplementationUsed) {
-        spy.eventWithMapSpy.wait(2000);
-        compare(spy.eventWithMapSpy.count, 1);
-        compare(spy.eventWithMapSpy.signalArguments[0][0].one, 1);
-        compare(spy.eventWithMapSpy.signalArguments[0][0].two, 2);
-    }
+    spy.eventWithMapSpy.wait(2000);
+    compare(spy.eventWithMapSpy.count, 1);
+    compare(spy.eventWithMapSpy.signalArguments[0][0].one, 1);
+    compare(spy.eventWithMapSpy.signalArguments[0][0].two, 2);
 
-    if (!api.qmlImplementationUsed) {
-        spy.eventWithStructWithListSpy.wait(2000);
-        compare(spy.eventWithStructWithListSpy.count, 1);
-        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfInts[3], 5);
-        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfInts[4], 8);
-        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].anInt, 21);
-        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].aString, "ok");
-        compare(spy.eventWithStructWithListSpy.signalArguments[0][0].enumField, CombiEnum.E2);
-    }
+    spy.eventWithStructWithListSpy.wait(2000);
+    compare(spy.eventWithStructWithListSpy.count, 1);
+    compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfInts[3], 5);
+    compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfInts[4], 8);
+    compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].anInt, 21);
+    compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].aString, "ok");
+    compare(spy.eventWithStructWithListSpy.signalArguments[0][0].enumField, CombiEnum.E2);
 
     spy.intPropertyChangedSpy.wait(2000);
     //compare(spy.intPropertyChangedSpy.count, 1);
