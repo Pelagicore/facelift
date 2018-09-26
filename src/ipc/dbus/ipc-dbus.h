@@ -63,6 +63,7 @@ namespace facelift {
 
 namespace ipc { namespace dbus {
 class ObjectRegistry;
+class ObjectRegistryAsync;
 } }
 
 namespace dbus {
@@ -85,7 +86,8 @@ public:
     {
     }
 
-    DBusIPCMessage & operator=(const DBusIPCMessage &other) {
+    DBusIPCMessage &operator=(const DBusIPCMessage &other)
+    {
         m_message = other.m_message;
         return *this;
     }
@@ -107,7 +109,7 @@ public:
 
     DBusIPCMessage call(const QDBusConnection &connection);
 
-    void asyncCall(const QDBusConnection &connection, const QObject* context, std::function<void(DBusIPCMessage& message)> callback);
+    void asyncCall(const QDBusConnection &connection, const QObject *context, std::function<void(DBusIPCMessage &message)> callback);
 
     void send(const QDBusConnection &connection);
 
@@ -143,19 +145,19 @@ public:
         return (m_message.type() == QDBusMessage::ErrorMessage);
     }
 
-    OutputPayLoad& outputPayLoad();
+    OutputPayLoad &outputPayLoad();
 
-    InputPayLoad& inputPayLoad();
+    InputPayLoad &inputPayLoad();
 
 private:
-
     QDBusMessage m_message;
     std::unique_ptr<OutputPayLoad> m_outputPayload;
     std::unique_ptr<InputPayLoad> m_inputPayload;
 };
 
 
-class OutputPayLoad {
+class OutputPayLoad
+{
 
 public:
     OutputPayLoad() : m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
@@ -165,11 +167,12 @@ public:
     template<typename Type>
     void writeSimple(const Type &v)
     {
-//        qDebug() << "Writing to message : " << v;
+        //        qDebug() << "Writing to message : " << v;
         m_dataStream << v;
     }
 
-    const QByteArray& getContent() const {
+    const QByteArray &getContent() const
+    {
         return m_payloadArray;
     }
 
@@ -178,10 +181,11 @@ private:
     QDataStream m_dataStream;
 };
 
-class InputPayLoad {
+class InputPayLoad
+{
 
 public:
-    InputPayLoad(const QByteArray& payloadArray) : m_payloadArray(payloadArray), m_dataStream(m_payloadArray)
+    InputPayLoad(const QByteArray &payloadArray) : m_payloadArray(payloadArray), m_dataStream(m_payloadArray)
     {
     }
 
@@ -189,7 +193,7 @@ public:
     void readNextParameter(Type &v)
     {
         m_dataStream >> v;
-//        qDebug() << "Read from message : " << v;
+        //        qDebug() << "Read from message : " << v;
     }
 
 private:
@@ -198,14 +202,16 @@ private:
 };
 
 
-inline OutputPayLoad& DBusIPCMessage::outputPayLoad() {
+inline OutputPayLoad &DBusIPCMessage::outputPayLoad()
+{
     if (m_outputPayload == nullptr) {
         m_outputPayload = std::make_unique<OutputPayLoad>();
     }
     return *m_outputPayload;
 }
 
-inline InputPayLoad& DBusIPCMessage::inputPayLoad() {
+inline InputPayLoad &DBusIPCMessage::inputPayLoad()
+{
     if (m_inputPayload == nullptr) {
         auto byteArray = m_message.arguments()[0].value<QByteArray>();
         m_inputPayload = std::make_unique<InputPayLoad>(byteArray);
@@ -567,7 +573,7 @@ public:
         return m_busConnection.baseService();
     }
 
-    facelift::ipc::dbus::ObjectRegistry &objectRegistry();
+    DBusObjectRegistry &objectRegistry();
 
 private:
     QDBusConnection m_busConnection;
@@ -675,12 +681,14 @@ public:
     }
 
     template<typename ReturnType>
-    void sendAsyncCallAnswer(DBusIPCMessage& replyMessage, const ReturnType returnValue) {
+    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
+    {
         serializeValue(replyMessage, returnValue);
         replyMessage.send(dbusManager().connection());
     }
 
-    void sendAsyncCallAnswer(DBusIPCMessage& replyMessage) {
+    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage)
+    {
         replyMessage.send(dbusManager().connection());
     }
 
@@ -880,7 +888,7 @@ public:
     {
         DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCServiceAdapterBase::GET_PROPERTIES_MESSAGE_NAME);
 
-        auto replyHandler = [this] (DBusIPCMessage& replyMessage) {
+        auto replyHandler = [this](DBusIPCMessage &replyMessage) {
             if (replyMessage.isReplyMessage()) {
                 m_serviceObject->deserializePropertyValues(replyMessage);
                 m_serviceObject->setServiceRegistered(true);
@@ -913,7 +921,8 @@ public:
         IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
     }
 
-    void onServerNotAvailableError(const char *methodName) const {
+    void onServerNotAvailableError(const char *methodName) const
+    {
         qCritical(
             "Error message received when calling method '%s' on service at path '%s'. "
             "This likely indicates that the server you are trying to access is not available yet",
@@ -921,7 +930,7 @@ public:
     }
 
     template<typename PropertyType>
-    void sendSetterCall(const char* methodName, const PropertyType &value)
+    void sendSetterCall(const char *methodName, const PropertyType &value)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         serializeValue(msg, value);
@@ -931,7 +940,7 @@ public:
                 onServerNotAvailableError(methodName);
             }
         } else {
-            msg.asyncCall(connection(), this, [this, methodName](const DBusIPCMessage& replyMessage){
+            msg.asyncCall(connection(), this, [this, methodName](const DBusIPCMessage &replyMessage) {
                 if (replyMessage.isErrorMessage()) {
                     onServerNotAvailableError(methodName);
                 }
@@ -972,30 +981,33 @@ public:
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
+    void sendAsyncMethodCall(const char* methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
-        msg.asyncCall(connection(), this, [this, answer](DBusIPCMessage& msg) {
+        msg.asyncCall(connection(), this, [this, answer](DBusIPCMessage &msg) {
             ReturnType returnValue;
-            deserializeValue(msg, returnValue);
-            answer(returnValue);
+            if (msg.isReplyMessage()) {
+                deserializeValue(msg, returnValue);
+                answer(returnValue);
+            } else {
+                qWarning() << "Error received" << msg.toString();
+            }
         });
     }
 
     template<typename ... Args>
-    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
+    void sendAsyncMethodCall(const char* methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
-        msg.asyncCall(connection(), this, [answer](DBusIPCMessage& msg) {
+        msg.asyncCall(connection(), this, [answer](DBusIPCMessage &msg) {
             Q_UNUSED(msg);
             answer();
         });
     }
-
 
     QDBusConnection &connection() const
     {
@@ -1110,14 +1122,18 @@ public:
     }
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const QString &methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
+    void sendAsyncMethodCall(const char* methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
     {
-        const_cast<DBusIPCProxy *>(this)->m_ipcBinder.sendAsyncMethodCall(methodName, answer, args...);
+        const_cast<DBusIPCProxy *>(this)->m_ipcBinder.sendAsyncMethodCall(methodName, answer, args ...);
     }
 
     DBusIPCProxyBinder *ipc()
     {
         return &m_ipcBinder;
+    }
+
+    bool isSynchronous() const {
+        return m_ipcBinder.isSynchronous();
     }
 
     template<typename InterfaceType>

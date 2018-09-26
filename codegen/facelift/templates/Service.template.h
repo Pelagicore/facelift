@@ -165,7 +165,7 @@ public:
 
     {% if operation.isAsync %}
     virtual void {{operation}}(
-        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} = 0;
+        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} = 0;
     {% else %}
 
     {{operation.comment}}
