@@ -1177,7 +1177,9 @@ public:
 
     void operator()(const ReturnType &returnValue) const
     {
-        m_master->call(returnValue);
+        if (m_master) {
+            m_master->call(returnValue);
+        }
     }
 
 private:

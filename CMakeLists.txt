@@ -11,6 +11,8 @@ else()
    set(RELEASE_BUILD ON)
 endif()
 
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+
 option(FACELIFT_ENABLE_QMLPLUGINDUMP "Enable the generation of plugin type info" OFF)
 option(FACELIFT_ENABLE_CODEGEN "Enable code generator build and install. Should typically be disabled when cross-compiling" ON)
 option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)

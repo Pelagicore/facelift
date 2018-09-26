@@ -31,5 +31,96 @@
 #include "ipc-dbus-object-registry.h"
 
 namespace facelift {
+namespace dbus {
 
+void DBusObjectRegistry::init()
+{
+    if (!m_initialized) {
+        m_initialized = true;
+        if (m_dbusManager.registerServiceName(SERVICE_NAME)) {
+            m_master = std::make_unique<MasterImpl>(*this);
+            m_master->init();
+        } else {
+            m_objectRegistryAsyncProxy = new facelift::ipc::dbus::ObjectRegistryAsyncIPCProxy();
+            m_objectRegistryAsyncProxy->ipc()->setServiceName(SERVICE_NAME);
+            m_objectRegistryAsyncProxy->connectToServer();
+            QObject::connect(m_objectRegistryAsyncProxy, &facelift::ipc::dbus::ObjectRegistryAsync::objectsChanged, this,
+                    &DBusObjectRegistry::objectsChanged);
+        }
+    }
+}
+
+void DBusObjectRegistry::registerObject(QString objectPath, facelift::AsyncAnswer<bool> answer)
+{
+    init();
+    auto serviceName = DBusManager::instance().serviceName();
+    if (m_master) {
+        auto isSuccessful = m_master->registerObject(objectPath, serviceName);
+        answer(isSuccessful);
+    } else {
+        return m_objectRegistryAsyncProxy->registerObject(objectPath, serviceName, answer);
+    }
+}
+
+void DBusObjectRegistry::unregisterObject(QString objectPath)
+{
+    init();
+    auto serviceName = DBusManager::instance().serviceName();
+    if (m_master) {
+        m_master->unregisterObject(objectPath, serviceName);
+    } else {
+        return m_objectRegistryAsyncProxy->unregisterObject(objectPath, serviceName);
+    }
+}
+
+const QMap<QString, QString> &DBusObjectRegistry::objects(bool blocking)
+{
+    init();
+    if (m_master) {
+        return m_master->objects();
+    } else {
+        if (blocking) {
+            if (m_objectRegistryProxy == nullptr) {
+                m_objectRegistryProxy = new facelift::ipc::dbus::ObjectRegistryIPCProxy();
+                m_objectRegistryProxy->ipc()->setServiceName(SERVICE_NAME);
+                m_objectRegistryProxy->connectToServer();
+            }
+            return m_objectRegistryProxy->objects();
+        } else {
+            return m_objectRegistryAsyncProxy->objects();
+        }
+    }
+}
+
+void DBusObjectRegistry::MasterImpl::init()
+{
+    m_objectRegistryAdapter.setService(this);
+    m_objectRegistryAdapter.init();
+}
+
+bool DBusObjectRegistry::MasterImpl::registerObject(QString objectPath, QString serviceName)
+{
+    auto objects = m_objects.value();
+    if (!objects.contains(objectPath)) {
+        qDebug() << "Object registered at path" << objectPath << "service name:" << serviceName;
+        objects[objectPath] = serviceName;
+        m_objects = objects;
+        return true;
+    } else {
+        qCritical() << "Object path is already registered" << objectPath;
+        return false;
+    }
+}
+
+bool DBusObjectRegistry::MasterImpl::unregisterObject(QString objectPath, QString serviceName)
+{
+    auto objects = m_objects.value();
+    Q_ASSERT(objects[objectPath] == serviceName);
+    auto r = (objects.remove(objectPath) != 0);
+    m_objects = objects;
+    return r;
+}
+
+
+}
 }

@@ -32,97 +32,60 @@
 
 #include "ipc-dbus.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPC.h"
+#include "facelift/ipc/dbus/ObjectRegistryAsyncIPC.h"
 
 #include <QDBusContext>
 
 namespace facelift {
 namespace dbus {
 
-class DBusObjectRegistry : public facelift::ipc::dbus::ObjectRegistryPropertyAdapter
+class DBusObjectRegistry : public QObject
 {
-
     Q_OBJECT
 
 public:
     static constexpr const char *SERVICE_NAME = "facelift.registry";
+
+    class MasterImpl : public facelift::ipc::dbus::ObjectRegistryPropertyAdapter
+    {
+
+    public:
+        MasterImpl(DBusObjectRegistry &parent) : facelift::ipc::dbus::ObjectRegistryPropertyAdapter(&parent)
+        {
+        }
+
+        void init();
+
+        bool registerObject(QString objectPath, QString serviceName);
+
+        bool unregisterObject(QString objectPath, QString serviceName);
+
+    private:
+        facelift::ipc::dbus::ObjectRegistryIPCAdapter m_objectRegistryAdapter;
+
+    };
 
     DBusObjectRegistry(DBusManager &dbusManager) :
         m_dbusManager(dbusManager)
     {
     }
 
-    void init()
-    {
-        if (!m_initialized) {
-            m_initialized = true;
-            if (m_dbusManager.registerServiceName(SERVICE_NAME)) {
-                m_objectRegistryAdapter = new facelift::ipc::dbus::ObjectRegistryIPCAdapter();
-                m_objectRegistryAdapter->setService(this);
-                m_objectRegistryAdapter->init();
-            } else {
-                m_objectRegistryProxy = new facelift::ipc::dbus::ObjectRegistryIPCProxy();
-                m_objectRegistryProxy->ipc()->setServiceName(SERVICE_NAME);
-                m_objectRegistryProxy->connectToServer();
-                QObject::connect(m_objectRegistryProxy, &facelift::ipc::dbus::ObjectRegistry::objectsChanged, this,
-                        &DBusObjectRegistry::objectsChanged);
-            }
-        }
-    }
+    void init();
 
-    bool registerObject(QString objectPath, QString serviceName) override
-    {
-        init();
+    void registerObject(QString objectPath, facelift::AsyncAnswer<bool> answer);
 
-        if (isMaster()) {
-            auto objects = m_objects.value();
-            if (!objects.contains(objectPath)) {
-                qDebug() << "Object registered at path" << objectPath << "service name:" << serviceName;
-                objects[objectPath] = serviceName;
-                m_objects = objects;
-                return true;
-            } else {
-                qWarning() << "Object path is already registered" << objectPath;
-                return false;
-            }
+    void unregisterObject(QString objectPath);
 
-        } else {
-            return m_objectRegistryProxy->registerObject(objectPath, serviceName);
-        }
-    }
+    const QMap<QString, QString> &objects(bool blocking);
 
-    const QMap<QString, QString> &objects() const override
-    {
-        if (isMaster()) {
-            return facelift::ipc::dbus::ObjectRegistryPropertyAdapter::objects();
-        } else {
-            return m_objectRegistryProxy->objects();
-        }
-    }
-
-    bool unregisterObject(QString objectPath, QString serviceName) override
-    {
-        init();
-        if (isMaster()) {
-            auto objects = m_objects.value();
-            Q_ASSERT(objects[objectPath] == serviceName);
-            auto r = (objects.remove(objectPath) != 0);
-            m_objects = objects;
-            return r;
-        } else {
-            return m_objectRegistryProxy->unregisterObject(objectPath, serviceName);
-        }
-    }
-
-    bool isMaster() const
-    {
-        return (m_objectRegistryProxy == nullptr);
-    }
+    Q_SIGNAL void objectsChanged();
 
 private:
     facelift::ipc::dbus::ObjectRegistryIPCProxy *m_objectRegistryProxy = nullptr;
-    facelift::ipc::dbus::ObjectRegistryIPCAdapter *m_objectRegistryAdapter = nullptr;
+    facelift::ipc::dbus::ObjectRegistryAsyncIPCProxy *m_objectRegistryAsyncProxy = nullptr;
     DBusManager &m_dbusManager;
     bool m_initialized = false;
+    std::unique_ptr<MasterImpl> m_master;
 };
 
 }

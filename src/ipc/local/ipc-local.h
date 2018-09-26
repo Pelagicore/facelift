@@ -355,12 +355,14 @@ public:
     }
 
     template<typename ReturnType>
-    void sendAsyncCallAnswer(LocalIPCMessage& replyMessage, const ReturnType returnValue) {
+    void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue)
+    {
         Q_UNUSED(replyMessage);
         Q_UNUSED(returnValue);
     }
 
-    void sendAsyncCallAnswer(LocalIPCMessage& replyMessage) {
+    void sendAsyncCallAnswer(LocalIPCMessage &replyMessage)
+    {
         Q_UNUSED(replyMessage);
     }
 

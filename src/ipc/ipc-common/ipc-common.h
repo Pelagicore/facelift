@@ -346,11 +346,13 @@ public:
 
     QMap<QString, IPCProxyBinderBase *> m_subProxies;
 
-    void setSynchronous(bool isSynchronous) {
+    void setSynchronous(bool isSynchronous)
+    {
         m_isSynchronous = isSynchronous;
     }
 
-    bool isSynchronous() const {
+    bool isSynchronous() const
+    {
         return m_isSynchronous;
     }
 
@@ -526,27 +528,27 @@ public:
     {
         m_model = &model;
         QObject::connect(m_model, static_cast<void (facelift::ModelBase::*)(int, int)>
-                (&facelift::ModelBase::dataChanged), &m_adapter, [this, memberID] (int first, int last) {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::DataChanged, first, last);
-            });
+            (&facelift::ModelBase::dataChanged), &m_adapter, [this, memberID] (int first, int last) {
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::DataChanged, first, last);
+        });
         QObject::connect(m_model, &facelift::ModelBase::beginRemoveElements, &m_adapter, [this, memberID] (int first, int last) {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginRemove, first, last);
-            });
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginRemove, first, last);
+        });
         QObject::connect(m_model, &facelift::ModelBase::endRemoveElements, &m_adapter, [this, memberID] () {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::EndRemove);
-            });
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::EndRemove);
+        });
         QObject::connect(m_model, &facelift::ModelBase::beginInsertElements, &m_adapter, [this, memberID] (int first, int last) {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginInsert, first, last);
-            });
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginInsert, first, last);
+        });
         QObject::connect(m_model, &facelift::ModelBase::endInsertElements, &m_adapter, [this, memberID] () {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::EndInsert);
-            });
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::EndInsert);
+        });
         QObject::connect(m_model, &facelift::ModelBase::beginResetModel, &m_adapter, [this, memberID] () {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginReset);
-            });
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginReset);
+        });
         QObject::connect(m_model, &facelift::ModelBase::endResetModel, &m_adapter, [this, memberID] () {
-                m_adapter.sendSignal(memberID, ModelUpdateEvent::EndReset);
-            });
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::EndReset);
+        });
     }
 
     template<typename IPCMessage>
@@ -571,7 +573,6 @@ public:
 private:
     IPCAdapterType &m_adapter;
     facelift::Model<ModelDataType> *m_model = nullptr;
-
 };
 
 
@@ -584,6 +585,8 @@ public:
     IPCProxyModelPropertyHandler(IPCProxyType &proxy, facelift::Model<ModelDataType> &model) : m_proxy(proxy), m_model(model)
     {
     }
+
+    typedef typename IPCProxyType::MemberIDType MemberID;
 
     template<typename IPCMessage>
     void handleSignal(IPCMessage &msg)
