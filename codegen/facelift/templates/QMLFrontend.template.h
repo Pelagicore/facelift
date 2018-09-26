@@ -171,9 +171,9 @@ public:
     }
         {% endif %}
     {%- elif property.type.is_interface %}
-    Q_PROPERTY(QObject* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
+    Q_PROPERTY({{property.cppType}}QMLFrontend* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
 
-    {{property.type.qmlCompatibleType}} {{property}}()
+    {{property.cppType}}QMLFrontend* {{property}}()
     {
         return facelift::getQMLFrontend(m_provider->{{property}}());
     }
