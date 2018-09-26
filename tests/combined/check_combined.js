@@ -102,25 +102,21 @@ function methods() {
 
     compare(api.method3(CombiEnum.E2), CombiEnum.E3)
 
-    if (!api.qmlImplementationUsed) {
-        var cs = CombiStructFactory.create();
-        cs.aString = "hello";
-        cs.anInt = 14;
-        var cs25 = CombiStruct2Factory.create();
-        cs25.cs = cs;
-        cs25.e = CombiEnum.E2;
-        var lce = api.method4(cs25);
-        compare(lce[0], CombiEnum.E3);
-        compare(lce[1], CombiEnum.E1);
-    }
+    var cs = CombiStructFactory.create();
+    cs.aString = "hello";
+    cs.anInt = 14;
+    var cs25 = CombiStruct2Factory.create();
+    cs25.cs = cs;
+    cs25.e = CombiEnum.E2;
+    var lce = api.method4(cs25);
+    compare(lce[0], CombiEnum.E3);
+    compare(lce[1], CombiEnum.E1);
 
-    if (!api.qmlImplementationUsed) {
-        var lcs = api.method5();
-        compare(lcs[0].anInt, 1);
-        compare(lcs[0].aString, "A");
-        compare(lcs[1].anInt, 2);
-        compare(lcs[1].aString, "B");
-    }
+    var lcs = api.method5();
+    compare(lcs[0].anInt, 1);
+    compare(lcs[0].aString, "A");
+    compare(lcs[1].anInt, 2);
+    compare(lcs[1].aString, "B");
 
     compare(api.method6(17), 42)
 }

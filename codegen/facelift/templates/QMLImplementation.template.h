@@ -41,6 +41,11 @@
 
 #include "{{interface}}PropertyAdapter.h"
 #include "{{interface}}QMLFrontend.h"
+{% for operation in interface.operations %}
+{% if operation.type.is_interface %}
+#include "{{operation.type}}QMLImplementation.h"
+{% endif %}
+{% endfor %}
 
 {{module.namespaceCppOpen}}
 
@@ -152,10 +157,18 @@ public:
 
         {% endif %}
         {% if operation.hasReturnValue %}
-        {{operation.interfaceCppType}} returnValue;
+        {{operation.type.qmlCompatibleType}} returnValue;
         auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
         facelift::fromJSValue(returnValue, jsReturnValue, engine);
+        {% if operation.cppType == operation.type.qmlCompatibleType %}
         return returnValue;
+        {% else %}
+        {% if operation.type.is_interface %}
+        return &((static_cast<{{operation.cppType}}::QMLImplementationType*>(returnValue))->interface());
+        {% else %}
+        return facelift::toProviderCompatibleType<{{operation.cppType}}, {{operation.type.qmlCompatibleType}}>(returnValue);
+        {% endif %}
+        {% endif %}
         {% else %}
         checkMethod(m_{{operation}}, "{{operation}}").call(args);
         {% endif %}

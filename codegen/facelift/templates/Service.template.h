@@ -68,6 +68,7 @@
 class {{interfaceName}}QMLFrontend;
 class {{interfaceName}}IPCAdapter;
 class {{interfaceName}}IPCProxy;
+class {{interfaceName}}QMLImplementation;
 
 {% if hasReadyFlags %}
 class {{classExport}} {{interfaceName}}ReadyFlags
@@ -106,6 +107,7 @@ public:
     using IPCAdapterType = {{interfaceName}}IPCAdapter;
     using IPCProxyType = {{interfaceName}}IPCProxy;
     using ThisType = {{interfaceName}};
+    using QMLImplementationType = {{interfaceName}}QMLImplementation;
 
     friend QMLFrontendType;
 
