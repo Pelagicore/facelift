@@ -60,7 +60,7 @@ class {{classExport}} {{interfaceName}}IPCAdapter: public facelift::IPCServiceAd
     // Q_PROPERTY(QObject* service READ service WRITE setService)
 public:
 
-    enum class MethodID {
+    enum class MemberID {
         {% for operation in interface.operations %}
         {{operation.name}},
         {% endfor %}
@@ -94,7 +94,7 @@ public:
 
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        m_{{property.name}}Handler.connectModel(memberID(MethodID::{{property.name}}, "{{property.name}}"), service()->{{property.name}}());
+        m_{{property.name}}Handler.connectModel(memberID(MemberID::{{property.name}}, "{{property.name}}"), service()->{{property.name}}());
         {% endif %}
         {% endfor %}
     }
@@ -154,7 +154,7 @@ public:
         {% endif %}
 
         {% for operation in interface.operations %}
-        if (member == memberID(MethodID::{{operation.name}}, "{{operation.name}}")) {
+        if (member == memberID(MemberID::{{operation.name}}, "{{operation.name}}")) {
             {% for parameter in operation.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
             deserializeValue(requestMessage, param_{{parameter.name}});
@@ -176,7 +176,7 @@ public:
             {%- endfor -%});
             {% if operation.hasReturnValue %}
             serializeValue(replyMessage, returnValue);
-            {%- endif %}
+            {% endif %}
             {% endif %}
         } else
         {% endfor %}
@@ -259,7 +259,7 @@ public:
         {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
-        sendSignal(memberID(MethodID::{{event}}, "{{event}}")
+        sendSignal(memberID(MemberID::{{event}}, "{{event}}")
         {%- for parameter in event.parameters -%}
             , {{parameter.name}}
         {%- endfor -%}  );
@@ -290,7 +290,7 @@ public:
     using IPCAdapterType = {{interfaceName}}IPCAdapter;
     using ThisType = {{className}};
     using BaseType = facelift::IPCProxy<{{interfaceName}}PropertyAdapter, IPCAdapterType>;
-    using MethodID = IPCAdapterType::MethodID;
+    using MemberID = IPCAdapterType::MemberID;
 
     // override the default QMLFrontend type to add the IPC related properties
     using QMLFrontendType = {{className}}QMLFrontendType;
@@ -398,7 +398,7 @@ public:
     void {{operation.name}}(
         {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} override {
         if (localInterface() == nullptr) {
-            sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
+            sendAsyncMethodCall(memberID(MemberID::{{operation.name}}, "{{operation.name}}"), answer
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
@@ -419,13 +419,13 @@ public:
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}
             {{operation.interfaceCppType}} returnValue;
-            sendMethodCallWithReturn(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), returnValue
+            sendMethodCallWithReturn(memberID(MemberID::{{operation.name}}, "{{operation.name}}"), returnValue
                 {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
                 {%- endfor -%} );
             return returnValue;
             {% else %}
-            sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
+            sendMethodCall(memberID(MemberID::{{operation.name}}, "{{operation.name}}")
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
@@ -451,7 +451,7 @@ public:
     {
         if (localInterface() == nullptr) {
             {% if (not property.type.is_interface) %}
-            sendSetterCall(memberID(MethodID::{{property.name}}, "set{{property.name}}"), newValue);
+            sendSetterCall(memberID(MemberID::{{property.name}}, "set{{property.name}}"), newValue);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
@@ -463,7 +463,7 @@ public:
     {% if property.type.is_model %}
     {{property.nestedType.cppType}} {{property.name}}Data(int row)
     {
-        return m_{{property.name}}Handler.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
+        return m_{{property.name}}Handler.modelData(memberID(MemberID::{{property.name}}, "{{property.name}}"), row);
     }
     {% endif %}
     {% endfor %}

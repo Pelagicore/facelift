@@ -913,16 +913,29 @@ public:
         IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
     }
 
+    void onServerNotAvailableError(const char *methodName) const {
+        qCritical(
+            "Error message received when calling method '%s' on service at path '%s'. "
+            "This likely indicates that the server you are trying to access is not available yet",
+            qPrintable(methodName), qPrintable(objectPath()));
+    }
+
     template<typename PropertyType>
-    void sendSetterCall(const QString &methodName, const PropertyType &value)
+    void sendSetterCall(const char* methodName, const PropertyType &value)
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         serializeValue(msg, value);
-        auto replyMessage = msg.call(connection());
-        if (replyMessage.isErrorMessage()) {
-            qCritical(
-                "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
-                qPrintable(methodName), qPrintable(objectPath()));
+        if (isSynchronous()) {
+            auto replyMessage = msg.call(connection());
+            if (replyMessage.isErrorMessage()) {
+                onServerNotAvailableError(methodName);
+            }
+        } else {
+            msg.asyncCall(connection(), this, [this, methodName](const DBusIPCMessage& replyMessage){
+                if (replyMessage.isErrorMessage()) {
+                    onServerNotAvailableError(methodName);
+                }
+            });
         }
     }
 
@@ -946,16 +959,14 @@ public:
     };
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const QString &methodName, const Args & ... args) const
+    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const
     {
         DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
         auto argTuple = std::make_tuple(args ...);
         for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
         auto replyMessage = msg.call(connection());
         if (replyMessage.isErrorMessage()) {
-            qCritical(
-                "Error message received when calling method '%s' on service at path '%s'. This likely indicates that the server you are trying to access is not available yet",
-                qPrintable(methodName), qPrintable(objectPath()));
+            onServerNotAvailableError(methodName);
         }
         return replyMessage;
     }
