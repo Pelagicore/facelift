@@ -219,4 +219,14 @@ private:
     std::unordered_map<Key, decltype(m_list.begin())> m_map;
 };
 
+#ifdef FaceliftCommonLib_EXPORTS
+#define FaceliftCommonLib_API __declspec(dllexport)
+#elif defined(FaceliftCommonLib_EXPORTS_STATIC)
+#define FaceliftCommonLib_API
+#else
+#define FaceliftCommonLib_API __declspec(dllimport)
+#endif
+
+
+FaceliftCommonLib_API int value;
 }

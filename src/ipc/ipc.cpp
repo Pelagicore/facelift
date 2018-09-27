@@ -32,4 +32,15 @@
 
 namespace facelift {
 
+#ifdef FaceliftIPCLib_EXPORTS
+#define FaceliftIPC_API __declspec(dllexport)
+#elif defined(FaceliftIPCLib_EXPORTS_STATIC)
+#define FaceliftIPC_API
+#else
+#define FaceliftIPC_API __declspec(dllimport)
+#endif
+
+
+FaceliftIPC_API int value_2;
+
 }
