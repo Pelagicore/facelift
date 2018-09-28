@@ -93,8 +93,7 @@ class InterfacePropertyIPCAdapterHandler
 public:
     void update(IPCServiceAdapterBase *parent, InterfaceType *service)
     {
-        Q_UNUSED(parent);
-        Q_UNUSED(service);
+        M_UNUSED(parent, service);
     }
 
     QString generateObjectPath(const QString &parentPath)
@@ -183,23 +182,20 @@ public:
     template<typename ReturnType, typename ... Args>
     void sendAsyncMethodCall(MemberIDType methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
     {
-        Q_UNUSED(methodName);
-        Q_UNUSED(answer);
+        M_UNUSED(methodName, answer, args...);
         qCritical() << "IPC unavailable for method" << methodName;
     }
 
     template<typename Type>
     void serializeValue(LocalIPCMessage &msg, const Type &v)
     {
-        Q_UNUSED(msg);
-        Q_UNUSED(v);
+        M_UNUSED(msg, v);
     }
 
     template<typename Type>
     void deserializeValue(LocalIPCMessage &msg, Type &v)
     {
-        Q_UNUSED(msg);
-        Q_UNUSED(v);
+        M_UNUSED(msg, v);
     }
 
     template<typename ReturnType, typename ... Args>
@@ -221,21 +217,14 @@ public:
             facelift::MostRecentlyUsedCache<int, ElementType> &cache, const QString &modelName,
             const QString &signalName, LocalIPCMessage &msg)
     {
-        Q_UNUSED(model);
-        Q_UNUSED(cache);
-        Q_UNUSED(modelName);
-        Q_UNUSED(signalName);
-        Q_UNUSED(msg);
+        M_UNUSED(model, cache, modelName, signalName, msg);
     }
 
     template<typename ElementType>
     ElementType modelData(facelift::Model<ElementType> &model,
             facelift::MostRecentlyUsedCache<int, ElementType> &cache, const QString &modelName, int row)
     {
-        Q_UNUSED(model);
-        Q_UNUSED(cache);
-        Q_UNUSED(modelName);
-        Q_UNUSED(row);
+        M_UNUSED(model, cache, modelName, row);
         return ElementType();
     }
 
@@ -285,15 +274,13 @@ public:
     template<typename Type>
     void serializeValue(LocalIPCMessage &msg, const Type &v)
     {
-        Q_UNUSED(msg);
-        Q_UNUSED(v);
+        M_UNUSED(msg, v);
     }
 
     template<typename Type>
     void deserializeValue(LocalIPCMessage &msg, Type &v)
     {
-        Q_UNUSED(msg);
-        Q_UNUSED(v);
+        M_UNUSED(msg, v);
     }
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
@@ -301,25 +288,19 @@ public:
     template<typename Type>
     void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly) const
     {
-        Q_UNUSED(s);
-        Q_UNUSED(propertyName);
-        Q_UNUSED(isReadonly);
+        M_UNUSED(s, propertyName, isReadonly);
     }
 
     template<typename ... Args>
     void addMethodSignature(QTextStream &s, const char *methodName, const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
-        Q_UNUSED(s);
-        Q_UNUSED(methodName);
-        Q_UNUSED(argNames);
+        M_UNUSED(s, methodName, argNames);
     }
 
     template<typename ... Args>
     void addSignalSignature(QTextStream &s, const char *methodName, const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
-        Q_UNUSED(s);
-        Q_UNUSED(methodName);
-        Q_UNUSED(argNames);
+        M_UNUSED(s, methodName,argNames);
     }
 
     virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
@@ -341,24 +322,20 @@ public:
 
     void connectModel(const QString &name, facelift::ModelBase &model)
     {
-        Q_UNUSED(name);
-        Q_UNUSED(model);
+        M_UNUSED(name, model);
     }
 
     template<typename ElementType>
     void handleModelRequest(facelift::Model<ElementType> &model,
             LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage)
     {
-        Q_UNUSED(model);
-        Q_UNUSED(requestMessage);
-        Q_UNUSED(replyMessage);
+        M_UNUSED(model, requestMessage, replyMessage);
     }
 
     template<typename ReturnType>
     void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue)
     {
-        Q_UNUSED(replyMessage);
-        Q_UNUSED(returnValue);
+        M_UNUSED(replyMessage, returnValue);
     }
 
     void sendAsyncCallAnswer(LocalIPCMessage &replyMessage)
