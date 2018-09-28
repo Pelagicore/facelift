@@ -255,8 +255,12 @@ class FaceliftModelLib_EXPORT ModelListModelBase : public QAbstractListModel
 {
     Q_OBJECT
 
+    Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
+
 public:
     typedef size_t (QObject::*SizeGetterFunction)();
+
+    Q_SIGNAL void countChanged();
 
     void init(facelift::ModelBase &property)
     {
@@ -269,6 +273,10 @@ public:
         QObject::connect(m_property, &facelift::ModelBase::endResetModel, this, &ModelListModelBase::onEndResetModel);
         QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
                 &ModelListModelBase::onDataChanged);
+
+        QObject::connect(this, &QAbstractItemModel::rowsInserted, this, &ModelListModelBase::countChanged);
+        QObject::connect(this, &QAbstractItemModel::rowsRemoved, this, &ModelListModelBase::countChanged);
+        QObject::connect(this, &QAbstractItemModel::modelReset, this, &ModelListModelBase::countChanged);
     }
 
     void onBeginResetModel()
@@ -306,7 +314,7 @@ public:
         dataChanged(createIndex(first, 0), createIndex(last, 0));
     }
 
-    int rowCount(const QModelIndex &index) const override
+    int rowCount(const QModelIndex &index = QModelIndex()) const override
     {
         Q_UNUSED(index);
         return m_property->size();
