@@ -72,9 +72,9 @@ public:
 
     void init();
 
-    void registerObject(QString objectPath, facelift::AsyncAnswer<bool> answer);
+    void registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer);
 
-    void unregisterObject(QString objectPath);
+    void unregisterObject(const QString &objectPath);
 
     const QMap<QString, QString> &objects(bool blocking);
 

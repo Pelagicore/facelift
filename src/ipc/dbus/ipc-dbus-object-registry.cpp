@@ -50,7 +50,7 @@ void DBusObjectRegistry::init()
     }
 }
 
-void DBusObjectRegistry::registerObject(QString objectPath, facelift::AsyncAnswer<bool> answer)
+void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer)
 {
     init();
     auto serviceName = DBusManager::instance().serviceName();
@@ -62,7 +62,7 @@ void DBusObjectRegistry::registerObject(QString objectPath, facelift::AsyncAnswe
     }
 }
 
-void DBusObjectRegistry::unregisterObject(QString objectPath)
+void DBusObjectRegistry::unregisterObject(const QString &objectPath)
 {
     init();
     auto serviceName = DBusManager::instance().serviceName();
