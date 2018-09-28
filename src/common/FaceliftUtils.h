@@ -165,7 +165,7 @@ template<typename Key, typename Value>
 class MostRecentlyUsedCache
 {
 public:
-    MostRecentlyUsedCache(unsigned int size = 50) : m_size(size)
+    MostRecentlyUsedCache(unsigned int size) : m_size(size)
     {
     }
 
