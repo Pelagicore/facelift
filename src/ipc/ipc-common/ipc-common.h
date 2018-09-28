@@ -506,12 +506,9 @@ public:
 
 enum class ModelUpdateEvent {
     DataChanged,
-    BeginInsert,
-    EndInsert,
-    BeginRemove,
-    EndRemove,
-    BeginReset,
-    EndReset
+    Insert,
+    Remove,
+    Reset
 };
 
 
@@ -529,25 +526,42 @@ public:
         m_model = &model;
         QObject::connect(m_model, static_cast<void (facelift::ModelBase::*)(int, int)>
             (&facelift::ModelBase::dataChanged), &m_adapter, [this, memberID] (int first, int last) {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::DataChanged, first, last);
+            QList<ModelDataType> changedItems;
+            for (int i = first ; i <= last ; i++) {
+                changedItems.append(m_model->elementAt(i));
+                qWarning() << "UUUU";
+            }
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::DataChanged, first, changedItems);
         });
-        QObject::connect(m_model, &facelift::ModelBase::beginRemoveElements, &m_adapter, [this, memberID] (int first, int last) {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginRemove, first, last);
+        QObject::connect(m_model, &facelift::ModelBase::beginRemoveElements, &m_adapter, [this] (int first, int last) {
+            m_removeFirst = first;
+            m_removeLast = last;
         });
         QObject::connect(m_model, &facelift::ModelBase::endRemoveElements, &m_adapter, [this, memberID] () {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::EndRemove);
+            Q_ASSERT(m_removeFirst != UNDEFINED);
+            Q_ASSERT(m_removeLast != UNDEFINED);
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::Remove, m_removeFirst, m_removeLast);
+            m_removeFirst = UNDEFINED;
+            m_removeLast = UNDEFINED;
         });
-        QObject::connect(m_model, &facelift::ModelBase::beginInsertElements, &m_adapter, [this, memberID] (int first, int last) {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginInsert, first, last);
+        QObject::connect(m_model, &facelift::ModelBase::beginInsertElements, &m_adapter, [this] (int first, int last) {
+            m_insertFirst = first;
+            m_insertLast = last;
         });
         QObject::connect(m_model, &facelift::ModelBase::endInsertElements, &m_adapter, [this, memberID] () {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::EndInsert);
+            Q_ASSERT(m_insertFirst != UNDEFINED);
+            Q_ASSERT(m_insertLast != UNDEFINED);
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::Insert, m_insertFirst, m_insertLast);
+            m_insertFirst = UNDEFINED;
+            m_insertLast = UNDEFINED;
         });
-        QObject::connect(m_model, &facelift::ModelBase::beginResetModel, &m_adapter, [this, memberID] () {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::BeginReset);
+        QObject::connect(m_model, &facelift::ModelBase::beginResetModel, &m_adapter, [this] () {
+            m_resettingModel = true;
         });
         QObject::connect(m_model, &facelift::ModelBase::endResetModel, &m_adapter, [this, memberID] () {
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::EndReset);
+            Q_ASSERT(m_resettingModel);
+            m_adapter.sendSignal(memberID, ModelUpdateEvent::Reset);
+            m_resettingModel = false;
         });
     }
 
@@ -571,8 +585,14 @@ public:
     }
 
 private:
+    static constexpr int UNDEFINED = -1;
     IPCAdapterType &m_adapter;
     facelift::Model<ModelDataType> *m_model = nullptr;
+    int m_removeFirst = UNDEFINED;
+    int m_removeLast = UNDEFINED;
+    int m_insertFirst = UNDEFINED;
+    int m_insertLast = UNDEFINED;
+    bool m_resettingModel = false;
 };
 
 
@@ -582,7 +602,7 @@ class IPCProxyModelPropertyHandler
 {
 
 public:
-    IPCProxyModelPropertyHandler(IPCProxyType &proxy, facelift::Model<ModelDataType> &model) : m_proxy(proxy), m_model(model)
+    IPCProxyModelPropertyHandler(IPCProxyType &proxy, facelift::Model<ModelDataType> &model) : m_proxy(proxy), m_model(model), m_cache(PREFETCH_ITEM_COUNT*10)
     {
     }
 
@@ -597,94 +617,153 @@ public:
 
         case ModelUpdateEvent::DataChanged:
         {
-            int first, last;
+            int first;
+            QList<ModelDataType> list;
             m_proxy.deserializeValue(msg, first);
-            m_proxy.deserializeValue(msg, last);
+            m_proxy.deserializeValue(msg, list);
+            int last = first + list.size() - 1;
             for (int i = first; i <= last; ++i) {
-                if (m_cache.exists(i)) {
-                    m_cache.remove(i);
-                }
+                m_cache.insert(i, list.at(i - first));
             }
             emit m_model.dataChanged(first, last);
         } break;
 
-        case ModelUpdateEvent::BeginInsert:
+        case ModelUpdateEvent::Insert:
         {
-            m_cache.clear();
             int first, last;
             m_proxy.deserializeValue(msg, first);
             m_proxy.deserializeValue(msg, last);
             emit m_model.beginInsertElements(first, last);
-        } break;
-
-        case ModelUpdateEvent::EndInsert:
-        {
+            clear(); // TODO: insert elements in cache without clear()
             emit m_model.endInsertElements();
         } break;
 
-        case ModelUpdateEvent::BeginRemove:
+        case ModelUpdateEvent::Remove:
         {
-            m_cache.clear();
             int first, last;
             m_proxy.deserializeValue(msg, first);
             m_proxy.deserializeValue(msg, last);
             emit m_model.beginRemoveElements(first, last);
-        } break;
-
-        case ModelUpdateEvent::EndRemove:
-        {
+            m_cache.clear(); // TODO: remove elements from cache without clear()
             emit m_model.endRemoveElements();
         } break;
 
-        case ModelUpdateEvent::BeginReset:
+        case ModelUpdateEvent::Reset:
         {
             emit m_model.beginResetModel();
-            m_cache.clear();
-        } break;
-
-        case ModelUpdateEvent::EndReset:
-        {
-            m_cache.clear();
+            clear();
             emit m_model.endResetModel();
         } break;
 
         }
     }
 
-    ModelDataType modelData(const typename IPCProxyType::MemberIDType &requestMemberID, int row)
+    void clear() {
+        m_cache.clear();
+        m_itemsRequestedFromServer.clear();
+        m_itemsRequestedLocally.clear();
+    }
+
+    ModelDataType modelData(const MemberID &requestMemberID, int row)
     {
         ModelDataType retval;
         if (m_cache.exists(row)) {
             retval = m_cache.get(row);
         } else {
-            static const int prefetch = 12;        // fetch 25 items around requested one
-            QList<ModelDataType> list;
-            int first = row > prefetch ? row - prefetch : 0;
-            int last = row < m_model.size() - prefetch ? row + prefetch : m_model.size() - 1;
 
-            while (m_cache.exists(first) && first < last) {
-                ++first;
+            if (m_proxy.isSynchronous()) {
+
+                int first = row > PREFETCH_ITEM_COUNT ? row - PREFETCH_ITEM_COUNT : 0;
+                int last = row < m_model.size() - PREFETCH_ITEM_COUNT ? row + PREFETCH_ITEM_COUNT : m_model.size() - 1;
+
+                while (m_cache.exists(first) && first < last) {
+                    ++first;
+                }
+                while (m_cache.exists(last) && last > first) {
+                    --last;
+                }
+
+                QList<ModelDataType> list;
+                m_proxy.sendMethodCallWithReturn(requestMemberID, list, first, last);
+
+                Q_ASSERT(list.size() == (last - first + 1));
+
+                for (int i = first; i <= last; ++i) {
+                    m_cache.insert(i, list.at(i - first));
+                }
+
+                retval = list.at(row - first);
+            } else {
+                // Request items asynchronously and return a default item for now
+                requestItemsAsync(requestMemberID, row);
+                m_itemsRequestedLocally.append(row); // Remind that we delivered an invalid item for this index
             }
-            while (m_cache.exists(last) && last > first) {
-                --last;
-            }
-
-            m_proxy.sendMethodCallWithReturn(requestMemberID, list, first, last);
-            Q_ASSERT(list.size() == (last - first + 1));
-
-            for (int i = first; i <= last; ++i) {
-                m_cache.insert(i, list.at(i - first));
-            }
-
-            retval = list.at(row - first);
         }
+
+        // Prefetch next items
+        int nextIndex = std::min(m_model.size(), row + PREFETCH_ITEM_COUNT);
+        if (!m_cache.exists(nextIndex) && !m_itemsRequestedFromServer.contains(nextIndex) ) {
+            requestItemsAsync(requestMemberID, nextIndex);
+        }
+
+        // Prefetch previous items
+        int previousIndex = std::max(0, row - PREFETCH_ITEM_COUNT);
+        if (!m_cache.exists(nextIndex) && !m_itemsRequestedFromServer.contains(previousIndex)) {
+            requestItemsAsync(requestMemberID, previousIndex);
+        }
+
         return retval;
     }
 
+    /**
+     * Request the items around the given index.
+     */
+    void requestItemsAsync(const MemberID &requestMemberID, int index) {
+
+        // Find the first index which we should request, given what we already have in our cache
+        int first = std::max(0, index - PREFETCH_ITEM_COUNT);
+        while ((m_cache.exists(first) || m_itemsRequestedFromServer.contains(first)) && (first < m_model.size())) {
+            ++first;
+        }
+
+        if ((first - index < PREFETCH_ITEM_COUNT) && (first != m_model.size())) {  // We don't request anything if the first index is outside the window
+            int last = std::min(first + PREFETCH_ITEM_COUNT * 2, m_model.size() - 1);   // We query at least
+
+            // Do not request the items from the end of the window, which we already have in our cache
+            while ((m_cache.exists(last) || m_itemsRequestedFromServer.contains(last)) && (last >= first)) {
+                --last;
+            }
+
+            if (first <= last) {
+                m_proxy.sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType>>(&m_proxy, [this, first, last](QList<ModelDataType> list){
+//                    qDebug() << "Received model items " << first << "-" << last;
+                    for (int i = first; i <= last; ++i) {
+                        auto& newItem = list[i - first];
+                        if (!((m_cache.exists(i)) && (newItem == m_cache.get(i)))) {
+                            m_cache.insert(i, newItem);
+                            if (m_itemsRequestedLocally.contains(i)) {
+                                m_model.dataChanged(i);
+                                m_itemsRequestedLocally.removeAll(i);
+                            }
+                        }
+                        m_itemsRequestedFromServer.removeAll(i);
+                    }
+                } ), first, last);
+                for (int i = first; i <= last; ++i) {
+                    m_itemsRequestedFromServer.append(i);
+                }
+            }
+        }
+    }
+
 private:
+    static constexpr int PREFETCH_ITEM_COUNT = 12;        // fetch 25 items around requested one
+
     IPCProxyType &m_proxy;
-    facelift::MostRecentlyUsedCache<int, ModelDataType> m_cache;
     facelift::Model<ModelDataType> &m_model;
+    facelift::MostRecentlyUsedCache<int, ModelDataType> m_cache;
+    QList<int> m_itemsRequestedFromServer;
+    QList<int> m_itemsRequestedLocally;
 };
 
 

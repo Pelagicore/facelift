@@ -55,7 +55,7 @@ public:
         m_renamedItems.clear();
         m_items.clear();
 
-        int count = qrand() % 100;
+        int count = qrand() % 1000;
 
         int i = 0;
         for (; i < count; i++)
