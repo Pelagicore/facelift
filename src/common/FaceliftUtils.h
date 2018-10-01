@@ -219,14 +219,14 @@ private:
     std::unordered_map<Key, decltype(m_list.begin())> m_map;
 };
 
-#ifdef FaceliftCommonLib_EXPORTS
-#define FaceliftCommonLib_API __declspec(dllexport)
-#elif defined(FaceliftCommonLib_EXPORTS_STATIC)
-#define FaceliftCommonLib_API
+#if defined(FaceliftCommonLib_LIBRARY)
+#  define FaceliftCommonLib_EXPORT Q_DECL_EXPORT
 #else
-#define FaceliftCommonLib_API __declspec(dllimport)
+#  define FaceliftCommonLib_EXPORT Q_DECL_IMPORT
 #endif
 
+// this dummy export is neccessary for creating a *.lib file with MSVC based compiler
+// otherwise no lib file will be created
+FaceliftCommonLib_EXPORT int dummy_value_1;
 
-FaceliftCommonLib_API int value;
 }

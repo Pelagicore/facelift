@@ -32,15 +32,14 @@
 
 namespace facelift {
 
-#ifdef FaceliftIPCLib_EXPORTS
-#define FaceliftIPC_API __declspec(dllexport)
-#elif defined(FaceliftIPCLib_EXPORTS_STATIC)
-#define FaceliftIPC_API
+#if defined(FaceliftIPCLib_LIBRARY)
+#  define FaceliftIPCLib_EXPORT Q_DECL_EXPORT
 #else
-#define FaceliftIPC_API __declspec(dllimport)
+#  define FaceliftIPCLib_EXPORT Q_DECL_IMPORT
 #endif
 
-
-FaceliftIPC_API int value_2;
+// this dummy export is neccessary for creating a *.lib file with MSVC based compiler
+// otherwise no lib file will be created
+FaceliftIPCLib_EXPORT int dummy_value_2;
 
 }
