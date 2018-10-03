@@ -97,6 +97,8 @@ public:
     }
 
     QObject* impl();
+
+    friend class {{interface}}QMLImplementation;
 };
 
 /**
@@ -133,6 +135,11 @@ public:
         m_{{property.name}}QMLProperty.setProperty(interface().m_{{property.name}});
             {% endif %}
         {% endfor %}
+    }
+
+    void setReady(bool ready) override
+    {
+        interface().setReady(ready);
     }
 
     {% for operation in interface.operations %}

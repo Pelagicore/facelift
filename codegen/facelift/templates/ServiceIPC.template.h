@@ -40,7 +40,7 @@
 #include "ipc.h"
 #include "FaceliftUtils.h"
 
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}PropertyAdapter.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
 
 {% for property in interface.properties %}
@@ -60,15 +60,27 @@ class {{classExport}} {{interfaceName}}IPCAdapter: public facelift::IPCServiceAd
     // Q_PROPERTY(QObject* service READ service WRITE setService)
 public:
 
-    enum class MemberID {
+    enum class MethodID {
         {% for operation in interface.operations %}
         {{operation.name}},
         {% endfor %}
         {% for property in interface.properties %}
-        {{property.name}},
+        {% if (not property.readonly) %}
+        set{{property.name}},
+        {% endif %}
+        {% if (property.type.is_model) %}
+        {{property.name}},  // model
+        {% endif %}
         {% endfor %}
+    };
+
+    enum class SignalID {
+        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
         {% for signal in interface.signals %}
         {{signal.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {{property.name}},
         {% endfor %}
     };
 
@@ -94,7 +106,7 @@ public:
 
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        m_{{property.name}}Handler.connectModel(memberID(MemberID::{{property.name}}, "{{property.name}}"), service()->{{property.name}}());
+        m_{{property.name}}Handler.connectModel(SignalID::{{property.name}}, service()->{{property.name}}());
         {% endif %}
         {% endfor %}
     }
@@ -154,7 +166,7 @@ public:
         {% endif %}
 
         {% for operation in interface.operations %}
-        if (member == memberID(MemberID::{{operation.name}}, "{{operation.name}}")) {
+        if (member == memberID(MethodID::{{operation.name}}, "{{operation.name}}")) {
             {% for parameter in operation.parameters %}
             {{parameter.cppType}} param_{{parameter.name}};
             deserializeValue(requestMessage, param_{{parameter.name}});
@@ -182,12 +194,12 @@ public:
         {% endfor %}
         {% for property in interface.properties %}
         {% if property.type.is_model %}
-        if (member == "{{property.name}}") {
+        if (member == memberID(MethodID::{{property.name}}, "{{property.name}}")) {
             m_{{property.name}}Handler.handleModelRequest(requestMessage, replyMessage);
         } else
         {% endif %}
         {% if (not property.readonly) %}
-        if (member == "set{{property.name}}") {
+        if (member == memberID(MethodID::set{{property.name}}, "set{{property.name}}")) {
             {% if (not property.type.is_interface) %}
             {{property.cppType}} value;
             deserializeValue(requestMessage, value);
@@ -212,24 +224,29 @@ public:
 
     void connectSignals() override
     {
+        auto theService = service();
+        Q_UNUSED(theService);
+
         // Properties
         {% for property in interface.properties %}
         {% if property.type.is_interface %}
-        m_{{property.name}}.update(this, service()->{{property.name}}());
-        QObject::connect(service(), &ServiceType::{{property.name}}Changed, [this] () {
-            m_{{property.name}}.update(this, service()->{{property.name}}());
+        m_{{property.name}}.update(this, theService->{{property.name}}());
+        QObject::connect(theService, &ServiceType::{{property.name}}Changed, this, [this, theService] () {
+            m_{{property.name}}.update(this, theService->{{property.name}}());
         });
         {% endif %}
-        connect(service(), &ServiceType::{{property.name}}Changed, this, &{{interfaceName}}IPCAdapter::onPropertyValueChanged);
+        QObject::connect(theService, &ServiceType::{{property.name}}Changed, this, [this] () {
+            {{interfaceName}}IPCAdapter::sendSignal(SignalID::{{property.name}});
+        });
         {% endfor %}
 
         // Signals
         {% for signal in interface.signals %}
-        connect(service(), &ServiceType::{{signal}}, this, &{{interfaceName}}IPCAdapter::{{signal}});
+        QObject::connect(theService, &ServiceType::{{signal}}, this, &{{interfaceName}}IPCAdapter::{{signal}});
         {% endfor %}
     }
 
-    void serializePropertyValues(facelift::IPCMessage& msg) override
+    void serializePropertyValues(facelift::IPCMessage& msg, bool isCompleteSnapshot) override
     {
         auto theService = service();
         {#% if (not interface.properties) %#}
@@ -239,16 +256,16 @@ public:
         {% for property in interface.properties %}
         {% if property.type.is_interface %}
 
-        serializeValue(msg, m_{{property.name}}.objectPath());
+        serializeOptionalValue(msg, m_{{property.name}}.objectPath(), m_previous{{property.name}}ObjectPath, isCompleteSnapshot);
 
         {% elif property.type.is_model %}
-        serializeValue(msg, theService->{{property.name}}().size());
+        serializeOptionalValue(msg, theService->{{property.name}}().size(), isCompleteSnapshot);
         {% else %}
-        serializeValue(msg, theService->{{property.name}}());
+        serializeOptionalValue(msg, theService->{{property.name}}(), m_previous{{property.name}}, isCompleteSnapshot);
         {% endif %}
         {% endfor %}
 
-        BaseType::serializePropertyValues(msg);
+        BaseType::serializePropertyValues(msg, isCompleteSnapshot);
     }
 
     {% for event in interface.signals %}
@@ -259,17 +276,22 @@ public:
         {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
-        sendSignal(memberID(MemberID::{{event}}, "{{event}}")
+        sendSignal(SignalID::{{event}}
         {%- for parameter in event.parameters -%}
             , {{parameter.name}}
         {%- endfor -%}  );
     }
     {% endfor %}
 
+
 private:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.cppType}}> m_{{property.name}}Handler;
+    {% elif property.type.is_interface %}
+    QString m_previous{{property.name}}ObjectPath;
+    {% else %}
+    {{property.interfaceCppType}} m_previous{{property.name}};
     {% endif %}
     {% endfor %}
 
@@ -280,7 +302,7 @@ private:
 
 class {{className}}QMLFrontendType;
 
-class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}PropertyAdapter, {{interfaceName}}IPCAdapter>
+class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}, {{interfaceName}}IPCAdapter>
 {
     Q_OBJECT
 
@@ -289,8 +311,9 @@ class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}
 public:
     using IPCAdapterType = {{interfaceName}}IPCAdapter;
     using ThisType = {{className}};
-    using BaseType = facelift::IPCProxy<{{interfaceName}}PropertyAdapter, IPCAdapterType>;
-    using MemberID = IPCAdapterType::MemberID;
+    using BaseType = facelift::IPCProxy<{{interfaceName}}, IPCAdapterType>;
+    using SignalID = IPCAdapterType::SignalID;
+    using MethodID = IPCAdapterType::MethodID;
 
     // override the default QMLFrontend type to add the IPC related properties
     using QMLFrontendType = {{className}}QMLFrontendType;
@@ -314,25 +337,24 @@ public:
     void deserializePropertyValues(facelift::IPCMessage &msg) override
     {
         {% for property in interface.properties %}
-
         {% if property.type.is_interface %}
         QString {{property.name}}_objectPath;
-        deserializeValue(msg, {{property.name}}_objectPath);
-        m_{{property.name}}Proxy.update({{property.name}}_objectPath);
-        m_{{property.name}} = m_{{property.name}}Proxy.getValue();
+        if (deserializeOptionalValue(msg, {{property.name}}_objectPath))
+        {
+            m_{{property.name}}Proxy.update({{property.name}}_objectPath);
+            m_{{property.name}} = m_{{property.name}}Proxy.getValue();
+        }
         {% elif property.type.is_model %}
         int {{property.name}}Size;
-        deserializeValue(msg, {{property.name}}Size);
-        m_{{property.name}}.beginResetModel();
-        m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
-        m_{{property.name}}.endResetModel();
+        if (deserializeOptionalValue(msg, {{property.name}}Size)) {
+            m_{{property.name}}.beginResetModel();
+            m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
+            m_{{property.name}}.endResetModel();
+        }
         {% else %}
-        PropertyType_{{property.name}} {{property.name}};
-        deserializeValue(msg, {{property.name}});
-        m_{{property.name}}.setValue({{property.name}});
+        deserializeOptionalValue(msg, m_{{property.name}});
         {% endif %}
         {% endfor %}
-
         BaseType::deserializePropertyValues(msg);
     }
 
@@ -356,7 +378,7 @@ public:
 
         // Bind all properties
         {% for property in interface.properties %}
-        m_{{property.name}}.bind(service->{{property.name}}Property());
+        QObject::connect(service, &{{interfaceName}}::{{property.name}}Changed, this, &{{interfaceName}}::{{property.name}}Changed);
         {% endfor %}
 
         // Forward all signals
@@ -367,30 +389,37 @@ public:
 
     void deserializeSignal(facelift::IPCMessage &msg) override
     {
-        QString signalName;
-        deserializeValue(msg, signalName);
+        SignalID member;
+        deserializeValue(msg, member);
 
+        switch (member) {
         {% for event in interface.signals %}
-        if (signalName == "{{event}}") {
+        case SignalID::{{event}}: {
             {% for parameter in event.parameters %}
             {{parameter.interfaceCppType}} param_{{parameter.name}};
             deserializeValue(msg, param_{{parameter.name}});
             {% endfor %}
-            {{event}}(
+            emit {{event}}(
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
                 {{ comma() }}param_{{parameter.name}}
             {%- endfor -%}  );
-        }
+        }    break;
 
         {% endfor %}
         {% for property in interface.properties %}
+        case SignalID::{{property.name}}:
         {% if property.type.is_model %}
-        if (signalName == "{{property.name}}") {
             m_{{property.name}}Handler.handleSignal(msg);
-        }
+        {% else %}
+            emit {{property.name}}Changed();
         {% endif %}
+            break;
         {% endfor %}
+        default :
+            BaseType::deserializeCommonSignal(static_cast<facelift::CommonSignalID>(member));
+            break;
+        }
     }
     {% for operation in interface.operations %}
 
@@ -398,7 +427,7 @@ public:
     void {{operation.name}}(
         {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} override {
         if (localInterface() == nullptr) {
-            sendAsyncMethodCall(memberID(MemberID::{{operation.name}}, "{{operation.name}}"), answer
+            sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
@@ -419,13 +448,13 @@ public:
         if (localInterface() == nullptr) {
             {% if (operation.hasReturnValue) %}
             {{operation.interfaceCppType}} returnValue;
-            sendMethodCallWithReturn(memberID(MemberID::{{operation.name}}, "{{operation.name}}"), returnValue
+            sendMethodCallWithReturn(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), returnValue
                 {%- for parameter in operation.parameters -%}
                 , {{parameter.name}}
                 {%- endfor -%} );
             return returnValue;
             {% else %}
-            sendMethodCall(memberID(MemberID::{{operation.name}}, "{{operation.name}}")
+            sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%}  );
@@ -451,7 +480,7 @@ public:
     {
         if (localInterface() == nullptr) {
             {% if (not property.type.is_interface) %}
-            sendSetterCall(memberID(MemberID::{{property.name}}, "set{{property.name}}"), newValue);
+            sendSetterCall(memberID(MethodID::set{{property.name}}, "set{{property.name}}"), newValue);
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}
@@ -463,10 +492,56 @@ public:
     {% if property.type.is_model %}
     {{property.nestedType.cppType}} {{property.name}}Data(int row)
     {
-        return m_{{property.name}}Handler.modelData(memberID(MemberID::{{property.name}}, "{{property.name}}"), row);
+        return m_{{property.name}}Handler.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
     }
     {% endif %}
     {% endfor %}
+
+
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() override
+    {
+        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
+    }
+
+    facelift::ModelProperty<{{property.nestedType.fullyQualifiedCppType}}> m_{{property.name}};
+
+    {% elif property.type.is_list %}
+
+    const {{property.interfaceCppType}}& {{property}}() const override
+    {
+        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
+    }
+
+    QList<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
+
+    {% elif property.type.is_interface -%}
+
+    // Service property
+    {{property.interfaceCppType}} {{property}}() override
+    {
+        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
+    }
+
+    facelift::ServiceProperty<{{property.type.fullyQualifiedCppType}}> m_{{property.name}};
+
+    {% else %}
+    const {{property.interfaceCppType}} &{{property}}() const override
+    {
+        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
+    }
+    {{property.interfaceCppType}} m_{{property.name}};
+
+    {% endif %}
+    {% endfor %}
+
+    void emitChangeSignals() override {
+    {% for property in interface.properties %}
+        emit {{property.name}}Changed();
+    {% endfor %}
+        BaseType::emitChangeSignals();
+    }
 
 private:
     {% for property in interface.properties %}

@@ -137,18 +137,18 @@ protected:
  * done automatically for him.
  */
 template<typename Type>
-class Property : public PropertyBase
+class TProperty : public PropertyBase
 {
 
     typedef std::function<Type()> GetterFunction;
 
 public:
-    Property(Type initialValue)
+    TProperty(Type initialValue)
     {
         m_value = m_previousValue = initialValue;
     }
 
-    Property()
+    TProperty()
     {
     }
 
@@ -158,7 +158,7 @@ public:
     }
 
     template<typename Class, typename PropertyType>
-    Property &bind(const PropertyInterface<Class, PropertyType> &property)
+    TProperty &bind(const PropertyInterface<Class, PropertyType> &property)
     {
         this->bind([property] () {
                 return property.value();
@@ -171,7 +171,7 @@ public:
      * be reevaluated whenever the signal is triggered
      */
     template<typename Class, typename PropertyType>
-    Property &addTrigger(const PropertyInterface<Class, PropertyType> &property)
+    TProperty &addTrigger(const PropertyInterface<Class, PropertyType> &property)
     {
         this->addTrigger(property.object, property.signal);
         return *this;
@@ -182,7 +182,7 @@ public:
      * be reevaluated whenever the signal is triggered
      */
     template<typename SourceObjectType, typename SourceSignalType, typename ... Args>
-    Property &addTrigger(const SourceObjectType *source, void (SourceSignalType::*changeSignal)(Args ...))
+    TProperty &addTrigger(const SourceObjectType *source, void (SourceSignalType::*changeSignal)(Args ...))
     {
         m_connections.push_back(QObject::connect(source, changeSignal, owner(), [this]() {
                 reevaluate();
@@ -199,7 +199,7 @@ public:
         return value();
     }
 
-    Property &bind(const GetterFunction &f)
+    TProperty &bind(const GetterFunction &f)
     {
         breakBinding();
 
@@ -294,11 +294,30 @@ protected:
 
 };
 
+
+template<typename Type, typename Enable = void>
+class Property : public TProperty<Type>
+{
+public:
+    using TProperty<Type>::operator=;
+
+    Property(Type initialValue) : TProperty<Type>(initialValue)
+    {
+    }
+
+    Property()
+    {
+    }
+
+};
+
+
+
 /**
  * Specialization used to store a reference to an interface.
  */
 template<typename Type>
-class ServiceProperty : public Property<Type *>
+class ServiceProperty : public TProperty<Type *>
 {
 
 public:
@@ -326,7 +345,7 @@ public:
             m_pointer = newValue;
         }
 
-        Property<Type *>::setValue(newValue);
+        TProperty<Type *>::setValue(newValue);
     }
 
     bool isDirty() const override
@@ -336,25 +355,40 @@ public:
 
     void clean() override
     {
-        Property<Type *>::clean();
+        TProperty<Type *>::clean();
         m_valueChanged = false;
     }
 
-    using Property<Type *>::bind;
+    using TProperty<Type *>::bind;
 
 private:
-
     bool m_valueChanged = false;
 
     QPointer<Type> m_pointer;
 };
 
+
+
+template<typename Type>
+class Property<Type *, typename std::enable_if<std::is_base_of<QObject *, Type>::value>::type> : public ServiceProperty<Type>
+{
+public:
+    using ServiceProperty<Type>::operator=;
+
+    Property()
+    {
+    }
+
+};
+
+
+
 template<typename ElementType>
-class ListProperty : public Property<QList<ElementType> >
+class ListProperty : public TProperty<QList<ElementType> >
 {
 
 public:
-    using Property<QList<ElementType> >::operator=;
+    using TProperty<QList<ElementType> >::operator=;
 
     void removeElementById(ModelElementID elementId)
     {
@@ -404,11 +438,20 @@ private:
 
 
 template<typename ElementType>
-class MapProperty : public Property<QMap<QString, ElementType> >
+class Property<QList<ElementType> > : public ListProperty<ElementType>
+{
+public:
+    using TProperty<QList<ElementType> >::operator=;
+
+};
+
+
+template<typename ElementType>
+class Property<QMap<QString, ElementType> > : public TProperty<QMap<QString, ElementType> >
 {
 
 public:
-    using Property<QMap<QString, ElementType> >::operator=;
+    using TProperty<QMap<QString, ElementType> >::operator=;
 
     void removeElementById(ModelElementID elementId)
     {

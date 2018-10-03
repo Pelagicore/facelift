@@ -34,12 +34,14 @@
 #include "FaceliftProperty.h"
 #include "TestProperty.h"
 
-#define EXPECT_TRUE(cond) if (!(cond)) { qFatal("Expectation wrong at %s:%i / " #cond " / function: %s ", qPrintable(__FILE__), __LINE__, qPrintable(__PRETTY_FUNCTION__)); };
+#define EXPECT_TRUE(cond) if (!(cond)) {qFatal("Expectation wrong at %s:%i / " #cond " / function: %s ", qPrintable(__FILE__), __LINE__, \
+                                                qPrintable(__PRETTY_FUNCTION__));};
 
-class SignalSpy : public QObject {
+class SignalSpy : public QObject
+{
 
 public:
-    template <typename Func>
+    template<typename Func>
     SignalSpy(const typename QtPrivate::FunctionPointer<Func>::Object *obj, Func sig)
     {
         QObject::connect(obj, sig, this, [this] () {
@@ -57,7 +59,7 @@ public:
         m_wasTriggered = false;
     }
 
-private :
+private:
     bool m_wasTriggered = false;
 };
 

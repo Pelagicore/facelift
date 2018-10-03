@@ -43,8 +43,8 @@ using IPCProxyBinder = ::facelift::dbus::DBusIPCProxyBinder;
 template<typename InterfaceType>
 using IPCServiceAdapter = ::facelift::dbus::DBusIPCServiceAdapter<InterfaceType>;
 
-template<typename InterfaceType1, typename InterfaceType2>
-using IPCProxy = ::facelift::dbus::DBusIPCProxy<InterfaceType1, InterfaceType2>;
+template<typename InterfaceType, typename InterfaceType2>
+using IPCProxy = ::facelift::dbus::DBusIPCProxy<InterfaceType, InterfaceType2>;
 
 }
 
@@ -56,8 +56,8 @@ namespace facelift {
 
 template<typename Type>
 using IPCServiceAdapter = LocalIPCServiceAdapter<Type>;
-template<typename AdapterType, typename IPCAdapterType>
-using IPCProxy = LocalIPCProxy<AdapterType, IPCAdapterType>;
+template<typename InterfaceType, typename IPCAdapterType>
+using IPCProxy = LocalIPCProxy<InterfaceType, IPCAdapterType>;
 typedef LocalIPCMessage IPCMessage;
 using IPCProxyBinder = ::facelift::LocalIPCProxyBinder;
 

@@ -51,10 +51,10 @@
 /**
  *  Avoid "unused parameter" warnings, with multiple arguments
  */
-template <typename ...Args>
-void M_UNUSED(const Args& ...args)
+template<typename ... Args>
+void M_UNUSED(const Args & ... args)
 {
-    (void)(sizeof...(args));
+    (void)(sizeof ... (args));
 }
 
 template<typename ElementType>
