@@ -54,6 +54,8 @@
 namespace facelift {
 namespace dbus {
 
+constexpr const char * DBusIPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME;
+
 void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
 {
     if (m_outputPayload) {
@@ -130,7 +132,7 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
     } else {
         bool sendReply = true;
         if (requestMessage.member() == GET_PROPERTIES_MESSAGE_NAME) {
-            serializePropertyValues(replyMessage);
+            serializePropertyValues(replyMessage, true);
         } else {
             auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
             if (handlingResult == IPCHandlingResult::INVALID) {
@@ -177,7 +179,9 @@ void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
                 qDebug() << "Registering IPC object at " << objectPath();
                 m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
                 if (m_alreadyInitialized) {
-                    connect(service, &InterfaceBase::readyChanged, this, &DBusIPCServiceAdapterBase::onPropertyValueChanged);
+                    QObject::connect(service, &InterfaceBase::readyChanged, this, [this]() {
+                        this->sendSignal(CommonSignalID::readyChanged);
+                    });
                     connectSignals();
                 } else {
                     qFatal("Could no register service at object path '%s'", qPrintable(objectPath()));

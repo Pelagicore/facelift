@@ -44,6 +44,11 @@
 
 namespace facelift {
 
+enum class CommonSignalID {
+    readyChanged,
+    firstSpecific
+};
+
 typedef int ASyncRequestID;
 
 enum class IPCHandlingResult {
@@ -380,7 +385,6 @@ public:
 public:
     IPCProxyBase(QObject *parent) : AdapterType(parent)
     {
-        m_serviceReady.init(this, &InterfaceBase::readyChanged, "ready");
     }
 
     template<typename Type>
@@ -397,20 +401,42 @@ public:
         QObject::connect(this, &InterfaceBase::componentCompleted, &binder, &BinderType::onComponentCompleted);
     }
 
+    bool isSynchronous() const
+    {
+        return m_ipcBinder->isSynchronous();
+    }
+
     bool ready() const override final
     {
-        if (localInterface() != nullptr) {
-            return localInterface()->ready();
+        return (localInterface() != nullptr) ? localInterface()->ready() : m_serviceReady;
+    }
+
+    void setServiceReady(bool isServiceReady)
+    {
+        if (ready() != isServiceReady) {
+            m_serviceReady = isServiceReady;
+            emit this->readyChanged();
         }
-        return m_serviceReady;
     }
 
     InterfaceType *localInterface() const
     {
-        if (m_localAdapter) {
-            return m_localAdapter->service();
-        } else {
-            return nullptr;
+        return (m_localAdapter ? m_localAdapter->service() : nullptr);
+    }
+
+    virtual void emitChangeSignals()
+    {
+        emit this->readyChanged();
+    }
+
+    void deserializeCommonSignal(facelift::CommonSignalID signalID)
+    {
+        switch (signalID) {
+        case facelift::CommonSignalID::readyChanged:
+            emit this->readyChanged();
+            break;
+        default:
+            qFatal("Unknown signal ID");
         }
     }
 
@@ -425,6 +451,7 @@ public:
             QObject::connect(localInterface(), &InterfaceBase::readyChanged, this, &AdapterType::readyChanged);
             bindLocalService(localInterface());
             m_serviceReady = localInterface()->ready();
+            emitChangeSignals();
         }
     }
 
@@ -460,14 +487,11 @@ public:
     };
 
 
-protected:
-    void setReady(bool isReady)
-    {
-        m_serviceReady = isReady;
-    }
+private:
+    bool m_serviceReady;
 
+protected:
     QPointer<IPCAdapterType> m_localAdapter;
-    Property<bool> m_serviceReady;
 
     IPCProxyBinderBase *m_ipcBinder = nullptr;
 
@@ -521,26 +545,26 @@ public:
     {
     }
 
-    void connectModel(typename IPCAdapterType::MemberIDType memberID, facelift::Model<ModelDataType> &model)
+    template<typename SignalID>
+    void connectModel(SignalID signalID, facelift::Model<ModelDataType> &model)
     {
         m_model = &model;
         QObject::connect(m_model, static_cast<void (facelift::ModelBase::*)(int, int)>
-            (&facelift::ModelBase::dataChanged), &m_adapter, [this, memberID] (int first, int last) {
+            (&facelift::ModelBase::dataChanged), &m_adapter, [this, signalID] (int first, int last) {
             QList<ModelDataType> changedItems;
             for (int i = first ; i <= last ; i++) {
                 changedItems.append(m_model->elementAt(i));
-                qWarning() << "UUUU";
             }
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::DataChanged, first, changedItems);
+            m_adapter.sendSignal(signalID, ModelUpdateEvent::DataChanged, first, changedItems);
         });
         QObject::connect(m_model, &facelift::ModelBase::beginRemoveElements, &m_adapter, [this] (int first, int last) {
             m_removeFirst = first;
             m_removeLast = last;
         });
-        QObject::connect(m_model, &facelift::ModelBase::endRemoveElements, &m_adapter, [this, memberID] () {
+        QObject::connect(m_model, &facelift::ModelBase::endRemoveElements, &m_adapter, [this, signalID] () {
             Q_ASSERT(m_removeFirst != UNDEFINED);
             Q_ASSERT(m_removeLast != UNDEFINED);
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::Remove, m_removeFirst, m_removeLast);
+            m_adapter.sendSignal(signalID, ModelUpdateEvent::Remove, m_removeFirst, m_removeLast);
             m_removeFirst = UNDEFINED;
             m_removeLast = UNDEFINED;
         });
@@ -548,19 +572,19 @@ public:
             m_insertFirst = first;
             m_insertLast = last;
         });
-        QObject::connect(m_model, &facelift::ModelBase::endInsertElements, &m_adapter, [this, memberID] () {
+        QObject::connect(m_model, &facelift::ModelBase::endInsertElements, &m_adapter, [this, signalID] () {
             Q_ASSERT(m_insertFirst != UNDEFINED);
             Q_ASSERT(m_insertLast != UNDEFINED);
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::Insert, m_insertFirst, m_insertLast);
+            m_adapter.sendSignal(signalID, ModelUpdateEvent::Insert, m_insertFirst, m_insertLast);
             m_insertFirst = UNDEFINED;
             m_insertLast = UNDEFINED;
         });
         QObject::connect(m_model, &facelift::ModelBase::beginResetModel, &m_adapter, [this] () {
             m_resettingModel = true;
         });
-        QObject::connect(m_model, &facelift::ModelBase::endResetModel, &m_adapter, [this, memberID] () {
+        QObject::connect(m_model, &facelift::ModelBase::endResetModel, &m_adapter, [this, signalID] () {
             Q_ASSERT(m_resettingModel);
-            m_adapter.sendSignal(memberID, ModelUpdateEvent::Reset);
+            m_adapter.sendSignal(signalID, ModelUpdateEvent::Reset);
             m_resettingModel = false;
         });
     }
@@ -658,7 +682,8 @@ public:
         }
     }
 
-    void clear() {
+    void clear()
+    {
         m_cache.clear();
         m_itemsRequestedFromServer.clear();
         m_itemsRequestedLocally.clear();
@@ -702,7 +727,7 @@ public:
 
         // Prefetch next items
         int nextIndex = std::min(m_model.size(), row + PREFETCH_ITEM_COUNT);
-        if (!m_cache.exists(nextIndex) && !m_itemsRequestedFromServer.contains(nextIndex) ) {
+        if (!m_cache.exists(nextIndex) && !m_itemsRequestedFromServer.contains(nextIndex)) {
             requestItemsAsync(requestMemberID, nextIndex);
         }
 
@@ -718,7 +743,8 @@ public:
     /**
      * Request the items around the given index.
      */
-    void requestItemsAsync(const MemberID &requestMemberID, int index) {
+    void requestItemsAsync(const MemberID &requestMemberID, int index)
+    {
 
         // Find the first index which we should request, given what we already have in our cache
         int first = std::max(0, index - PREFETCH_ITEM_COUNT);
@@ -859,6 +885,7 @@ struct IPCTypeRegisterHandler<QList<Type> >
     template<typename OwnerType>
     static void convertToDeserializedType(QList<Type> &v, const SerializedType &serializedValue, OwnerType &adapter)
     {
+        v.clear();
         for (const auto &e : serializedValue) {
             Type c;
             IPCTypeRegisterHandler<Type>::convertToDeserializedType(c, e, adapter);
@@ -914,7 +941,6 @@ struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<In
     }
 
 };
-
 
 }
 

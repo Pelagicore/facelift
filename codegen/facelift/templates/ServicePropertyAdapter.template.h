@@ -50,8 +50,10 @@ class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}
     using ThisType = {{interfaceName}}PropertyAdapter;
 
 public:
-    {{interfaceName}}PropertyAdapter(QObject* parent = nullptr) : {{interfaceName}}(parent)
+    {{interfaceName}}PropertyAdapter(QObject* parent = nullptr) : {{interfaceName}}(parent), m_ready(true)
     {
+        m_ready.init(this, &ThisType::readyChanged, "ready");
+
         {% for property in interface.properties %}
         {% if property.tags.hasReadyFlag %}
         m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, &ThisType::readyFlagsChanged, "{{property.name}}");
@@ -102,6 +104,21 @@ public:
 
     {% endif %}
     {% endfor %}
+
+    bool ready() const override
+    {
+        return m_ready.value();
+    }
+
+protected:
+    void setReady(bool ready)
+    {
+        m_ready = ready;
+    }
+
+private:
+    facelift::Property<bool> m_ready;
+
 };
 
 {{module.namespaceCppClose}}

@@ -31,6 +31,7 @@
 #pragma once
 
 #include "ipc-dbus.h"
+#include "facelift/ipc/dbus/ObjectRegistryPropertyAdapter.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPC.h"
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPC.h"
 

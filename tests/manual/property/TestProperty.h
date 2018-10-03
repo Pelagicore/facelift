@@ -32,7 +32,8 @@
 
 #include <QObject>
 
-class TestPropertyClass : public QObject {
+class TestPropertyClass : public QObject
+{
 
     Q_OBJECT
 
