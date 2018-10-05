@@ -150,7 +150,7 @@ public:
         return &m_{{property}}Model;
     }
 
-    facelift::ModelListModel<{{property.nestedType.fullyQualifiedCppType}}> m_{{property}}Model;
+    facelift::ModelListModel<{{property.nestedType.interfaceCppType}}> m_{{property}}Model;
 
     {% elif property.type.is_list or property.type.is_map %}
     // Using {{property.type.qmlCompatibleType}}, since exposing {{property.interfaceCppType}} to QML does not seem to work
