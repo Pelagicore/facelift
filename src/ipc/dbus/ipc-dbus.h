@@ -322,7 +322,7 @@ template<size_t I = 0, typename ... Ts>
 typename std::enable_if < I<sizeof ... (Ts)>::type
 appendDBUSTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
 {
-    typedef typeof (std::get<I>(t)) Type;
+    using Type = decltype(std::get<I>(t));
     IPCTypeHandler<Type>::writeDBUSSignature(s);
     appendDBUSTypeSignature<I + 1>(s, t);
 }
@@ -483,7 +483,7 @@ typename std::enable_if < I<sizeof ... (Ts)>::type
 appendDBUSMethodArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
         sizeof ... (Ts)> &argNames)
 {
-    typedef typeof (std::get<I>(t)) Type;
+    using Type = decltype(std::get<I>(t));
     s << "<arg name=\"" << argNames[I] << "\" type=\"";
     IPCTypeHandler<Type>::writeDBUSSignature(s);
     s << "\" direction=\"in\"/>";
@@ -506,7 +506,7 @@ typename std::enable_if < I<sizeof ... (Ts)>::type
 appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
         sizeof ... (Ts)> &argNames)
 {
-    typedef typeof (std::get<I>(t)) Type;
+    using Type = decltype(std::get<I>(t));
     s << "<arg name=\"" << argNames[I] << "\" type=\"";
     IPCTypeHandler<Type>::writeDBUSSignature(s);
     s << "\"/>";

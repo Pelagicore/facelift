@@ -32,4 +32,14 @@
 
 namespace facelift {
 
+#if defined(FaceliftIPCLib_LIBRARY)
+#  define FaceliftIPCLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCLib_EXPORT Q_DECL_IMPORT
+#endif
+
+// this dummy export is neccessary for creating a *.lib file with MSVC based compiler
+// otherwise no lib file will be created
+FaceliftIPCLib_EXPORT int dummy_value_2;
+
 }
