@@ -103,6 +103,19 @@ public:
     facelift::Property<{{property.interfaceCppType}}> m_{{property.name}};
 
     {% endif %}
+
+
+    {% if (not property.readonly) %}
+
+    /**
+     * This default implementation simply updates the property according to the requested value.
+     * Override this method if this behavior is not suitable.
+     */
+    void set{{property}}(const {{property.cppType}}& newValue) override {
+        m_{{property.name}} = newValue;
+    }
+    {% endif %}
+
     {% endfor %}
 
     bool ready() const override

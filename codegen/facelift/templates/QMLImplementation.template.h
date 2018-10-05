@@ -62,6 +62,7 @@ class {{classExport}} {{interface}}QMLImplementationFrontend : public {{interfac
 
 public:
     typedef {{interface}}QMLImplementation QMLImplementationModelType;
+    using AdapterType = {{interface}}PropertyAdapter;
 
     {{interface}}QMLImplementationFrontend();
     {{interface}}QMLImplementationFrontend({{interface}}QMLImplementation *qmlImpl);
@@ -299,19 +300,23 @@ public:
 
     QJSValue m_set{{property.name}};
 
-    void requestSet{{property.name}}(const {{property.cppType}}& value)
+    bool requestSet{{property.name}}(const {{property.cppType}}& value)
     {
-        checkInterface();
-        QJSValueList args;
+        if (!m_set{{property.name}}.isUndefined()) {
+            checkInterface();
+            QJSValueList args;
 
-        QQmlEngine* engine = qmlEngine(this);
-        {% if (not property.type.is_interface) %}
-        args.append(facelift::toJSValue(value, engine));
-        {% else %}
-        Q_ASSERT(false); // Writable interface properties are unsupported
-        {% endif %}
+            QQmlEngine* engine = qmlEngine(this);
+            {% if (not property.type.is_interface) %}
+            args.append(facelift::toJSValue(value, engine));
+            {% else %}
+            Q_ASSERT(false); // Writable interface properties are unsupported
+            {% endif %}
 
-        checkMethod(m_set{{property.name}}, "set{{property.name}}").call(args);
+            checkMethod(m_set{{property.name}}, "set{{property.name}}").call(args);
+            return true;
+        }
+        return false;
     }
 
     {% endif %}
@@ -391,7 +396,9 @@ inline {{operation.interfaceCppType}} {{interface}}QMLImplementationFrontend::{{
     {% if (not property.readonly) %}
 inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{property.cppType}}& newValue)
 {
-    m_impl->requestSet{{property}}(newValue);
+    if (!m_impl->requestSet{{property}}(newValue)) {
+        AdapterType::set{{property}}(newValue);
+    }
 }
 
     {% endif %}
