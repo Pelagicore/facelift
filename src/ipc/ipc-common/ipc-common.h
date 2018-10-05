@@ -691,7 +691,7 @@ public:
 
     ModelDataType modelData(const MemberID &requestMemberID, int row)
     {
-        ModelDataType retval;
+        ModelDataType retval {};
         if (m_cache.exists(row)) {
             retval = m_cache.get(row);
         } else {

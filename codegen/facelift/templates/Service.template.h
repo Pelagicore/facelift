@@ -120,13 +120,13 @@ public:
 
     {% for property in interface.properties %}
     {% if property.type.is_model -%}
-    virtual facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() = 0;
+    virtual facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() = 0;
 
     typedef bool PropertyType_{{property}};   // TODO : use actual type
 
-    facelift::ModelPropertyInterface<ThisType, {{property.nestedType.fullyQualifiedCppType}}> {{property}}Property()
+    facelift::ModelPropertyInterface<ThisType, {{property.nestedType.interfaceCppType}}> {{property}}Property()
     {
-        return facelift::ModelPropertyInterface<ThisType, {{property.nestedType.fullyQualifiedCppType}}>(this, {{property.name}}());
+        return facelift::ModelPropertyInterface<ThisType, {{property.nestedType.interfaceCppType}}>(this, {{property.name}}());
     }
 
     {% elif property.type.is_interface -%}

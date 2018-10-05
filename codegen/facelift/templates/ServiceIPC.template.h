@@ -113,6 +113,7 @@ public:
 
     void appendDBUSIntrospectionData(QTextStream &s) const override
     {
+        Q_UNUSED(s);   // For empty interfaces
         {% for property in interface.properties %}
         addPropertySignature<ServiceType::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
         {% endfor %}
@@ -287,7 +288,7 @@ public:
 private:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.cppType}}> m_{{property.name}}Handler;
+    facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
     {% elif property.type.is_interface %}
     QString m_previous{{property.name}}ObjectPath;
     {% else %}
@@ -490,7 +491,7 @@ public:
     }
     {% endif %}
     {% if property.type.is_model %}
-    {{property.nestedType.cppType}} {{property.name}}Data(int row)
+    {{property.nestedType.interfaceCppType}} {{property.name}}Data(int row)
     {
         return m_{{property.name}}Handler.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
     }
@@ -500,12 +501,12 @@ public:
 
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() override
+    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
     {
         return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
     }
 
-    facelift::ModelProperty<{{property.nestedType.fullyQualifiedCppType}}> m_{{property.name}};
+    facelift::ModelProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
 
     {% elif property.type.is_list %}
 
@@ -549,7 +550,7 @@ private:
     InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
     {% endif %}
     {% if property.type.is_model %}
-    facelift::IPCProxyModelPropertyHandler<ThisType, {{property.nestedType.cppType}}> m_{{property.name}}Handler;
+    facelift::IPCProxyModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
     {% endif %}
     {% endfor %}
 };

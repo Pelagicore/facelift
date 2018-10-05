@@ -67,12 +67,12 @@ public:
 
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() override
+    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
     {
         return m_{{property.name}};
     }
 
-    facelift::ModelProperty<{{property.nestedType.fullyQualifiedCppType}}> m_{{property.name}};
+    facelift::ModelProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
 
     {% elif property.type.is_list %}
 
