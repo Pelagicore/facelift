@@ -88,34 +88,96 @@ The following table describes the QML types:
 
 QML component name               | Corresponding C++ class       | Description
 -------------------------------- | ----------------------------- | -----------------------
-MyInterfaceQMLImplementation     | MyInterfaceQMLImplementation  | This type is used to enable the implementation of "MyInterface" using the QML language.
-MyInterface <i>(you name it)</i> | MyInterfaceQMLFrontend        | This class exposes the interface defined in the IDL to QML
+MyInterfaceQMLImplementation     | MyInterfaceQMLImplementation  | This type is used to enable the implementation (backend) of "MyInterface" using the QML language.
+MyInterface <i>(you name it)</i> | MyInterfaceQMLFrontend        | This class exposes the interface defined in the IDL to QML (frontend UI)
 MyInterfaceIPCProxy              | MyInterfaceIPCQMLFrontendType | This type is an IPC proxy for the "MyInterface" type. A proxy object implements the same interface as the actual implementation object, which typically lives in another process.
 
-\subsubsection reference-registration QML Type Registration
+\subsection reference-registration QML Type Registration
 
-In your QML plugin implementation you should call the auto-generated \c Module::registerQmlTypes
-method. This will register the C++ classes \c MyInterfaceQMLImplementation and
-\c MyInterfaceIPCProxy with identical name to QML. The \c MyInterfaceQMLFrontend has to be
-registered separately since we need to define whether the C++ or QML backend implementation should
-be used. Hence, this class can be exposed to QML with an arbitrary name. The name defaults to the
-interface name ("MyInterface" here).
+In your QML plugin implementation the auto-generated \c Module::registerQmlTypes method should be
+called (defined in the generated Module.h file):
+\code
+Module:registerQmlTypes(uri)
+\endcode
+In our example it will register the C++ classes \c MyInterfaceQMLImplementation (for backend usage)
+and \c MyInterfaceIPCProxy (for UI usage) with identical name to QML. The \c MyInterfaceIPCProxy
+type will only be registered, if IPC is enabled. In addition this method registers all structures
+and enums as creatable QML types with the same name as given in the QFace document. For usage in
+JavaScript there is also a QML singleton type registered with the postfix "Factory" for each
+structure. This type exports a \c create() method, that instantiates and returns a structure of
+this type. Suppose there would be a
+\code
+struct MyStruct {
+    int i
+}
+\endcode
+definition in the QFace document, then a \c MyStructFactory QML singleton type would be available
+that could be used as follows form the QML backend or UI code:
+\code
+var ms = MyStructFactory.create();
+ms.i = 1;
+\endcode
 
-This is how the C++ implementation can be registered (explicitely as "MyInterface"), assuming that
-you provide an implementation called \c MyInterfaceCppImplementation:
+There is another type registration method that can be called from the QML plugin:
+\code
+Module::registerUncreatableQmlTypes(uri);
+\endcode
+This will register all interfaces defined in the QFace document as uncreatable types to the QML
+engine. In our example it will register the \c MyInterfaceQMLFrontend type as an uncreatable type
+to the QML engine. The QML name will simply be the interface name, in our case: \c MyInterface.
+
+\subsubsection reference-registration-ui UI (Frontend) Type Registration
+
+The \c MyInterfaceQMLFrontend has to be registered manually since we need to define whether the C++
+or QML backend implementation should be used. Hence, this class can be exposed to QML with an
+arbitrary name. The name defaults to the interface name ("MyInterface" here). The following
+registration function should be used when providing a C++ implementation (defined in
+QMLFrontend.h):
+\code
+template<typename ProviderType>
+int facelift::registerQmlComponent(const char *uri,
+                                   const char *name = ProviderType::INTERFACE_NAME,
+                                   int majorVersion = ProviderType::VERSION_MAJOR,
+                                   int minorVersion = ProviderType::VERSION_MINOR);
+\endcode
+This registration function should be used when providing a QML implementation (defined in
+QMLModel.h):
+\code
+template<typename QMLImplementationType>
+int facelift::registerQmlComponent(const char *uri,
+                                   const char *qmlFilePath,
+                                   const char *componentName = QMLImplementationType::Provider::QMLFrontendType::INTERFACE_NAME,
+                                   int majorVersion = QMLImplementationType::Provider::VERSION_MAJOR,
+                                   int minorVersion = QMLImplementationType::Provider::VERSION_MINOR);
+\endcode
+Both return the QML type id. The registered types are instantiatable from QML.
+
+This is how the C++ implementation can be registered (explicitly as "MyInterface"), assuming that
+you provide an implementation class called \c MyInterfaceCppImplementation:
 \code
 facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterface");
 \endcode
 
-And here is how the QML implementation can be registered (explicitely as "MyInterface"), assuming
-that you provide a QML implementation called \c MyInterfaceImplementation (derived from
+And here is how the QML implementation can be registered (explicitly as "MyInterface"), assuming
+that you provide a QML implementation component called \c MyInterfaceImplementation (derived from
 \c MyInterfaceQMLImplementation):
 \code
-facelift::registerQmlComponent<MyInterfaceQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION)
-                                     "/models/qml/MyInterfaceImplementation.qml", "MyInterface");
+facelift::registerQmlComponent<MyInterfaceQMLImplementation>(uri, "path/to/MyInterfaceImplementation.qml", "MyInterface");
 \endcode
 Note again that both calls actually register a \c MyInterfaceQMLFrontend derived type to the QML
-engine. This is done implicitely without mentioning this type.
+engine. This is done implicitly without mentioning this type.
+
+There are equivalent functions to register a singleton type (in contrast to an instantiatable type
+above).  The QML name also defaults to the interface name ("MyInterface" here). The following calls
+will register a singleton with the explicit name \c MyInterfaceSingleton. C++ backend
+implementation:
+\code
+facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
+\endcode
+or with a QML backend implementation:
+\code
+facelift::registerSingletonQmlComponent<MyInterfaceQMLImplementation>(uri, "/path/to/MyInterfaceImplementation.qml", "MyInterfaceSingleton");
+\endcode
 
 
 \section reference-usage Usage of Types
