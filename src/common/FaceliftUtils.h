@@ -40,6 +40,12 @@
 #include <QList>
 #include <QMap>
 
+#if defined(FaceliftCommonLib_LIBRARY)
+#  define FaceliftCommonLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftCommonLib_EXPORT Q_DECL_IMPORT
+#endif
+
 #define NOT_IMPLEMENTED() qFatal("Not implemented yet")
 
 /**
@@ -226,15 +232,5 @@ private:
     std::list<std::pair<Key, Value> > m_list;  // first item is most recently used
     std::unordered_map<Key, decltype(m_list.begin())> m_map;
 };
-
-#if defined(FaceliftCommonLib_LIBRARY)
-#  define FaceliftCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
-// this dummy export is neccessary for creating a *.lib file with MSVC based compiler
-// otherwise no lib file will be created
-FaceliftCommonLib_EXPORT int dummy_value_1;
 
 }
