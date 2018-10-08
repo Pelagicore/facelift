@@ -301,7 +301,7 @@ endfunction()
 
 macro(_facelift_add_target_start)
 
-    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC USE_QML_COMPILER)
+    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC SHARED USE_QML_COMPILER)
     set(oneValueArgs )
     set(multiValueArgs PRIVATE_DEFINITIONS
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
@@ -415,11 +415,13 @@ function(facelift_add_library TARGET_NAME)
            endif()
            set(ALL_SOURCES ${EMPTY_FILE_PATH})
        endif()
-       if(${ARGUMENT_STATIC})
-           add_library(${TARGET_NAME} STATIC ${ALL_SOURCES})
-       else()
-           add_library(${TARGET_NAME} SHARED ${ALL_SOURCES})
-       endif()
+        if(${ARGUMENT_STATIC})
+            set(LIBRARY_TYPE STATIC)
+        endif()
+        if(${ARGUMENT_SHARED})
+            set(LIBRARY_TYPE SHARED)
+        endif()
+    add_library(${TARGET_NAME} ${LIBRARY_TYPE} ${ALL_SOURCES})
     endif()
 
     if (NOT ${ARGUMENT_NO_INSTALL})
@@ -670,6 +672,11 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
     string(REPLACE "." "/" PLUGIN_PATH ${URI})
 
     facelift_add_library(${PLUGIN_NAME} ${ARGUMENT_UNPARSED_ARGUMENTS} NO_INSTALL NO_EXPORT LINK_LIBRARIES Qt5::Qml)
+
+    get_target_property(TARGET_TYPE ${PLUGIN_NAME} TYPE)
+    if (TARGET_TYPE STREQUAL "STATIC_LIBRARY")
+        set_directory_properties(PROPERTIES COMPILE_DEFINITIONS QT_STATICPLUGIN)
+    endif ()
 
     set_target_properties(${PLUGIN_NAME} PROPERTIES
         COMPILE_DEFINITIONS "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}"
