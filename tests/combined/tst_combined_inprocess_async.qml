@@ -34,16 +34,16 @@ import "check_combined.js" as Check
 
 
 TestCase {
-    name: "combined-inprocess"
+    name: "combined-inprocess-async"
 
     CombinedInterfaceAPI {
         IPC.enabled: true
-        IPC.objectPath: "/tests/combined/inprocess"
+        IPC.objectPath: "/tests/combined/inprocess/async"
     }
 
-    CombinedInterfaceIPCProxy {
+    CombinedInterfaceAsyncIPCProxy {
         id: api
-        ipc.objectPath: "/tests/combined/inprocess"
+        ipc.objectPath: "/tests/combined/inprocess/async"
     }
 
 
@@ -58,8 +58,8 @@ TestCase {
         Check.initialized();
     }
 
-    function test_methods() {
-        Check.methods();
+    function test_methodsAsync() {
+        Check.methodsAsync();
     }
 
     function test_setter() {

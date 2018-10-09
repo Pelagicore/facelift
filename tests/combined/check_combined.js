@@ -121,6 +121,64 @@ function methods() {
     compare(api.method6(17), 42)
 }
 
+function methodsAsync() {
+    var retval;
+
+    var callback = function(value) {
+        retval = value;
+    }
+
+    var getretval = function() {
+        return retval;
+    }
+
+    api.method1(callback);
+    tryVerify(getretval);
+    compare(retval, "foo");
+
+    retval = undefined;
+    api.method2(12, true, callback);
+    compare(retval, undefined);
+    tryVerify(getretval);
+    compare(retval.cs.anInt, 13);
+    compare(retval.cs.aString, "bar");
+    compare(retval.e, CombiEnum.E2);
+
+    retval = undefined;
+    api.method3(CombiEnum.E2, callback);
+    compare(retval, undefined);
+    tryVerify(getretval);
+    compare(retval, CombiEnum.E3);
+
+    var cs = CombiStructFactory.create();
+    cs.aString = "hello";
+    cs.anInt = 14;
+    var cs25 = CombiStruct2Factory.create();
+    cs25.cs = cs;
+    cs25.e = CombiEnum.E2;
+    retval = undefined;
+    api.method4(cs25, callback);
+    compare(retval, undefined);
+    tryVerify(getretval);
+    compare(retval[0], CombiEnum.E3);
+    compare(retval[1], CombiEnum.E1);
+
+    retval = undefined;
+    api.method5(callback);
+    compare(retval, undefined);
+    tryVerify(getretval);
+    compare(retval[0].anInt, 1);
+    compare(retval[0].aString, "A");
+    compare(retval[1].anInt, 2);
+    compare(retval[1].aString, "B");
+
+    retval = undefined;
+    api.method6(17, callback);
+    compare(retval, undefined);
+    tryVerify(getretval);
+    compare(retval, 42)
+}
+
 function setter() {
     spy.intPropertyChangedSpy.clear();
     api.intProperty = -12;
@@ -184,6 +242,6 @@ function signals() {
     compare(spy.eventWithStructWithListSpy.signalArguments[0][0].enumField, CombiEnum.E2);
 
     spy.intPropertyChangedSpy.wait(2000);
-    //compare(spy.intPropertyChangedSpy.count, 1);
+    compare(spy.intPropertyChangedSpy.count, 1);
     compare(api.intProperty, 101);
 }
