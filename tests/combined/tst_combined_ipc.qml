@@ -50,8 +50,6 @@ TestCase {
     function initTestCase() {
         Check.defaults();
         Check.initialized();
-
-        // readyFlag not supported over IPC
     }
 
     function test_methods() {

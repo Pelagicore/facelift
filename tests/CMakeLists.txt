@@ -18,14 +18,24 @@ add_test(NAME combined-local-singleton-cpp COMMAND test-driver.sh combined/tst_c
 add_test(NAME combined-local-singleton-qml COMMAND test-driver.sh combined/tst_combined_local_singleton.qml qml)
 add_test(NAME combined-inprocess-cpp COMMAND test-driver.sh combined/tst_combined_inprocess.qml cpp)
 add_test(NAME combined-inprocess-qml COMMAND test-driver.sh combined/tst_combined_inprocess.qml qml)
+add_test(NAME combined-inprocess-async-cpp COMMAND test-driver.sh combined/tst_combined_inprocess_async.qml cpp)
+add_test(NAME combined-inprocess-async-qml COMMAND test-driver.sh combined/tst_combined_inprocess_async.qml qml)
 add_test(NAME combined-inprocess-singleton-cpp COMMAND test-driver.sh combined/tst_combined_inprocess_singleton.qml cpp)
 add_test(NAME combined-inprocess-singleton-qml COMMAND test-driver.sh combined/tst_combined_inprocess_singleton.qml qml)
+add_test(NAME combined-inprocess-async-singleton-cpp COMMAND test-driver.sh combined/tst_combined_inprocess_async_singleton.qml cpp)
+add_test(NAME combined-inprocess-async-singleton-qml COMMAND test-driver.sh combined/tst_combined_inprocess_async_singleton.qml qml)
 if (FACELIFT_DBUS_IPC_ENABLED)
 add_test(NAME combined-ipc-cpp COMMAND test-driver.sh combined/tst_combined_ipc.qml cpp combined/combined-server.qml)
 add_test(NAME combined-ipc-qml COMMAND test-driver.sh combined/tst_combined_ipc.qml qml combined/combined-server.qml)
+add_test(NAME combined-ipc-async-cpp COMMAND test-driver.sh combined/tst_combined_ipc_async.qml cpp combined/combined-server.qml)
+add_test(NAME combined-ipc-async-qml COMMAND test-driver.sh combined/tst_combined_ipc_async.qml qml combined/combined-server.qml)
 add_test(NAME combined-ipc-singleton-cpp COMMAND test-driver.sh combined/tst_combined_ipc_singleton.qml cpp
          combined/combined-server-singleton.qml)
 add_test(NAME combined-ipc-singleton-qml COMMAND test-driver.sh combined/tst_combined_ipc_singleton.qml qml
+         combined/combined-server-singleton.qml)
+add_test(NAME combined-ipc-async-singleton-cpp COMMAND test-driver.sh combined/tst_combined_ipc_async_singleton.qml cpp
+         combined/combined-server-singleton.qml)
+add_test(NAME combined-ipc-async-singleton-qml COMMAND test-driver.sh combined/tst_combined_ipc_async_singleton.qml qml
          combined/combined-server-singleton.qml)
 endif()
 
