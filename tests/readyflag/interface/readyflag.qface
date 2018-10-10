@@ -1,0 +1,20 @@
+module tests.readyflag 1.0
+
+interface ReadyFlagInterface
+{
+    @hasReadyFlag: true
+    int intProperty;
+
+    @hasReadyFlag: true
+    string strProperty
+
+    @hasReadyFlag: true;
+    _comboData comboData;   
+}
+
+struct _comboData
+{
+    int iData;
+    string sData;
+    bool bData;
+}

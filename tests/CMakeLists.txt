@@ -42,3 +42,7 @@ add_test(NAME asyncfunctions-inprocess-cpp COMMAND test-driver.sh asyncfunctions
 if (FACELIFT_DBUS_IPC_ENABLED)
 add_test(NAME asyncfunctions-ipc-cpp COMMAND test-driver.sh asyncfunctions/tst_asyncfunctions_ipc.qml cpp asyncfunctions/asyncfunctions-server.qml)
 endif()
+
+add_subdirectory(readyflag)
+add_test(NAME readyflag-local-cpp COMMAND test-driver.sh readyflag/tst_readyflag_local.qml cpp)
+
