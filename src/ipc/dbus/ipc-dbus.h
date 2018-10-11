@@ -156,7 +156,7 @@ private:
 };
 
 
-class OutputPayLoad
+class FaceliftIPCLibDBus_EXPORT OutputPayLoad
 {
 
 public:
@@ -181,7 +181,7 @@ private:
     QDataStream m_dataStream;
 };
 
-class InputPayLoad
+class FaceliftIPCLibDBus_EXPORT InputPayLoad
 {
 
 public:

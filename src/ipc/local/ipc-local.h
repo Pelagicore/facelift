@@ -70,7 +70,7 @@ LocalIPCMessage &operator>>(LocalIPCMessage &msg, facelift::Property<Type> &prop
 }
 
 
-class LocalIPCProxyBinder : public IPCProxyBinderBase
+class FaceliftIPCLibLocal_EXPORT LocalIPCProxyBinder : public IPCProxyBinderBase
 {
     Q_OBJECT
 
