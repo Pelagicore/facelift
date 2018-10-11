@@ -37,7 +37,7 @@
 
 {{classExportDefines}}
 
-#include "ipc.h"
+#include "facelift-ipc.h"
 #include "FaceliftUtils.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"

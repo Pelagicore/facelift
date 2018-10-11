@@ -47,6 +47,8 @@
  */
 class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}} {
 
+    Q_OBJECT
+
     using ThisType = {{interfaceName}}PropertyAdapter;
 
 public:

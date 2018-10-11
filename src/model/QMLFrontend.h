@@ -155,17 +155,17 @@ private:
  * This is the class which is registered when calling registerQmlComponent()
  * It is an actual instance of the QMLFrontendType and wraps an instance of the provider
  */
-template<typename ProviderType>
-class TQMLFrontend : public ProviderType::QMLFrontendType
+template<typename ProviderImplementationType>
+class TQMLFrontend : public ProviderImplementationType::QMLFrontendType
 {
 
 public:
-    TQMLFrontend(QObject *parent = nullptr) : ProviderType::QMLFrontendType(parent)
+    TQMLFrontend(QObject *parent = nullptr) : ProviderImplementationType::QMLFrontendType(parent)
     {
         this->init(m_provider);
     }
 
-    TQMLFrontend(QQmlEngine *engine) : ProviderType::QMLFrontendType(engine)
+    TQMLFrontend(QQmlEngine *engine) : ProviderImplementationType::QMLFrontendType(engine)
     {
         this->init(m_provider);
     }
@@ -186,7 +186,7 @@ public:
     }
 
 private:
-    ProviderType m_provider;
+    ProviderImplementationType m_provider;
 
 };
 

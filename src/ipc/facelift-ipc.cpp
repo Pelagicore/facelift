@@ -28,7 +28,7 @@
 **
 **********************************************************************/
 
-#include "ipc.h"
+#include "facelift-ipc.h"
 
 namespace facelift {
 

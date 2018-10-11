@@ -84,7 +84,7 @@ class {{classExport}} {{className}} : public facelift::QMLFrontendBase
 {
     Q_OBJECT
 
-    using ProviderType = {{interfaceName}};
+    using ProviderInterfaceType = {{interfaceName}};
     using ThisType = {{className}};
 
 public:
@@ -102,7 +102,7 @@ public:
         facelift::QMLFrontendBase::setProvider(provider);
         m_provider = &provider;
         {% for property in interface.properties %}
-        connect(m_provider, &ProviderType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
+        connect(m_provider, &ProviderInterfaceType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
 
         {% if property.type.is_model %}
         m_{{property}}Model.init(m_provider->{{property}}());
@@ -111,7 +111,7 @@ public:
 
         {% for event in interface.signals %}
         {% if event.parameters|hasQMLIncompatibleParameter %}
-        connect(m_provider, &ProviderType::{{event.name}}, this, [this] (
+        connect(m_provider, &ProviderInterfaceType::{{event.name}}, this, [this] (
             {%- set comma = joiner(", ") -%}
             {%- for parameter in event.parameters -%}
                 {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
@@ -123,12 +123,12 @@ public:
             {%- endfor -%});
         });
         {% else %}
-        connect(m_provider, &ProviderType::{{event.name}}, this, &{{className}}::{{event.name}});
+        connect(m_provider, &ProviderInterfaceType::{{event.name}}, this, &{{className}}::{{event.name}});
         {% endif %}
         {% endfor %}
 
         {% if hasReadyFlags %}
-        connect(m_provider, &ProviderType::readyFlagsChanged, this, &{{className}}::readyFlagsChanged);
+        connect(m_provider, &ProviderInterfaceType::readyFlagsChanged, this, &{{className}}::readyFlagsChanged);
         {% endif %}
     }
     {% if hasReadyFlags %}
@@ -258,7 +258,7 @@ public:
     );
     {% endfor %}
 
-    QPointer<ProviderType> m_provider;
+    QPointer<ProviderInterfaceType> m_provider;
 };
 
 
