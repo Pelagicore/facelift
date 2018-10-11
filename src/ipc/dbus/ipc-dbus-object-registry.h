@@ -40,7 +40,7 @@
 namespace facelift {
 namespace dbus {
 
-class DBusObjectRegistry : public QObject
+class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
 {
     Q_OBJECT
 
