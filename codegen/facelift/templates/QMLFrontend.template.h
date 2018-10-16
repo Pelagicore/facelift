@@ -89,46 +89,12 @@ class {{classExport}} {{className}} : public facelift::QMLFrontendBase
 
 public:
 
-    {{className}}(QObject* parent) : facelift::QMLFrontendBase(parent)
-    {
-    }
+    {{className}}(QObject* parent);
 
-    {{className}}(QQmlEngine* engine) : facelift::QMLFrontendBase(engine)
-    {
-    }
+    {{className}}(QQmlEngine* engine);
 
-    void init({{interfaceName}}& provider)
-    {
-        facelift::QMLFrontendBase::setProvider(provider);
-        m_provider = &provider;
-        {% for property in interface.properties %}
-        connect(m_provider, &ProviderInterfaceType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
-        {% if property.type.is_model %}
-        m_{{property}}Model.init(m_provider->{{property}}());
-        {% endif %}
-        {% endfor %}
+    void init({{interfaceName}}& provider);
 
-        {% for event in interface.signals %}
-        {% if event.parameters|hasQMLIncompatibleParameter %}
-        connect(m_provider, &ProviderInterfaceType::{{event.name}}, this, [this] (
-            {%- set comma = joiner(", ") -%}
-            {%- for parameter in event.parameters -%}
-                {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
-            {%- endfor -%}) {
-            emit ThisType::{{event.name}}(
-            {%- set comma2 = joiner(", ") -%}
-            {%- for parameter in event.parameters -%}
-                {{comma2()}} facelift::toQMLCompatibleType({{parameter.name}})
-            {%- endfor -%});
-        });
-        {% else %}
-        connect(m_provider, &ProviderInterfaceType::{{event.name}}, this, &{{className}}::{{event.name}});
-        {% endif %}
-        {% endfor %}
-        {% if hasReadyFlags %}
-        connect(m_provider, &ProviderInterfaceType::readyFlagsChanged, this, &{{className}}::readyFlagsChanged);
-        {% endif %}
-    }
     {% if hasReadyFlags %}
 
     Q_PROPERTY({{module.fullyQualifiedCppType}}::{{interfaceName}}ReadyFlags readyFlags READ readyFlags NOTIFY readyFlagsChanged)
