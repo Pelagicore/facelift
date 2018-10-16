@@ -91,12 +91,11 @@ public:
 {% endif %}
 
 {{interface.comment}}
-class {{classExport}} {{interfaceName}} : public facelift::InterfaceBase {
-
+class {{classExport}} {{interfaceName}} : public facelift::InterfaceBase
+{
     Q_OBJECT
 
 public:
-
     static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface.qualified_name|lower}}";
     static constexpr const char* INTERFACE_NAME = "{{interface}}";
 
@@ -119,74 +118,60 @@ public:
     }
 
     {% for property in interface.properties %}
-    {% if property.type.is_model -%}
+    {% if property.type.is_model %}
+    using PropertyType_{{property}} = bool;   // TODO : use actual type
     virtual facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() = 0;
-
-    typedef bool PropertyType_{{property}};   // TODO : use actual type
-
     facelift::ModelPropertyInterface<ThisType, {{property.nestedType.interfaceCppType}}> {{property}}Property()
     {
         return facelift::ModelPropertyInterface<ThisType, {{property.nestedType.interfaceCppType}}>(this, {{property.name}}());
     }
-
-    {% elif property.type.is_interface -%}
-
+    {% elif property.type.is_interface %}
     // Service property
+    using PropertyType_{{property}} = bool;   // TODO : use actual type
     virtual {{property.interfaceCppType}} {{property}}() = 0;
-
-    typedef bool PropertyType_{{property}};   // TODO : use actual type
-
     facelift::ServicePropertyInterface<ThisType, {{property.cppType}}> {{property}}Property()
     {
         return facelift::ServicePropertyInterface<ThisType, {{property.cppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
-
     {% if (not property.readonly) %}
     virtual void set{{property}}(const {{property.cppType}}& newValue) = 0;
     {% endif %}
-
     {% else %}
+    using PropertyType_{{property}} = {{property.interfaceCppType}};
     virtual const {{property.interfaceCppType}}& {{property}}() const = 0;
-
     facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}> {{property}}Property()
     {
         return facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
-
-    typedef {{property.interfaceCppType}} PropertyType_{{property}};
-
     {% if (not property.readonly) %}
     virtual void set{{property}}(const {{property.cppType}}& newValue) = 0;
     {% endif %}
-
     {% endif %}
     Q_SIGNAL void {{property}}Changed();
 
     {% endfor %}
-    {% for operation in interface.operations %}
 
+    {% for operation in interface.operations %}
     {% if operation.isAsync %}
     virtual void {{operation}}(
         {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} = 0;
     {% else %}
 
+    {% if operation.comment %}
     {{operation.comment}}
+    {% endif %}
     virtual {{operation.interfaceCppType}} {{operation}}({% set comma = joiner(",") %}
         {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %}){% if operation.is_const %} const{% endif %} = 0;
-
     {% endif %}
-
     {% endfor %}
+
     {% for event in interface.signals %}
+    {% if event.comment %}
     {{event.comment}}
+    {% endif %}
     Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
         {% for parameter in event.parameters -%}{{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}{% endfor %});
     {% endfor %}
-
-
-    //private:  TODO : make this field private
-    mutable QMLFrontendType* m_qmlFrontend = nullptr;
-
 
     {% if hasReadyFlags %}
     const {{interfaceName}}ReadyFlags &readyFlags() const
@@ -194,6 +179,11 @@ public:
         return m_readyFlags;
     }
     Q_SIGNAL void readyFlagsChanged();
+
+    {% endif %}
+    //private:  TODO : make this field private
+    mutable QMLFrontendType* m_qmlFrontend = nullptr;
+    {% if hasReadyFlags %}
 
 protected:
     {{interfaceName}}ReadyFlags m_readyFlags;

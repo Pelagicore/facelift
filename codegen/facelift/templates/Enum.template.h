@@ -41,24 +41,26 @@
 
 #include "FaceliftModel.h"
 
+
 {{module.namespaceCppOpen}}
 
 class {{classExport}} {{enum}}Gadget
 {
     Q_GADGET
+
 public:
     enum Type {
-        {% set comma = joiner(",") %}
+        {%- set comma = joiner(",") -%}
         {%- for member in enum.members -%}
         {{ comma() }}
         {{member.name}} = {{member.value}}
         {%- endfor %}
+
     };
     Q_ENUM(Type)
-
 };
 
-typedef {{enum}}Gadget::Type {{enum}};
+using {{enum}} = {{enum}}Gadget::Type;
 
 {{module.namespaceCppClose}}
 
@@ -73,16 +75,18 @@ template <> inline QVariant toVariant(const {{enum.fullyQualifiedCppType}}& v) {
 
 namespace facelift {
 
-template<> inline const QList<{{enum.fullyQualifiedCppType}}>& validValues<{{enum.fullyQualifiedCppType}}>() {
+template<> inline const QList<{{enum.fullyQualifiedCppType}}>& validValues<{{enum.fullyQualifiedCppType}}>()
+{
     static QList<{{enum.fullyQualifiedCppType}}> values = {
     {% for member in enum.members %}
-    {{enum.fullyQualifiedCppType}}::{{member}},
+        {{enum.fullyQualifiedCppType}}::{{member}},
     {% endfor %}
     };
     return values;
 }
 
-template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v) {
+template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v)
+{
     const char* s = "Invalid";
     switch(v) {
     {% for member in enum.members %}
@@ -90,13 +94,14 @@ template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v)
         s = "{{member}}";
         break;
     {% endfor %}
-        default:
-            break;
+    default:
+        break;
     }
     return s;
 }
 
 }
+
 
 inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v)
 {
@@ -105,11 +110,12 @@ inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v
         v = {{enum.fullyQualifiedCppType}}::{{member}};
     else
     {% endfor %}
-    qFatal("No enum value matching string");
+        qFatal("No enum value matching string");
 }
 
 
-inline QTextStream &operator <<(QTextStream &outStream, const {{enum.fullyQualifiedCppType}}& f) {
+inline QTextStream &operator <<(QTextStream &outStream, const {{enum.fullyQualifiedCppType}}& f)
+{
     outStream << facelift::toString(f);
     return outStream;
 }

@@ -68,7 +68,7 @@ class {{classExport}} {{struct.name}} : public facelift::Structure<
 
 public:
 
-    typedef {{struct.name}}QObjectWrapper QObjectWrapperType;
+    using QObjectWrapperType = {{struct.name}}QObjectWrapper;
 
     static const FieldNames FIELD_NAMES;
 
@@ -120,32 +120,31 @@ public:
     }
 
 {% for field in struct.fields %}
-    {{field.comment}}
-    Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}})
 
+    {% if field.comment %}
+    {{field.comment}}
+    {% endif %}
+    Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}})
     {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const
     {
         return facelift::toQMLCompatibleType({{field.name}}());
     }
-
     const {{field.cppType}} &{{field.name}}() const
     {
         return m_{{field.name}};
     }
-
     void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
     {
         // qDebug() << "Setting field {{field.name}} with value:" << value;
         facelift::assignFromQmlType(m_{{field.name}}, value);
     }
-
     void set{{field.name}}({{field.cppType}} value)
     {
         // qDebug() << "Setting field {{field.name}} with value:" << value;
         m_{{field.name}} = value;
     }
-{% endfor %}
 
+{% endfor %}
 private:
 {% for field in struct.fields %}
     {{field.cppType}}& m_{{field}};
@@ -216,31 +215,28 @@ public:
     }
 
 {% for field in struct.fields %}
-    {{field.comment}}
-    Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}} NOTIFY {{field}}Changed)
 
+    {% if field.comment %}
+    {{field.comment}}
+    {% endif %}
+    Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}} NOTIFY {{field}}Changed)
     {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const
     {
         return facelift::toQMLCompatibleType({{field.name}}());
     }
-
     void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
     {
         assignFromQmlType(m_{{field.name}}, value);
     }
-
     Q_SIGNAL void {{field}}Changed();
-
     const {{field.cppType}}& {{field.name}}() const
     {
         return m_{{field.name}}.value();
     }
-
     void set{{field.name}}({{field.cppType}} value)
     {
         m_{{field.name}} = value;
     }
-
     facelift::Property<{{field.cppType}}> m_{{field.name}};
 
 {% endfor %}
@@ -294,17 +290,17 @@ public:
 
 class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{struct.fullyQualifiedCppType}}>
 {
-    typedef facelift::TQMLImplListProperty<{{struct.fullyQualifiedCppType}}> Base;
+    using Base = facelift::TQMLImplListProperty<{{struct.fullyQualifiedCppType}}>;
 };
 
 class QMLImplMapProperty{{struct}} : public facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}>
 {
-    typedef facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}> Base;
+    using Base = facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}>;
 };
 
 
-class {{classExport}} {{struct}}Factory : public facelift::StructureFactoryBase {
-
+class {{classExport}} {{struct}}Factory : public facelift::StructureFactoryBase
+{
     Q_OBJECT
 
 public:
@@ -320,6 +316,7 @@ public:
 };
 
 {{module.namespaceCppClose}}
+
 
 namespace facelift {
 
