@@ -1062,8 +1062,6 @@ private:
 
     DBusRequestHandler *m_serviceObject = nullptr;
 
-    facelift::ipc::dbus::ObjectRegistry *m_objectRegistry = nullptr;
-
     QDBusServiceWatcher m_busWatcher;
     bool m_explicitServiceName = false;
 
