@@ -45,8 +45,8 @@
 /**
  * A partial implementation of the service interface, using the Property helper class
  */
-class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}} {
-
+class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}}
+{
     Q_OBJECT
 
     using ThisType = {{interfaceName}}PropertyAdapter;
@@ -63,61 +63,43 @@ public:
         {% else %}
         m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, "{{property.name}}");
         {% endif %}
-
         {% endfor %}
     }
-
     {% for property in interface.properties %}
+
     {% if property.type.is_model %}
     facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
     {
         return m_{{property.name}};
     }
-
     facelift::ModelProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
-
     {% elif property.type.is_list %}
-
     const {{property.interfaceCppType}}& {{property}}() const override
     {
         return m_{{property.name}}.value();
     }
-
     facelift::ListProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
-
-    {% elif property.type.is_interface -%}
-
+    {% elif property.type.is_interface %}
     // Service property
     {{property.interfaceCppType}} {{property}}() override
     {
         return m_{{property.name}}.value();
     }
-
     facelift::ServiceProperty<{{property.type.fullyQualifiedCppType}}> m_{{property.name}};
-
     // TODO
-
     {% else %}
     const {{property.interfaceCppType}} &{{property}}() const override
     {
         return m_{{property.name}}.value();
     }
     facelift::Property<{{property.interfaceCppType}}> m_{{property.name}};
-
     {% endif %}
-
-
     {% if (not property.readonly) %}
-
-    /**
-     * This default implementation simply updates the property according to the requested value.
-     * Override this method if this behavior is not suitable.
-     */
-    void set{{property}}(const {{property.cppType}}& newValue) override {
+    void set{{property}}(const {{property.cppType}}& newValue) override
+    {
         m_{{property.name}} = newValue;
     }
     {% endif %}
-
     {% endfor %}
 
     bool ready() const override

@@ -103,7 +103,6 @@ public:
         m_provider = &provider;
         {% for property in interface.properties %}
         connect(m_provider, &ProviderInterfaceType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
-
         {% if property.type.is_model %}
         m_{{property}}Model.init(m_provider->{{property}}());
         {% endif %}
@@ -126,7 +125,6 @@ public:
         connect(m_provider, &ProviderInterfaceType::{{event.name}}, this, &{{className}}::{{event.name}});
         {% endif %}
         {% endfor %}
-
         {% if hasReadyFlags %}
         connect(m_provider, &ProviderInterfaceType::readyFlagsChanged, this, &{{className}}::readyFlagsChanged);
         {% endif %}
@@ -142,6 +140,7 @@ public:
     {% endif %}
 
     {% for property in interface.properties %}
+
     {{- printif(property.comment)}}
     {% if property.type.is_model %}
     Q_PROPERTY(QAbstractListModel* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
@@ -149,9 +148,7 @@ public:
     {
         return &m_{{property}}Model;
     }
-
     facelift::ModelListModel<{{property.nestedType.interfaceCppType}}> m_{{property}}Model;
-
     {% elif property.type.is_list or property.type.is_map %}
     // Using {{property.type.qmlCompatibleType}}, since exposing {{property.interfaceCppType}} to QML does not seem to work
     Q_PROPERTY({{property.type.qmlCompatibleType}} {{property}} READ {{property}}
@@ -172,7 +169,6 @@ public:
         {% endif %}
     {%- elif property.type.is_interface %}
     Q_PROPERTY({{property.cppType}}QMLFrontend* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
-
     {{property.cppType}}QMLFrontend* {{property}}()
     {
         return facelift::getQMLFrontend(m_provider->{{property}}());
@@ -224,7 +220,6 @@ public:
         }));
     }
     {% else %}
-
     Q_INVOKABLE {{operation.type.qmlCompatibleType}} {{operation}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
@@ -233,21 +228,24 @@ public:
     )
     {
         Q_ASSERT(m_provider);
-        {% if operation.hasReturnValue %} return facelift::toQMLCompatibleType{% endif %}(m_provider->{{operation}}(
-                {%- set comma = joiner(", ") -%}
-                {%- for parameter in operation.parameters -%}
-                {{ comma() }}
-                {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
-                {{parameter.name}}
-                {%- else -%}
-                facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
-                {%- endif -%}
-                {%- endfor -%}
-                ));
+        {% if operation.hasReturnValue %}
+        return facelift::toQMLCompatibleType(m_provider->{{operation}}(
+        {%- else %}
+        m_provider->{{operation}}(
+        {%- endif -%}
+        {%- set comma = joiner(", ") -%}
+        {%- for parameter in operation.parameters -%}
+        {{ comma() }}
+        {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
+        {{parameter.name}}
+        {%- else -%}
+        facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
+        {%- endif -%}
+        {%- endfor -%}
+        ){% if operation.hasReturnValue %}){% endif %};
     }
     {% endif %}
-
-    {% endfor -%}
+    {% endfor %}
 
     {% for event in interface.signals %}
     Q_SIGNAL void {{event}}(

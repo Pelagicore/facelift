@@ -475,8 +475,8 @@ public:
     {% endif %}
     {% endfor %}
     {%- for property in interface.properties %}
-
     {% if (not property.readonly) %}
+
     void set{{property}}(const {{property.cppType}}& newValue) override
     {
         if (localInterface() == nullptr) {

@@ -55,17 +55,17 @@ class {{interface}}QMLImplementation;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{classExport}} {{interface}}QMLImplementationFrontend : public {{interface}}PropertyAdapter,
+class {{classExport}} {{interface}}QMLImplementationProvider : public {{interface}}PropertyAdapter,
                                                public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation>
 {
     Q_OBJECT
 
 public:
-    typedef {{interface}}QMLImplementation QMLImplementationModelType;
+    using QMLImplementationModelType = {{interface}}QMLImplementation;
     using AdapterType = {{interface}}PropertyAdapter;
 
-    {{interface}}QMLImplementationFrontend();
-    {{interface}}QMLImplementationFrontend({{interface}}QMLImplementation *qmlImpl);
+    {{interface}}QMLImplementationProvider();
+    {{interface}}QMLImplementationProvider({{interface}}QMLImplementation *qmlImpl);
 
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
@@ -75,7 +75,6 @@ public:
         Q_ASSERT(false);  // TODO: implement
     }
     {% else %}
-
     {{operation.interfaceCppType}} {{operation.name}}(
     {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
@@ -83,7 +82,6 @@ public:
         {%- endfor -%}
     ){% if operation.is_const %} const{% endif %} override;
     {% endif %}
-
     {% endfor %}
 
     {% for property in interface.properties %}
@@ -94,7 +92,7 @@ public:
 
     static void registerTypes(const char *uri)
     {
-        facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend>::registerTypes(uri);
+        facelift::ModelQMLImplementation<{{interface}}QMLImplementationProvider>::registerTypes(uri);
     }
 
     QObject* impl();
@@ -105,22 +103,22 @@ public:
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{classExport}} {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationFrontend>
+class {{classExport}} {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationProvider>
 {
     Q_OBJECT
 
     Q_PROPERTY(QObject* provider READ provider CONSTANT)
 
 public:
-    typedef {{interface}}QMLImplementationFrontend Provider;
-    typedef {{interface}}QMLImplementation ThisType;
+    using Provider = {{interface}}QMLImplementationProvider;
+    using ThisType = {{interface}}QMLImplementation;
 
     static constexpr const char* QML_NAME = "{{interface}}QMLImplementation";
     static constexpr bool ENABLED = true;
 
-    {{interface}}QMLImplementationFrontend* createFrontend() override
+    {{interface}}QMLImplementationProvider* createFrontend() override
     {
-        return new {{interface}}QMLImplementationFrontend(this);
+        return new {{interface}}QMLImplementationProvider(this);
     }
 
     void initProvider(Provider *provider) override
@@ -144,13 +142,23 @@ public:
     }
 
     {% for operation in interface.operations %}
+
+    // {{operation}} method
+    Q_PROPERTY(QJSValue {{operation.name}} READ {{operation.name}}JSFunction WRITE set{{operation.name}}JSFunction)
+    void set{{operation.name}}JSFunction(QJSValue v)
+    {
+        m_{{operation.name}} = v;
+    }
+    QJSValue {{operation.name}}JSFunction() const
+    {
+        return m_{{operation.name}};
+    }
     {% if operation.isAsync %}
     // TODO: implement
     {% else %}
-
     {{operation.interfaceCppType}} {{operation.name}}(
-        {%- set comma = joiner(", ") %}
-        {% for parameter in operation.parameters %}
+        {%- set comma = joiner(", ") -%}
+        {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter.cppType}} {{parameter.name}}
         {%- endfor %})
     {
@@ -181,21 +189,7 @@ public:
         checkMethod(m_{{operation}}, "{{operation}}").call(args);
         {% endif %}
     }
-
     {% endif %}
-
-    Q_PROPERTY(QJSValue {{operation.name}} READ {{operation.name}}JSFunction WRITE set{{operation.name}}JSFunction)
-
-    void set{{operation.name}}JSFunction(QJSValue v)
-    {
-        m_{{operation.name}} = v;
-    }
-
-    QJSValue {{operation.name}}JSFunction() const
-    {
-        return m_{{operation.name}};
-    }
-
     QJSValue m_{{operation.name}};
 
     {% endfor %}
@@ -205,31 +199,26 @@ public:
     {% endfor %}
 
     {% for property in interface.properties %}
+
+    // {{property}} property
     {% if property.type.is_list or property.type.is_map %}
     Q_PROPERTY({{property.type.qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-
     facelift::QMLImpl{{property.type.name|capitalize}}Property<{{property.nestedType.interfaceCppType}}> m_{{property.name}}QMLProperty;
-
     {{property.type.qmlCompatibleType}} {{property.name}}() const
     {
         return m_{{property.name}}QMLProperty.elementsAsVariant();
     }
-
     void set{{property.name}}({{property.type.qmlCompatibleType}} v)
     {
         m_{{property.name}}QMLProperty.setElementsAsVariant(v);
     }
-
     {% elif property.type.is_model %}
     // TODO : model
-
     {% elif property.type.is_interface %}
     // TODO : interface
-
     {% elif property.type.is_struct %}
     // This property can contain either a {{property.cppType}} (gadget), or a {{property.cppType}}QObjectWrapper
     Q_PROPERTY(QVariant {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-
     QVariant {{property.name}}() const
     {
         if (m_{{property.name}}.isSet())
@@ -237,7 +226,6 @@ public:
         else
             return QVariant::fromValue(interface().m_{{property.name}}.value());
     }
-
     void set{{property.name}}(const QVariant& var)
     {
         if (var.canConvert<{{property.cppType}}>()) {
@@ -256,7 +244,6 @@ public:
             }
         }
     }
-
     void sync{{property.name}}()
     {
         checkInterface();
@@ -266,40 +253,31 @@ public:
             interface().m_{{property.name}} = value;
         }
     }
-
     facelift::QObjectWrapperPointer<{{property.cppType}}QObjectWrapper> m_{{property.name}};
-
     {% else %}
     Q_PROPERTY({{property.type.qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
-
     const {{property.type.qmlCompatibleType}}& {{property.name}}() const
     {
         checkInterface();
         return interface().m_{{property.name}};
     }
-
     void set{{property.name}}(const {{property.type.qmlCompatibleType}}& value)
     {
         checkInterface();
         interface().m_{{property.name}} = value;
     }
-
     {% endif %}
     {% if (not property.readonly) %}
     Q_PROPERTY(QJSValue set{{property.name}} READ set{{property.name}}JSFunction WRITE setset{{property.name}}JSFunction)
-
     void setset{{property.name}}JSFunction(QJSValue v)
     {
         m_set{{property.name}} = v;
     }
-
     QJSValue set{{property.name}}JSFunction() const
     {
         return m_set{{property.name}};
     }
-
     QJSValue m_set{{property.name}};
-
     bool requestSet{{property.name}}(const {{property.cppType}}& value)
     {
         if (!m_set{{property.name}}.isUndefined()) {
@@ -318,20 +296,9 @@ public:
         }
         return false;
     }
-
     {% endif %}
+
     {% endfor %}
-
-    {{interface}}QMLImplementation()
-    {
-        retrieveFrontend();
-    }
-
-    {{interface}}QMLImplementationFrontend& interface() const
-    {
-        return *m_interface;
-    }
-
     {% for event in interface.signals %}
 
     Q_INVOKABLE void {{event}}(
@@ -352,21 +319,32 @@ public:
         {%- endfor -%} );
     }
     {% endfor %}
+
+
+    {{interface}}QMLImplementation()
+    {
+        retrieveFrontend();
+    }
+
+    {{interface}}QMLImplementationProvider& interface() const
+    {
+        return *m_interface;
+    }
 };
 
 
-inline {{interface}}QMLImplementationFrontend::{{interface}}QMLImplementationFrontend({{interface}}QMLImplementation* qmlImpl)
+inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationProvider({{interface}}QMLImplementation* qmlImpl)
     : {{interface}}PropertyAdapter(qmlImpl)
 {
     m_impl = qmlImpl;
 }
 
-inline {{interface}}QMLImplementationFrontend::{{interface}}QMLImplementationFrontend()
+inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationProvider()
 {
     m_impl = createComponent<{{interface}}QMLImplementation>(qmlEngine(), this);
 }
 
-inline QObject* {{interface}}QMLImplementationFrontend::impl()
+inline QObject* {{interface}}QMLImplementationProvider::impl()
 {
     return m_impl;
 }
@@ -376,11 +354,12 @@ inline QObject* {{interface}}QMLImplementationFrontend::impl()
 {% if operation.isAsync %}
 // TODO
 {% else %}
-inline {{operation.interfaceCppType}} {{interface}}QMLImplementationFrontend::{{operation.name}}(
+inline {{operation.interfaceCppType}} {{interface}}QMLImplementationProvider::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
     {{ comma() }}{{parameter.cppType}} {{parameter.name}}
-    {%- endfor -%} ){% if operation.is_const %} const{% endif %}
+    {%- endfor %}){% if operation.is_const %} const{% endif %}
+
 {
     return m_impl->{{operation.name}}(
         {%- set comma = joiner(", ") -%}
@@ -389,12 +368,11 @@ inline {{operation.interfaceCppType}} {{interface}}QMLImplementationFrontend::{{
         {%- endfor -%} );
 }
 {% endif %}
-
 {% endfor %}
 
 {% for property in interface.properties %}
     {% if (not property.readonly) %}
-inline void {{interface}}QMLImplementationFrontend::set{{property}}(const {{property.cppType}}& newValue)
+inline void {{interface}}QMLImplementationProvider::set{{property}}(const {{property.cppType}}& newValue)
 {
     if (!m_impl->requestSet{{property}}(newValue)) {
         AdapterType::set{{property}}(newValue);
