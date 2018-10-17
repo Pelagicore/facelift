@@ -179,7 +179,7 @@ public:
         , m_{{property.name}}Proxy(*this)
         {% endif %}
         {% if property.type.is_model %}
-        , m_{{property.name}}Handler(*this, m_{{property.name}})
+        , m_{{property.name}}(*this)
         {% endif %}
         {% endfor %}
     {
@@ -281,7 +281,7 @@ public:
     {% if property.type.is_model %}
     {{property.nestedType.interfaceCppType}} {{property.name}}Data(int row)
     {
-        return m_{{property.name}}Handler.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
+        return m_{{property.name}}.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
     }
     {% endif %}
     {% endfor %}
@@ -293,8 +293,6 @@ public:
     {
         return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
     }
-
-    facelift::ModelProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
 
     {% elif property.type.is_list %}
 
@@ -333,7 +331,7 @@ private:
     InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
     {% endif %}
     {% if property.type.is_model %}
-    facelift::IPCProxyModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
+    facelift::IPCProxyModelProperty<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}};
     {% endif %}
     {% endfor %}
 };
@@ -356,7 +354,7 @@ public:
 
     facelift::IPCProxyBinder *ipc()
     {
-        auto p = static_cast<{{className}}*>(provider());
+        auto p = static_cast<{{className}}*>(providerPrivate());
         return p->ipc();
     }
 };

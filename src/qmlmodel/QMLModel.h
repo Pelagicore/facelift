@@ -562,6 +562,7 @@ private:
 
 };
 
+
 template<typename StructQMLWrapperType>
 class QObjectWrapperPointer : public QObjectWrapperPointerBase
 {

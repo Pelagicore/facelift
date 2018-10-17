@@ -733,6 +733,7 @@ public:
     virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
     {
         Q_UNUSED(isCompleteSnapshot);
+        Q_ASSERT(m_service);
         serializeValue(msg, m_service->ready());
     }
 
@@ -776,7 +777,7 @@ protected:
     QString m_introspectionData;
     QString m_serviceName;
 
-    InterfaceBase *m_service = nullptr;
+    QPointer<InterfaceBase> m_service;
 
     bool m_alreadyInitialized = false;
 };
@@ -910,10 +911,7 @@ public:
 
     void bindToIPC();
 
-    void onServiceAvailable()
-    {
-        requestPropertyValues();
-    }
+    void onServiceAvailable();
 
     void requestPropertyValues()
     {
