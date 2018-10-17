@@ -32,7 +32,6 @@
 
 #include "advanced/AdvancedModelPropertyAdapter.h"
 #include <functional>
-#include <QStringBuilder>
 
 using namespace advanced;
 

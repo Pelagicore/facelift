@@ -249,7 +249,7 @@ void {{interfaceName}}IPCProxy::deserializeSignal(facelift::IPCMessage &msg)
     {% for property in interface.properties %}
     case SignalID::{{property.name}}:
     {% if property.type.is_model %}
-        m_{{property.name}}Handler.handleSignal(msg);
+        m_{{property.name}}.handleSignal(msg);
     {% else %}
         emit {{property.name}}Changed();
     {% endif %}

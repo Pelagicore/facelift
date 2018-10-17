@@ -191,6 +191,11 @@ void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
     }
 }
 
+void DBusIPCProxyBinder::onServiceAvailable()
+{
+    requestPropertyValues();
+}
+
 void DBusIPCProxyBinder::bindToIPC()
 {
     if (!m_explicitServiceName) {
