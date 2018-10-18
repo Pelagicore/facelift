@@ -16,6 +16,7 @@ build:
 
 install:
   - cd %APPVEYOR_BUILD_FOLDER%
+  - dir
   - git submodule update --init --recursive
   - mkdir C:\projects\deps
   - cd C:\projects\deps
