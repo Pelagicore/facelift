@@ -1,5 +1,3 @@
-shallow_clone: true
-
 environment:
   matrix:
   - COMPILER: MSVC_15
@@ -16,7 +14,6 @@ build:
 
 install:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - dir
   - git submodule update --init --recursive
   - mkdir C:\projects\deps
   - cd C:\projects\deps
@@ -43,7 +40,7 @@ install:
       }
 
 before_build:
-  - cmd: cd C:\projects\facelift
+  - cmd: cd %APPVEYOR_BUILD_FOLDER%
   - cmd: set PATH=C:\Python37-x64;%PATH%
   - cmd: python -m pip install click
   - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.11.1\msvc2017_64\bin;%PATH%
