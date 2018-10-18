@@ -40,8 +40,6 @@ install:
       }
 
 before_build:
-  - cmd: cd C:/Qt/5.11.1
-  - cmd: dir
   - cmd: cd C:\projects\facelift
   - cmd: set PATH=C:\Python37-x64;%PATH%
   - cmd: python -m pip install click qface
