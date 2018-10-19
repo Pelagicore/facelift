@@ -52,19 +52,8 @@ class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}
     using ThisType = {{interfaceName}}PropertyAdapter;
 
 public:
-    {{interfaceName}}PropertyAdapter(QObject* parent = nullptr) : {{interfaceName}}(parent), m_ready(true)
-    {
-        m_ready.init(this, &ThisType::readyChanged, "ready");
+    {{interfaceName}}PropertyAdapter(QObject* parent = nullptr);
 
-        {% for property in interface.properties %}
-        {% if property.tags.hasReadyFlag %}
-        m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, &ThisType::readyFlagsChanged, "{{property.name}}");
-        m_readyFlags.m_{{property.name}} = &m_{{property.name}}.isReady();
-        {% else %}
-        m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, "{{property.name}}");
-        {% endif %}
-        {% endfor %}
-    }
     {% for property in interface.properties %}
 
     {% if property.type.is_model %}

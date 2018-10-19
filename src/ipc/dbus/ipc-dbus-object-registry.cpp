@@ -40,6 +40,7 @@ void DBusObjectRegistry::init()
         if (m_dbusManager.registerServiceName(SERVICE_NAME)) {
             m_master = std::make_unique<MasterImpl>(*this);
             m_master->init();
+            connect(m_master.get(), &MasterImpl::objectsChanged, this, &DBusObjectRegistry::objectsChanged);
         } else {
             m_objectRegistryAsyncProxy = new facelift::ipc::dbus::ObjectRegistryAsyncIPCProxy();
             m_objectRegistryAsyncProxy->ipc()->setServiceName(SERVICE_NAME);

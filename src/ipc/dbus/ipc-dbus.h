@@ -603,12 +603,12 @@ public:
         {
         }
 
-        QString introspect(const QString &path) const
+        QString introspect(const QString &path) const override
         {
             return m_adapter.introspect(path);
         }
 
-        bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection)
+        bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection) override
         {
             return m_adapter.handleMessage(message, connection);
         }
@@ -1061,8 +1061,6 @@ private:
     QString m_interfaceName;
 
     DBusRequestHandler *m_serviceObject = nullptr;
-
-    facelift::ipc::dbus::ObjectRegistry *m_objectRegistry = nullptr;
 
     QDBusServiceWatcher m_busWatcher;
     bool m_explicitServiceName = false;

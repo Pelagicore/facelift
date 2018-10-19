@@ -86,7 +86,7 @@ void IPCProxyBinderBase::connectToServer()
             &IPCProxyBinderBase::onLocalAdapterAvailable);
 
         auto localAdapter = InterfaceManager::instance().getAdapter(this->objectPath());
-        if (localAdapter != nullptr) {
+        if ((localAdapter != nullptr) && isSynchronous()) {
             onLocalAdapterAvailable(localAdapter);
         } else {
             bindToIPC();

@@ -72,4 +72,30 @@ examples/launch-mypackage-ipcclient.sh
 \endcode
 Note how the counter variable increases synchronously in the server and client. Also resetting the
 counter by a click on the client window will reset it on the server side, as well.
+
+\section ipc-sec5 Singleton Server
+
+In case the server needs to be based on a singleton implementation instance, it can be provided
+through \c MyInterfaceIPCAdapter. This class is registered with the same name in
+\c ModuleIPC::registerQmlTypes() (which is called from Module::registerQmlTypes(), if IPC is
+enabled). The singleton implementation needs to be registered, too:
+\code
+facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
+\endcode
+Now the server can be implemented, as follows:
+\code
+MyInterfaceIPCAdapter {
+    service: MyInterfaceSingleton
+    enabled: true
+}
+\endcode
+The \c service property of the IPCAdapter has to be set to the interface implementation wich is
+provided by the \c MyInterfaceSingleton in this example. Finally, IPC has to be enabled by setting
+the \c enabled property of the IPCAdapter to \c true. The optional objectPath could be set, as well.
+However, for a singleton the default path should be sufficient. It consists of "/singletons",
+followed bye the module name followed by the interface name, all separated by slashes and lower
+case, in our example: "singletons/facelift/example/mypackage/myinterface". Of course, the client
+IPCProxy needs to refer to the same path in its \c ipc.objectPath property (the default path is
+the same).
+
 */
