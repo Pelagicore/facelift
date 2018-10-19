@@ -714,10 +714,7 @@ public:
         return m_implementationID;
     }
 
-    virtual bool ready() const
-    {
-        return m_ready;
-    }
+    virtual bool ready() const = 0;
 
     Q_SIGNAL void readyChanged();
 
@@ -753,19 +750,10 @@ public:
 protected:
     friend class ModelQMLImplementationBase;
 
-    void setReady(bool ready)
-    {
-        if (m_ready != ready) {
-            m_ready = ready;
-            emit readyChanged();
-        }
-    }
-
 private:
     QString m_implementationID = "Undefined";
     QString m_interfaceName;
 
-    bool m_ready = true;
     bool m_componentCompleted = false;
 
 };

@@ -45,13 +45,17 @@
 /**
  * A partial implementation of the service interface, using the Property helper class
  */
-class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}} {
+class {{classExport}} {{interfaceName}}PropertyAdapter : public {{interfaceName}}
+{
+    Q_OBJECT
 
     using ThisType = {{interfaceName}}PropertyAdapter;
 
 public:
-    {{interfaceName}}PropertyAdapter(QObject* parent = nullptr) : {{interfaceName}}(parent)
+    {{interfaceName}}PropertyAdapter(QObject* parent = nullptr) : {{interfaceName}}(parent), m_ready(true)
     {
+        m_ready.init(this, &ThisType::readyChanged, "ready");
+
         {% for property in interface.properties %}
         {% if property.tags.hasReadyFlag %}
         m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, &ThisType::readyFlagsChanged, "{{property.name}}");
@@ -59,49 +63,59 @@ public:
         {% else %}
         m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, "{{property.name}}");
         {% endif %}
-
         {% endfor %}
     }
-
     {% for property in interface.properties %}
+
     {% if property.type.is_model %}
-    facelift::Model<{{property.nestedType.fullyQualifiedCppType}}>& {{property.name}}() override
+    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
     {
         return m_{{property.name}};
     }
-
-    facelift::ModelProperty<{{property.nestedType.fullyQualifiedCppType}}> m_{{property.name}};
-
+    facelift::ModelProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
     {% elif property.type.is_list %}
-
     const {{property.interfaceCppType}}& {{property}}() const override
     {
         return m_{{property.name}}.value();
     }
-
     facelift::ListProperty<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
-
-    {% elif property.type.is_interface -%}
-
+    {% elif property.type.is_interface %}
     // Service property
     {{property.interfaceCppType}} {{property}}() override
     {
         return m_{{property.name}}.value();
     }
-
     facelift::ServiceProperty<{{property.type.fullyQualifiedCppType}}> m_{{property.name}};
-
     // TODO
-
     {% else %}
     const {{property.interfaceCppType}} &{{property}}() const override
     {
         return m_{{property.name}}.value();
     }
     facelift::Property<{{property.interfaceCppType}}> m_{{property.name}};
-
+    {% endif %}
+    {% if (not property.readonly) %}
+    void set{{property}}(const {{property.cppType}}& newValue) override
+    {
+        m_{{property.name}} = newValue;
+    }
     {% endif %}
     {% endfor %}
+
+    bool ready() const override
+    {
+        return m_ready.value();
+    }
+
+protected:
+    void setReady(bool ready)
+    {
+        m_ready = ready;
+    }
+
+private:
+    facelift::Property<bool> m_ready;
+
 };
 
 {{module.namespaceCppClose}}

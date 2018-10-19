@@ -28,14 +28,14 @@
 **
 **********************************************************************/
 
-#include "ReadyFlagPlugin.h"
-#include "tests/readyflag/Module.h"
-#include "impl/ReadyFlagCppImplementation.h"
+#include "PropertyBindingPlugin.h"
+#include "tests/propertybinding/Module.h"
+#include "impl/PropertyBindingInterfaceCppImplementation.h"
 
-using namespace tests::readyflag;
+using namespace tests::propertybinding;
 
-void ReadyFlagPlugin::registerTypes(const char *uri)
+void PropertyBindingPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<ReadyFlagInterfaceCppImplementation>(uri, "ReadyFlagInterfaceAPI");
+    facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceTestAPI");
 }

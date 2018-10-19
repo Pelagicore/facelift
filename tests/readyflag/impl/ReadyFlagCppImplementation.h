@@ -1,3 +1,33 @@
+/**********************************************************************
+**
+** Copyright (C) 2018 Luxoft Sweden AB
+**
+** This file is part of the FaceLift project
+**
+** Permission is hereby granted, free of charge, to any person
+** obtaining a copy of this software and associated documentation files
+** (the "Software"), to deal in the Software without restriction,
+** including without limitation the rights to use, copy, modify, merge,
+** publish, distribute, sublicense, and/or sell copies of the Software,
+** and to permit persons to whom the Software is furnished to do so,
+** subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be
+** included in all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+** NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+** ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+** CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+** SOFTWARE.
+**
+** SPDX-License-Identifier: MIT
+**
+**********************************************************************/
+
 #pragma once
 
 #include "tests/readyflag/ReadyFlagInterfacePropertyAdapter.h"
@@ -7,27 +37,20 @@ using namespace tests::readyflag;
 class ReadyFlagInterfaceCppImplementation : public ReadyFlagInterfacePropertyAdapter
 {
 public:
-
     ReadyFlagInterfaceCppImplementation(QObject *parent = nullptr) : ReadyFlagInterfacePropertyAdapter(parent)
     {
-        m_intProperty = 0;
-        m_intProperty.setReady(false);        
-
+        m_intProperty.setReady(false);
         m_strProperty.setReady(false);
-
         m_comboData.setReady(false);
     }
 
-    void setintProperty(const int& newValue) override {
-        m_intProperty =  newValue;
-    }
-
-    void setstrProperty(const QString& newValue) override {
-        m_strProperty = newValue;
-    }
-
-    void setcomboData(const tests::readyflag::_comboData& newValue) override {
-        m_comboData = newValue;
+    void reset() override
+    {
+        m_intProperty.setReady(false);
+        m_comboData.setReady(false);
+        QTimer::singleShot(10, [this] () {
+            m_intProperty = 42;
+        });
     }
 };
 

@@ -43,6 +43,7 @@ Window {
         width: parent.width
         height: parent.height / 2
         color: "wheat"
+        visible: myInterface.ready
 
         MyInterfaceImplementation {
             id: myInterface
@@ -63,6 +64,7 @@ Window {
         height: parent.height / 2
         anchors.top: server.bottom
         color: "lightsteelblue"
+        visible: myProxy.ready
 
         MyInterfaceIPCProxy {
             id: myProxy

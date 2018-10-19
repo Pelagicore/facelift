@@ -70,7 +70,7 @@ LocalIPCMessage &operator>>(LocalIPCMessage &msg, facelift::Property<Type> &prop
 }
 
 
-class LocalIPCProxyBinder : public IPCProxyBinderBase
+class FaceliftIPCLibLocal_EXPORT LocalIPCProxyBinder : public IPCProxyBinderBase
 {
     Q_OBJECT
 
@@ -171,7 +171,7 @@ public:
     virtual void deserializePropertyValues(LocalIPCMessage &msg)
     {
         Q_UNUSED(msg);
-    };
+    }
 
     template<typename ... Args>
     void sendMethodCall(MemberIDType methodName, const Args & ... /*args*/) const
@@ -182,7 +182,7 @@ public:
     template<typename ReturnType, typename ... Args>
     void sendAsyncMethodCall(MemberIDType methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
     {
-        M_UNUSED(methodName, answer, args...);
+        M_UNUSED(methodName, answer, args ...);
         qCritical() << "IPC unavailable for method" << methodName;
     }
 
@@ -190,12 +190,21 @@ public:
     void serializeValue(LocalIPCMessage &msg, const Type &v)
     {
         M_UNUSED(msg, v);
+        // TODO : unused ?
     }
 
     template<typename Type>
     void deserializeValue(LocalIPCMessage &msg, Type &v)
     {
         M_UNUSED(msg, v);
+        // TODO : unused ?
+    }
+
+    template<typename Type>
+    bool deserializeOptionalValue(LocalIPCMessage &msg, Type &value)
+    {
+        M_UNUSED(msg, value);
+        return false;
     }
 
     template<typename ReturnType, typename ... Args>
@@ -205,8 +214,8 @@ public:
         qCritical() << "IPC unavailable for method" << memberID;
     }
 
-    template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value) const
+    template<typename MemberID, typename PropertyType>
+    void sendSetterCall(MemberID methodName, const PropertyType &value) const
     {
         Q_UNUSED(value);
         qCritical() << "IPC unavailable for method" << methodName;
@@ -300,7 +309,7 @@ public:
     template<typename ... Args>
     void addSignalSignature(QTextStream &s, const char *methodName, const std::array<const char *, sizeof ... (Args)> &argNames) const
     {
-        M_UNUSED(s, methodName,argNames);
+        M_UNUSED(s, methodName, argNames);
     }
 
     virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
@@ -309,13 +318,25 @@ public:
     {
     }
 
-    virtual void serializePropertyValues(LocalIPCMessage &msg)
+    virtual void serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot)
     {
-        Q_UNUSED(msg);
+        M_UNUSED(msg, isCompleteSnapshot);
     }
 
-    template<typename ... Args>
-    void sendSignal(MemberIDType memberID, const Args & ... /*args*/)
+    template<typename Type>
+    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot)
+    {
+        M_UNUSED(msg, currentValue, previousValue, isCompleteSnapshot);
+    }
+
+    template<typename Type>
+    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot)
+    {
+        M_UNUSED(msg, currentValue, isCompleteSnapshot);
+    }
+
+    template<typename MemberID, typename ... Args>
+    void sendSignal(MemberID memberID, const Args & ... /*args*/)
     {
         Q_UNUSED(memberID);
     }

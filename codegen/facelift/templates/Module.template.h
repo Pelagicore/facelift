@@ -60,8 +60,8 @@
 * \inqmlmodule {{module.name}}
 * This singleton can be used to create instances of the types defined in the {{module.name}} module/package.
 */
-class {{classExport}} Module : public facelift::ModuleBase {
-
+class {{classExport}} Module : public facelift::ModuleBase
+{
 public:
     Module();
 
@@ -81,7 +81,6 @@ private:
      * Register metatypes of all types defined by this module. This method should not be called by any hand-written code
      */
     static void registerTypes();
-
 };
 
 {{module.namespaceCppClose}}

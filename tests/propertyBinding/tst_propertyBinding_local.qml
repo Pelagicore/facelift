@@ -28,39 +28,27 @@
 **
 **********************************************************************/
 
-#pragma once
+import QtTest 1.2
+import tests.propertybinding  1.0
 
-#include "ipc-common/ipc-common.h"
+TestCase {
+    PropertyBindingInterfaceTestAPI {
+        id: api
+        intProperty1 : intProperty2
+        comboStr1 : comboStr2
+    }
 
-#ifdef DBUS_IPC_ENABLED
-#include "dbus/ipc-dbus.h"
+    function test_intPropertyBinding() {
+        api.intProperty2++;
+        compare(api.intProperty1,1);
+    }
 
-namespace facelift {
-
-using IPCMessage = ::facelift::dbus::DBusIPCMessage;
-using IPCProxyBinder = ::facelift::dbus::DBusIPCProxyBinder;
-
-template<typename InterfaceType>
-using IPCServiceAdapter = ::facelift::dbus::DBusIPCServiceAdapter<InterfaceType>;
-
-template<typename InterfaceType1, typename InterfaceType2>
-using IPCProxy = ::facelift::dbus::DBusIPCProxy<InterfaceType1, InterfaceType2>;
-
+    function test_comboPropertyBinding() {
+        api.comboStr2.iData = 100;
+        api.comboStr2.sData = "binding"
+        api.comboStr2.bData = true;
+        compare(api.comboStr1.iData,100);
+        compare(api.comboStr1.sData,"binding");
+        compare(api.comboStr1.bData,true);
+    }
 }
-
-#else
-
-#include "local/ipc-local.h"
-
-namespace facelift {
-
-template<typename Type>
-using IPCServiceAdapter = LocalIPCServiceAdapter<Type>;
-template<typename AdapterType, typename IPCAdapterType>
-using IPCProxy = LocalIPCProxy<AdapterType, IPCAdapterType>;
-typedef LocalIPCMessage IPCMessage;
-using IPCProxyBinder = ::facelift::LocalIPCProxyBinder;
-
-}
-
-#endif

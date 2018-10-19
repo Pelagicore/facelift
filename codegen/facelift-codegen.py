@@ -296,6 +296,7 @@ def run_generation(input, output, dependency, libraryName):
             generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "types")
             generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "types")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "ipc")
+            generateFile(generator, 'ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx, libraryName, "ipc")
             generateFile(generator, 'devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
             generateFile(generator, 'devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx, libraryName, "desktop_dev_tools")
             generateFile(generator, 'devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx, libraryName, "desktop_dev_tools")
