@@ -603,12 +603,12 @@ public:
         {
         }
 
-        QString introspect(const QString &path) const
+        QString introspect(const QString &path) const override
         {
             return m_adapter.introspect(path);
         }
 
-        bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection)
+        bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection) override
         {
             return m_adapter.handleMessage(message, connection);
         }

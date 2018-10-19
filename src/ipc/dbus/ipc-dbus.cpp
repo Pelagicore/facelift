@@ -172,10 +172,6 @@ void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
                     DBusManager::instance().registerServiceName(m_serviceName);
                 }
 
-                DBusManager::instance().objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
-                    Q_ASSERT(isSuccessful);
-                }));
-
                 qDebug() << "Registering IPC object at " << objectPath();
                 m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
                 if (m_alreadyInitialized) {
@@ -186,8 +182,11 @@ void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
                 } else {
                     qFatal("Could no register service at object path '%s'", qPrintable(objectPath()));
                 }
-            }
 
+                DBusManager::instance().objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
+                    Q_ASSERT(isSuccessful);
+                }));
+            }
         }
     }
 }
