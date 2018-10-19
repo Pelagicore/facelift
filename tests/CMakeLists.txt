@@ -46,3 +46,6 @@ endif()
 add_subdirectory(readyflag)
 add_test(NAME readyflag-local-cpp COMMAND test-driver.sh readyflag/tst_readyflag_local.qml cpp)
 
+add_subdirectory(propertyBinding)
+add_test(NAME propertyBinding-local-cpp COMMAND test-driver.sh propertyBinding/tst_propertyBinding_local.qml cpp)
+

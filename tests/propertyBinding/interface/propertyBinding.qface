@@ -28,14 +28,19 @@
 **
 **********************************************************************/
 
-#include "ReadyFlagPlugin.h"
-#include "tests/readyflag/Module.h"
-#include "impl/ReadyFlagCppImplementation.h"
+module tests.propertybinding 1.0
 
-using namespace tests::readyflag;
-
-void ReadyFlagPlugin::registerTypes(const char *uri)
+interface PropertyBindingInterfaceTest
 {
-    Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<ReadyFlagInterfaceCppImplementation>(uri, "ReadyFlagInterfaceAPI");
+    int intProperty1;
+    int intProperty2;
+    ComboStructure comboStr1;
+    ComboStructure comboStr2;
+}
+
+struct ComboStructure
+{
+    int iData;
+    string sData;
+    bool bData;
 }

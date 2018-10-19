@@ -28,14 +28,21 @@
 **
 **********************************************************************/
 
-#include "ReadyFlagPlugin.h"
-#include "tests/readyflag/Module.h"
-#include "impl/ReadyFlagCppImplementation.h"
+#pragma once
+#include "tests/propertybinding/PropertyBindingInterfaceTestPropertyAdapter.h"
 
-using namespace tests::readyflag;
+using namespace tests::propertybinding;
 
-void ReadyFlagPlugin::registerTypes(const char *uri)
+class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceTestPropertyAdapter
 {
-    Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<ReadyFlagInterfaceCppImplementation>(uri, "ReadyFlagInterfaceAPI");
-}
+public:
+    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr): PropertyBindingInterfaceTestPropertyAdapter(parent) {
+        m_intProperty1.bind([this]() {
+            return  m_intProperty2;
+        }).addTrigger(this,&PropertyBindingInterfaceTestPropertyAdapter::intProperty2Changed);
+
+        m_comboStr1.bind([this]() {
+            return m_comboStr2;
+        }).addTrigger(this,&PropertyBindingInterfaceTestPropertyAdapter::comboStr2Changed);
+    }
+};

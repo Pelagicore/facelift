@@ -62,11 +62,7 @@ public:
 
     Q_PROPERTY(bool ready READ ready WRITE setReady NOTIFY readyChanged)
 
-    void setReady(bool ready)
-    {
-        Q_ASSERT(m_interface != nullptr);
-        m_interface->setReady(ready);
-    }
+    virtual void setReady(bool ready) = 0;
 
     bool ready() const
     {
@@ -305,7 +301,7 @@ class TQMLImplListProperty : public QMLImplListPropertyBase
 {
 
 public:
-    Property<QList<ElementType> > &property() const
+    TProperty<QList<ElementType> > &property() const
     {
         Q_ASSERT(m_property != nullptr);
         return *m_property;
@@ -357,7 +353,7 @@ public:
         refreshList(m_assignedVariantList);
     }
 
-    void setProperty(Property<QList<ElementType> > &property)
+    void setProperty(TProperty<QList<ElementType> > &property)
     {
         if (m_property == nullptr) {
             m_property = &property;
@@ -375,7 +371,7 @@ public:
     }
 
 private:
-    Property<QList<ElementType> > *m_property = nullptr;
+    TProperty<QList<ElementType> > *m_property = nullptr;
     QList<QVariant> m_assignedVariantList;
     QList<QMetaObject::Connection> m_changeSignalConnections;
 };

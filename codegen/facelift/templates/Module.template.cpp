@@ -54,11 +54,13 @@
 #include "ServiceMonitorQMLComponent.h"
 #endif
 
+
 {{module.namespaceCppOpen}}
 
 Module::Module() : facelift::ModuleBase()
 {
 }
+
 
 void Module::registerTypes()
 {
@@ -79,7 +81,6 @@ void Module::registerTypes()
 #ifdef ENABLE_DESKTOP_TOOLS
     ModuleMonitor::registerTypes();
 #endif
-
 }
 
 
@@ -104,10 +105,9 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     qmlRegisterUncreatableType<facelift::QMLImplMapPropertyBase>(uri, majorVersion, minorVersion, "QMLImplMapPropertyBase", "");
     ModuleBase::registerQmlTypes(uri, majorVersion, minorVersion);
 
+    // register structure QObject wrappers and gadget factories
     {% for struct in module.structs %}
-    // register structure QObject wrapper
     ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
-    // register structure gadget factory
     ::qmlRegisterSingletonType<{{struct}}Factory>(uri, majorVersion, minorVersion, "{{struct}}Factory", facelift::StructureFactoryBase::getter<{{struct}}Factory>);
     {% endfor %}
 
@@ -121,24 +121,8 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     if ({{interface}}QMLImplementation::ENABLED) {
         ::qmlRegisterType<{{interface}}QMLImplementation>(uri, majorVersion, minorVersion, {{interface}}QMLImplementation::QML_NAME);
     }
+
     {% endfor %}
-
-/*
-    {% for interface in module.interfaces %}
-    {
-        facelift::registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri, "{{interface.name}}QML");
-
-        QString path = STRINGIFY(QML_MODEL_LOCATION) "/{{interface.fullyQualifiedPath}}.qml";
-
-        if (QFile::exists(path)) {
-            qDebug() << "Registering QML service implementation : " << path;
-            {{interface}}QMLImplementation::modelImplementationFilePath() = path;
-            facelift::registerQmlComponent<{{interface}}QMLImplementationFrontend>(uri);
-        }
-    }
-    {% endfor %}
-*/
-
 #ifdef ENABLE_IPC
     ModuleIPC::registerQmlTypes(uri, majorVersion, minorVersion);
 #endif

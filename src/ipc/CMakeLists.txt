@@ -6,8 +6,8 @@ facelift_add_library(FaceliftIPCLibLocal
 )
 
 facelift_add_library(FaceliftIPCLib
-    SOURCES ipc.cpp
-    HEADERS ipc.h
+    SOURCES facelift-ipc.cpp
+    HEADERS facelift-ipc.h
     LINK_LIBRARIES FaceliftIPCLibLocal
 )
 

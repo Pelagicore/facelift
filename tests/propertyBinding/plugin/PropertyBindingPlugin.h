@@ -28,14 +28,14 @@
 **
 **********************************************************************/
 
-#include "ReadyFlagPlugin.h"
-#include "tests/readyflag/Module.h"
-#include "impl/ReadyFlagCppImplementation.h"
+#pragma once
+#include <QQmlExtensionPlugin>
 
-using namespace tests::readyflag;
-
-void ReadyFlagPlugin::registerTypes(const char *uri)
+class PropertyBindingPlugin : public QQmlExtensionPlugin
 {
-    Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<ReadyFlagInterfaceCppImplementation>(uri, "ReadyFlagInterfaceAPI");
-}
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "pelagicore.facelift.tests")
+
+public:
+    void registerTypes(const char *uri) override;
+};

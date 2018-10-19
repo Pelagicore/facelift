@@ -28,14 +28,39 @@
 **
 **********************************************************************/
 
-#include "ReadyFlagPlugin.h"
-#include "tests/readyflag/Module.h"
-#include "impl/ReadyFlagCppImplementation.h"
+#pragma once
 
-using namespace tests::readyflag;
+#include "ipc-common/ipc-common.h"
 
-void ReadyFlagPlugin::registerTypes(const char *uri)
-{
-    Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<ReadyFlagInterfaceCppImplementation>(uri, "ReadyFlagInterfaceAPI");
+#ifdef DBUS_IPC_ENABLED
+#include "dbus/ipc-dbus.h"
+
+namespace facelift {
+
+using IPCMessage = ::facelift::dbus::DBusIPCMessage;
+using IPCProxyBinder = ::facelift::dbus::DBusIPCProxyBinder;
+
+template<typename InterfaceType>
+using IPCServiceAdapter = ::facelift::dbus::DBusIPCServiceAdapter<InterfaceType>;
+
+template<typename InterfaceType, typename InterfaceType2>
+using IPCProxy = ::facelift::dbus::DBusIPCProxy<InterfaceType, InterfaceType2>;
+
 }
+
+#else
+
+#include "local/ipc-local.h"
+
+namespace facelift {
+
+template<typename Type>
+using IPCServiceAdapter = LocalIPCServiceAdapter<Type>;
+template<typename InterfaceType, typename IPCAdapterType>
+using IPCProxy = LocalIPCProxy<InterfaceType, IPCAdapterType>;
+typedef LocalIPCMessage IPCMessage;
+using IPCProxyBinder = ::facelift::LocalIPCProxyBinder;
+
+}
+
+#endif
