@@ -27,16 +27,13 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 #pragma once
-
 #include <QQmlExtensionPlugin>
 
 class PropertyBindingPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pelagicore.facelift.tests")
-
 public:
     void registerTypes(const char *uri) override;
 };

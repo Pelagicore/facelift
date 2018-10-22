@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #pragma once
-
 #include "tests/propertybinding/PropertyBindingInterfaceTestPropertyAdapter.h"
 
 using namespace tests::propertybinding;

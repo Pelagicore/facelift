@@ -27,7 +27,6 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 #include "PropertyBindingPlugin.h"
 #include "tests/propertybinding/Module.h"
 #include "impl/PropertyBindingInterfaceCppImplementation.h"

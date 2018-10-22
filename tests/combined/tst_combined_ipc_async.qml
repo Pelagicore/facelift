@@ -32,18 +32,12 @@ import QtTest 1.2
 import tests.combined 1.0
 import "check_combined.js" as Check
 
-
 TestCase {
-    name: "combined-inprocess"
+    name: "combined-ipc-async"
 
-    CombinedInterfaceAPI {
-        IPC.enabled: true
-        IPC.objectPath: "/tests/combined/inprocess"
-    }
-
-    CombinedInterfaceIPCProxy {
+    CombinedInterfaceAsyncIPCProxy {
         id: api
-        ipc.objectPath: "/tests/combined/inprocess"
+        ipc.objectPath: "/tests/combined/ipc"
     }
 
 
@@ -58,12 +52,12 @@ TestCase {
         Check.initialized();
     }
 
-    function test_methods() {
-        Check.methods();
+    function test_methodsAsync() {
+        Check.methodsAsync();
     }
 
     function test_setter() {
-        Check.setter();
+        Check.setter(api);
     }
 
     function test_signals() {

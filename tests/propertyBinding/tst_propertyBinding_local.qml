@@ -27,7 +27,6 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 import QtTest 1.2
 import tests.propertybinding  1.0
 
@@ -40,15 +39,15 @@ TestCase {
 
     function test_intPropertyBinding() {
         api.intProperty2++;
-        compare(api.intProperty1,1);
+        compare(api.intProperty1, 1);
     }
 
     function test_comboPropertyBinding() {
         api.comboStr2.iData = 100;
         api.comboStr2.sData = "binding"
         api.comboStr2.bData = true;
-        compare(api.comboStr1.iData,100);
-        compare(api.comboStr1.sData,"binding");
-        compare(api.comboStr1.bData,true);
+        compare(api.comboStr1.iData, 100);
+        compare(api.comboStr1.sData, "binding");
+        compare(api.comboStr1.bData, true);
     }
 }
