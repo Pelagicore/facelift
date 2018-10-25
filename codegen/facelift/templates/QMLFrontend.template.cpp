@@ -87,10 +87,13 @@ void {{className}}::init({{interfaceName}}& provider)
     facelift::QMLFrontendBase::setProvider(provider);
     m_provider = &provider;
     {% for property in interface.properties %}
-    connect(m_provider, &ProviderInterfaceType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
     {% if property.type.is_model %}
-    m_{{property}}Model.init(m_provider->{{property}}());
+    connect(m_provider, &ProviderInterfaceType::{{property}}Changed, this, [this]() {
+        m_{{property}}Model.setModelProperty(m_provider->{{property}}());
+    });
+    m_{{property}}Model.setModelProperty(m_provider->{{property}}());
     {% endif %}
+    connect(m_provider, &ProviderInterfaceType::{{property.name}}Changed, this, &{{className}}::{{property.name}}Changed);
     {% endfor %}
 
     {% for event in interface.signals %}

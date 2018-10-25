@@ -558,14 +558,8 @@ public:
     {
         m_size = size;
         m_elementGetter = getter;
-        notifyDataChanged();
     }
 
-    void notifyDataChanged()
-    {
-        m_modified = true;
-        triggerValueChangedSignal();
-    }
 
     int size() const override
     {

@@ -622,11 +622,11 @@ private:
 
 
 template<typename IPCProxyType, typename ModelDataType>
-class IPCProxyModelPropertyHandler
+class IPCProxyModelProperty : public facelift::ModelProperty<ModelDataType>
 {
 
 public:
-    IPCProxyModelPropertyHandler(IPCProxyType &proxy, facelift::Model<ModelDataType> &model) : m_proxy(proxy), m_model(model), m_cache(PREFETCH_ITEM_COUNT*10)
+    IPCProxyModelProperty(IPCProxyType &proxy) : m_proxy(proxy), m_cache(PREFETCH_ITEM_COUNT*10)
     {
     }
 
@@ -649,7 +649,7 @@ public:
             for (int i = first; i <= last; ++i) {
                 m_cache.insert(i, list.at(i - first));
             }
-            emit m_model.dataChanged(first, last);
+            emit this->dataChanged(first, last);
         } break;
 
         case ModelUpdateEvent::Insert:
@@ -657,9 +657,9 @@ public:
             int first, last;
             m_proxy.deserializeValue(msg, first);
             m_proxy.deserializeValue(msg, last);
-            emit m_model.beginInsertElements(first, last);
+            emit this->beginInsertElements(first, last);
             clear(); // TODO: insert elements in cache without clear()
-            emit m_model.endInsertElements();
+            emit this->endInsertElements();
         } break;
 
         case ModelUpdateEvent::Remove:
@@ -667,16 +667,16 @@ public:
             int first, last;
             m_proxy.deserializeValue(msg, first);
             m_proxy.deserializeValue(msg, last);
-            emit m_model.beginRemoveElements(first, last);
+            emit this->beginRemoveElements(first, last);
             m_cache.clear(); // TODO: remove elements from cache without clear()
-            emit m_model.endRemoveElements();
+            emit this->endRemoveElements();
         } break;
 
         case ModelUpdateEvent::Reset:
         {
-            emit m_model.beginResetModel();
+            emit this->beginResetModel();
             clear();
-            emit m_model.endResetModel();
+            emit this->endResetModel();
         } break;
 
         }
@@ -699,7 +699,7 @@ public:
             if (m_proxy.isSynchronous()) {
 
                 int first = row > PREFETCH_ITEM_COUNT ? row - PREFETCH_ITEM_COUNT : 0;
-                int last = row < m_model.size() - PREFETCH_ITEM_COUNT ? row + PREFETCH_ITEM_COUNT : m_model.size() - 1;
+                int last = row < this->size() - PREFETCH_ITEM_COUNT ? row + PREFETCH_ITEM_COUNT : this->size() - 1;
 
                 while (m_cache.exists(first) && first < last) {
                     ++first;
@@ -726,7 +726,7 @@ public:
         }
 
         // Prefetch next items
-        int nextIndex = std::min(m_model.size(), row + PREFETCH_ITEM_COUNT);
+        int nextIndex = std::min(this->size(), row + PREFETCH_ITEM_COUNT);
         if (!m_cache.exists(nextIndex) && !m_itemsRequestedFromServer.contains(nextIndex)) {
             requestItemsAsync(requestMemberID, nextIndex);
         }
@@ -748,12 +748,12 @@ public:
 
         // Find the first index which we should request, given what we already have in our cache
         int first = std::max(0, index - PREFETCH_ITEM_COUNT);
-        while ((m_cache.exists(first) || m_itemsRequestedFromServer.contains(first)) && (first < m_model.size())) {
+        while ((m_cache.exists(first) || m_itemsRequestedFromServer.contains(first)) && (first < this->size())) {
             ++first;
         }
 
-        if ((first - index < PREFETCH_ITEM_COUNT) && (first != m_model.size())) {  // We don't request anything if the first index is outside the window
-            int last = std::min(first + PREFETCH_ITEM_COUNT * 2, m_model.size() - 1);   // We query at least
+        if ((first - index < PREFETCH_ITEM_COUNT) && (first != this->size())) {  // We don't request anything if the first index is outside the window
+            int last = std::min(first + PREFETCH_ITEM_COUNT * 2, this->size() - 1);   // We query at least
 
             // Do not request the items from the end of the window, which we already have in our cache
             while ((m_cache.exists(last) || m_itemsRequestedFromServer.contains(last)) && (last >= first)) {
@@ -768,7 +768,7 @@ public:
                         if (!((m_cache.exists(i)) && (newItem == m_cache.get(i)))) {
                             m_cache.insert(i, newItem);
                             if (m_itemsRequestedLocally.contains(i)) {
-                                m_model.dataChanged(i);
+                                this->dataChanged(i);
                                 m_itemsRequestedLocally.removeAll(i);
                             }
                         }
@@ -786,7 +786,6 @@ private:
     static constexpr int PREFETCH_ITEM_COUNT = 12;        // fetch 25 items around requested one
 
     IPCProxyType &m_proxy;
-    facelift::Model<ModelDataType> &m_model;
     facelift::MostRecentlyUsedCache<int, ModelDataType> m_cache;
     QList<int> m_itemsRequestedFromServer;
     QList<int> m_itemsRequestedLocally;

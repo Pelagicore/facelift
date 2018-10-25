@@ -34,4 +34,10 @@ namespace facelift {
 
 const QJSValue QMLFrontendBase::NO_OPERATION_JS_CALLBACK = QJSValue(QJSValue::SpecialValue::UndefinedValue);
 
+ModelListModelBase::ModelListModelBase() {
+    QObject::connect(this, &QAbstractItemModel::rowsInserted, this, &ModelListModelBase::countChanged);
+    QObject::connect(this, &QAbstractItemModel::rowsRemoved, this, &ModelListModelBase::countChanged);
+    QObject::connect(this, &QAbstractItemModel::modelReset, this, &ModelListModelBase::countChanged);
+}
+
 }

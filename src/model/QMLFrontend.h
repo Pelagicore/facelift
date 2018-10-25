@@ -262,8 +262,11 @@ public:
 
     Q_SIGNAL void countChanged();
 
-    void init(facelift::ModelBase &property)
+    ModelListModelBase();
+
+    void setModelProperty(facelift::ModelBase &property)
     {
+        beginResetModel();
         m_property = &property;
         QObject::connect(m_property, &facelift::ModelBase::beginInsertElements, this, &ModelListModelBase::onBeginInsertElements);
         QObject::connect(m_property, &facelift::ModelBase::endInsertElements, this, &ModelListModelBase::onEndInsertElements);
@@ -274,9 +277,7 @@ public:
         QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
                 &ModelListModelBase::onDataChanged);
 
-        QObject::connect(this, &QAbstractItemModel::rowsInserted, this, &ModelListModelBase::countChanged);
-        QObject::connect(this, &QAbstractItemModel::rowsRemoved, this, &ModelListModelBase::countChanged);
-        QObject::connect(this, &QAbstractItemModel::modelReset, this, &ModelListModelBase::countChanged);
+        endResetModel();
     }
 
     void onBeginResetModel()
@@ -349,10 +350,12 @@ public:
         return QVariant::fromValue(element);
     }
 
-    void init(facelift::Model<ElementType> &property)
+    void setModelProperty(facelift::Model<ElementType> &property)
     {
-        ModelListModelBase::init(property);
-        m_property = &property;
+        if (m_property != &property) {
+            m_property = &property;
+            ModelListModelBase::setModelProperty(property);
+        }
     }
 
 private:
