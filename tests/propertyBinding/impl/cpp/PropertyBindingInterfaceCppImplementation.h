@@ -40,10 +40,10 @@ public:
 
         m_intProperty1.bind([this]() {
             return  m_intProperty2;
-        }).addTrigger(this,&PropertyBindingInterfaceTestPropertyAdapter::intProperty2Changed);
+        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::intProperty2Changed);
 
         m_comboStr1.bind([this]() {
             return m_comboStr2;
-        }).addTrigger(this,&PropertyBindingInterfaceTestPropertyAdapter::comboStr2Changed);
+        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::comboStr2Changed);
     }
 };
