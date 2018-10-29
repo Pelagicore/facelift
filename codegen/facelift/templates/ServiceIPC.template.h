@@ -318,7 +318,7 @@ public:
     {
         return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
     }
-    {{property.interfaceCppType}} m_{{property.name}};
+    {{property.interfaceCppType}} m_{{property.name}} = {};
 
     {% endif %}
     {% endfor %}

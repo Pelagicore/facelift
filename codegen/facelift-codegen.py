@@ -322,7 +322,6 @@ def run_generation(input, output, dependency, libraryName):
                 ctx.update({'interfaceName': interface.name + interfaceNameSuffix()})
                 generateFile(generator, 'types/{{path}}/{{interface}}Async.h', 'Service.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}Async.cpp', 'Service.template.cpp', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{interface}}AsyncPropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.cpp', 'QMLFrontend.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPC.h', 'ServiceIPC.template.h', ctx, libraryName, "ipc")
