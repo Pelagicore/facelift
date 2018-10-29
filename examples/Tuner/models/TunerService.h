@@ -43,10 +43,10 @@ class TunerService :
 public:
     struct Station
     {
-        int stationId;
+        int stationId = 0;
         QString name;
-        int frequency;
-        bool isInfo;
+        int frequency = 0;
+        bool isInfo = false;
 
         bool operator==(const Station &s) const
         {
