@@ -733,8 +733,8 @@ public:
     virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
     {
         Q_UNUSED(isCompleteSnapshot);
-        Q_ASSERT(m_service);
-        serializeValue(msg, m_service->ready());
+        Q_ASSERT(service());
+        serializeValue(msg, service()->ready());
     }
 
     void doInit(InterfaceBase *service);
@@ -742,11 +742,6 @@ public:
     DBusManager &dbusManager()
     {
         return DBusManager::instance();
-    }
-
-    InterfaceBase *service() const
-    {
-        return m_service;
     }
 
     template<typename Type>
@@ -776,8 +771,6 @@ protected:
 
     QString m_introspectionData;
     QString m_serviceName;
-
-    QPointer<InterfaceBase> m_service;
 
     bool m_alreadyInitialized = false;
 };

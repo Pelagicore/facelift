@@ -160,7 +160,7 @@ DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
 
 void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
 {
-    m_service = service;
+    Q_ASSERT(service);
     if (!m_alreadyInitialized) {
         if (!interfaceName().isEmpty()) {
 
