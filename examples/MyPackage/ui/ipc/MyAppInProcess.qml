@@ -80,7 +80,7 @@ Window {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: myProxy.resetCounter();
+            onClicked: myProxy.resetCounter(0);
         }
     }
 }

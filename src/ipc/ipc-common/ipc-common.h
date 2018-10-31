@@ -408,7 +408,8 @@ public:
 
     bool ready() const override final
     {
-        return (localInterface() != nullptr) ? localInterface()->ready() : m_serviceReady;
+        auto r = (localInterface() != nullptr) ? localInterface()->ready() : m_serviceReady;
+        return r;
     }
 
     void setServiceReady(bool isServiceReady)
@@ -488,7 +489,7 @@ public:
 
 
 private:
-    bool m_serviceReady;
+    bool m_serviceReady = false;
 
 protected:
     QPointer<IPCAdapterType> m_localAdapter;

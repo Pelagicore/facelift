@@ -201,9 +201,9 @@ public:
     }
 
     template<typename Type>
-    bool deserializeOptionalValue(LocalIPCMessage &msg, Type &value)
+    bool deserializeOptionalValue(LocalIPCMessage &msg, Type &value, bool isCompleteSnapshot)
     {
-        M_UNUSED(msg, value);
+        M_UNUSED(msg, value, isCompleteSnapshot);
         return false;
     }
 

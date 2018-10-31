@@ -189,6 +189,10 @@ public:
     {
     }
 
+    ~InputPayLoad() {
+        Q_ASSERT(m_dataStream.atEnd());
+    }
+
     template<typename Type>
     void readNextParameter(Type &v)
     {
@@ -747,12 +751,17 @@ public:
     template<typename Type>
     void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot)
     {
-        if (isCompleteSnapshot || !(previousValue == currentValue)) {
-            msg.outputPayLoad().writeSimple(true);
+        if (isCompleteSnapshot) {
             serializeValue(msg, currentValue);
-            previousValue = currentValue;
-        } else {
-            msg.outputPayLoad().writeSimple(false);
+        }
+        else {
+            if (previousValue == currentValue) {
+                msg.outputPayLoad().writeSimple(false);
+            } else {
+                msg.outputPayLoad().writeSimple(true);
+                serializeValue(msg, currentValue);
+                previousValue = currentValue;
+            }
         }
     }
 
@@ -843,7 +852,7 @@ public:
     {
     }
 
-    virtual void deserializePropertyValues(DBusIPCMessage &msg) = 0;
+    virtual void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) = 0;
     virtual void deserializeSignal(DBusIPCMessage &msg) = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
 
@@ -889,7 +898,7 @@ public:
     void onPropertiesChanged(const QDBusMessage &dbusMessage)
     {
         DBusIPCMessage msg(dbusMessage);
-        m_serviceObject->deserializePropertyValues(msg);
+        m_serviceObject->deserializePropertyValues(msg, false);
     }
 
     Q_SLOT
@@ -897,7 +906,7 @@ public:
     {
         if (!inProcess()) {   // TODO: onSignalTriggered should not be called in-process
             DBusIPCMessage msg(dbusMessage);
-            m_serviceObject->deserializePropertyValues(msg);
+            m_serviceObject->deserializePropertyValues(msg, false);
             m_serviceObject->deserializeSignal(msg);
         }
     }
@@ -912,7 +921,7 @@ public:
 
         auto replyHandler = [this](DBusIPCMessage &replyMessage) {
             if (replyMessage.isReplyMessage()) {
-                m_serviceObject->deserializePropertyValues(replyMessage);
+                m_serviceObject->deserializePropertyValues(replyMessage, true);
                 m_serviceObject->setServiceRegistered(true);
             } else {
                 qDebug() << "Service not yet available : " << objectPath();
@@ -1103,19 +1112,22 @@ public:
     }
 
     template<typename Type>
-    bool deserializeOptionalValue(DBusIPCMessage &msg, Type &value)
+    bool deserializeOptionalValue(DBusIPCMessage &msg, Type &value, bool isCompleteSnapshot)
     {
-        bool b;
-        msg.inputPayLoad().readNextParameter(b);
+        bool b = true;
+        if (!isCompleteSnapshot) {
+            msg.inputPayLoad().readNextParameter(b);
+        }
         if (b) {
             this->deserializeValue(msg, value);
         }
         return b;
     }
 
-    void deserializePropertyValues(DBusIPCMessage &msg) override
+    void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) override
     {
-        bool isReady;
+        Q_UNUSED(isCompleteSnapshot);
+        bool isReady = false;
         deserializeValue(msg, isReady);
         this->setServiceReady(isReady);
     }

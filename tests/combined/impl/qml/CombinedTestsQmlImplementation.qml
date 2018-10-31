@@ -96,7 +96,6 @@ CombinedInterfaceQMLImplementation {
 
 
     initialize: function() {
-        boolProperty = true;
         enumProperty = CombiEnum.E2;
         writableEnumProperty = CombiEnum.E3;
         intProperty = 17;
@@ -121,6 +120,7 @@ CombinedInterfaceQMLImplementation {
 
         enumMapProperty = { one: CombiEnum.E1, two: CombiEnum.E2 };
         intMapProperty = { one: 1, two: 2 };
+        boolProperty = true;
     }
 
     emitSignals: function() {

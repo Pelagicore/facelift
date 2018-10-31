@@ -99,16 +99,7 @@ public:
         setObjectPath(IPC_SINGLETON_OBJECT_PATH);
     }
 
-    void setService(QObject *srvc) override
-    {
-        BaseType::setService(srvc);
-
-        {% for property in interface.properties %}
-        {% if property.type.is_model %}
-        m_{{property.name}}Handler.connectModel(SignalID::{{property.name}}, service()->{{property.name}}());
-        {% endif %}
-        {% endfor %}
-    }
+    void setService(QObject *srvc) override;
 
     void appendDBUSIntrospectionData(QTextStream &s) const override;
 
@@ -134,7 +125,6 @@ public:
         {%- endfor -%}  );
     }
     {% endfor %}
-
 
 private:
     {% for property in interface.properties %}
@@ -189,7 +179,7 @@ public:
         {% endif %}
     }
 
-    void deserializePropertyValues(facelift::IPCMessage &msg) override;
+    void deserializePropertyValues(facelift::IPCMessage &msg, bool isCompleteSnapshot) override;
 
     {% if interface.hasModelProperty %}
     void setServiceRegistered(bool isRegistered) override

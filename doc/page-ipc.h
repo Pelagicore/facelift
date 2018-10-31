@@ -20,15 +20,29 @@
 
 \section ipc-sec1 Introduction
 
-Facelift provides interprocess communication (IPC) that allows to synchronize objects between
-processes. In this context one process acts as a server (usually the System-UI) and the other as a
-client (an application). The server side is where the interface is implemented and on the client
-side an exact replica is provided.
+Facelift provides an interprocess communication (IPC) layer which enables objects to interact with each-other across
+process boundaries. A typical scenario involves a process which registers a server object, and another process acting
+as a client of that server.
+The communication over process boundaries currently relies on DBus.
 
-Facelift also abstracts away the difference between in- and out-of-process
-communication. Communication over process boundaries relies on DBus. However, should the client and
-server live in the same process after all, direct calls will be made. This is done transparently
-for the user.
+\section ipc-objectregistry Server object registry
+Server objects are identified by an object path, which needs to be a valid DBus object path (https://dbus.freedesktop.org/doc/dbus-tutorial.html#objects),
+since there is a direct mapping to DBus. Facelift uses a central system-wide registry, which contains entries for all Facelift
+server objects registered in the system. The process maintaining the object registry is the first process which either registers
+a server object, or creates a proxy object. Given an object path, the object registry can be used by clients to identify the process which
+has registered a server under that object path, in order to establish a connection.
+
+\section ipc-secsas Synchronous vs Asynchronous communication
+
+Facelift provides 2 different ways for a client to interact with a server: using synchronous communication (blocking calls) and
+using asynchronous communication (non-blocking calls).
+The benefit of using synchronous communication is that the client interacts with the server in the same way as if the server was a local
+object (registered in the same process as the client). The main drawback of that approach is that the client may be blocked for a long time
+in case the server process is not responsive and it can even lead to deadlocks if the server process is also performing a blocking call to
+the client process. If the server process is guaranteed to never perform any blocking call and to be responsive, using blocking calls might
+be acceptable.
+Using asynchronous communication is a way to avoid deadlocks and responsiveness issues, but it is likely to produce a more complex code on the
+client side.
 
 \section ipc-sec2 Server Side
 
@@ -45,11 +59,11 @@ an attached property called \c IPC:
         IPC.enabled: true
         IPC.objectPath: "/my/object/path"
 \endcode
-Obviously \c IPC.enabled: \c true will enable IPC for this object. The \c IPC.objectPath is
-optional and in case there is only a single object of this type present on the server side not
-needed. Otherwise, it can be used to differentiate between several objects of the same type.
+Obviously, \c IPC.enabled: \c true will register this object on the IPC. The \c IPC.objectPath is
+optional and in case there is only a single object of this type registered on the system, the default value
+should be enough. Otherwise, it can be used to differentiate between several objects of the same type.
 
-\section ipc-sec3 Client Side
+\section ipc-client-sync Client side using synchronous proxy
 
 On the client side the replica, which is called \c MyInterfaceIPCProxy in our case is used in the
 frontend (UI) QML code. It has the same API as the \c MyInterfaceImplementation on the
@@ -60,13 +74,22 @@ server side with an additional property \c ipc:
 The object path given in \c ipc.objectPath must match the one specified on the server side. The
 default value is sufficient if the service is a singleton.
 
+
+\section ipc-client-async Client side using asynchronous proxy
+
+Asynchronous proxy objects provide a similar interface compared to the synchronous proxies, but the methods
+take an additional callback function argument. This function is called when the method execution has been reported by the
+server.
+
+\snippet MyAppAsyncIPCClient.qml indoc
+
 \section ipc-sec4 Execution
 
 The server can be started on the command line in the build folder with:
 \code
 examples/launch-mypackage-ipcserver.sh
 \endcode
-and the client with:
+and the synchronous client with:
 \code
 examples/launch-mypackage-ipcclient.sh
 \endcode

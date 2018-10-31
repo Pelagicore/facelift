@@ -29,38 +29,33 @@
 **********************************************************************/
 
 //! [indoc]
-#pragma once
+import QtQuick 2.4
+import QtQuick.Window 2.2
+import facelift.example.mypackage 1.0
 
-#include "facelift/example/mypackage/MyInterfacePropertyAdapter.h"
+Window {
+    width: 160
+    height: 120
+    color: "wheat"
+    title: "Client"
 
-
-using namespace facelift::example::mypackage;
-
-/**
- * C++ Implementation of the MyInterface API
- */
-class MyInterfaceCppImplementation : public MyInterfacePropertyAdapter
-{
-
-public:
-    MyInterfaceCppImplementation(QObject *parent = nullptr) : MyInterfacePropertyAdapter(parent)
-    {
-        connect(&m_timer, &QTimer::timeout, this, [this] () {
-            m_counter++;   // The value change signal is automatically triggered for you here
-        });
-        m_timer.start(3000);
+    MyInterfaceAsyncIPCProxy {
+        id: myInterface
+        ipc.objectPath: "/my/object/path"
+        onCounterReset: console.log("Client: the counter has been reset")
+        onCounterChanged: console.log("Client: counter changed: " + counter)
     }
 
-    void resetCounter(int delay) override
-    {
-        QTimer::singleShot(delay, [this]() mutable {
-            m_counter = 0;   // This assignment triggers the corresponding "value changed" signal.
-            counterReset();
-        });
+    Text {
+        anchors.centerIn: parent
+        text: myInterface.ready ? myInterface.counter : "Not ready"
     }
 
-private:
-    QTimer m_timer;
-
-};
+    MouseArea {
+        anchors.fill: parent
+        onClicked: myInterface.resetCounter(100, function() {
+            print("resetCounterAsync completed");
+        });
+    }
+}
 //! [indoc]
