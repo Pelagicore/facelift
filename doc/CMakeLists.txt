@@ -18,14 +18,14 @@ macro(add_doxygen_doc packageName rootPath sourceCodePath examplesPath)
 	configure_file(doxygen.cfg.in ${CMAKE_CURRENT_BINARY_DIR}/doxygen.cfg)
 
 	if(DOXYGEN_FOUND)
-	
+
 		# add doxygen as target
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen COMMAND ${DOXYGEN_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.cfg)
-		
+
 		# cleanup $build/doc/doxygen on "make clean"
 		set_property(DIRECTORY APPEND PROPERTY
 			     ADDITIONAL_MAKE_CLEAN_FILES doxygen)
-		
+
 	endif()
 
 	if(INSTALL_DOC)

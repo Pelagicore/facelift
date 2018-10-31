@@ -49,9 +49,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: myInterface.resetCounterAsync(function(i) {
-            print("resetCounterAsync completed with value" + i);
-        });
+        onClicked: myInterface.resetCounter(1000);
     }
 
     Text {

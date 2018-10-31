@@ -53,7 +53,7 @@ Window {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: myInterface.resetCounter();
+        onClicked: myInterface.resetCounter(200);
     }
 
 }

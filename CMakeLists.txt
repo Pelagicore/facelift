@@ -21,7 +21,7 @@ option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" ON)
 option(FACELIFT_BUILD_TESTS "Enable build of tests" OFF)
-option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" ${DEBUG_BUILD})
+option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" OFF)
 
 if (FACELIFT_ENABLE_DBUS_IPC AND FACELIFT_DISABLE_DBUS_IPC)
     message(FATAL_ERROR "DBus IPC cannot be enabled and disabled at the same time.")

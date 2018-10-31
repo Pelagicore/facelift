@@ -147,6 +147,24 @@ void {{interfaceName}}IPCAdapter::appendDBUSIntrospectionData(QTextStream &s) co
 }
 
 
+void {{interfaceName}}IPCAdapter::setService(QObject *srvc)
+{
+    BaseType::setService(srvc);
+
+    auto theService = service();
+    Q_UNUSED(theService);
+
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    m_{{property.name}}Handler.connectModel(SignalID::{{property.name}}, theService->{{property.name}}());
+    {% elif property.type.is_interface %}
+    {% else %}
+    m_previous{{property.name}} = theService->{{property.name}}();
+    {% endif %}
+    {% endfor %}
+}
+
+
 void {{interfaceName}}IPCAdapter::connectSignals()
 {
     auto theService = service();
@@ -185,7 +203,9 @@ void {{interfaceName}}IPCAdapter::serializePropertyValues(facelift::IPCMessage& 
     serializeOptionalValue(msg, m_{{property.name}}.objectPath(), m_previous{{property.name}}ObjectPath, isCompleteSnapshot);
 
     {% elif property.type.is_model %}
-    serializeOptionalValue(msg, theService->{{property.name}}().size(), isCompleteSnapshot);
+    if (isCompleteSnapshot) {
+        serializeValue(msg, theService->{{property.name}}().size());
+    }
     {% else %}
     serializeOptionalValue(msg, theService->{{property.name}}(), m_previous{{property.name}}, isCompleteSnapshot);
     {% endif %}
@@ -195,28 +215,29 @@ void {{interfaceName}}IPCAdapter::serializePropertyValues(facelift::IPCMessage& 
 }
 
 
-void {{interfaceName}}IPCProxy::deserializePropertyValues(facelift::IPCMessage &msg)
+void {{interfaceName}}IPCProxy::deserializePropertyValues(facelift::IPCMessage &msg, bool isCompleteSnapshot)
 {
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
     QString {{property.name}}_objectPath;
-    if (deserializeOptionalValue(msg, {{property.name}}_objectPath))
+    if (deserializeOptionalValue(msg, {{property.name}}_objectPath, isCompleteSnapshot))
     {
         m_{{property.name}}Proxy.update({{property.name}}_objectPath);
         m_{{property.name}} = m_{{property.name}}Proxy.getValue();
     }
     {% elif property.type.is_model %}
-    int {{property.name}}Size;
-    if (deserializeOptionalValue(msg, {{property.name}}Size)) {
+    if (isCompleteSnapshot) {
+        int {{property.name}}Size;
+        deserializeValue(msg, {{property.name}}Size);
         m_{{property.name}}.beginResetModel();
         m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
         m_{{property.name}}.endResetModel();
     }
     {% else %}
-    deserializeOptionalValue(msg, m_{{property.name}});
+    deserializeOptionalValue(msg, m_{{property.name}}, isCompleteSnapshot);
     {% endif %}
     {% endfor %}
-    BaseType::deserializePropertyValues(msg);
+    BaseType::deserializePropertyValues(msg, isCompleteSnapshot);
 }
 
 void {{interfaceName}}IPCProxy::emitChangeSignals() {
