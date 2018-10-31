@@ -27,23 +27,42 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-#include "PropertyBindingPlugin.h"
-#include "tests/propertybinding/Module.h"
-#include "impl/cpp/PropertyBindingInterfaceCppImplementation.h"
 
-#if defined(QML_IMPL_LOCATION)
-#include "tests/propertybinding/PropertyBindingInterfaceTestQMLImplementation.h"
-#endif
+import QtQuick 2.0
+import tests.propertybinding 1.0
 
-using namespace tests::propertybinding;
+PropertyBindingInterfaceQMLImplementation {
+    id: root
+    Component.onCompleted: console.log("QML implementation is used.");
 
-void PropertyBindingPlugin::registerTypes(const char *uri)
-{
-    Module::registerQmlTypes(uri);
+    comboStr1 :cmb
 
-#if defined(QML_IMPL_LOCATION)
-    facelift::registerQmlComponent<PropertyBindingInterfaceTestQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)"/impl/qml/PropertyBindingInterfaceQmlImplementation.qml",                                                                                 "PropertyBindingInterfaceTestAPI");
-#else
-    facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceTestAPI");
-#endif
+    ComboStructure {
+        id: cmb
+        iData: 100
+        sData: "binding"
+        bData : true
+    }
+
+    setComboStr1 : function( data )
+    {
+        comboStr1 = data
+    }
+
+    setComboStr2 : function( data)
+    {
+        comboStr2 = data
+        // testing binding
+        cmb = data
+    }
+
+    setIntProperty1 : function ( i )
+    {
+        intProperty1 = i
+    }
+
+    setIntProperty2 : function ( i )
+    {
+        intProperty2 = i
+    }
 }

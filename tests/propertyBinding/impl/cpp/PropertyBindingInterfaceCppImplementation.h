@@ -27,23 +27,23 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-#include "PropertyBindingPlugin.h"
-#include "tests/propertybinding/Module.h"
-#include "impl/cpp/PropertyBindingInterfaceCppImplementation.h"
 
-#if defined(QML_IMPL_LOCATION)
-#include "tests/propertybinding/PropertyBindingInterfaceTestQMLImplementation.h"
-#endif
+#pragma once
+#include "tests/propertybinding/PropertyBindingInterfaceTestPropertyAdapter.h"
 
 using namespace tests::propertybinding;
 
-void PropertyBindingPlugin::registerTypes(const char *uri)
+class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceTestPropertyAdapter
 {
-    Module::registerQmlTypes(uri);
+public:
+    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr): PropertyBindingInterfaceTestPropertyAdapter(parent) {
 
-#if defined(QML_IMPL_LOCATION)
-    facelift::registerQmlComponent<PropertyBindingInterfaceTestQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)"/impl/qml/PropertyBindingInterfaceQmlImplementation.qml",                                                                                 "PropertyBindingInterfaceTestAPI");
-#else
-    facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceTestAPI");
-#endif
-}
+        m_intProperty1.bind([this]() {
+            return  m_intProperty2;
+        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::intProperty2Changed);
+
+        m_comboStr1.bind([this]() {
+            return m_comboStr2;
+        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::comboStr2Changed);
+    }
+};
