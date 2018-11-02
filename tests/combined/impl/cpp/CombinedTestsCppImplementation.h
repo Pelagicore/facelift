@@ -66,7 +66,6 @@ public:
 
     void initialize() override
     {
-        m_boolProperty = true;
         m_enumProperty = CombiEnum::E2;
         m_writableEnumProperty = CombiEnum::E3;
         m_intProperty = 17;
@@ -94,6 +93,7 @@ public:
         m_intMapProperty = QMap<QString, int> { { "one", 1 }, { "two", 2 } };
 
         m_readyProperty = 42;
+        m_boolProperty = true;
     }
 
     void emitSignals() override
