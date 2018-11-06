@@ -39,6 +39,14 @@
 
 #include <QMLModel.h>
 
+{% for struct in module.structs %}
+#include "{{struct.fullyQualifiedPath}}.h"
+{% endfor %}
+
+{% for enum in module.enums %}
+#include "{{enum.fullyQualifiedPath}}.h"
+{% endfor %}
+
 {% for interface in module.interfaces %}
 #include "{{interface.fullyQualifiedPath}}QMLImplementation.h"
 #include "{{interface.fullyQualifiedPath}}QMLFrontend.h"

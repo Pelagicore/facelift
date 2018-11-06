@@ -44,9 +44,6 @@
 
 {{classExportDefines}}
 
-#include <QtCore>
-#include <QQmlEngine>
-
 #include "QMLFrontend.h"
 #include "{{interfaceName}}.h"
 

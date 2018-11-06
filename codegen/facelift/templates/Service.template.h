@@ -40,7 +40,6 @@
 
 {{classExportDefines}}
 
-#include <QtCore>
 #include "FaceliftModel.h"
 
 // Dependencies

@@ -38,8 +38,6 @@
 
 {{classExportDefines}}
 
-#include <QObject>
-#include <QAbstractListModel>
 #include <QTextStream>
 
 #include "FaceliftModel.h"

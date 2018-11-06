@@ -66,12 +66,6 @@ using {{enum}} = {{enum}}Gadget::Type;
 
 Q_DECLARE_METATYPE({{enum.fullyQualifiedCppType}}Gadget::Type)
 
-/*
-template <> inline QVariant toVariant(const {{enum.fullyQualifiedCppType}}& v) {
-    return static_cast<int>(v);
-}
-*/
-
 
 namespace facelift {
 
