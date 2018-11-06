@@ -35,12 +35,9 @@
 
 #pragma once
 
-{{classExportDefines}}
+#include <QtCore/qglobal.h>
 
-{% for interface in module.interfaces %}
-#include "{{interface.fullyQualifiedPath}}IPC.h"
-#include "{{interface.fullyQualifiedPath}}AsyncIPC.h"
-{% endfor %}
+{{classExportDefines}}
 
 {{module.namespaceCppOpen}}
 
