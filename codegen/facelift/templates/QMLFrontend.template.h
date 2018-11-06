@@ -93,7 +93,7 @@ public:
 
     {{className}}(QQmlEngine* engine);
 
-    void init({{interfaceName}}& provider);
+    void connectProvider({{interfaceName}}& provider);
 
     {% if hasReadyFlags %}
 

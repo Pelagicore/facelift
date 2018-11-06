@@ -82,9 +82,9 @@
 {
 }
 
-void {{className}}::init({{interfaceName}}& provider)
+void {{className}}::connectProvider({{interfaceName}}& provider)
 {
-    facelift::QMLFrontendBase::setProvider(provider);
+    facelift::QMLFrontendBase::connectProvider(provider);
     m_provider = &provider;
     {% for property in interface.properties %}
     {% if property.type.is_model %}
