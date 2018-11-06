@@ -44,6 +44,17 @@ be acceptable.
 Using asynchronous communication is a way to avoid deadlocks and responsiveness issues, but it is likely to produce a more complex code on the
 client side.
 
+\subsection ipc-sync-diff Differences between synchronous and asynchronous IPC proxy classes
+
+The API and behavior of synchronous and asynchronous proxies are similar, but they differ in the following way:
+ - Once a synchronous proxy is requested to connect to the server, it immediately tries to establish the connection to the server and, if successful, it
+ fetches the property values and can be used immediately. On the other hand, an asynchronous proxy fetches the values of the server in an asynchronous
+ way, which means its initial state is always "not ready" and will switch to "ready" only later, once the property values have been fetched successfully.
+ - Methods (as defined in the QFace definition) of asynchronous proxies always return "void" but they take an additional "callback function" argument. This
+ function is called with the method's return value when the method execution is completed on the server. Note that a QFace method marked with "@async" will
+ produce the same method signature in both the synchronous and the asynchronous proxies. In other words, an asynchronous proxy is similar to a synchronous
+ proxy where all QFace methods are marked "@async".
+
 \section ipc-sec2 Server Side
 
 Let's have a second look at the \ref MyAppExample and see how this simple interface can be used
@@ -89,9 +100,12 @@ The server can be started on the command line in the build folder with:
 \code
 examples/launch-mypackage-ipcserver.sh
 \endcode
-and the synchronous client with:
+the synchronous client with:
 \code
 examples/launch-mypackage-ipcclient.sh
+the asynchronous client with:
+\code
+examples/launch-mypackage-ipcclient-async.sh
 \endcode
 Note how the counter variable increases synchronously in the server and client. Also resetting the
 counter by a click on the client window will reset it on the server side, as well.

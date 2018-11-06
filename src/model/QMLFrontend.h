@@ -131,7 +131,7 @@ protected:
         }
     }
 
-    void setProvider(InterfaceBase &provider)
+    void connectProvider(InterfaceBase &provider)
     {
         m_provider = &provider;
         connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
@@ -156,21 +156,15 @@ private:
  * It is an actual instance of the QMLFrontendType and wraps an instance of the provider
  */
 template<typename ProviderImplementationType>
-class TQMLFrontend : public ProviderImplementationType::QMLFrontendType
+class QMLFrontendByReference : public ProviderImplementationType::QMLFrontendType
 {
 
 public:
-    TQMLFrontend(QObject *parent = nullptr) : ProviderImplementationType::QMLFrontendType(parent)
+    QMLFrontendByReference(ProviderImplementationType& provider, QObject *parent = nullptr) : ProviderImplementationType::QMLFrontendType(parent), m_provider(provider)
     {
-        this->init(m_provider);
     }
 
-    TQMLFrontend(QQmlEngine *engine) : ProviderImplementationType::QMLFrontendType(engine)
-    {
-        this->init(m_provider);
-    }
-
-    virtual ~TQMLFrontend()
+    QMLFrontendByReference(ProviderImplementationType& provider, QQmlEngine *engine) : ProviderImplementationType::QMLFrontendType(engine), m_provider(provider)
     {
     }
 
@@ -185,6 +179,30 @@ public:
         m_provider.setComponentCompleted();
     }
 
+    void connectProvider() {
+        ProviderImplementationType::QMLFrontendType::connectProvider(m_provider);
+    }
+
+private:
+    ProviderImplementationType& m_provider;
+
+};
+
+template<typename ProviderImplementationType>
+class TQMLFrontend : public QMLFrontendByReference<ProviderImplementationType> {
+
+public:
+
+    TQMLFrontend(QObject *parent = nullptr) : QMLFrontendByReference<ProviderImplementationType>(m_provider, parent)
+    {
+        this->connectProvider();
+    }
+
+    TQMLFrontend(QQmlEngine *engine) : QMLFrontendByReference<ProviderImplementationType>(m_provider, engine)
+    {
+        this->connectProvider();
+    }
+
 private:
     ProviderImplementationType m_provider;
 
@@ -197,6 +215,19 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
     Q_UNUSED(scriptEngine);
     Q_UNUSED(engine);
     auto obj = new Type(engine);
+    obj->componentComplete();
+    qDebug() << "Singleton created" << obj;
+    return obj;
+}
+
+
+template<typename ProviderType, ProviderType& (*getter)()>
+QObject *singletonGetterByFunction(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(scriptEngine);
+    Q_UNUSED(engine);
+    auto obj = new QMLFrontendByReference<ProviderType>(getter());
+    obj->connectProvider();
     obj->componentComplete();
     qDebug() << "Singleton created" << obj;
     return obj;
@@ -219,7 +250,7 @@ int registerQmlComponent(const char *uri, const char *name = ProviderType::INTER
 
 
 /*!
- * Register the given interface QML implementation as a creatable QML component.
+ * Register the given implementation type as a singleton QML component.
  * By default, the component is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>
@@ -234,6 +265,22 @@ int registerSingletonQmlComponent(const char *uri, const char *name = ProviderTy
 }
 
 
+/*!
+ * Register the given implementation type as a singleton QML component, with the given getter function.
+ * By default, the component is registered under the same name as defined in the QFace definition.
+ */
+template<typename ProviderType, ProviderType& (*singletonGetterFunction)()>
+int registerSingletonQmlComponent(const char *uri,
+        const char *name = ProviderType::INTERFACE_NAME,
+        int majorVersion = ProviderType::VERSION_MAJOR,
+        int minorVersion = ProviderType::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
+{
+    ProviderType::registerTypes(uri);
+    typedef QMLFrontendByReference<ProviderType> QMLType;
+    return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetterByFunction<ProviderType, singletonGetterFunction>);
+}
+
 
 template<typename ProviderType>
 typename ProviderType::QMLFrontendType *getQMLFrontend(ProviderType *provider)
@@ -244,7 +291,7 @@ typename ProviderType::QMLFrontendType *getQMLFrontend(ProviderType *provider)
         if (provider->m_qmlFrontend == nullptr) {
             // No QML frontend instantiated yet => create one
             provider->m_qmlFrontend = new typename ProviderType::QMLFrontendType(provider);
-            provider->m_qmlFrontend->init(*provider);
+            provider->m_qmlFrontend->connectProvider(*provider);
         }
         return provider->m_qmlFrontend;
     }
