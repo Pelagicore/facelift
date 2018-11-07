@@ -1,0 +1,148 @@
+{#*********************************************************************
+**
+** Copyright (C) 2018 Luxoft Sweden AB
+**
+** This file is part of the FaceLift project
+**
+** Permission is hereby granted, free of charge, to any person
+** obtaining a copy of this software and associated documentation files
+** (the "Software"), to deal in the Software without restriction,
+** including without limitation the rights to use, copy, modify, merge,
+** publish, distribute, sublicense, and/or sell copies of the Software,
+** and to permit persons to whom the Software is furnished to do so,
+** subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be
+** included in all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+** NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+** ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+** CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+** SOFTWARE.
+**
+** SPDX-License-Identifier: MIT
+**
+*********************************************************************#}
+
+/****************************************************************************
+** This is an auto-generated file.
+** Do not edit! All changes made to it will be lost.
+****************************************************************************/
+
+#pragma once
+
+{{classExportDefines}}
+
+#include "facelift-ipc.h"
+#include "FaceliftUtils.h"
+
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
+
+//// Sub interfaces
+{% for property in interface.referencedInterfaceTypes %}
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCAdapter.h"
+{% endfor %}
+
+{{module.namespaceCppOpen}}
+
+
+class {{interfaceName}}IPCQMLFrontendType;
+
+
+class {{classExport}} {{interfaceName}}IPCAdapter: public ::facelift::IPCServiceAdapter<{{interfaceName}}>
+{
+    Q_OBJECT
+
+public:
+
+    enum class MethodID {
+        {% for operation in interface.operations %}
+        {{operation.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {% if (not property.readonly) %}
+        set{{property.name}},
+        {% endif %}
+        {% if (property.type.is_model) %}
+        {{property.name}},  // model
+        {% endif %}
+        {% endfor %}
+    };
+
+    enum class SignalID {
+        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
+        {% for signal in interface.signals %}
+        {{signal.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {{property.name}},
+        {% endfor %}
+    };
+
+    using ServiceType = {{interfaceName}};
+    using BaseType = ::facelift::IPCServiceAdapter<{{interfaceName}}>;
+    using ThisType = {{interfaceName}}IPCAdapter;
+    using IPCProxyType = {{interfaceName}}IPCProxy;
+
+    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface.qualified_name|lower|replace(".","/")}}";
+
+    {{interfaceName}}IPCAdapter(QObject* parent = nullptr) : BaseType(parent)
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+        , m_{{property.name}}Handler(*this)
+    {% endif %}
+    {% endfor %}
+    {
+        setObjectPath(IPC_SINGLETON_OBJECT_PATH);
+    }
+
+    void setService(QObject *srvc) override;
+
+    void appendDBUSIntrospectionData(QTextStream &s) const override;
+
+    ::facelift::IPCHandlingResult handleMethodCallMessage(facelift::IPCMessage &requestMessage,
+                                                        facelift::IPCMessage &replyMessage) override;
+
+
+    void connectSignals() override;
+
+    void serializePropertyValues(::facelift::IPCMessage& msg, bool isCompleteSnapshot) override;
+
+    {% for event in interface.signals %}
+
+    void {{event}}(
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in event.parameters -%}
+        {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
+    {%- endfor -%}  )
+    {
+        sendSignal(SignalID::{{event}}
+        {%- for parameter in event.parameters -%}
+            , {{parameter.name}}
+        {%- endfor -%}  );
+    }
+    {% endfor %}
+
+private:
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    ::facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
+    {% elif property.type.is_interface %}
+    QString m_previous{{property.name}}ObjectPath;
+    {% else %}
+    {{property.interfaceCppType}} m_previous{{property.name}};
+    {% endif %}
+    {% if property.type.is_interface %}
+    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCAdapter> m_{{property.name}};
+    {% endif %}
+    {% endfor %}
+
+};
+
+
+{{module.namespaceCppClose}}
