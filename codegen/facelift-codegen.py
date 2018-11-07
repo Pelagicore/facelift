@@ -147,19 +147,42 @@ def requiredIncludeFromType(symbol, suffix):
     else:
         return ""
 
-def requiredQMLInclude(self):
-    type = self.nested if self.nested else self
-    if type.is_primitive or type.is_struct or type.is_enum:
-        return ""
-    else:
-        return requiredIncludeFromType(type, "QMLFrontend.h")
+def insertUniqueType(symbol, list):
+    type = symbol.type.nested if symbol.type.nested else symbol.type
+    for t in list:
+        if (t.name == type.name):
+            return
+    list.add(type)
+
+def referencedTypes(self):
+    types = set()
+    for property in self.properties:
+        insertUniqueType(property, types)
+    for operation in self.operations:
+        for param in operation.parameters:
+            insertUniqueType(param, types)
+        if operation.hasReturnValue:
+            insertUniqueType(operation.type, types)
+    for m in self.signals:
+        for param in m.parameters:
+            insertUniqueType(param, types)
+    return types
+
+def appendTypeIfInterface(symbol, list):
+    type = symbol.type.nested if symbol.type.nested else symbol.type
+    if type.is_interface:
+        list.append(type)
 
 def referencedInterfaceTypes(self):
     interfaces = []
     for property in self.properties:
-        type = property.type.nested if property.type.nested else property.type
-        if type.is_interface:
-            interfaces.append(type)
+        appendTypeIfInterface(property, interfaces)
+    for m in self.operations:
+        for param in m.parameters:
+            appendTypeIfInterface(param, interfaces)
+    for m in self.signals:
+        for param in m.parameters:
+            appendTypeIfInterface(param, interfaces)
     return interfaces
 
 def hasQMLIncompatibleParameter(parameters):
@@ -231,7 +254,6 @@ setattr(qface.idl.domain.Property, 'nestedType', property(nestedType))
 
 setattr(qface.idl.domain.TypeSymbol, 'requiredInclude', property(requiredInclude))
 setattr(qface.idl.domain.TypeSymbol, 'qmlCompatibleType', property(qmlCompatibleType))
-setattr(qface.idl.domain.TypeSymbol, 'requiredQMLInclude', property(requiredQMLInclude))
 
 setattr(qface.idl.domain.TypeSymbol, 'fullyQualifiedPath', property(fullyQualifiedPath))
 setattr(qface.idl.domain.Interface, 'fullyQualifiedPath', property(fullyQualifiedPath))
@@ -246,6 +268,7 @@ setattr(qface.idl.domain.Module, 'fullyQualifiedCppType', property(fullyQualifie
 setattr(qface.idl.domain.Interface, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
 
 setattr(qface.idl.domain.Interface, 'referencedInterfaceTypes', property(referencedInterfaceTypes))
+setattr(qface.idl.domain.Interface, 'referencedTypes', property(referencedTypes))
 
 setattr(qface.idl.domain.Interface, 'hasPropertyWithReadyFlag', property(hasPropertyWithReadyFlag))
 setattr(qface.idl.domain.Interface, 'hasModelProperty', property(hasModelProperty))
@@ -295,6 +318,7 @@ def run_generation(input, output, dependency, libraryName):
             module_path = '/'.join(module.name_parts)
             log.debug('process module %s' % module.module_name)
             ctx.update({'path': module_path})
+            generateFile(generator, 'module/{{path}}/ModulePrivate.h', 'ModulePrivate.template.h', ctx, libraryName, "types")
             generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "types")
             generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "types")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "ipc")
@@ -331,6 +355,7 @@ def run_generation(input, output, dependency, libraryName):
                 generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "ipc")
                 generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCAdapter.cpp', 'IPCAdapter.template.cpp', ctx, libraryName, "ipc")
                 generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
+                generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
             for enum in module.enums:
                 ctx.update({'enum': enum})
                 generateFile(generator, 'types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx, libraryName, "types")

@@ -39,11 +39,109 @@
 
 {{module.namespaceCppOpen}}
 
+
+const QString {{struct.name}}::CLASS_ID = QStringLiteral("{{struct.qualified_name}}");
+
+{{struct.name}}::{{struct.name}}(){% if struct.fields %} : {% endif %}
+{% for field in struct.fields %}
+
+    m_{{field}}(std::get<{{loop.index-1}}>(m_values)){% if not loop.last %}, {% endif %}
+{% endfor %}
+
+{
+}
+
+{{struct.name}}::{{struct.name}}(const {{struct.name}} &other){% if struct.fields %} : {% endif %}
+{% for field in struct.fields %}
+
+    m_{{field}}(std::get<{{loop.index-1}}>(m_values)){% if not loop.last %}, {% endif %}
+{% endfor %}
+
+{
+    copyFrom(other);
+}
+
+
 const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
     {%- for field in struct.fields -%}
     {{ comma() }}
     "{{field.name}}"
     {%- endfor %}
 } };
+
+
+{{struct.fullyQualifiedCppType}} {{struct.name}}::clone() const
+{
+    {{struct.name}} s;
+    s.setValue(asTuple());
+    return s;
+}
+
+
+{{struct.name}}& {{struct.name}}::operator=(const {{struct.name}} &right)
+{
+    copyFrom(right);
+    return *this;
+}
+
+
+QString {{struct.name}}::toString() const
+{
+    return toStringWithFields(CLASS_ID, FIELD_NAMES);
+}
+
+
+void {{struct.name}}QObjectWrapper::init()
+{
+    {% for field in struct.fields %}
+    m_{{field.name}}.init(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, "{{field.name}}");
+    QObject::connect(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, this, &{{struct.name}}QObjectWrapper::anyFieldChanged);
+    {% endfor %}
+}
+
+
+{{struct.name}} {{struct.name}}QObjectWrapper::gadget() const
+{
+    {{struct.name}} s;
+    {% for field in struct.fields %}
+    s.set{{field.name}}(m_{{field.name}}.value());
+    {% endfor %}
+    s.setId(id());
+    return s;
+}
+
+void {{struct.name}}QObjectWrapper::assignFromGadget(const {{struct.fullyQualifiedCppType}} &gadget)
+{
+    {% for field in struct.fields %}
+    m_{{field.name}} = gadget.{{field.name}}();
+    {% endfor %}
+    m_id = gadget.id();
+}
+
+
+QByteArray {{struct.name}}QObjectWrapper::serialized() const
+{
+    return gadget().serialize();
+}
+
+void {{struct.name}}QObjectWrapper::setSerialized(const QByteArray &array)
+{
+    {{struct.fullyQualifiedCppType}} v;
+    v.deserialize(array);
+    assignFromGadget(v);
+}
+
+
+{{struct.name}}QObjectWrapper::{{struct.name}}QObjectWrapper(QObject* parent) : StructQObjectWrapper(parent)
+{
+    init();
+}
+
+{{struct.name}}QObjectWrapper::{{struct.name}}QObjectWrapper(const {{struct.name}}& value, QObject* parent) : StructQObjectWrapper(parent)
+{
+    assignFromGadget(value);
+    init();
+}
+
 
 {{module.namespaceCppClose}}

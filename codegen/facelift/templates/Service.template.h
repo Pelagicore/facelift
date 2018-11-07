@@ -43,23 +43,8 @@
 #include "FaceliftModel.h"
 
 // Dependencies
-{% for property in interface.properties %}
-{{property.type.requiredInclude}}
-{% endfor %}
-
-{% for operation in interface.operations %}
-{% if operation.hasReturnValue %}
-{{operation.type.requiredInclude}}
-{% endif %}
-{% for parameter in operation.parameters %}
-{{parameter.type.requiredInclude}}
-{% endfor %}
-{% endfor %}
-
-{% for event in interface.signals %}
-{% for parameter in event.parameters %}
-{{parameter.type.requiredInclude}}
-{% endfor %}
+{% for type in interface.referencedTypes %}
+{{type.requiredInclude}}
 {% endfor %}
 
 {{module.namespaceCppOpen}}

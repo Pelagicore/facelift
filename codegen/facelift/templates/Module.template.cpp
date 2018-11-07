@@ -34,6 +34,7 @@
 ****************************************************************************/
 
 #include "Module.h"
+#include "ModulePrivate.h"
 
 #include <QtQml>
 
@@ -64,6 +65,7 @@
 
 
 {{module.namespaceCppOpen}}
+
 
 Module::Module() : facelift::ModuleBase()
 {

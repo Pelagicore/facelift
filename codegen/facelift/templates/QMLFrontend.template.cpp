@@ -47,24 +47,6 @@
 
 #include "{{interfaceName}}QMLFrontend.h"
 
-// Dependencies
-{% for property in interface.properties -%}
-{{- printif(property.type.requiredInclude) }}
-{{- printif(property.type.requiredQMLInclude) }}
-{%- endfor -%}
-{% for operation in interface.operations -%}
-{% for parameter in operation.parameters -%}
-{{- printif(parameter.type.requiredInclude) }}
-{{- printif(parameter.type.requiredQMLInclude) }}
-{%- endfor %}
-{%- endfor %}
-{% for event in interface.signals -%}
-{% for parameter in event.parameters -%}
-{{- printif(parameter.type.requiredInclude) }}
-{{- printif(parameter.type.requiredQMLInclude) }}
-{%- endfor %}
-{%- endfor %}
-
 {{module.namespaceCppOpen}}
 
 

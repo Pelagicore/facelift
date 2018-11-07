@@ -35,78 +35,34 @@
 
 #pragma once
 
-{{classExportDefines}}
-
+#include <QQmlEngine>
 #include "FaceliftModel.h"
+
+{% for struct in module.structs %}
+#include "{{struct.fullyQualifiedPath}}.h"
+{% endfor %}
 
 {{module.namespaceCppOpen}}
 
-class {{classExport}} {{enum}}Gadget
+{% for struct in module.structs %}
+
+class {{struct}}Factory : public facelift::StructureFactoryBase
 {
-    Q_GADGET
+    Q_OBJECT
 
 public:
-    enum Type {
-        {%- set comma = joiner(",") -%}
-        {%- for member in enum.members -%}
-        {{ comma() }}
-        {{member.name}} = {{member.value}}
-        {%- endfor %}
 
-    };
-    Q_ENUM(Type)
+    {{struct}}Factory(QQmlEngine* qmlEngine) : facelift::StructureFactoryBase(qmlEngine)
+    {
+    }
+
+    Q_INVOKABLE {{struct.fullyQualifiedCppType}} create()
+    {
+        return {{struct}}();
+    }
 };
 
-using {{enum}} = {{enum}}Gadget::Type;
+{% endfor %}
+
 
 {{module.namespaceCppClose}}
-
-Q_DECLARE_METATYPE({{enum.fullyQualifiedCppType}}Gadget::Type)
-
-
-namespace facelift {
-
-template<> inline const QList<{{enum.fullyQualifiedCppType}}>& validValues<{{enum.fullyQualifiedCppType}}>()
-{
-    static QList<{{enum.fullyQualifiedCppType}}> values = {
-    {% for member in enum.members %}
-        {{enum.fullyQualifiedCppType}}::{{member}},
-    {% endfor %}
-    };
-    return values;
-}
-
-template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v)
-{
-    const char* s = "Invalid";
-    switch(v) {
-    {% for member in enum.members %}
-    case {{enum.fullyQualifiedCppType}}::{{member}}:
-        s = "{{member}}";
-        break;
-    {% endfor %}
-    default:
-        break;
-    }
-    return s;
-}
-
-}
-
-
-inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v)
-{
-    {% for member in enum.members %}
-    if (s == "{{member}}")
-        v = {{enum.fullyQualifiedCppType}}::{{member}};
-    else
-    {% endfor %}
-        qFatal("No enum value matching string");
-}
-
-
-inline QTextStream &operator <<(QTextStream &outStream, const {{enum.fullyQualifiedCppType}}& f)
-{
-    outStream << facelift::toString(f);
-    return outStream;
-}

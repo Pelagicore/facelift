@@ -37,9 +37,6 @@
 
 {{classExportDefines}}
 
-#include <QString>
-#include <QQmlEngine>
-
 #include "QMLFrontend.h"
 #include "DummyModel.h"
 
