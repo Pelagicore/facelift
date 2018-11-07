@@ -30,8 +30,8 @@
 
 #include "CombinedTestsPlugin.h"
 #include "tests/combined/Module.h"
-#include "tests/combined/CombinedInterfaceIPC.h"
-#include "tests/combined/CombinedInterfaceAsyncIPC.h"
+#include "tests/combined/CombinedInterfaceIPCProxy.h"
+#include "tests/combined/CombinedInterfaceAsyncIPCProxy.h"
 #if defined(QML_IMPL_LOCATION)
 #  include "tests/combined/CombinedInterfaceQMLImplementation.h"
 #else

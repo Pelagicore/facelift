@@ -39,8 +39,9 @@
 #include "facelift-ipc.h"
 
 {% for interface in module.interfaces %}
-#include "{{interface.fullyQualifiedPath}}IPC.h"
-#include "{{interface.fullyQualifiedPath}}AsyncIPC.h"
+#include "{{interface.fullyQualifiedPath}}IPCProxy.h"
+#include "{{interface.fullyQualifiedPath}}AsyncIPCProxy.h"
+#include "{{interface.fullyQualifiedPath}}IPCAdapter.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}

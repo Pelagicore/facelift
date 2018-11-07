@@ -33,115 +33,19 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#pragma once
-
 {{classExportDefines}}
 
+#pragma once
+
 #include "facelift-ipc.h"
-#include "FaceliftUtils.h"
-
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCAdapter.h"
 
-{% for property in interface.properties %}
-{{property.type.requiredIPCInclude}}
+{% for property in interface.referencedInterfaceTypes %}
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCProxy.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}
-
-
-class {{interfaceName}}IPCQMLFrontendType;
-
-
-class {{classExport}} {{interfaceName}}IPCAdapter: public facelift::IPCServiceAdapter<{{interfaceName}}>
-{
-    Q_OBJECT
-
-public:
-
-    enum class MethodID {
-        {% for operation in interface.operations %}
-        {{operation.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {% if (not property.readonly) %}
-        set{{property.name}},
-        {% endif %}
-        {% if (property.type.is_model) %}
-        {{property.name}},  // model
-        {% endif %}
-        {% endfor %}
-    };
-
-    enum class SignalID {
-        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
-        {% for signal in interface.signals %}
-        {{signal.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {{property.name}},
-        {% endfor %}
-    };
-
-    using ServiceType = {{interfaceName}};
-    using BaseType = facelift::IPCServiceAdapter<{{interfaceName}}>;
-    using ThisType = {{interfaceName}}IPCAdapter;
-
-    static constexpr const char* IPC_SINGLETON_OBJECT_PATH = "/singletons/{{interface.qualified_name|lower|replace(".","/")}}";
-
-    {{interfaceName}}IPCAdapter(QObject* parent = nullptr) : BaseType(parent)
-    {% for property in interface.properties %}
-    {% if property.type.is_model %}
-        , m_{{property.name}}Handler(*this)
-    {% endif %}
-    {% endfor %}
-    {
-        setObjectPath(IPC_SINGLETON_OBJECT_PATH);
-    }
-
-    void setService(QObject *srvc) override;
-
-    void appendDBUSIntrospectionData(QTextStream &s) const override;
-
-    facelift::IPCHandlingResult handleMethodCallMessage(facelift::IPCMessage &requestMessage,
-                                                        facelift::IPCMessage &replyMessage) override;
-
-
-    void connectSignals() override;
-
-    void serializePropertyValues(facelift::IPCMessage& msg, bool isCompleteSnapshot) override;
-
-    {% for event in interface.signals %}
-
-    void {{event}}(
-    {%- set comma = joiner(", ") -%}
-    {%- for parameter in event.parameters -%}
-        {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
-    {%- endfor -%}  )
-    {
-        sendSignal(SignalID::{{event}}
-        {%- for parameter in event.parameters -%}
-            , {{parameter.name}}
-        {%- endfor -%}  );
-    }
-    {% endfor %}
-
-private:
-    {% for property in interface.properties %}
-    {% if property.type.is_model %}
-    facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
-    {% elif property.type.is_interface %}
-    QString m_previous{{property.name}}ObjectPath;
-    {% else %}
-    {{property.interfaceCppType}} m_previous{{property.name}};
-    {% endif %}
-    {% if property.type.is_interface %}
-    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCAdapter> m_{{property.name}};
-    {% endif %}
-    {% endfor %}
-
-};
-
 
 {% set className = interfaceName + "IPCProxy" %}
 

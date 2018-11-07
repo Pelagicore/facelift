@@ -31,11 +31,10 @@
 #pragma once
 
 #include "ipc-dbus.h"
-#include "facelift/ipc/dbus/ObjectRegistryPropertyAdapter.h"
-#include "facelift/ipc/dbus/ObjectRegistryIPC.h"
-#include "facelift/ipc/dbus/ObjectRegistryAsyncIPC.h"
 
-#include <QDBusContext>
+#include "facelift/ipc/dbus/ObjectRegistryPropertyAdapter.h"
+#include "facelift/ipc/dbus/ObjectRegistryIPCProxy.h"
+#include "facelift/ipc/dbus/ObjectRegistryAsyncIPCProxy.h"
 
 namespace facelift {
 namespace dbus {
