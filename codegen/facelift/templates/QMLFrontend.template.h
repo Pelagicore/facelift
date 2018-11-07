@@ -47,23 +47,14 @@
 #include "QMLFrontend.h"
 #include "{{interfaceName}}.h"
 
-// Dependencies
-{% for property in interface.properties -%}
-{{- printif(property.type.requiredInclude) }}
-{{- printif(property.type.requiredQMLInclude) }}
-{%- endfor -%}
-{% for operation in interface.operations -%}
-{% for parameter in operation.parameters -%}
-{{- printif(parameter.type.requiredInclude) }}
-{{- printif(parameter.type.requiredQMLInclude) }}
-{%- endfor %}
-{%- endfor %}
-{% for event in interface.signals -%}
-{% for parameter in event.parameters -%}
-{{- printif(parameter.type.requiredInclude) }}
-{{- printif(parameter.type.requiredQMLInclude) }}
-{%- endfor %}
-{%- endfor %}
+{% for type in interface.referencedTypes %}
+{{type.requiredInclude}}
+{% endfor %}
+
+//// Sub interfaces
+{% for property in interface.referencedInterfaceTypes %}
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}QMLFrontend.h"
+{% endfor %}
 
 {{module.namespaceCppOpen}}
 

@@ -70,52 +70,21 @@ public:
 
     static const FieldNames FIELD_NAMES;
 
-    static const QString &classID()
-    {
-        static auto id = QStringLiteral("{{struct.qualified_name}}");
-        return id;
-    }
+    static const QString CLASS_ID;
 
     // This seems to be necessary even if the base class already contains an "id" property. TODO: clarify
     Q_PROPERTY(int id READ id WRITE setId)
     Q_PROPERTY(QByteArray serialized READ serialize WRITE deserialize)
 
-    {{struct.name}}()
-    {% if struct.fields %}        : {% endif -%}
-    {% for field in struct.fields -%}
-        m_{{field}}(std::get<{{loop.index-1}}>(m_values))
-        {% if not loop.last %}        , {% endif %}
-    {% endfor %}
-    {
-    }
+    {{struct.name}}();
 
-    {{struct.name}}(const {{struct.name}} &other)
-    {% if struct.fields %}        : {% endif -%}
-    {% for field in struct.fields -%}
-        m_{{field}}(std::get<{{loop.index-1}}>(m_values))
-        {% if not loop.last %}        , {% endif %}
-    {% endfor %}
-    {
-        copyFrom(other);
-    }
+    {{struct.name}}(const {{struct.name}} &other);
 
-    {{struct.name}}& operator=(const {{struct.name}} &right)
-    {
-        copyFrom(right);
-        return *this;
-    }
+    {{struct.name}}& operator=(const {{struct.name}} &right);
 
-    Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const
-    {
-        {{struct.name}} s;
-        s.setValue(asTuple());
-        return s;
-    }
+    Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const;
 
-    QString toString() const
-    {
-        return toStringWithFields(classID(), FIELD_NAMES);
-    }
+    QString toString() const;
 
 {% for field in struct.fields %}
 
@@ -190,27 +159,14 @@ public:
 
     static const QString& classID()
     {
-        return {{struct.fullyQualifiedCppType}}::classID();
+        return {{struct.fullyQualifiedCppType}}::CLASS_ID;
     }
 
-    {{struct.name}}QObjectWrapper(QObject* parent = nullptr) : StructQObjectWrapper(parent)
-    {
-        init();
-    }
+    {{struct.name}}QObjectWrapper(QObject* parent = nullptr);
 
-    {{struct.name}}QObjectWrapper(const {{struct.name}}& value, QObject* parent = nullptr) : StructQObjectWrapper(parent)
-    {
-        assignFromGadget(value);
-        init();
-    }
+    {{struct.name}}QObjectWrapper(const {{struct.name}}& value, QObject* parent = nullptr);
 
-    void init()
-    {
-        {% for field in struct.fields %}
-        m_{{field.name}}.init(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, "{{field.name}}");
-        QObject::connect(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, this, &{{struct.name}}QObjectWrapper::anyFieldChanged);
-        {% endfor %}
-    }
+    void init();
 
 {% for field in struct.fields %}
 
@@ -244,40 +200,18 @@ public:
      */
     Q_PROPERTY({{struct.fullyQualifiedCppType}} gadget READ gadget)
 
-    {{struct.name}} gadget() const
-    {
-        {{struct.name}} s;
-        {% for field in struct.fields %}
-        s.set{{field.name}}(m_{{field.name}}.value());
-        {% endfor %}
-        s.setId(id());
-        return s;
-    }
+    {{struct.name}} gadget() const;
 
-    void assignFromGadget(const {{struct.fullyQualifiedCppType}} &gadget)
-    {
-        {% for field in struct.fields %}
-        m_{{field.name}} = gadget.{{field.name}}();
-        {% endfor %}
-        m_id = gadget.id();
-    }
+    void assignFromGadget(const {{struct.fullyQualifiedCppType}} &gadget);
 
     /**
      * This property contains the serialized form of the structure
      */
     Q_PROPERTY(QByteArray serialized READ serialized WRITE setSerialized NOTIFY anyFieldChanged)
 
-    QByteArray serialized() const
-    {
-        return gadget().serialize();
-    }
+    QByteArray serialized() const;
 
-    void setSerialized(const QByteArray &array)
-    {
-        {{struct.fullyQualifiedCppType}} v;
-        v.deserialize(array);
-        assignFromGadget(v);
-    }
+    void setSerialized(const QByteArray &array);
 
     /**
      * This signal is triggered when one of the fields is changed
@@ -294,23 +228,6 @@ class QMLImplListProperty{{struct}} : public facelift::TQMLImplListProperty<{{st
 class QMLImplMapProperty{{struct}} : public facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}>
 {
     using Base = facelift::TQMLImplMapProperty<{{struct.fullyQualifiedCppType}}>;
-};
-
-
-class {{classExport}} {{struct}}Factory : public facelift::StructureFactoryBase
-{
-    Q_OBJECT
-
-public:
-
-    {{struct}}Factory(QQmlEngine* qmlEngine) : facelift::StructureFactoryBase(qmlEngine)
-    {
-    }
-
-    Q_INVOKABLE {{struct.fullyQualifiedCppType}} create()
-    {
-        return {{struct}}();
-    }
 };
 
 {{module.namespaceCppClose}}
