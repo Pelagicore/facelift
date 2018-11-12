@@ -1,0 +1,163 @@
+
+language: cpp
+dist: trusty
+sudo: false
+
+env:
+  global:
+    - ARCH_FLAGS_x86='-m32'
+    - ARCH_FLAGS_x86_64=''
+    
+matrix:
+    include:
+    
+    # Linux / GCC
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.9-multilib', 'linux-libc-dev:i386', 'ninja-build']
+      env: NAME="g++-4.9 x86" COMPILER=g++-4.9 ARCH=x86 CONF=Release UNIT_TESTS=true
+          
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.9', 'ninja-build']
+      env: NAME="g++-4.9 x64" COMPILER=g++-4.9 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-5', 'ninja-build']
+      env: NAME="g++-5" COMPILER=g++-5 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6', 'ninja-build']
+      env: NAME="g++-6" COMPILER=g++-6 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7', 'ninja-build']
+      env: NAME="g++-7" COMPILER=g++-7 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    # Linux / CLang
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['libstdc++-5-dev', 'clang-3.7', 'ninja-build']
+      env: COMPILER=clang++-3.7 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['libstdc++-5-dev', 'clang-3.8', 'ninja-build']
+      env: COMPILER=clang++-3.8 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
+          packages: ['libstdc++-6-dev', 'clang-4.0', 'ninja-build']
+      env: COMPILER=clang++-4.0 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-5.0']
+          packages: ['libstdc++-7-dev', 'clang-5.0', 'ninja-build']
+      env: COMPILER=clang++-5.0 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+      
+    allow_failures:
+        - env: COMPILER=clang++-3.7 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+        - env: COMPILER=clang++-3.8 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+        - env: COMPILER=clang++-4.0 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+        - env: COMPILER=clang++-5.0 ARCH=x86_64 CONF=Release UNIT_TESTS=true
+          
+before_install:
+    - export CIT_ROOT=`pwd`
+    - cd $CIT_ROOT
+    - sudo apt-add-repository --yes ppa:beineri/opt-qt591-trusty
+    - sudo apt-get update
+    - sudo apt-get install python3
+    - sudo apt-get install python3-pip
+install:
+    - DEPS_DIR="${TRAVIS_BUILD_DIR}/3rd_party"
+    - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
+    #######################################################################################
+    # Setup default versions
+    #######################################################################################
+    - if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.7.0; fi
+    - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
+    - if [[ "${COMPILER}" == "g++-4.8" ]]; then export CC=gcc-4.8; fi
+    - if [[ "${ARCH}" == "x86" ]]; then export CMAKE_ARCH_FLAGS=-m32; fi
+    #######################################################################################
+    # Install a recent CMake (unless already installed on OS X)
+    #######################################################################################
+    - |
+        if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+        CMAKE_URL="http://www.cmake.org/files/v3.10/cmake-3.10.2-Linux-x86_64.tar.gz"
+        mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+        export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+        else
+        brew upgrade cmake || brew install cmake ninja || brew link --overwrite cmake
+        fi
+    - cmake --version
+    #######################################################################################
+    # Install recent Doxygen
+    #######################################################################################
+    - |
+        if [[ "${BUILD_DOCU}" == "true" ]]; then
+        DOXYGEN_URL="http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.10.linux.bin.tar.gz"
+        mkdir doxygen && travis_retry wget --quiet -O - ${DOXYGEN_URL} | tar --strip-components=1 -xz -C doxygen
+        export PATH=${DEPS_DIR}/doxygen/bin:${PATH}
+        fi
+    - |
+        if [[ "${ARCH}" == "x86" ]]; then
+        sudo apt-get --yes install qt59base:i386 qt59x11extras:i386 qt59quickcontrols2:i386
+        else
+        sudo apt-get --yes install qt59base qt59x11extras qt59quickcontrols2
+        fi
+    - sudo pip3 install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog path.py
+    
+before_script:
+    - QTDIR="/opt/qt59"
+    - PATH="$QTDIR/bin:$PATH"
+    - source /opt/qt59/bin/qt59-env.sh
+    - cd ${TRAVIS_BUILD_DIR}
+    - mkdir build
+    - >
+        eval "ARCH_FLAGS=\${ARCH_FLAGS_${ARCH}}" ;
+        (cd build && cmake
+        -DCMAKE_CXX_COMPILER=${COMPILER}
+        -DCMAKE_BUILD_TYPE=${CONF}
+        -DCMAKE_CXX_FLAGS="$ARCH_FLAGS"
+        -DFACELIFT_BUILD_TESTS=${UNIT_TESTS}
+        ..)
+
+script:
+    # show OS/compiler version
+    - uname -a
+    - $CXX --version
+    - |
+      if [[ "${UNIT_TESTS}" == "true" ]]; then
+        # Run unit tests on two cores
+        (cd build && make -j2 && dbus-launch ctest)
+      fi
