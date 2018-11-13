@@ -1,3 +1,6 @@
+[![Travis status](https://travis-ci.com/Pelagicore/facelift.svg?branch=master)](https://travis-ci.com/Pelagicore/facelift)
+[![Appveyor status](https://ci.appveyor.com/api/projects/status/github/pelagicore/facelift?svg=true&branch=master)](https://ci.appveyor.com/project/weimerb/facelift)
+
 # Motivation
 
 This software has been created in order to help solving problems which are typically arising when developing complex UI software using the Qt/QML framework. This kind of system is usually designed in such a way that some C++ code exposes functionality to the QML engine. The typical challenges are the following:
