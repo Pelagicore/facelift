@@ -168,9 +168,10 @@ public:
 
     virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
 
-    virtual void deserializePropertyValues(LocalIPCMessage &msg)
+    virtual void deserializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot)
     {
         Q_UNUSED(msg);
+        Q_UNUSED(isCompleteSnapshot);
     }
 
     template<typename ... Args>
