@@ -345,6 +345,7 @@ def run_generation(input, output, dependency, libraryName):
                 generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.cpp', 'IPCAdapter.template.cpp', ctx, libraryName, "ipc")
                 generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
                 generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
+                generateFile(generator, 'ipc/{{path}}/{{interface}}IPC.h', 'IPC.template.h', ctx, libraryName, "ipc")
                 generateAsyncProxy = True
                 ctx.update({'generateAsyncProxy': generateAsyncProxy})
                 ctx.update({'interfaceName': interface.name + interfaceNameSuffix()})
