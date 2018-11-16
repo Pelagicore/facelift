@@ -195,7 +195,8 @@ public:
         return m_value;
     }
 
-    operator const Type &() const {
+    operator const Type &() const
+    {
         return value();
     }
 

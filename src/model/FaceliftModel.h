@@ -75,18 +75,34 @@ public:
     static constexpr int ROLE_ID = 1000;
     static constexpr int ROLE_BASE = ROLE_ID + 1;
 
+    StructureBase();
+
+    virtual ~StructureBase();
+
     ModelElementID id() const
     {
         return m_id;
     }
 
-    StructureBase();
-
-    virtual ~StructureBase();
-
     void setId(ModelElementID id)
     {
         m_id = id;
+    }
+
+    template<typename T = QVariant>
+    T userData() const
+    {
+        if (!m_userData.canConvert<T>()) {
+            qCritical() << "Cannot convert type" << m_userData.typeName()
+                        << "to" << QVariant::fromValue(T()).typeName();
+        }
+        return m_userData.value<T>();
+    }
+
+    template<typename T>
+    void setUserData(const T &value)
+    {
+        m_userData.setValue<T>(value);
     }
 
     virtual QByteArray serialize() const = 0;
@@ -95,10 +111,10 @@ public:
 
 protected:
     ModelElementID m_id;
+    QVariant m_userData;
 
 private:
     static ModelElementID s_nextID;
-
 };
 
 
@@ -236,6 +252,7 @@ public:
     {
         setValue(other.m_values);
         m_id = other.id();
+        m_userData = other.m_userData;
     }
 
     bool operator==(const Structure &right) const
@@ -276,7 +293,6 @@ protected:
     }
 
     FieldTupleTypes m_values = {};
-
 };
 
 

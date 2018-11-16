@@ -104,4 +104,51 @@ Just to be clear: if you have several properties annotated with hasReadyFlag in 
 you will not get indivdual signals for the ready flag of each of the properties, but get a
 \c readyFlagsChanged signal whenever the ready flag of a single property changes.
 
+
+\section userData User Data in Structures
+
+The generated code for a QFace structure will include support for user data, that is internal data
+which is not exposed to QML. User data is only available for implementations written in C++ and
+only meant for local usage (there is no IPC support).
+
+In the following we assume a QFace structure \c Foo, e.g.:
+\code
+struct Foo {
+    int i;
+    string str;
+}
+\endcode
+Facelift will generate a C++ class with the same name (\c Foo) in a \c Foo.h header file. This type
+is a Q_GADGET and has a user data getter and setter method:
+\code
+T Foo::userData() const
+void Foo::setUserData(const T &value)
+\endcode
+Any type T that can be converted to a QVariant can be used (internally the user data is stored as a
+QVariant). An \c int user data could be set and read with:
+\code
+Foo foo;
+foo.setUserData(42);
+...
+foo.userData<int>();  // 42
+\endcode
+A more advanced user data example is outlined here:
+\code
+struct Pod
+{
+    int i;
+    bool b;
+};
+Q_DECLARE_METATYPE(Pod)
+
+Foo foo;
+Pod pod = { 42, true };
+foo.setUserData(pod);
+...
+foo.userData<Pod>().i;  // 42
+\endcode
+
+An interface implementation can expose a structure containing some user data. This user data is
+preserved when the structure is copied. Thus it can be made available in a different interface.
+
 */

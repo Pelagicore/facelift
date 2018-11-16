@@ -59,3 +59,5 @@ add_test(NAME readyflag-local-cpp COMMAND test-driver.sh readyflag/tst_readyflag
 add_subdirectory(propertyBinding)
 add_test(NAME propertyBinding-local-cpp COMMAND test-driver.sh propertyBinding/tst_propertyBinding_local.qml cpp)
 
+add_subdirectory(userData)
+add_test(NAME userData-local-cpp COMMAND test-driver.sh userData/tst_userData.qml cpp)
