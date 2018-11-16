@@ -32,6 +32,7 @@
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
+{% set verified = struct.verifyStruct %}
 {% set comma = joiner(", ") %}
 
 #pragma once

@@ -212,6 +212,14 @@ def isAsync(self):
         return True
     return generateAsync()
 
+def verifyStruct(self):
+    blackList = [ 'id', 'Id', 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
+    for field in self.fields:
+        if field.name in blackList:
+            raise Exception("Field name '{}' in struct '{}' is not allowed, "
+                            "since it is used by Facelift already.".format(field.name, self.name))
+    return True
+
 ######### Property extensions
 
 def fullyQualifiedPath(self):
@@ -277,6 +285,8 @@ setattr(qface.idl.domain.Module, 'namespaceCppOpen', property(namespaceCppOpen))
 setattr(qface.idl.domain.Module, 'namespaceCppClose', property(namespaceCppClose))
 
 setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
+
+setattr(qface.idl.domain.Struct, 'verifyStruct', property(verifyStruct))
 
 def hasReturnValue(self):
     return not self.type.name == 'void'
