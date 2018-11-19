@@ -1204,7 +1204,9 @@ public:
 
     void operator()() const
     {
-        m_master->call();
+        if (m_master) {
+            m_master->call();
+        }
     }
 
 private:
