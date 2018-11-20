@@ -1,0 +1,10 @@
+module facelift.example.subinterface 1.0
+
+interface SubInterface
+{
+ int someInteger;
+ bool someBool;
+ void changeProperties();
+}
+
+
