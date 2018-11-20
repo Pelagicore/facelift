@@ -152,10 +152,10 @@ def insertUniqueType(symbol, list):
     for t in list:
         if (t.name == type.name):
             return
-    list.add(type)
+    list.append(type)
 
 def referencedTypes(self):
-    types = set()
+    types = []
     for property in self.properties:
         insertUniqueType(property, types)
     for operation in self.operations:
