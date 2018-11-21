@@ -3,6 +3,7 @@ import QtTest 1.2
 
 QtObject {
     property var dest
+    property var otherDest
 
     readonly property var event1Spy: SignalSpy {
         target: dest
@@ -47,5 +48,10 @@ QtObject {
     readonly property var stringListPropertyChangedSpy: SignalSpy {
         target: dest
         signalName: "stringListPropertyChanged"
+    }
+
+    readonly property var otherEventSpy: SignalSpy {
+        target: otherDest
+        signalName: "otherEvent"
     }
 }

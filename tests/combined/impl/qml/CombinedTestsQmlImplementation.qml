@@ -94,6 +94,12 @@ CombinedInterfaceQMLImplementation {
             return 42;
     }
 
+    method7: function(os) {
+        if (os.ival === 101)
+            return OtherEnum.O3;
+        return OtherEnum.O1;
+    }
+
 
     initialize: function() {
         enumProperty = CombiEnum.E2;
@@ -120,7 +126,7 @@ CombinedInterfaceQMLImplementation {
 
         enumMapProperty = { one: CombiEnum.E1, two: CombiEnum.E2 };
         intMapProperty = { one: 1, two: 2 };
-        boolProperty = true;
+        isInitialized = true;
     }
 
     emitSignals: function() {

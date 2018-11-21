@@ -29,13 +29,14 @@
 **********************************************************************/
 
 module tests.combined 1.0
+import tests.combined.other 1.0
 
 interface CombinedInterface {
     readonly bool qmlImplementationUsed;
     void initialize();
     void emitSignals();
+    readonly bool isInitialized;
 
-    readonly bool boolProperty;
     readonly CombiEnum enumProperty;
     CombiEnum writableEnumProperty;
     int intProperty;
@@ -44,6 +45,7 @@ interface CombinedInterface {
 
     readonly CombinedInterface2 interfaceProperty;
     readonly list<CombinedInterface2> interfaceListProperty;
+    readonly tests.combined.other.OtherInterface otherInterfaceProperty;
     readonly list<int> intListProperty;
     readonly list<bool> boolListProperty;
     readonly list<CombiEnum> enumListProperty;
@@ -66,6 +68,7 @@ interface CombinedInterface {
     list<CombiEnum> method4(CombiStruct2 s);
     list<CombiStruct> method5();
     int method6(int i);
+    tests.combined.other.OtherEnum method7(tests.combined.other.OtherStruct os);
 
     signal event1(CombiStruct p);
     signal eventCombiEnum(CombiEnum p);

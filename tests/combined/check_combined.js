@@ -31,7 +31,7 @@
 function defaults() {
     tryVerify(function() { return api.ready; });
 
-    compare(api.boolProperty, false);
+    compare(api.isInitialized, false);
     compare(api.enumProperty, CombiEnum.E1);
     compare(api.writableEnumProperty, 0);
     compare(api.intProperty, 0);
@@ -53,10 +53,9 @@ function defaults() {
 
 function initialized() {
     api.initialize();
+    tryVerify(function() { return api.isInitialized; });
+    spy.otherDest = api.otherInterfaceProperty
 
-    tryVerify(function() { return api.boolProperty; });
-
-    compare(api.boolProperty, true);
     compare(api.enumProperty, CombiEnum.E2);
     compare(api.writableEnumProperty, 2);
     compare(api.intProperty, 17);
@@ -66,10 +65,6 @@ function initialized() {
     compare(api.structProperty2.cs.anInt, 21);
     compare(api.structProperty2.cs.aString, "ok");
     compare(api.structProperty2.e, 1);
-
-    if (!api.qmlImplementationUsed) {
-        api.interfaceProperty.doSomething();
-    }
 
     compare(api.intListProperty.length, 5);
     compare(api.intListProperty[2], 3);
@@ -119,6 +114,15 @@ function methods() {
     compare(lcs[1].aString, "B");
 
     compare(api.method6(17), 42)
+
+    var os = OtherStructFactory.create();
+    os.ival = 101;
+    compare(api.method7(os), OtherEnum.O3);
+
+    if (!api.qmlImplementationUsed) {
+        api.interfaceProperty.doSomething();
+        compare(api.otherInterfaceProperty.otherMethod(OtherEnum.O3), "O3");
+    }
 }
 
 function methodsAsync() {
@@ -199,6 +203,7 @@ function signals() {
     compare(spy.eventWithListSpy.count, 0);
     compare(spy.eventWithMapSpy.count, 0);
     compare(spy.eventWithStructWithListSpy.count, 0);
+    compare(spy.otherEventSpy.count, 0);
     spy.intPropertyChangedSpy.clear();
 
     api.emitSignals();
@@ -240,6 +245,12 @@ function signals() {
     compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].anInt, 21);
     compare(spy.eventWithStructWithListSpy.signalArguments[0][0].listOfStructs[0].aString, "ok");
     compare(spy.eventWithStructWithListSpy.signalArguments[0][0].enumField, CombiEnum.E2);
+
+    if (!api.qmlImplementationUsed) {   // "sub" interfaces not supported via QML
+        spy.otherEventSpy.wait(2000);
+        compare(spy.otherEventSpy.count, 1);
+        compare(spy.otherEventSpy.signalArguments[0][0].ival, 12);
+    }
 
     spy.intPropertyChangedSpy.wait(2000);
     compare(spy.intPropertyChangedSpy.count, 1);

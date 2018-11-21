@@ -32,9 +32,24 @@
 
 #include "tests/combined/CombinedInterfacePropertyAdapter.h"
 #include "tests/combined/CombinedInterface2PropertyAdapter.h"
-
+#include "tests/combined/other/OtherInterfacePropertyAdapter.h"
 
 using namespace tests::combined;
+using namespace tests::combined::other;
+
+
+class OtherInterfaceImplementation : public OtherInterfacePropertyAdapter
+{
+public:
+    OtherInterfaceImplementation(QObject *parent = nullptr) : OtherInterfacePropertyAdapter(parent) {}
+
+    QString otherMethod(OtherEnum oe) override
+    {
+        if (oe == OtherEnum::O3)
+            return QStringLiteral("O3");
+        return QString();
+    }
+};
 
 
 class CombinedInterfaceCppImplementation : public CombinedInterfacePropertyAdapter
@@ -79,6 +94,7 @@ public:
         m_structProperty2 = s2;
 
         m_interfaceProperty.setValue(new CombinedInterface2Implementation(this, "#7"));
+        m_otherInterfaceProperty.setValue(new OtherInterfaceImplementation(this));
 
         m_intListProperty = { 1, 2, 3, 5, 8 };
         m_boolListProperty = { false, true, true };
@@ -93,7 +109,7 @@ public:
         m_intMapProperty = QMap<QString, int> { { "one", 1 }, { "two", 2 } };
 
         m_readyProperty = 42;
-        m_boolProperty = true;
+        m_isInitialized = true;
     }
 
     void emitSignals() override
@@ -110,6 +126,10 @@ public:
         swl.setlistOfStructs(m_structListProperty);
         swl.setenumField(CombiEnum::E2);
         emit eventWithStructWithList(swl);
+
+        OtherStruct os;
+        os.setival(12);
+        emit m_otherInterfaceProperty.value()->otherEvent(os);
 
         m_intProperty = 101;
     }
@@ -204,5 +224,12 @@ public:
         if (i == 17)
             return 42;
         return 0;
+    }
+
+    OtherEnum method7(OtherStruct os) override
+    {
+        if (os.ival() == 101)
+            return OtherEnum::O3;
+        return OtherEnum::O1;
     }
 };
