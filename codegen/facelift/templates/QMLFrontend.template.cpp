@@ -40,8 +40,6 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#pragma once
-
 #include <QtCore>
 #include <QQmlEngine>
 
