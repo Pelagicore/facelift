@@ -28,30 +28,23 @@
 **
 **********************************************************************/
 
-//! [indoc]
-#pragma once
-#include "facelift/example/myinterface/MyMainInterfacePropertyAdapter.h"
-#include "facelift/example/subinterface/SubInterfacePropertyAdapter.h"
+import QtQuick 2.0
+import moduleimport 1.0
 
-using namespace facelift::example::myinterface;
-using namespace facelift::example::subinterface;
-
-class MyMainInterfaceCppImplementation : public MyMainInterfacePropertyAdapter
-{
-    class SubInterfaceCppImplementation: public SubInterfacePropertyAdapter
-    {
-    public:
-        void changeProperties() override
-        {
-            m_someBool = !m_someBool;
-            m_someInteger++;
-        }
-    };
-
-public:
-    MyMainInterfaceCppImplementation(QObject *parent = nullptr) : MyMainInterfacePropertyAdapter(parent)
-    {
-        m_subIntf = new SubInterfaceCppImplementation();
+Item {
+    id: root
+    ModuleImportImplementation {
+        id: impl
     }
-};
-//! [indoc]
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            impl.submoduleInterface.changeProperties();
+        }
+    }
+
+    Text {
+        text: impl.submoduleInterface.someInteger
+    }
+}

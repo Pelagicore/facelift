@@ -28,26 +28,13 @@
 **
 **********************************************************************/
 
-//! [indoc]
-import QtQuick 2.0
-import facelift.example.myinterface 1.0
+#pragma once
+#include <QQmlExtensionPlugin>
 
-/**
- * This file contains the UI code of the application.
- */
-Item {
-    id: root
-    MyImplementation {
-        id: impl
-    }
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            impl.subIntf.changeProperties();
-        }
-    }
-    Text {
-        text: impl.subIntf.someInteger
-    }
-}
-//! [indoc]
+class ModuleImportPlugin : public QQmlExtensionPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface")
+public:
+    void registerTypes(const char *uri) override;
+};

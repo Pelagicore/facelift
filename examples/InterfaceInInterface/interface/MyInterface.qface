@@ -1,9 +1,0 @@
-module facelift.example.myinterface 1.0
-import facelift.example.subinterface 1.0
-
-interface MyMainInterface
-{
- readonly facelift.example.subinterface.SubInterface subIntf;
- int testData;
-};
-

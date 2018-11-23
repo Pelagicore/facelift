@@ -29,12 +29,31 @@
 **********************************************************************/
 
 #pragma once
-#include <QQmlExtensionPlugin>
+#include "moduleimport/MainModulePropertyAdapter.h"
+#include "submoduleimport/SubModulePropertyAdapter.h"
 
-class MyPlugin : public QQmlExtensionPlugin
+
+using namespace moduleimport;
+using namespace submoduleimport;
+
+class MainModuleCppImplementation : public MainModulePropertyAdapter
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlTestInterface")
+    class SubModuleCppImplementation: public SubModulePropertyAdapter
+    {
+    public:
+        void changeProperties() override
+        {
+            m_someBool = !m_someBool;
+            m_someInteger++;
+        }
+    };
+
 public:
-    void registerTypes(const char *uri) override;
+    MainModuleCppImplementation(QObject *parent = nullptr) : MainModulePropertyAdapter(parent)
+    {
+        m_submoduleInterface = &m_submoduleCppImplObj;
+    }
+private:
+     SubModuleCppImplementation m_submoduleCppImplObj;
 };
+

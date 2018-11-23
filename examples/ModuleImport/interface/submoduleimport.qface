@@ -28,24 +28,13 @@
 **
 **********************************************************************/
 
-//! [indoc]
-#include "MyPlugin.h"
-#include "model/cpp/MyInterfaceCppImplementation.h"
-#include "facelift/example/myinterface/Module.h"
-#include "facelift/example/myinterface/ModuleIPC.h"
-#include "facelift/example/myinterface/MyMainInterfaceQMLImplementation.h"
+module submoduleimport 1.0
 
-void MyPlugin::registerTypes(const char *uri)
+interface SubModule
 {
-    using namespace facelift::example::myinterface;
-    // Register generated QML types
-    Module::registerQmlTypes(uri);
-
-    // This additional call registers all interfaces as uncreatable types, so that we can use typed properties in our QML files
-    // The type names are exactly the interface names as defined in the QFace file
-    Module::registerUncreatableQmlTypes(uri);
-
-    // We register our C++ implementation class as a creatable type, which can be instantiated by the UI code, using the given string identifier
-    facelift::registerQmlComponent<MyMainInterfaceCppImplementation>(uri, "MyImplementation");
+ int someInteger;
+ bool someBool;
+ void changeProperties();
 }
-//! [indoc]
+
+

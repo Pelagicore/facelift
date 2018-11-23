@@ -1,4 +1,4 @@
-{#*********************************************************************
+/**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
 **
@@ -26,29 +26,20 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-*********************************************************************#}
+**********************************************************************/
 
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
+#include "ModuleImportPlugin.h"
+#include "model/cpp/MainModuleCppImplementation.h"
+#include "moduleimport/Module.h"
+#include "moduleimport/ModuleIPC.h"
+#include "moduleimport/MainModuleQMLImplementation.h"
 
-#include "{{interfaceName}}PropertyAdapter.h"
-
-{{module.namespaceCppOpen}}
-
-{{interfaceName}}PropertyAdapter::{{interfaceName}}PropertyAdapter(QObject* parent) : {{interfaceName}}(parent), m_ready(true)
+void ModuleImportPlugin::registerTypes(const char *uri)
 {
-    m_ready.init(this, &ThisType::readyChanged, "ready");
+    using namespace moduleimport;
+    // Register generated QML types
+    Module::registerQmlTypes(uri);
 
-    {% for property in interface.properties %}
-    {% if property.tags.hasReadyFlag %}
-    m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, &ThisType::readyFlagsChanged, "{{property.name}}");
-    m_readyFlags.m_{{property.name}} = &m_{{property.name}}.isReady();
-    {% else %}
-    m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, "{{property.name}}");
-    {% endif %}
-    {% endfor %}
+    // We register our C++ implementation class as a creatable type, which can be instantiated by the UI code, using the given string identifier
+    facelift::registerQmlComponent<MainModuleCppImplementation>(uri, "ModuleImportImplementation");
 }
-
-{{module.namespaceCppClose}}
