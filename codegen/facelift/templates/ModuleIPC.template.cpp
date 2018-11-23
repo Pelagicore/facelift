@@ -33,8 +33,6 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#pragma once
-
 #include "ModuleIPC.h"
 #include "facelift-ipc.h"
 
