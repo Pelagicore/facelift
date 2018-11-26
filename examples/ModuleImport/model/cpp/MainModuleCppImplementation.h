@@ -32,7 +32,6 @@
 #include "moduleimport/MainModulePropertyAdapter.h"
 #include "submoduleimport/SubModulePropertyAdapter.h"
 
-
 using namespace moduleimport;
 using namespace submoduleimport;
 

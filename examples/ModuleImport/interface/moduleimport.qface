@@ -33,6 +33,6 @@ import submoduleimport 1.0
 
 interface MainModule
 {  
- readonly submoduleimport.SubModule submoduleInterface;
+    readonly submoduleimport.SubModule submoduleInterface;
 };
 

@@ -32,9 +32,8 @@ module submoduleimport 1.0
 
 interface SubModule
 {
- int someInteger;
- bool someBool;
- void changeProperties();
+    int someInteger;
+    bool someBool;
+    void changeProperties();
 }
-
 

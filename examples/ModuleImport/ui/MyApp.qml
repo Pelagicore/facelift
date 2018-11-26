@@ -33,7 +33,7 @@ import moduleimport 1.0
 
 Item {
     id: root
-    ModuleImportImplementation {
+    MainModule {
         id: impl
     }
 
