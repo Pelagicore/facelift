@@ -65,7 +65,9 @@ void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject 
     auto reply = new QDBusPendingCallWatcher(connection.asyncCall(m_message));
     QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
         DBusIPCMessage msg(reply->reply());
-        callback(msg);
+        if (msg.isReplyMessage()) {
+            callback(msg);
+        }
         reply->deleteLater();
     });
 }
