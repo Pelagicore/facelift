@@ -1,5 +1,6 @@
 
 option(IGNORE_AUTO_UNITY_BUILD "Disable unity build even if AUTO_UNITY_BUILD option is ON" OFF)
+option(DISABLE_UNITY_BUILD "Completely disable unity build" OFF)
 
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
@@ -365,12 +366,11 @@ macro(_facelift_add_target_start)
 
     set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES} ${RESOURCES_BIN})
 
-    set(UNITY_BUILD ${ARGUMENT_UNITY_BUILD})
-    if(${AUTO_UNITY_BUILD})
-        if (${IGNORE_AUTO_UNITY_BUILD})
-            message("Unity build disabled for ${TARGET_NAME}")
-        else()
+    if(NOT DISABLE_UNITY_BUILD)
+        if("${AUTO_UNITY_BUILD}" AND NOT "${IGNORE_AUTO_UNITY_BUILD}")
             set(UNITY_BUILD ON)
+        else()
+            set(UNITY_BUILD ${ARGUMENT_UNITY_BUILD})
         endif()
     endif()
 
