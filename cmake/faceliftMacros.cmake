@@ -498,7 +498,7 @@ function(facelift_add_executable TARGET_NAME)
     add_executable(${TARGET_NAME} ${ALL_SOURCES})
 
     if (NOT ${ARGUMENT_NO_INSTALL})
-        install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
     endif()
 
     _facelift_add_target_finish()
