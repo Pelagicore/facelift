@@ -144,6 +144,7 @@ protected:
 
     friend class IPCAttachedPropertyFactoryBase;
     friend class IPCServiceAdapterBase;
+    friend class NewIPCServiceAdapterBase;
 
 private:
     InterfaceBase *m_provider = nullptr;

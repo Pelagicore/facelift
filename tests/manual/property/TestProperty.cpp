@@ -34,34 +34,7 @@
 #include "FaceliftProperty.h"
 #include "TestProperty.h"
 
-#define EXPECT_TRUE(cond) if (!(cond)) {qFatal("Expectation wrong at %s:%i / " #cond " / function: %s ", qPrintable(__FILE__), __LINE__, \
-                                                qPrintable(Q_FUNC_INFO));};
-
-class SignalSpy : public QObject
-{
-
-public:
-    template<typename Func>
-    SignalSpy(const typename QtPrivate::FunctionPointer<Func>::Object *obj, Func sig)
-    {
-        QObject::connect(obj, sig, this, [this] () {
-            m_wasTriggered = true;
-        });
-    }
-
-    bool wasTriggered() const
-    {
-        return m_wasTriggered;
-    }
-
-    void reset()
-    {
-        m_wasTriggered = false;
-    }
-
-private:
-    bool m_wasTriggered = false;
-};
+#include "facelift-test.h"
 
 
 static void testInteger()

@@ -34,33 +34,104 @@
 
 #ifdef DBUS_IPC_ENABLED
 #include "dbus/ipc-dbus.h"
+#endif
 
 namespace facelift {
 
-using IPCMessage = ::facelift::dbus::DBusIPCMessage;
-using IPCProxyBinder = ::facelift::dbus::DBusIPCProxyBinder;
 
 template<typename InterfaceType>
-using IPCServiceAdapter = ::facelift::dbus::DBusIPCServiceAdapter<InterfaceType>;
+class IPCServiceAdapter : public NewIPCServiceAdapterBase
+{
+public:
+    using TheServiceType = InterfaceType;
 
-template<typename InterfaceType, typename InterfaceType2>
-using IPCProxy = ::facelift::dbus::DBusIPCProxy<InterfaceType, InterfaceType2>;
+    IPCServiceAdapter(QObject *parent) : NewIPCServiceAdapterBase(parent)
+    {
+        setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
+    }
 
-}
+    InterfaceBase *service() const override
+    {
+        return m_service;
+    }
 
-#else
+    void init() override
+    {
+        registerLocalService();
 
-#include "local/ipc-local.h"
-
-namespace facelift {
-
-template<typename Type>
-using IPCServiceAdapter = LocalIPCServiceAdapter<Type>;
-template<typename InterfaceType, typename IPCAdapterType>
-using IPCProxy = LocalIPCProxy<InterfaceType, IPCAdapterType>;
-typedef LocalIPCMessage IPCMessage;
-using IPCProxyBinder = ::facelift::LocalIPCProxyBinder;
-
-}
-
+#ifdef DBUS_IPC_ENABLED
+        m_ipcAdapter.setObjectPath(objectPath());
+        m_ipcAdapter.setService(m_service);
+        m_ipcAdapter.init();
 #endif
+    }
+
+    void setService(QObject *service) override
+    {
+        m_service = bindToProvider<InterfaceType>(service);
+    }
+
+private:
+    QPointer<InterfaceType> m_service;
+
+#ifdef DBUS_IPC_ENABLED
+    using IPCDBusAdapterType = typename InterfaceType::IPCDBusAdapterType;
+    IPCDBusAdapterType m_ipcAdapter;
+#endif
+
+};
+
+template<typename WrapperType, typename NotAvailableImpl>
+class IPCProxy : public WrapperType, public IPCProxyNewBase
+{
+    using InterfaceType = typename NotAvailableImpl::InterfaceType;
+
+public:
+    IPCProxy(QObject *parent) : WrapperType(parent)
+        , IPCProxyNewBase(*static_cast<InterfaceBase *>(this))
+        , m_localProviderBinder(*this)
+#ifdef DBUS_IPC_ENABLED
+#endif
+    {
+        QObject::connect(ipc(), &IPCProxyBinderBase::complete, this, [this] () {
+                m_localProviderBinder.init();
+#ifdef DBUS_IPC_ENABLED
+                m_ipcProxy.ipc()->setObjectPath(ipc()->objectPath());
+                m_ipcProxy.connectToServer();
+                QObject::connect(m_ipcProxy.ipc(), &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
+#endif
+                this->refreshProvider();
+            });
+
+        refreshProvider();
+    }
+
+    void refreshProvider()
+    {
+        InterfaceType *provider = &m_notAvailableProvider;
+        if (m_localProviderBinder.provider() != nullptr) {
+            provider = m_localProviderBinder.provider();
+#ifdef DBUS_IPC_ENABLED
+        } else if (m_ipcProxy.ipc()->isServiceAvailable()) {
+            provider = &m_ipcProxy;
+#endif
+        }
+
+        this->setWrapped(provider);
+    }
+
+    void connectToServer()
+    {
+        emit this->componentCompleted();
+    }
+
+private:
+    NotAvailableImpl m_notAvailableProvider;
+    LocalProviderBinder<InterfaceType> m_localProviderBinder;
+#ifdef DBUS_IPC_ENABLED
+    using IPCProxyType = typename NotAvailableImpl::IPCDBusProxyType;
+    IPCProxyType m_ipcProxy;
+#endif
+};
+
+}

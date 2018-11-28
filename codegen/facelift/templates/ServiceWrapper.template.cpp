@@ -28,45 +28,28 @@
 **
 *********************************************************************#}
 
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
-
-#pragma once
-
-{{classExportDefines}}
-
-#include "facelift-ipc.h"
-#include "FaceliftUtils.h"
-
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
-
-#ifdef DBUS_IPC_ENABLED
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
-{% for property in interface.referencedInterfaceTypes %}
-#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
-{% endfor %}
-#endif
+#include "{{interfaceName}}ServiceWrapper.h"
 
 {{module.namespaceCppOpen}}
 
-class {{interfaceName}}IPCQMLFrontendType;
+{{interfaceName}}Wrapper::{{interfaceName}}Wrapper(QObject* parent) : ServiceWrapper<{{interfaceName}}>(parent) {
+}
 
-class {{classExport}} {{interfaceName}}IPCAdapter: public ::facelift::IPCServiceAdapter<{{interfaceName}}>
-{
-    Q_OBJECT
+void {{interfaceName}}Wrapper::bind({{interfaceName}}* wrapped, {{interfaceName}}* previouslyWrapped) {
+    M_UNUSED(wrapped, previouslyWrapped);
 
-public:
+    {% for signal in interface.signals %}
+    addConnection(QObject::connect(wrapped, &{{interfaceName}}::{{signal.name}}, this, &ThisType::{{signal.name}}));
+    {% endfor %}
 
-    using BaseType = ::facelift::IPCServiceAdapter<{{interfaceName}}>;
+    {% for property in interface.properties %}
+    addConnection(QObject::connect(wrapped, &{{interfaceName}}::{{property.name}}Changed, this, &ThisType::{{property.name}}Changed));
+    {% endfor %}
 
-    {{interfaceName}}IPCAdapter(QObject* parent = nullptr) : BaseType(parent)
-    {
-    }
-
-};
+    {% for property in interface.properties %}
+    emit {{property.name}}Changed();
+    {% endfor %}
+}
 
 {{module.namespaceCppClose}}
+

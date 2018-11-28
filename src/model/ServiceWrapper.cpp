@@ -28,14 +28,26 @@
 **
 **********************************************************************/
 
-#include "ipc-local.h"
+#include "ServiceWrapper.h"
 
 namespace facelift {
 
-LocalIPCAdapterFactoryManager &LocalIPCAdapterFactoryManager::instance()
+void ServiceWrapperBase::setWrapped(InterfaceBase &wrapper, InterfaceBase *wrapped)
 {
-    static LocalIPCAdapterFactoryManager m;
-    return m;
+    qDebug() << "Wrapped type for" << &wrapper << "" << wrapper.interfaceID() << ":" << wrapped;
+}
+
+void ServiceWrapperBase::addConnection(QMetaObject::Connection connection)
+{
+    m_connections.append(connection);
+}
+
+void ServiceWrapperBase::reset()
+{
+    for (const auto &connection : m_connections) {
+        auto successfull = QObject::disconnect(connection);
+        Q_ASSERT(successfull);
+    }
 }
 
 }

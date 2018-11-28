@@ -32,7 +32,6 @@
 {% set comma = joiner(",") %}
 
 /****************************************************************************
-
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
@@ -45,94 +44,86 @@
 
 #include "ServiceWrapper.h"
 
-#include "{{class}}.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 
 {{module.namespaceCppOpen}}
 
 
 /**
  */
-class {{classExport}} {{class}}Wrapper : public facelift::ServiceWrapper<{{class}}>  {
+class {{classExport}} {{interfaceName}}Wrapper : public facelift::ServiceWrapper<{{interfaceName}}>  {
 
     Q_OBJECT
 
+    using ThisType = {{interfaceName}}Wrapper;
+
 public:
 
-    {{class}}Wrapper(QObject* parent = nullptr) : ServiceWrapper<{{class}}>(parent) {
-    }
+    {{interfaceName}}Wrapper(QObject* parent = nullptr);
 
+    /////////////// Properties
     {% for property in interface.properties %}
 
-    {% if property.type.is_model -%}
-
-    {{property.nestedType.fullyQualifiedCppType}} {{property.name}}ElementAt(size_t index) override {
-        return wrapped()->{{property.name}}ElementAt(index);
+    {% if property.type.is_model %}
+    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
+    {
+        return wrapped()->{{property.name}}();
     }
-
-    size_t {{property.name}}Size() override {
-        return wrapped()->{{property.name}}Size();
+    {% elif property.type.is_list %}
+    const {{property.interfaceCppType}}& {{property}}() const override
+    {
+        return wrapped()->{{property.name}}();
     }
-
-    {% elif property.type.is_list -%}
-
-    const {{property.cppType}}& {{property}}() const override {
-        return wrapped()->{{property}}();
+    {% elif property.type.is_interface %}
+    {{property.interfaceCppType}} {{property}}() override
+    {
+        return wrapped()->{{property.name}}();
     }
-
-    {% elif property.type.is_interface -%}
-
-    // Service property
-    {{property.cppType}}* {{property}}() override {
-        return wrapped()->{{property}}();
-    }
-
     {% else %}
-
-    const {{property.cppType}}& {{property}}() const override {
-        return wrapped()->{{property}}();
+    const {{property.interfaceCppType}} &{{property}}() const override
+    {
+        return wrapped()->{{property.name}}();
     }
-
+    {% endif %}
     {% if (not property.readonly) %}
-    void set{{property}}(const {{property.cppType}}& newValue) override {
-        return wrapped()->set{{property}}(newValue);
+    void set{{property}}(const {{property.cppType}}& newValue) override
+    {
+        wrapped()->set{{property.name}}(newValue);
     }
     {% endif %}
-
-    {% endif %}
-
     {% endfor %}
 
 
+    /////////////// Methods
     {% for operation in interface.operations %}
-    {{operation.cppType}} {{operation}}(
-        {% set comma = joiner(",") %}
-        {% for parameter in operation.parameters %}
-        {{ comma() }}
-        {{parameter.cppType}} {{parameter.name}}
-        {% endfor %}
-    ) override {
-        return wrapped()->{{operation}}(
-                {% set comma = joiner(",") %}
-                {% for parameter in operation.parameters %}
-                {{ comma() }}
-                {{parameter.name}}
-                {% endfor %}
-        );
-    }
 
+    {% if operation.isAsync %}
+    void {{operation.name}}(
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} override {
+            return wrapped()->{{operation.name}}(
+                    {%- for parameter in operation.parameters -%}
+                    {{parameter.name}},
+                    {%- endfor -%} answer);
+    }
+    {% else %}
+    {{operation.interfaceCppType}} {{operation.name}}(
+        {%- set comma = joiner(", ") -%}
+        {%- for parameter in operation.parameters -%}
+        {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
+        {%- endfor -%}  ){% if operation.is_const %} const{% endif %} override
+    {
+        {% set comma = joiner(", ") %}
+        return wrapped()->{{operation.name}}(
+                {%- for parameter in operation.parameters -%}
+                {{ comma() }}{{parameter.name}}
+                {%- endfor -%} );
+    }
+    {% endif %}
     {% endfor %}
 
-    void initConnections({{class}}* wrapped) override {
-        Q_UNUSED(wrapped);
+private:
 
-        {% for property in interface.properties %}
-        addConnection(QObject::connect(wrapped, &{{class}}::{{property.name}}Changed, this, &{{class}}Wrapper::{{property.name}}Changed));
-        {% endfor %}
-
-        {% for signal in interface.signals %}
-        addConnection(QObject::connect(wrapped, &{{class}}::{{signal.name}}, this, &{{class}}Wrapper::{{signal.name}}));
-        {% endfor %}
-    }
+    void bind({{interfaceName}}* wrapped, {{interfaceName}}* previouslyWrapped) override;
 
 };
 

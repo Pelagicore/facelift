@@ -32,6 +32,7 @@ module facelift.test 1.0;
 
 interface TestInterface2 {
     void doSomething();
+    void triggerMainInterfaceSignal(int signalParameter);
 }
 
 interface TestInterface {
@@ -80,7 +81,8 @@ interface TestInterface {
     signal eventBoolAndStruct(bool p, TestStruct q);
     signal eventWithList(list<int> p, bool q);
     signal eventWithMap(map<int> p);
-    signal eventWithStructWithList(TestStructWithList p)
+    signal eventWithStructWithList(TestStructWithList p);
+    signal aSignal(int signalParameter);
 }
 
 struct TestStruct {

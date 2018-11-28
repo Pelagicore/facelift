@@ -63,8 +63,12 @@ public:
         {% for parameter in operation.parameters %}
         Q_UNUSED({{parameter.name}});
         {% endfor %}
+        {% if (operation.hasReturnValue) %}
         {{operation.interfaceCppType}} v = {};
         answer(v);
+        {% else %}
+        answer();
+        {% endif %}
     }
     {% else %}
 

@@ -33,8 +33,10 @@
 #include "ipc-dbus.h"
 
 #include "facelift/ipc/dbus/ObjectRegistryPropertyAdapter.h"
-#include "facelift/ipc/dbus/ObjectRegistryIPCProxy.h"
+#include "facelift/ipc/dbus/ObjectRegistryIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPCProxy.h"
+#include "facelift/ipc/dbus/ObjectRegistryIPCDBusAdapter.h"
+
 
 namespace facelift {
 namespace dbus {
@@ -61,7 +63,7 @@ public:
         bool unregisterObject(QString objectPath, QString serviceName);
 
     private:
-        facelift::ipc::dbus::ObjectRegistryIPCAdapter m_objectRegistryAdapter;
+        facelift::ipc::dbus::ObjectRegistryIPCDBusAdapter m_objectRegistryAdapter;
 
     };
 
@@ -81,8 +83,8 @@ public:
     Q_SIGNAL void objectsChanged();
 
 private:
-    facelift::ipc::dbus::ObjectRegistryIPCProxy *m_objectRegistryProxy = nullptr;
-    facelift::ipc::dbus::ObjectRegistryAsyncIPCProxy *m_objectRegistryAsyncProxy = nullptr;
+    facelift::ipc::dbus::ObjectRegistryIPCDBusProxy *m_objectRegistryProxy = nullptr;
+    facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy *m_objectRegistryAsyncProxy = nullptr;
     DBusManager &m_dbusManager;
     bool m_initialized = false;
     std::unique_ptr<MasterImpl> m_master;

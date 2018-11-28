@@ -45,7 +45,7 @@ class TestInterfaceCppImplementation : public TestInterfacePropertyAdapter
     class Interface2Implementation : public TestInterface2PropertyAdapter {
 
     public:
-        Interface2Implementation(TestInterfaceCppImplementation* parent, QString id) : TestInterface2PropertyAdapter(parent) {
+        Interface2Implementation(TestInterfaceCppImplementation& main, QString id) : TestInterface2PropertyAdapter(&main), m_main(main) {
             m_id = id;
         }
 
@@ -53,7 +53,13 @@ class TestInterfaceCppImplementation : public TestInterfacePropertyAdapter
             qWarning() << "doSomething called. id =" << m_id;
         }
 
+        void triggerMainInterfaceSignal(int signalParameter) override {
+            m_main.aSignal(signalParameter);
+        }
+
+    private:
         QString m_id;
+        TestInterfaceCppImplementation& m_main;
     };
 
 
@@ -80,9 +86,9 @@ public:
             eventWithStructWithList(arg);
         });
 
-        m_interfaceListProperty.addElement(new Interface2Implementation(this, ""));
-        m_interfaceMapProperty = facelift::Map<facelift::test::TestInterface2*>({{"key1", new Interface2Implementation(this, "blabla")}});
-        m_interfaceProperty = new Interface2Implementation(this, "");
+        m_interfaceListProperty.addElement(new Interface2Implementation(*this, ""));
+        m_interfaceMapProperty = facelift::Map<facelift::test::TestInterface2*>({{"key1", new Interface2Implementation(*this, "blabla")}});
+        m_interfaceProperty = new Interface2Implementation(*this, "");
     }
 
     void setintProperty(const int &newValue) override
@@ -112,9 +118,7 @@ public:
         });
     }
 
-    void setstructProperty2(const TestStruct2 & /*newValue*/) override
-    {
-    }
+    void setstructProperty2(const TestStruct2 & /*newValue*/) override;
 
     void setstringListProperty(const QList<QString> & newValue) override
     {

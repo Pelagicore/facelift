@@ -59,6 +59,20 @@ public:
         });
     }
 
+    void resetCounterAsync(int delay, facelift::AsyncAnswer<void> answer) override
+    {
+        QTimer::singleShot(1000, this, [this, answer, delay] () {
+            resetCounter(delay);
+            answer();
+        });
+    }
+
+    static MyInterfaceCppImplementation &instance()
+    {
+        static MyInterfaceCppImplementation i;
+        return i;
+    }
+
 private:
     QTimer m_timer;
 

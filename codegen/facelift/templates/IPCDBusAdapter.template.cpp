@@ -33,13 +33,12 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{interfaceName}}IPCAdapter.h"
+#include "{{interfaceName}}IPCDBusAdapter.h"
 
 {{module.namespaceCppOpen}}
 
-
-facelift::IPCHandlingResult {{interfaceName}}IPCAdapter::handleMethodCallMessage(facelift::IPCMessage &requestMessage,
-                                                    facelift::IPCMessage &replyMessage)
+facelift::IPCHandlingResult {{interfaceName}}IPCDBusAdapter::handleMethodCallMessage(::facelift::dbus::DBusIPCMessage &requestMessage,
+        ::facelift::dbus::DBusIPCMessage &replyMessage)
 {
     Q_UNUSED(replyMessage); // Since we do not always have return values
     Q_UNUSED(requestMessage);
@@ -103,8 +102,7 @@ facelift::IPCHandlingResult {{interfaceName}}IPCAdapter::handleMethodCallMessage
     return facelift::IPCHandlingResult::OK;
 }
 
-
-void {{interfaceName}}IPCAdapter::appendDBUSIntrospectionData(QTextStream &s) const
+void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s) const
 {
     Q_UNUSED(s);   // For empty interfaces
     {% for property in interface.properties %}
@@ -146,11 +144,8 @@ void {{interfaceName}}IPCAdapter::appendDBUSIntrospectionData(QTextStream &s) co
     {% endfor %}
 }
 
-
-void {{interfaceName}}IPCAdapter::setService(QObject *srvc)
+void {{interfaceName}}IPCDBusAdapter::connectSignals()
 {
-    BaseType::setService(srvc);
-
     auto theService = service();
     Q_UNUSED(theService);
 
@@ -162,13 +157,6 @@ void {{interfaceName}}IPCAdapter::setService(QObject *srvc)
     m_previous{{property.name}} = theService->{{property.name}}();
     {% endif %}
     {% endfor %}
-}
-
-
-void {{interfaceName}}IPCAdapter::connectSignals()
-{
-    auto theService = service();
-    Q_UNUSED(theService);
 
     // Properties
     {% for property in interface.properties %}
@@ -179,18 +167,17 @@ void {{interfaceName}}IPCAdapter::connectSignals()
     });
     {% endif %}
     QObject::connect(theService, &ServiceType::{{property.name}}Changed, this, [this] () {
-        {{interfaceName}}IPCAdapter::sendSignal(SignalID::{{property.name}});
+        this->sendSignal(SignalID::{{property.name}});
     });
     {% endfor %}
 
     // Signals
     {% for signal in interface.signals %}
-    QObject::connect(theService, &ServiceType::{{signal}}, this, &{{interfaceName}}IPCAdapter::{{signal}});
+    QObject::connect(theService, &ServiceType::{{signal}}, this, &ThisType::{{signal}});
     {% endfor %}
 }
 
-
-void {{interfaceName}}IPCAdapter::serializePropertyValues(facelift::IPCMessage& msg, bool isCompleteSnapshot)
+void {{interfaceName}}IPCDBusAdapter::serializePropertyValues(::facelift::dbus::DBusIPCMessage& msg, bool isCompleteSnapshot)
 {
     auto theService = service();
     {#% if (not interface.properties) %#}
@@ -213,7 +200,5 @@ void {{interfaceName}}IPCAdapter::serializePropertyValues(facelift::IPCMessage& 
 
     BaseType::serializePropertyValues(msg, isCompleteSnapshot);
 }
-
-
 
 {{module.namespaceCppClose}}

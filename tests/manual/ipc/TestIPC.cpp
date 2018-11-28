@@ -29,79 +29,48 @@
 **********************************************************************/
 
 #include "facelift-ipc.h"
-#include <QDebug>
+#include "facelift-test.h"
+
 #include <QCoreApplication>
 
-#include <sys/types.h>
-
-#include "facelift/test/TestInterface.h"
+#include "TestInterfaceCppImplementation.h"
 #include "facelift/test/TestInterfaceIPCProxy.h"
+#include "facelift/test/TestInterfaceIPCAdapter.h"
 
 using namespace facelift::test;
 
-void mainClient(int &argc, char * *argv)
+
+void checkInterface(TestInterface &i)
 {
-    QCoreApplication app(argc, argv);
-    auto sessionBus = QDBusConnection::sessionBus();
+    EXPECT_TRUE(i.ready());
 
-    qDebug() << "Client running";
+    EXPECT_TRUE(i.interfaceProperty() != nullptr);
 
-    TestInterfaceIPCProxy proxy;
-
-    QTimer timer;
-    QObject::connect(&timer, &QTimer::timeout, [&] () {
-        qWarning() << "boolProperty" << proxy.boolProperty();
-        proxy.method1();
-    });
-    timer.start(1000);
-
-    QObject::connect(&proxy, &TestInterface::boolPropertyChanged, [&] () {
-        qWarning() << "boolProperty changed " << proxy.boolProperty();
-    });
-
-    app.exec();
-    qDebug() << "Client exited";
+    SignalSpy signalSpy(&i, &TestInterface::aSignal);
+    i.interfaceProperty()->triggerMainInterfaceSignal(100);
+    EXPECT_TRUE(signalSpy.wasTriggered());
 
 }
 
-
-void mainServer(int &argc, char * *argv)
-{
-    QCoreApplication app(argc, argv);
-
-    TestStruct2 s;
-    s.seti(TestEnum::E3);
-    auto byteArray = s.serialize();
-
-    TestStruct2 o;
-    o.deserialize(byteArray);
-
-    Q_ASSERT(s == o);
-
-    //    TestInterfaceDummy testInterface;
-    //    TestInterfaceIPCAdapter svc;
-    //    svc.setService(&testInterface);
-
-    QTimer timer;
-    timer.setInterval(1000);
-    QObject::connect(&timer, &QTimer::timeout, [&] () {
-        //      svc.onPropertyValueChanged();
-    });
-    timer.start();
-
-    qDebug() << "Server running";
-    app.exec();
-    qDebug() << "Server exited";
-
-}
 
 int main(int argc, char * *argv)
 {
+    QCoreApplication app(argc, argv);
 
-    if (argc == 1) {
-        mainServer(argc, argv);
-    } else {
-        mainClient(argc, argv);
-    }
+    TestInterfaceCppImplementation i;
+
+    checkInterface(i);
+
+    TestInterfaceIPCAdapter ipcAdapter;
+    ipcAdapter.setService(&i);
+    ipcAdapter.init();
+
+    TestInterfaceIPCProxy proxy;
+    proxy.connectToServer();
+    checkInterface(proxy);
+
+    //    TestInterfaceIPCProxyNew proxy2;
+    //    proxy2.connectToServer();
+    //    checkInterface(proxy2);
 
 }

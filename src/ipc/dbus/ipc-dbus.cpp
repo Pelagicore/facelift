@@ -54,7 +54,7 @@
 namespace facelift {
 namespace dbus {
 
-constexpr const char * DBusIPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME;
+constexpr const char *DBusIPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME;
 
 void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
 {
@@ -160,35 +160,29 @@ DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
     }
 }
 
-void DBusIPCServiceAdapterBase::doInit(InterfaceBase *service)
+void DBusIPCServiceAdapterBase::init()
 {
-    Q_ASSERT(service);
     if (!m_alreadyInitialized) {
-        if (!interfaceName().isEmpty()) {
+        if (dbusManager().isDBusConnected()) {
 
-            registerLocalService();
-
-            if (dbusManager().isDBusConnected()) {
-
-                if (!m_serviceName.isEmpty()) {
-                    DBusManager::instance().registerServiceName(m_serviceName);
-                }
-
-                qDebug() << "Registering IPC object at " << objectPath();
-                m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
-                if (m_alreadyInitialized) {
-                    QObject::connect(service, &InterfaceBase::readyChanged, this, [this]() {
-                        this->sendSignal(CommonSignalID::readyChanged);
-                    });
-                    connectSignals();
-                } else {
-                    qFatal("Could no register service at object path '%s'", qPrintable(objectPath()));
-                }
-
-                DBusManager::instance().objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
-                    Q_ASSERT(isSuccessful);
-                }));
+            if (!m_serviceName.isEmpty()) {
+                DBusManager::instance().registerServiceName(m_serviceName);
             }
+
+            qDebug() << "Registering IPC object at " << objectPath();
+            m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
+            if (m_alreadyInitialized) {
+                QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
+                    this->sendSignal(CommonSignalID::readyChanged);
+                });
+                connectSignals();
+            } else {
+                qFatal("Could no register service at object path '%s'", qPrintable(objectPath()));
+            }
+
+            DBusManager::instance().objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
+                Q_ASSERT(isSuccessful);
+            }));
         }
     }
 }
@@ -210,7 +204,7 @@ void DBusIPCProxyBinder::bindToIPC()
 
         QObject::connect(&registry, &DBusObjectRegistry::objectsChanged, this, [this, &registry] () {
             auto registryObjects = registry.objects(isSynchronous());
-            if (registryObjects.contains(objectPath()) && !m_inProcess) {
+            if (registryObjects.contains(objectPath())) {
                 auto serviceName = registryObjects[objectPath()];
                 if (serviceName != m_serviceName) {
                     m_serviceName = serviceName;

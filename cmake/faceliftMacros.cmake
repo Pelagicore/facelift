@@ -238,6 +238,7 @@ function(facelift_add_interface TARGET_NAME)
     set(TYPES_OUTPUT_PATH ${OUTPUT_PATH}/types)
     set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
     set(IPC_OUTPUT_PATH ${OUTPUT_PATH}/ipc)
+    set(IPC_DBUS_OUTPUT_PATH ${OUTPUT_PATH}/ipc_dbus)
     set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
 
     facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH} LIBRARY_NAME ${TARGET_NAME})
@@ -281,6 +282,17 @@ function(facelift_add_interface TARGET_NAME)
         )
         target_link_libraries(${LIBRARY_NAME} ${LIBRARY_NAME}_ipc)
         list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_IPC)
+
+        if(TARGET FaceliftIPCLibDBus)
+            facelift_add_library(${LIBRARY_NAME}_ipc_dbus
+                SOURCES_GLOB_RECURSE ${IPC_DBUS_OUTPUT_PATH}/*.cpp
+                HEADERS_GLOB_RECURSE ${IPC_DBUS_OUTPUT_PATH}/*.h
+                LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib ${ARGUMENT_LINK_LIBRARIES}
+                PUBLIC_HEADER_BASE_PATH ${IPC_DBUS_OUTPUT_PATH}
+                UNITY_BUILD
+            )
+            target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_ipc_dbus)
+        endif()
     endif()
 
     set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "${MODULE_COMPILE_DEFINITIONS}")
