@@ -1,4 +1,4 @@
-{#*********************************************************************
+/**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
 **
@@ -26,42 +26,29 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-*********************************************************************#}
+**********************************************************************/
 
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
+import QtQuick 2.0
+import facelift.example.mypackage 1.0
 
-#pragma once
+/**
+ * This file contains the UI code of the application.
+ */
+Item {
 
-#include <QQmlEngine>
-#include "FaceliftModel.h"
+    id: root
 
-{% for struct in module.structs %}
-#include "{{struct.fullyQualifiedPath}}.h"
-{% endfor %}
+    // Instantiate our implementation and store it as a typed property 
+    readonly property MyInterface myInterface: MyInterfaceSingleton
 
-{{module.namespaceCppOpen}}
-
-{% for struct in module.structs %}
-
-class {{struct}}Factory : public facelift::StructureFactoryBase
-{
-    Q_OBJECT
-
-public:
-
-    {{struct}}Factory(QQmlEngine* qmlEngine) : facelift::StructureFactoryBase(qmlEngine)
-    {
+    MouseArea {
+        anchors.fill: parent
+        onClicked: myInterface.resetCounter(1000);
     }
 
-    Q_INVOKABLE {{struct.fullyQualifiedCppType}} create()
-    {
-        return {{struct}}();
+    Text {
+       text: myInterface.counter
     }
-};
 
-{% endfor %}
-
-{{module.namespaceCppClose}}
+}
+//! [indoc]

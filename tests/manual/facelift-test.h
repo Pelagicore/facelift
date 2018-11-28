@@ -30,68 +30,32 @@
 
 #pragma once
 
-#include "FaceliftModel.h"
 
-namespace facelift {
+#define EXPECT_TRUE(cond) if (!(cond)) {qFatal("Expectation wrong at %s:%i / " #cond " / function: %s ", qPrintable(__FILE__), __LINE__, \
+                                                qPrintable(Q_FUNC_INFO));};
 
-
-class FaceliftModelLib_EXPORT ServiceWrapperBase
-{
-
-protected:
-    void addConnection(QMetaObject::Connection connection);
-
-    void reset();
-
-    void setWrapped(InterfaceBase &wrapper, InterfaceBase *wrapped);
-
-private:
-    QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
-
-};
-
-
-/**
- * This class is used to write an interface implementation which delegates all calls to another implementation
- */
-template<typename WrappedType>
-class ServiceWrapper : public WrappedType, public ServiceWrapperBase
+class SignalSpy : public QObject
 {
 
 public:
-    void setWrapped(WrappedType *wrapped)
+    template<typename Func>
+    SignalSpy(const typename QtPrivate::FunctionPointer<Func>::Object *obj, Func sig)
     {
-        if (wrapped != m_wrapped) {
-            facelift::ServiceWrapperBase::reset();
-            WrappedType *previouslyWrapped = m_wrapped;
-            m_wrapped = wrapped;
-            bind(wrapped, previouslyWrapped);
-            emit this->readyChanged();
-            facelift::ServiceWrapperBase::setWrapped(*this, m_wrapped);
-        }
+        QObject::connect(obj, sig, this, [this] () {
+            m_wasTriggered = true;
+        });
     }
 
-    bool ready() const override
+    bool wasTriggered() const
     {
-        return wrapped()->ready();
+        return m_wasTriggered;
     }
 
-protected:
-    ServiceWrapper(QObject *parent) : WrappedType(parent)
+    void reset()
     {
+        m_wasTriggered = false;
     }
-
-    WrappedType *wrapped() const
-    {
-        Q_ASSERT(!m_wrapped.isNull());
-        return m_wrapped.data();
-    }
-
-    virtual void bind(WrappedType *wrapped, WrappedType *previouslyWrapped) = 0;
 
 private:
-    QPointer<WrappedType> m_wrapped;
-
+    bool m_wasTriggered = false;
 };
-
-}

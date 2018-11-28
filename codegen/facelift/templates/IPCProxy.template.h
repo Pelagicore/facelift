@@ -38,196 +38,102 @@
 #pragma once
 
 #include "facelift-ipc.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}ServiceWrapper.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCAdapter.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
+
+#ifdef DBUS_IPC_ENABLED
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
+#endif
 
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCProxy.h"
 {% endfor %}
 
-{{module.namespaceCppOpen}}
-
 {% set className = interfaceName + "IPCProxy" %}
 
-class {{className}}QMLFrontendType;
+{{module.namespaceCppOpen}}
 
-class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}, {{interfaceName}}IPCAdapter>
+class {{interfaceName}}NotAvailableImpl : public facelift::NotAvailableImpl<{{interfaceName}}>
 {
     Q_OBJECT
 
-    Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
-
 public:
-    using IPCAdapterType = {{interfaceName}}IPCAdapter;
-    using ThisType = {{className}};
-    using BaseType = facelift::IPCProxy<{{interfaceName}}, IPCAdapterType>;
-    using SignalID = IPCAdapterType::SignalID;
-    using MethodID = IPCAdapterType::MethodID;
 
-    // override the default QMLFrontend type to add the IPC related properties
-    using QMLFrontendType = {{className}}QMLFrontendType;
+    {% for property in interface.properties %}
 
-    {{className}}(QObject *parent = nullptr) : BaseType(parent)
-        {% for property in interface.properties %}
-        {% if property.type.is_interface %}
-        , m_{{property.name}}Proxy(*this)
-        {% endif %}
-        {% if property.type.is_model %}
-        , m_{{property.name}}(*this)
-        {% endif %}
-        {% endfor %}
+    {% if property.type.is_model %}
+    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
     {
-        ipc()->setObjectPath(IPCAdapterType::IPC_SINGLETON_OBJECT_PATH);
-        {% if generateAsyncProxy %}
-        ipc()->setSynchronous(false);
-        {% endif %}
+        logGetterCall("{{property.name}}");
+        return NotAvailableModel<{{property.nestedType.interfaceCppType}}>::value();
     }
-
-    void deserializePropertyValues(facelift::IPCMessage &msg, bool isCompleteSnapshot) override;
-
-    {% if interface.hasModelProperty %}
-    void setServiceRegistered(bool isRegistered) override
+    {% elif property.type.is_list %}
+    const {{property.interfaceCppType}}& {{property}}() const override
     {
-        if (isRegistered) {
-        {% for property in interface.properties %}
-        {% if property.type.is_model %}
-            m_{{property.name}}.reset(m_{{property.name}}.size(), std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
-        {% endif %}
-        {% endfor %}
-        }
-        BaseType::setServiceRegistered(isRegistered);
+        logGetterCall("{{property.name}}");
+        return NotAvailableList<{{property.nestedType.interfaceCppType}}>::value();
     }
-
+    {% elif property.type.is_interface %}
+    {{property.interfaceCppType}} {{property}}() override
+    {
+        logGetterCall("{{property.name}}");
+        return NotAvailableValue<{{property.interfaceCppType}}>::value();
+    }
+    {% else %}
+    const {{property.interfaceCppType}} &{{property}}() const override
+    {
+        logGetterCall("{{property.name}}");
+        return NotAvailableValue<{{property.interfaceCppType}}>::value();
+    }
     {% endif %}
-
-    void bindLocalService({{interfaceName}} *service) override;
-
-    void deserializeSignal(facelift::IPCMessage &msg) override;
+    {% if (not property.readonly) %}
+    void set{{property}}(const {{property.cppType}}& newValue) override
+    {
+        logSetterCall("{{property.name}}", newValue);
+    }
+    {% endif %}
+    {% endfor %}
 
     {% for operation in interface.operations %}
 
     {% if operation.isAsync %}
     void {{operation.name}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} override {
-        if (localInterface() == nullptr) {
-            sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
-            {%- for parameter in operation.parameters -%}
-            , {{parameter.name}}
-            {%- endfor -%}  );
-        } else {
-            localInterface()->{{operation.name}}(
-            {%- for parameter in operation.parameters -%}
-                {{parameter.name}},
-            {%- endfor -%} answer);
-        }
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} override {
+            logMethodCall("{{operation.name}}", {% for parameter in operation.parameters -%}{{parameter.name}}, {% endfor %} answer);
     }
     {% else %}
     {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
-        {%- endfor -%}  ){% if operation.is_const %} const{% endif %} override
+        {%- endfor -%}){% if operation.is_const %} const{% endif %} override
     {
-        if (localInterface() == nullptr) {
-            {% if (operation.hasReturnValue) %}
-            {{operation.interfaceCppType}} returnValue;
-            sendMethodCallWithReturn(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), returnValue
-                {%- for parameter in operation.parameters -%}
-                , {{parameter.name}}
-                {%- endfor -%} );
-            return returnValue;
-            {% else %}
-            sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
-            {%- for parameter in operation.parameters -%}
-            , {{parameter.name}}
-            {%- endfor -%}  );
-            {% endif %}
-        } else {
-            {% if (operation.hasReturnValue) %}
-            return localInterface()->{{operation.name}}(
-            {%- else %}
-            localInterface()->{{operation.name}}(
-            {%- endif -%}
-            {%- set comma = joiner(", ") -%}
-            {%- for parameter in operation.parameters -%}
-                {{ comma() }}{{parameter.name}}
-            {%- endfor -%} );
-        }
-    }
-    {% endif %}
-    {% endfor %}
-    {%- for property in interface.properties %}
-    {% if (not property.readonly) %}
-
-    void set{{property}}(const {{property.cppType}}& newValue) override
-    {
-        if (localInterface() == nullptr) {
-            {% if (not property.type.is_interface) %}
-            sendSetterCall(memberID(MethodID::set{{property.name}}, "set{{property.name}}"), newValue);
-            {% else %}
-            Q_ASSERT(false); // Writable interface properties are unsupported
-            {% endif %}
-        } else {
-            localInterface()->set{{property}}(newValue);
-        }
-    }
-    {% endif %}
-    {% if property.type.is_model %}
-    {{property.nestedType.interfaceCppType}} {{property.name}}Data(int row)
-    {
-        return m_{{property.name}}.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
+        logMethodCall("{{operation.name}}", {% for parameter in operation.parameters -%}{{parameter.name}}, {% endfor %} nullptr);
+        {% if (operation.hasReturnValue) %}
+        return NotAvailableValue<{{operation.interfaceCppType}}>::value();
+        {%- endif %}
     }
     {% endif %}
     {% endfor %}
 
+};
 
-    {% for property in interface.properties %}
-    {% if property.type.is_model %}
-    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
-    {
-        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
-    }
+class {{className}}QMLFrontendType;
 
-    {% elif property.type.is_list %}
+class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}Wrapper, {{interfaceName}}NotAvailableImpl>
+{
+    Q_OBJECT
 
-    const {{property.interfaceCppType}}& {{property}}() const override
-    {
-        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
-    }
+public:
+    using ThisType = {{className}};
+    using BaseType = facelift::IPCProxy<{{interfaceName}}Wrapper, {{interfaceName}}NotAvailableImpl>;
 
-    QList<{{property.nestedType.interfaceCppType}}> m_{{property.name}};
+    // override the default QMLFrontend type to add the IPC related properties
+    using QMLFrontendType = {{className}}QMLFrontendType;
 
-    {% elif property.type.is_interface -%}
+    {{className}}(QObject *parent = nullptr);
 
-    // Service property
-    {{property.interfaceCppType}} {{property}}() override
-    {
-        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
-    }
-
-    facelift::ServiceProperty<{{property.type.fullyQualifiedCppType}}> m_{{property.name}};
-
-    {% else %}
-    const {{property.interfaceCppType}} &{{property}}() const override
-    {
-        return localInterface() ? localInterface()->{{property.name}}() : m_{{property.name}};
-    }
-    {{property.interfaceCppType}} m_{{property.name}} = {};
-
-    {% endif %}
-    {% endfor %}
-
-    void emitChangeSignals() override;
-
-private:
-    {% for property in interface.properties %}
-    {% if property.type.is_interface %}
-    InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCProxy> m_{{property.name}}Proxy;
-    {% endif %}
-    {% if property.type.is_model %}
-    facelift::IPCProxyModelProperty<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}};
-    {% endif %}
-    {% endfor %}
 };
 
 
@@ -238,19 +144,12 @@ class {{classExport}} {{className}}QMLFrontendType : public {{interfaceName}}QML
     Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
-    {{className}}QMLFrontendType(QObject *parent = nullptr) : {{interfaceName}}QMLFrontend(parent)
-    {
-    }
+    {{className}}QMLFrontendType(QObject *parent = nullptr);
 
-    {{className}}QMLFrontendType(QQmlEngine *engine) : {{interfaceName}}QMLFrontend(engine)
-    {
-    }
+    {{className}}QMLFrontendType(QQmlEngine *engine);
 
-    facelift::IPCProxyBinder *ipc()
-    {
-        auto p = static_cast<{{className}}*>(providerPrivate());
-        return p->ipc();
-    }
+    facelift::IPCProxyBinderBase *ipc();
+
 };
 
 

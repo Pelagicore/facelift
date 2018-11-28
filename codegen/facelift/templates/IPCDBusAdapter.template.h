@@ -37,36 +37,80 @@
 
 {{classExportDefines}}
 
-#include "facelift-ipc.h"
+#include "dbus/ipc-dbus.h"
 #include "FaceliftUtils.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
-
-#ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
+
+//// Sub interfaces
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
 {% endfor %}
-#endif
 
 {{module.namespaceCppOpen}}
 
 class {{interfaceName}}IPCQMLFrontendType;
 
-class {{classExport}} {{interfaceName}}IPCAdapter: public ::facelift::IPCServiceAdapter<{{interfaceName}}>
+class {{classExport}} {{interfaceName}}IPCDBusAdapter: public ::facelift::dbus::DBusIPCServiceAdapter<{{interfaceName}}>
 {
     Q_OBJECT
 
 public:
 
-    using BaseType = ::facelift::IPCServiceAdapter<{{interfaceName}}>;
+    using ServiceType = {{interfaceName}};
+    using BaseType = ::facelift::dbus::DBusIPCServiceAdapter<{{interfaceName}}>;
+    using ThisType = {{interfaceName}}IPCDBusAdapter;
+    using IPCProxyType = {{interfaceName}}IPCDBusProxy;
+    using SignalID = IPCProxyType::SignalID;
+    using MethodID = IPCProxyType::MethodID;
 
-    {{interfaceName}}IPCAdapter(QObject* parent = nullptr) : BaseType(parent)
+    {{interfaceName}}IPCDBusAdapter(QObject* parent = nullptr) : BaseType(parent)
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+        , m_{{property.name}}Handler(*this)
+    {% endif %}
+    {% endfor %}
     {
     }
 
+    void appendDBUSIntrospectionData(QTextStream &s) const override;
+
+    ::facelift::IPCHandlingResult handleMethodCallMessage(::facelift::dbus::DBusIPCMessage &requestMessage,
+            ::facelift::dbus::DBusIPCMessage &replyMessage) override;
+
+    void connectSignals() override;
+
+    void serializePropertyValues(::facelift::dbus::DBusIPCMessage& msg, bool isCompleteSnapshot) override;
+
+    {% for event in interface.signals %}
+    void {{event}}(
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in event.parameters -%}
+        {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
+    {%- endfor -%}  )
+    {
+        sendSignal(SignalID::{{event}}
+        {%- for parameter in event.parameters -%}
+            , {{parameter.name}}
+        {%- endfor -%}  );
+    }
+    {% endfor %}
+
+private:
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    ::facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
+    {% elif property.type.is_interface %}
+    QString m_previous{{property.name}}ObjectPath;
+    {% else %}
+    {{property.interfaceCppType}} m_previous{{property.name}};
+    {% endif %}
+    {% if property.type.is_interface %}
+    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCDBusAdapter> m_{{property.name}};
+    {% endif %}
+    {% endfor %}
 };
 
 {{module.namespaceCppClose}}

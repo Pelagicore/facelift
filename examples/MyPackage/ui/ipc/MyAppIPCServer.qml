@@ -53,7 +53,9 @@ Window {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: myInterface.resetCounter(200);
+        onClicked: myInterface.resetCounterAsync(200, function() {
+            console.log("resetCounterAsync finished");
+        });
     }
 
 }

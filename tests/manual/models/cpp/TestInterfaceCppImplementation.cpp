@@ -1,4 +1,4 @@
-{#*********************************************************************
+/**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
 **
@@ -26,42 +26,10 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-*********************************************************************#}
+**********************************************************************/
 
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
+#include "TestInterfaceCppImplementation.h"
 
-#pragma once
-
-#include <QQmlEngine>
-#include "FaceliftModel.h"
-
-{% for struct in module.structs %}
-#include "{{struct.fullyQualifiedPath}}.h"
-{% endfor %}
-
-{{module.namespaceCppOpen}}
-
-{% for struct in module.structs %}
-
-class {{struct}}Factory : public facelift::StructureFactoryBase
+void TestInterfaceCppImplementation::setstructProperty2(const TestStruct2 & /*newValue*/)
 {
-    Q_OBJECT
-
-public:
-
-    {{struct}}Factory(QQmlEngine* qmlEngine) : facelift::StructureFactoryBase(qmlEngine)
-    {
-    }
-
-    Q_INVOKABLE {{struct.fullyQualifiedCppType}} create()
-    {
-        return {{struct}}();
-    }
-};
-
-{% endfor %}
-
-{{module.namespaceCppClose}}
+}

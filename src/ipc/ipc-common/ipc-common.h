@@ -57,7 +57,7 @@ enum class IPCHandlingResult {
     INVALID,     // Message is invalid and could not be handled
 };
 
-class IPCServiceAdapterBase;
+class NewIPCServiceAdapterBase;
 
 
 /**
@@ -68,73 +68,29 @@ class FaceliftIPCLibLocal_EXPORT InterfaceManager : public QObject
     Q_OBJECT
 
 public:
-    void registerAdapter(const QString &objectPath, IPCServiceAdapterBase *adapter);
+    void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter);
 
-    IPCServiceAdapterBase *getAdapter(const QString &objectPath);
+    NewIPCServiceAdapterBase *getAdapter(const QString &objectPath);
 
-    void onAdapterDestroyed(IPCServiceAdapterBase *object);
+    void onAdapterDestroyed(NewIPCServiceAdapterBase *object);
 
-    Q_SIGNAL void adapterDestroyed(IPCServiceAdapterBase *adapter);
-    Q_SIGNAL void adapterAvailable(IPCServiceAdapterBase *adapter);
+    Q_SIGNAL void adapterDestroyed(NewIPCServiceAdapterBase *adapter);
+    Q_SIGNAL void adapterAvailable(NewIPCServiceAdapterBase *adapter);
 
     static InterfaceManager &instance();
 
 private:
-    QMap<QString, IPCServiceAdapterBase *> m_registry;
+    QMap<QString, NewIPCServiceAdapterBase *> m_registry;
 
 };
 
 class FaceliftIPCLibLocal_EXPORT IPCServiceAdapterBase : public QObject
 {
-
     Q_OBJECT
 
 public:
-    Q_PROPERTY(QObject * service READ service WRITE checkedSetService)
-    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
-    Q_PROPERTY(QString interfaceName READ interfaceName WRITE setInterfaceName)
-    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
-
     IPCServiceAdapterBase(QObject *parent = nullptr) : QObject(parent)
     {
-    }
-
-    bool enabled() const
-    {
-        return m_enabled;
-    }
-
-    void setEnabled(bool enabled)
-    {
-        m_enabled = enabled;
-        onValueChanged();
-    }
-
-    virtual void init() = 0;
-
-    virtual void connectSignals()
-    {
-    }
-
-    virtual InterfaceBase *service() const = 0;
-
-    void checkedSetService(QObject *service)
-    {
-        setService(service);
-        onValueChanged();
-    }
-
-    virtual void setService(QObject *service) = 0;
-
-    const QString &objectPath() const
-    {
-        return m_objectPath;
-    }
-
-    void setObjectPath(const QString &objectPath)
-    {
-        m_objectPath = objectPath;
-        onValueChanged();
     }
 
     const QString &interfaceName() const
@@ -145,26 +101,22 @@ public:
     void setInterfaceName(const QString &name)
     {
         m_interfaceName = name;
-        onValueChanged();
     }
 
-    void onProviderCompleted()
+    virtual void init() = 0;
+
+    virtual void connectSignals() = 0;
+
+    virtual InterfaceBase *service() const = 0;
+
+    const QString &objectPath() const
     {
-        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
-        m_providerReady = true;
-        onValueChanged();
+        return m_objectPath;
     }
 
-    void onValueChanged()
+    void setObjectPath(const QString &objectPath)
     {
-        if (enabled() && m_providerReady && !m_objectPath.isEmpty() && (service() != nullptr)) {
-            init();
-        }
-    }
-
-    void registerLocalService()
-    {
-        InterfaceManager::instance().registerAdapter(objectPath(), this);
+        m_objectPath = objectPath;
     }
 
     QString generateObjectPath(const QString &parentPath) const
@@ -175,35 +127,10 @@ public:
         return path;
     }
 
-    Q_SIGNAL void destroyed(IPCServiceAdapterBase *adapter);
-
-    template<typename ServiceType>
-    ServiceType *bindToProvider(QObject *s)
-    {
-        auto service = qobject_cast<ServiceType *>(s);
-        if (service == nullptr) {
-            auto *qmlFrontend = qobject_cast<QMLFrontendBase *>(s);
-            if (qmlFrontend != nullptr) {
-                service = qobject_cast<ServiceType *>(qmlFrontend->providerPrivate());
-            }
-        }
-        if (service != nullptr) {
-            if (service->isComponentCompleted()) {
-                onProviderCompleted();
-            } else {
-                QObject::connect(service, &InterfaceBase::componentCompleted, this, &IPCServiceAdapterBase::onProviderCompleted);
-            }
-        } else {
-            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s)));
-        }
-        return service;
-    }
-
-
     template<typename InterfaceType>
-    typename InterfaceType::IPCAdapterType *getOrCreateAdapter(InterfaceType *service)
+    typename InterfaceType::IPCDBusAdapterType *getOrCreateAdapter(InterfaceType *service)
     {
-        typedef typename InterfaceType::IPCAdapterType InterfaceAdapterType;
+        using InterfaceAdapterType = typename InterfaceType::IPCDBusAdapterType ;
 
         if (service == nullptr) {
             return nullptr;
@@ -248,12 +175,110 @@ public:
     };
 
 private:
+    QList<QPointer<IPCServiceAdapterBase> > m_subAdapters;
     QString m_objectPath;
     QString m_interfaceName;
-    bool m_enabled = true;
-    QList<QPointer<IPCServiceAdapterBase> > m_subAdapters;
+};
 
-protected:
+class FaceliftIPCLibLocal_EXPORT NewIPCServiceAdapterBase : public QObject
+{
+
+    Q_OBJECT
+
+public:
+    Q_PROPERTY(QObject * service READ service WRITE checkedSetService)
+    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
+    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
+
+    NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
+    {
+    }
+
+    Q_SIGNAL void destroyed(NewIPCServiceAdapterBase *adapter);
+
+    virtual void init() = 0;
+
+    template<typename ServiceType>
+    ServiceType *bindToProvider(QObject *s)
+    {
+        auto service = qobject_cast<ServiceType *>(s);
+        if (service == nullptr) {
+            auto *qmlFrontend = qobject_cast<QMLFrontendBase *>(s);
+            if (qmlFrontend != nullptr) {
+                service = qobject_cast<ServiceType *>(qmlFrontend->providerPrivate());
+            }
+        }
+        if (service != nullptr) {
+            if (service->isComponentCompleted()) {
+                onProviderCompleted();
+            } else {
+                QObject::connect(service, &InterfaceBase::componentCompleted, this, &NewIPCServiceAdapterBase::onProviderCompleted);
+            }
+        } else {
+            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s)));
+        }
+        return service;
+    }
+
+    bool enabled() const
+    {
+        return m_enabled;
+    }
+
+    void setEnabled(bool enabled)
+    {
+        m_enabled = enabled;
+        onValueChanged();
+    }
+
+    void registerLocalService()
+    {
+        InterfaceManager::instance().registerAdapter(objectPath(), this);
+    }
+
+    virtual void setService(QObject *service) = 0;
+
+    void checkedSetService(QObject *service)
+    {
+        setService(service);
+        onValueChanged();
+    }
+
+    const QString &objectPath() const
+    {
+        return m_objectPath;
+    }
+
+    void setObjectPath(const QString &objectPath)
+    {
+        m_objectPath = objectPath;
+        onValueChanged();
+    }
+
+    virtual InterfaceBase *service() const = 0;
+
+    bool isReady() const
+    {
+        return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
+    }
+
+    void onValueChanged()
+    {
+        if (isReady()) {
+            init();
+        }
+    }
+
+    void onProviderCompleted()
+    {
+        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
+        m_providerReady = true;
+        onValueChanged();
+    }
+
+private:
+    QString m_objectPath;
+    bool m_enabled = true;
     bool m_providerReady = false;
 
 };
@@ -282,11 +307,6 @@ public:
         checkInit();
     }
 
-    bool inProcess() const
-    {
-        return m_inProcess;
-    }
-
     const QString &objectPath() const
     {
         return m_objectPath;
@@ -308,6 +328,7 @@ public:
     {
         if (m_componentCompleted && enabled() && !objectPath().isEmpty()) {
             this->connectToServer();
+            emit complete();
         }
     }
 
@@ -316,11 +337,13 @@ public:
      */
     void connectToServer();
 
-    virtual void bindToIPC() = 0;
+    virtual void bindToIPC()
+    {
+    }
 
-    Q_SIGNAL void localAdapterAvailable(IPCServiceAdapterBase *adapter);
+    Q_SIGNAL void complete();
 
-    void onLocalAdapterAvailable(IPCServiceAdapterBase *adapter);
+    Q_SIGNAL void serviceAvailableChanged();
 
     InterfaceBase &owner()
     {
@@ -328,9 +351,9 @@ public:
     }
 
     template<typename InterfaceType>
-    typename InterfaceType::IPCProxyType *getOrCreateSubProxy(const QString &objectPath)
+    typename InterfaceType::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
     {
-        typedef typename InterfaceType::IPCProxyType InterfaceProxyType;
+        using InterfaceProxyType = typename InterfaceType::IPCDBusProxyType;
 
         if (objectPath.isEmpty()) {
             return nullptr;
@@ -361,9 +384,6 @@ public:
         return m_isSynchronous;
     }
 
-protected:
-    bool m_inProcess = false;
-
 private:
     bool m_alreadyInitialized = false;
     QString m_objectPath;
@@ -375,12 +395,12 @@ private:
 };
 
 
-template<typename AdapterType, typename IPCAdapterType>
+template<typename AdapterType>
 class IPCProxyBase : public AdapterType
 {
 
 public:
-    typedef typename IPCAdapterType::TheServiceType InterfaceType;
+    using InterfaceType = AdapterType;
 
 public:
     IPCProxyBase(QObject *parent) : AdapterType(parent)
@@ -397,7 +417,6 @@ public:
     void initBinder(BinderType &binder)
     {
         m_ipcBinder = &binder;
-        QObject::connect(&binder, &IPCProxyBinderBase::localAdapterAvailable, this, &IPCProxyBase::onLocalAdapterAvailable);
         QObject::connect(this, &InterfaceBase::componentCompleted, &binder, &BinderType::onComponentCompleted);
     }
 
@@ -408,7 +427,7 @@ public:
 
     bool ready() const override final
     {
-        auto r = (localInterface() != nullptr) ? localInterface()->ready() : m_serviceReady;
+        auto r = m_serviceReady;
         return r;
     }
 
@@ -418,11 +437,6 @@ public:
             m_serviceReady = isServiceReady;
             emit this->readyChanged();
         }
-    }
-
-    InterfaceType *localInterface() const
-    {
-        return (m_localAdapter ? m_localAdapter->service() : nullptr);
     }
 
     virtual void emitChangeSignals()
@@ -440,23 +454,6 @@ public:
             qFatal("Unknown signal ID");
         }
     }
-
-    void onLocalAdapterAvailable(IPCServiceAdapterBase *a)
-    {
-        auto adapter = qobject_cast<IPCAdapterType *>(a);
-        if (adapter != nullptr) {
-            m_localAdapter = adapter;
-        }
-
-        if (localInterface() != nullptr) {
-            QObject::connect(localInterface(), &InterfaceBase::readyChanged, this, &AdapterType::readyChanged);
-            bindLocalService(localInterface());
-            m_serviceReady = localInterface()->ready();
-            emitChangeSignals();
-        }
-    }
-
-    virtual void bindLocalService(InterfaceType *service) = 0;
 
     template<typename ProxyType>
     class InterfacePropertyIPCProxyHandler
@@ -492,8 +489,6 @@ private:
     bool m_serviceReady = false;
 
 protected:
-    QPointer<IPCAdapterType> m_localAdapter;
-
     IPCProxyBinderBase *m_ipcBinder = nullptr;
 
 };
@@ -627,11 +622,11 @@ class IPCProxyModelProperty : public facelift::ModelProperty<ModelDataType>
 {
 
 public:
-    IPCProxyModelProperty(IPCProxyType &proxy) : m_proxy(proxy), m_cache(PREFETCH_ITEM_COUNT*10)
+    IPCProxyModelProperty(IPCProxyType &proxy) : m_proxy(proxy), m_cache(PREFETCH_ITEM_COUNT * 10)
     {
     }
 
-    typedef typename IPCProxyType::MemberIDType MemberID;
+    using MemberID = typename IPCProxyType::MemberIDType;
 
     template<typename IPCMessage>
     void handleSignal(IPCMessage &msg)
@@ -762,20 +757,21 @@ public:
             }
 
             if (first <= last) {
-                m_proxy.sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType>>(&m_proxy, [this, first, last](QList<ModelDataType> list){
-//                    qDebug() << "Received model items " << first << "-" << last;
-                    for (int i = first; i <= last; ++i) {
-                        auto& newItem = list[i - first];
-                        if (!((m_cache.exists(i)) && (newItem == m_cache.get(i)))) {
-                            m_cache.insert(i, newItem);
-                            if (m_itemsRequestedLocally.contains(i)) {
-                                this->dataChanged(i);
-                                m_itemsRequestedLocally.removeAll(i);
+                m_proxy.sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType> >(&m_proxy, [this, first,
+                        last](QList<ModelDataType> list) {
+                        //                    qDebug() << "Received model items " << first << "-" << last;
+                        for (int i = first; i <= last; ++i) {
+                            auto &newItem = list[i - first];
+                            if (!((m_cache.exists(i)) && (newItem == m_cache.get(i)))) {
+                                m_cache.insert(i, newItem);
+                                if (m_itemsRequestedLocally.contains(i)) {
+                                    this->dataChanged(i);
+                                    m_itemsRequestedLocally.removeAll(i);
+                                }
                             }
+                            m_itemsRequestedFromServer.removeAll(i);
                         }
-                        m_itemsRequestedFromServer.removeAll(i);
-                    }
-                } ), first, last);
+                    }), first, last);
                 for (int i = first; i <= last; ++i) {
                     m_itemsRequestedFromServer.append(i);
                 }
@@ -796,12 +792,12 @@ private:
 class FaceliftIPCLibLocal_EXPORT IPCAdapterFactoryManager
 {
 public:
-    typedef IPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
+    typedef NewIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
 
     static IPCAdapterFactoryManager &instance();
 
     template<typename AdapterType>
-    static IPCServiceAdapterBase *createInstance(InterfaceBase *i)
+    static NewIPCServiceAdapterBase *createInstance(InterfaceBase *i)
     {
         auto adapter = new AdapterType(i);
         adapter->setService(i);
@@ -837,7 +833,7 @@ private:
 class FaceliftIPCLibLocal_EXPORT IPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
 {
 public:
-    static IPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
+    static NewIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
 
 };
 
@@ -941,6 +937,162 @@ struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<In
     }
 
 };
+
+class FaceliftIPCLibLocal_EXPORT NotAvailableImplBase
+{
+
+protected:
+    void logMethodCall(const InterfaceBase &i, const char *methodName) const;
+    void logSetterCall(const InterfaceBase &i, const char *propertyName) const;
+    void logGetterCall(const InterfaceBase &i, const char *propertyName) const;
+
+};
+
+template<typename InterfaceType>
+class NotAvailableImpl : public InterfaceType, protected NotAvailableImplBase
+{
+public:
+    template<typename ElementType>
+    struct NotAvailableModel
+    {
+        static Model<ElementType> &value()
+        {
+            static TheModel instance;
+            return instance;
+        }
+
+        class TheModel : public Model<ElementType>
+        {
+        public:
+            ElementType elementAt(int index) const override
+            {
+                Q_UNUSED(index);
+                Q_ASSERT(false);
+                return ElementType {};
+            }
+
+            int size() const override
+            {
+                return 0;
+            }
+        };
+
+    };
+
+    template<typename Type>
+    struct NotAvailableValue
+    {
+        static const Type &value()
+        {
+            static Type instance = {};
+            return instance;
+        }
+    };
+
+    template<typename Type>
+    struct NotAvailableList
+    {
+        static const QList<Type> &value()
+        {
+            static QList<Type> instance;
+            return instance;
+        }
+    };
+
+    template<typename Type>
+    void logSetterCall(const char *propertyName, const Type &value) const
+    {
+        Q_UNUSED(value);
+        NotAvailableImplBase::logSetterCall(*this, propertyName);
+    }
+
+    void logGetterCall(const char *propertyName) const
+    {
+        NotAvailableImplBase::logGetterCall(*this, propertyName);
+    }
+
+    template<typename ... Args>
+    void logMethodCall(const char *methodName, const Args & ... args) const
+    {
+        M_UNUSED(args ...);
+        NotAvailableImplBase::logMethodCall(*this, methodName);
+    }
+
+    bool ready() const override
+    {
+        return false;
+    }
+
+};
+
+
+class FaceliftIPCLibLocal_EXPORT IPCProxyNewBase
+{
+public:
+    IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
+    {
+        QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
+    }
+
+    virtual void refreshProvider() = 0;
+
+    const QString &objectPath() const
+    {
+        return m_ipc.objectPath();
+    }
+
+    IPCProxyBinderBase *ipc()
+    {
+        return &m_ipc;
+    }
+
+private:
+    facelift::IPCProxyBinderBase m_ipc;
+
+};
+
+
+template<typename InterfaceType>
+class LocalProviderBinder : public QObject
+{
+
+public:
+    LocalProviderBinder(IPCProxyNewBase &proxy) : m_proxy(proxy)
+    {
+        QObject::connect(&InterfaceManager::instance(), &InterfaceManager::adapterAvailable, this,
+                &LocalProviderBinder::onLocalAdapterAvailable);
+    }
+
+    void init()
+    {
+        auto localAdapter = InterfaceManager::instance().getAdapter(m_proxy.objectPath());
+        if (localAdapter) {
+            onLocalAdapterAvailable(localAdapter);
+        }
+    }
+
+    void onLocalAdapterAvailable(NewIPCServiceAdapterBase *adapter)
+    {
+        if (adapter->objectPath() == m_proxy.objectPath()) {
+            auto provider = qobject_cast<InterfaceType *>(adapter->service());
+            m_provider = provider;
+            if (m_provider) {
+                qDebug() << "Local server found for " << m_proxy.objectPath();
+                m_proxy.refreshProvider();
+            }
+        }
+    }
+
+    InterfaceType *provider()
+    {
+        return m_provider;
+    }
+
+private:
+    QPointer<InterfaceType> m_provider;
+    IPCProxyNewBase &m_proxy;
+};
+
 
 }
 

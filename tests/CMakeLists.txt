@@ -8,8 +8,9 @@ else()
     add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure)
 endif()
 
-
-add_subdirectory(manual)
+if(NOT WIN32)
+    add_subdirectory(manual)
+endif()
 
 add_subdirectory(combined)
 add_test(NAME combined-local-cpp COMMAND test-driver.sh combined/tst_combined_local.qml cpp)

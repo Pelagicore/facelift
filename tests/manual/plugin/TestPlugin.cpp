@@ -30,7 +30,7 @@
 
 #include "TestPlugin.h"
 #include "facelift/test/Module.h"
-#include "models/cpp/TestInterfaceCppImplementation.h"
+#include "TestInterfaceCppImplementation.h"
 #include "facelift/test/TestInterfaceQMLImplementation.h"
 
 #ifdef FACELIFT_ENABLE_IPC

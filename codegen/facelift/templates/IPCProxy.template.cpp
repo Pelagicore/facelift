@@ -35,89 +35,30 @@
 
 #include "{{interfaceName}}IPCProxy.h"
 
+{% set className = interfaceName + "IPCProxy" %}
+
 {{module.namespaceCppOpen}}
 
-
-void {{interfaceName}}IPCProxy::deserializePropertyValues(facelift::IPCMessage &msg, bool isCompleteSnapshot)
+{{className}}::{{className}}(QObject *parent) : BaseType(parent)
 {
-    {% for property in interface.properties %}
-    {% if property.type.is_interface %}
-    QString {{property.name}}_objectPath;
-    if (deserializeOptionalValue(msg, {{property.name}}_objectPath, isCompleteSnapshot))
-    {
-        m_{{property.name}}Proxy.update({{property.name}}_objectPath);
-        m_{{property.name}} = m_{{property.name}}Proxy.getValue();
-    }
-    {% elif property.type.is_model %}
-    if (isCompleteSnapshot) {
-        int {{property.name}}Size;
-        deserializeValue(msg, {{property.name}}Size);
-        m_{{property.name}}.beginResetModel();
-        m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
-        m_{{property.name}}.endResetModel();
-    }
-    {% else %}
-    deserializeOptionalValue(msg, m_{{property.name}}, isCompleteSnapshot);
+    ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
+    {% if generateAsyncProxy %}
+    ipc()->setSynchronous(false);
     {% endif %}
-    {% endfor %}
-    BaseType::deserializePropertyValues(msg, isCompleteSnapshot);
 }
 
-void {{interfaceName}}IPCProxy::emitChangeSignals() {
-{% for property in interface.properties %}
-    emit {{property.name}}Changed();
-{% endfor %}
-    BaseType::emitChangeSignals();
-}
-
-void {{interfaceName}}IPCProxy::deserializeSignal(facelift::IPCMessage &msg)
+facelift::IPCProxyBinderBase *{{className}}QMLFrontendType::ipc()
 {
-    SignalID member;
-    deserializeValue(msg, member);
-
-    switch (member) {
-    {% for event in interface.signals %}
-    case SignalID::{{event}}: {
-        {% for parameter in event.parameters %}
-        {{parameter.interfaceCppType}} param_{{parameter.name}};
-        deserializeValue(msg, param_{{parameter.name}});
-        {% endfor %}
-        emit {{event}}(
-        {%- set comma = joiner(", ") -%}
-        {%- for parameter in event.parameters -%}
-            {{ comma() }}param_{{parameter.name}}
-        {%- endfor -%}  );
-    }    break;
-
-    {% endfor %}
-    {% for property in interface.properties %}
-    case SignalID::{{property.name}}:
-    {% if property.type.is_model %}
-        m_{{property.name}}.handleSignal(msg);
-    {% else %}
-        emit {{property.name}}Changed();
-    {% endif %}
-        break;
-    {% endfor %}
-    default :
-        BaseType::deserializeCommonSignal(static_cast<facelift::CommonSignalID>(member));
-        break;
-    }
+    auto p = static_cast<{{className}}*>(providerPrivate());
+    return p->ipc();
 }
 
-void {{interfaceName}}IPCProxy::bindLocalService({{interfaceName}} *service)
+{{className}}QMLFrontendType::{{className}}QMLFrontendType(QObject *parent) : {{interfaceName}}QMLFrontend(parent)
 {
-    Q_UNUSED(service);
+}
 
-    // Bind all properties
-    {% for property in interface.properties %}
-    QObject::connect(service, &{{interfaceName}}::{{property.name}}Changed, this, &{{interfaceName}}::{{property.name}}Changed);
-    {% endfor %}
-
-    // Forward all signals
-    {% for signal in interface.signals %}
-    QObject::connect(service, &InterfaceType::{{signal.name}}, this, &InterfaceType::{{signal.name}});
-    {% endfor %}
+{{className}}QMLFrontendType::{{className}}QMLFrontendType(QQmlEngine *engine) : {{interfaceName}}QMLFrontend(engine)
+{
 }
 
 {{module.namespaceCppClose}}

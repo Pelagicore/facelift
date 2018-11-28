@@ -39,6 +39,10 @@ interface MyInterface {
     // This method resets the value of the counter
     void resetCounter(int delay);
 
+    // This method resets the value of the counter
+    @async: true
+    void resetCounterAsync(int delay);
+
     // This signal is triggered when the counter has been reset
     signal counterReset();
 

@@ -28,7 +28,6 @@
 **
 *********************************************************************#}
 
-{% set comma = joiner(",") %}
 {% set hasReadyFlags = interface.hasPropertyWithReadyFlag -%}
 
 /****************************************************************************
@@ -50,8 +49,8 @@
 {{module.namespaceCppOpen}}
 
 class {{interfaceName}}QMLFrontend;
-class {{interfaceName}}IPCAdapter;
-class {{interfaceName}}IPCProxy;
+class {{interface}}IPCDBusAdapter;
+class {{interfaceName}}IPCDBusProxy;
 class {{interfaceName}}QMLImplementation;
 
 {% if hasReadyFlags %}
@@ -82,15 +81,17 @@ class {{classExport}} {{interfaceName}} : public facelift::InterfaceBase
 public:
     static constexpr const char* FULLY_QUALIFIED_INTERFACE_NAME = "{{interface.qualified_name|lower}}";
     static constexpr const char* INTERFACE_NAME = "{{interface}}";
+    static constexpr const char* SINGLETON_OBJECT_PATH = "/singletons/{{interface.qualified_name|lower|replace(".","/")}}";
 
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
 
     using QMLFrontendType = {{interfaceName}}QMLFrontend;
-    using IPCAdapterType = {{interfaceName}}IPCAdapter;
-    using IPCProxyType = {{interfaceName}}IPCProxy;
+    using IPCDBusAdapterType = {{interface}}IPCDBusAdapter;
+    using IPCDBusProxyType = {{interfaceName}}IPCDBusProxy;
     using ThisType = {{interfaceName}};
     using QMLImplementationType = {{interfaceName}}QMLImplementation;
+    using InterfaceType = {{interfaceName}};
 
     friend QMLFrontendType;
 

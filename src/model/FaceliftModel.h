@@ -277,7 +277,6 @@ protected:
         typedef typename std::tuple_element<I, std::tuple<Tp ...> >::type TupleElementType;
         outStream << ", ";
         outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
-        //        if (I != FieldCount) {        }
         toStringWithFields<I + 1, Tp ...>(t, names, outStream);
     }
 
@@ -745,7 +744,7 @@ public:
         facelift::ServiceRegistry::instance().registerObject(this);
     }
 
-    const QString &interfaceID()
+    const QString &interfaceID() const
     {
         return m_interfaceName;
     }

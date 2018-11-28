@@ -189,7 +189,8 @@ public:
     {
     }
 
-    ~InputPayLoad() {
+    ~InputPayLoad()
+    {
         Q_ASSERT(m_dataStream.atEnd());
     }
 
@@ -674,8 +675,6 @@ public:
         IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
     }
 
-    std::unique_ptr<DBusIPCMessage> m_pendingOutgoingMessage;
-
     template<typename MemberID, typename ... Args>
     void sendSignal(MemberID signalID, const Args & ... args)
     {
@@ -741,7 +740,7 @@ public:
         serializeValue(msg, service()->ready());
     }
 
-    void doInit(InterfaceBase *service);
+    void init();
 
     DBusManager &dbusManager()
     {
@@ -753,8 +752,7 @@ public:
     {
         if (isCompleteSnapshot) {
             serializeValue(msg, currentValue);
-        }
-        else {
+        } else {
             if (previousValue == currentValue) {
                 msg.outputPayLoad().writeSimple(false);
             } else {
@@ -776,6 +774,7 @@ public:
 
 
 protected:
+    std::unique_ptr<DBusIPCMessage> m_pendingOutgoingMessage;
     DBusVirtualObject m_dbusVirtualObject;
 
     QString m_introspectionData;
@@ -811,17 +810,12 @@ public:
         return m_service;
     }
 
-    void setService(QObject *service) override
+    void setService(ServiceType *service)
     {
-        m_service = bindToProvider<ServiceType>(service);
+        m_service = service;
     }
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
-
-    void init() override final
-    {
-        DBusIPCServiceAdapterBase::doInit(m_service);
-    }
 
     QString introspect(const QString &path) const override
     {
@@ -904,16 +898,29 @@ public:
     Q_SLOT
     void onSignalTriggered(const QDBusMessage &dbusMessage)
     {
-        if (!inProcess()) {   // TODO: onSignalTriggered should not be called in-process
-            DBusIPCMessage msg(dbusMessage);
-            m_serviceObject->deserializePropertyValues(msg, false);
-            m_serviceObject->deserializeSignal(msg);
-        }
+        DBusIPCMessage msg(dbusMessage);
+        m_serviceObject->deserializePropertyValues(msg, false);
+        m_serviceObject->deserializeSignal(msg);
     }
 
     void bindToIPC();
 
     void onServiceAvailable();
+
+    void setServiceAvailable(bool isRegistered)
+    {
+        if (m_serviceAvailable != isRegistered) {
+            m_serviceAvailable = isRegistered;
+            emit serviceAvailableChanged();
+        }
+    }
+
+    bool isServiceAvailable() const
+    {
+        return m_serviceAvailable;
+    }
+
+    bool m_serviceAvailable = false;
 
     void requestPropertyValues()
     {
@@ -1069,16 +1076,15 @@ private:
 
 
 
-template<typename InterfaceType, typename IPCAdapterType>
-class DBusIPCProxy : public IPCProxyBase<InterfaceType, IPCAdapterType>, protected DBusRequestHandler
+template<typename InterfaceType>
+class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusRequestHandler
 {
-    using IPCProxyBase<InterfaceType, IPCAdapterType>::assignDefaultValue;
+    using IPCProxyBase<InterfaceType>::assignDefaultValue;
 
 public:
     typedef const char *MemberIDType;
 
-    DBusIPCProxy(QObject *parent = nullptr) :
-        IPCProxyBase<InterfaceType, IPCAdapterType>(parent), m_ipcBinder(*this)
+    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), m_ipcBinder(*this)
     {
         m_ipcBinder.setInterfaceName(InterfaceType::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
@@ -1140,6 +1146,8 @@ public:
             this->readyChanged();
         }
         this->emitChangeSignals();
+
+        m_ipcBinder.setServiceAvailable(isRegistered);
     }
 
     template<typename PropertyType>
@@ -1177,7 +1185,7 @@ public:
     }
 
     template<typename InterfaceType_>
-    typename InterfaceType_::IPCProxyType *getOrCreateSubProxy(const QString &objectPath)
+    typename InterfaceType_::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
     {
         return m_ipcBinder.getOrCreateSubProxy<InterfaceType_>(objectPath);
     }

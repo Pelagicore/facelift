@@ -28,6 +28,8 @@
 **
 **********************************************************************/
 
+#pragma once
+
 #include <QDebug>
 
 #include "FaceliftProperty.h"
