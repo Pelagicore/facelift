@@ -213,7 +213,7 @@ def isAsync(self):
     return generateAsync()
 
 def verifyStruct(self):
-    blackList = [ 'id', 'Id', 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
+    blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
     for field in self.fields:
         if field.name in blackList:
             raise Exception("Field name '{}' in struct '{}' is not allowed, "
