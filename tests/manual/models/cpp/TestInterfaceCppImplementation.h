@@ -30,8 +30,8 @@
 
 #pragma once
 
-#include "facelift/test/TestInterfacePropertyAdapter.h"
-#include "facelift/test/TestInterface2PropertyAdapter.h"
+#include "facelift/test/TestInterfaceImplementationBase.h"
+#include "facelift/test/TestInterface2ImplementationBase.h"
 
 
 using namespace facelift::test;
@@ -39,13 +39,13 @@ using namespace facelift::test;
 /**
  * C++ Implementation of the TestInterface API
  */
-class TestInterfaceCppImplementation : public TestInterfacePropertyAdapter
+class TestInterfaceCppImplementation : public TestInterfaceImplementationBase
 {
 
-    class Interface2Implementation : public TestInterface2PropertyAdapter {
+    class Interface2Implementation : public TestInterface2ImplementationBase {
 
     public:
-        Interface2Implementation(TestInterfaceCppImplementation& main, QString id) : TestInterface2PropertyAdapter(&main), m_main(main) {
+        Interface2Implementation(TestInterfaceCppImplementation& main, QString id) : TestInterface2ImplementationBase(&main), m_main(main) {
             m_id = id;
         }
 
@@ -64,7 +64,7 @@ class TestInterfaceCppImplementation : public TestInterfacePropertyAdapter
 
 
 public:
-    TestInterfaceCppImplementation(QObject *parent = nullptr) : TestInterfacePropertyAdapter(parent)
+    TestInterfaceCppImplementation(QObject *parent = nullptr) : TestInterfaceImplementationBase(parent)
     {
         qDebug() << "C++ implementation of TestInterface is used";
         m_readyProperty = 0;

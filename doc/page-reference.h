@@ -33,7 +33,7 @@ The following table describes the C++ classes which are generated from the QFace
 C++ class name                      | Description
 ----------------------------------- | -------------
 MyInterface                         | This C++ abstract class (or interface) is the direct translation of the QFace interface definition into C++. Any concrete implementation of "MyInterface" should extend somehow this class (not necessarily directly)
-MyInterfacePropertyAdapter          | This C++ abstract class extends "MyInterface" and provides a more convenient base class to write an implementation of "MyInterface".
+MyInterfaceImplementationBase       | This C++ abstract class extends "MyInterface" and provides a more convenient base class to write an implementation of "MyInterface".
 MyInterfaceQMLFrontend              | This class wraps an instance of "MyInterface" into an object which can be exposed directly to QML. Note that the "MyInterface" class is intentionally not QML-friendly.
 MyInterfaceQMLImplementation        | This class is used to enable the implementation of "MyInterface" using the QML language.
 MyInterfaceIPCAdapter               | This class is used to make an implementation of "MyInterface" accessible through an IPC.
@@ -57,27 +57,27 @@ class MyInterfaceQMLFrontend #88CCDD {
 MyInterfaceQMLFrontend --> "provider" MyInterface
 
 
-class MyInterfacePropertyAdapter {
+class MyInterfaceImplementationBase {
 }
-MyInterfacePropertyAdapter --|> MyInterface : extends
+MyInterfaceImplementationBase --|> MyInterface : extends
 
 
 class MyInterfaceIPCProxy {
     This class is an IPC proxy for the "MyInterface" type
 }
-MyInterfaceIPCProxy --|> MyInterfacePropertyAdapter : extends
+MyInterfaceIPCProxy --|> MyInterfaceImplementationBase : extends
 
 
 class MyInterfaceDummy {
 
 }
-MyInterfaceDummy --|> MyInterfacePropertyAdapter : extends
+MyInterfaceDummy --|> MyInterfaceImplementationBase : extends
 
 
 class MyInterfaceQMLImplementation {
     Used as base component when implementing "Interface" using QML code
 }
-MyInterfaceQMLImplementation --> "provider" MyInterfacePropertyAdapter
+MyInterfaceQMLImplementation --> "provider" MyInterfaceImplementationBase
 
 \enduml
 
@@ -189,10 +189,10 @@ and what types are supposed to be used from the frontend (UI) QML code.
 
 The backend service implementation can be done either in C++ or QML:
 
-C++/QML type                    | Lang. | Usage
-------------------------------- | ----- | ----------------------------
-\b MyInterfacePropertyAdapter   | C++   | Use this class as the base class for your C++ implementation
-\b MyInterfaceQMLImplementation | QML   | Use this QML type as the base for your QML implementation
+C++/QML type                     | Lang. | Usage
+-------------------------------- | ----- | ----------------------------
+\b MyInterfaceImplementationBase | C++   | Use this class as the base class for your C++ implementation
+\b MyInterfaceQMLImplementation  | QML   | Use this QML type as the base for your QML implementation
 
 \subsection reference-frontend Frontend UI
 

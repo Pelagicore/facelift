@@ -31,20 +31,20 @@
 #pragma once
 
 #include "MediaIndexerService.h"
-#include "mediaplayer/MediaIndexerModelPropertyAdapter.h"
+#include "mediaplayer/MediaIndexerModelImplementationBase.h"
 #include <functional>
 
 using namespace mediaplayer;
 
 class MediaIndexerModelCpp :
-    public MediaIndexerModelPropertyAdapter
+    public MediaIndexerModelImplementationBase
 {
 
     Q_OBJECT
 
 public:
     MediaIndexerModelCpp(QObject *parent = nullptr) :
-        MediaIndexerModelPropertyAdapter(parent)
+        MediaIndexerModelImplementationBase(parent)
     {
         connect(&m_service, &MediaIndexerService::filesChanged, this, &MediaIndexerModelCpp::onFilesChanged);
         onFilesChanged();

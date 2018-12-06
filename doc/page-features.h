@@ -71,7 +71,7 @@ been set and is valid.
 \subsection sub2 C++ Implementation
 
 By default the ready flag will be true. It is however possible to set it to false explicitly in
-your C++ implementation of the interface (derived from IReadyPropertyAdapter in the example
+your C++ implementation of the interface (derived from IReadyImplementationBase in the example
 above). On the property you can call \c setReady(false) and set some reasonable default value
 before. Note that whenever the poperty is assigned or bound its ready flag will automatically
 switch to true. It can be set explicetely to true, as well, of course (\c setReady(true)). The

@@ -30,15 +30,15 @@
 
 #pragma once
 
-#include "tests/asyncfunctions/AsyncFunctionsInterfacePropertyAdapter.h"
+#include "tests/asyncfunctions/AsyncFunctionsInterfaceImplementationBase.h"
 
 using namespace tests::asyncfunctions;
 
-class AsyncFunctionsInterfaceCppImplementation : public AsyncFunctionsInterfacePropertyAdapter
+class AsyncFunctionsInterfaceCppImplementation : public AsyncFunctionsInterfaceImplementationBase
 {
 public:
 
-    AsyncFunctionsInterfaceCppImplementation(QObject *parent = nullptr) : AsyncFunctionsInterfacePropertyAdapter(parent)
+    AsyncFunctionsInterfaceCppImplementation(QObject *parent = nullptr) : AsyncFunctionsInterfaceImplementationBase(parent)
     {
     }
 

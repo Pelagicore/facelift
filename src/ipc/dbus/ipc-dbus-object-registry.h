@@ -32,7 +32,7 @@
 
 #include "ipc-dbus.h"
 
-#include "facelift/ipc/dbus/ObjectRegistryPropertyAdapter.h"
+#include "facelift/ipc/dbus/ObjectRegistryImplementationBase.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPCProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusAdapter.h"
@@ -48,11 +48,11 @@ class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
 public:
     static constexpr const char *SERVICE_NAME = "facelift.registry";
 
-    class MasterImpl : public facelift::ipc::dbus::ObjectRegistryPropertyAdapter
+    class MasterImpl : public facelift::ipc::dbus::ObjectRegistryImplementationBase
     {
 
     public:
-        MasterImpl(DBusObjectRegistry &parent) : facelift::ipc::dbus::ObjectRegistryPropertyAdapter(&parent)
+        MasterImpl(DBusObjectRegistry &parent) : facelift::ipc::dbus::ObjectRegistryImplementationBase(&parent)
         {
         }
 

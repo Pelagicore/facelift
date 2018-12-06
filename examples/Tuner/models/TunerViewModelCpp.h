@@ -30,20 +30,20 @@
 
 #pragma once
 
-#include "tuner/TunerViewModelPropertyAdapter.h"
+#include "tuner/TunerViewModelImplementationBase.h"
 #include "TunerService.h"
 
 using namespace tuner;
 
 class TunerViewModelCpp :
-    public TunerViewModelPropertyAdapter
+    public TunerViewModelImplementationBase
 {
 
     Q_OBJECT
 
 public:
     TunerViewModelCpp(QObject *parent = nullptr) :
-        TunerViewModelPropertyAdapter(parent)
+        TunerViewModelImplementationBase(parent)
     {
         m_currentStation.bind([this] () {
 

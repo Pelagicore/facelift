@@ -30,18 +30,18 @@
 
 #pragma once
 
-#include "tests/combined/CombinedInterfacePropertyAdapter.h"
-#include "tests/combined/CombinedInterface2PropertyAdapter.h"
-#include "tests/combined/other/OtherInterfacePropertyAdapter.h"
+#include "tests/combined/CombinedInterfaceImplementationBase.h"
+#include "tests/combined/CombinedInterface2ImplementationBase.h"
+#include "tests/combined/other/OtherInterfaceImplementationBase.h"
 
 using namespace tests::combined;
 using namespace tests::combined::other;
 
 
-class OtherInterfaceImplementation : public OtherInterfacePropertyAdapter
+class OtherInterfaceImplementation : public OtherInterfaceImplementationBase
 {
 public:
-    OtherInterfaceImplementation(QObject *parent = nullptr) : OtherInterfacePropertyAdapter(parent) {}
+    OtherInterfaceImplementation(QObject *parent = nullptr) : OtherInterfaceImplementationBase(parent) {}
 
     QString otherMethod(OtherEnum oe) override
     {
@@ -52,13 +52,13 @@ public:
 };
 
 
-class CombinedInterfaceCppImplementation : public CombinedInterfacePropertyAdapter
+class CombinedInterfaceCppImplementation : public CombinedInterfaceImplementationBase
 {
-    class CombinedInterface2Implementation : public CombinedInterface2PropertyAdapter
+    class CombinedInterface2Implementation : public CombinedInterface2ImplementationBase
     {
     public:
         CombinedInterface2Implementation(CombinedInterfaceCppImplementation* parent, QString id)
-            : CombinedInterface2PropertyAdapter(parent)
+            : CombinedInterface2ImplementationBase(parent)
         {
             m_id = id;
         }
@@ -72,7 +72,7 @@ class CombinedInterfaceCppImplementation : public CombinedInterfacePropertyAdapt
     };
 
 public:
-    CombinedInterfaceCppImplementation(QObject *parent = nullptr) : CombinedInterfacePropertyAdapter(parent)
+    CombinedInterfaceCppImplementation(QObject *parent = nullptr) : CombinedInterfaceImplementationBase(parent)
     {
         qDebug() << "C++ implementation is used.";
         m_readyProperty = 0;

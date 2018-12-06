@@ -31,7 +31,7 @@
 //! [indoc]
 #pragma once
 
-#include "facelift/example/mypackage/MyInterfacePropertyAdapter.h"
+#include "facelift/example/mypackage/MyInterfaceImplementationBase.h"
 
 
 using namespace facelift::example::mypackage;
@@ -39,11 +39,11 @@ using namespace facelift::example::mypackage;
 /**
  * C++ Implementation of the MyInterface API
  */
-class MyInterfaceCppImplementation : public MyInterfacePropertyAdapter
+class MyInterfaceCppImplementation : public MyInterfaceImplementationBase
 {
 
 public:
-    MyInterfaceCppImplementation(QObject *parent = nullptr) : MyInterfacePropertyAdapter(parent)
+    MyInterfaceCppImplementation(QObject *parent = nullptr) : MyInterfaceImplementationBase(parent)
     {
         connect(&m_timer, &QTimer::timeout, this, [this] () {
             m_counter++;   // The value change signal is automatically triggered for you here

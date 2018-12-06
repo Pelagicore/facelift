@@ -29,21 +29,21 @@
 **********************************************************************/
 
 #pragma once
-#include "tests/propertybinding/PropertyBindingInterfaceTestPropertyAdapter.h"
+#include "tests/propertybinding/PropertyBindingInterfaceTestImplementationBase.h"
 
 using namespace tests::propertybinding;
 
-class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceTestPropertyAdapter
+class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceTestImplementationBase
 {
 public:
-    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr): PropertyBindingInterfaceTestPropertyAdapter(parent) {
+    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr): PropertyBindingInterfaceTestImplementationBase(parent) {
 
         m_intProperty1.bind([this]() {
             return  m_intProperty2;
-        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::intProperty2Changed);
+        }).addTrigger(this, &PropertyBindingInterfaceTestImplementationBase::intProperty2Changed);
 
         m_comboStr1.bind([this]() {
             return m_comboStr2;
-        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::comboStr2Changed);
+        }).addTrigger(this, &PropertyBindingInterfaceTestImplementationBase::comboStr2Changed);
     }
 };

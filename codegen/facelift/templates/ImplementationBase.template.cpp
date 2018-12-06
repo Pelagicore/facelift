@@ -33,11 +33,11 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{interfaceName}}PropertyAdapter.h"
+#include "{{interfaceName}}ImplementationBase.h"
 
 {{module.namespaceCppOpen}}
 
-{{interfaceName}}PropertyAdapter::{{interfaceName}}PropertyAdapter(QObject* parent) : {{interfaceName}}(parent), m_ready(true)
+{{interfaceName}}ImplementationBase::{{interfaceName}}ImplementationBase(QObject* parent) : {{interfaceName}}(parent), m_ready(true)
 {
     m_ready.init(this, &ThisType::readyChanged, "ready");
 

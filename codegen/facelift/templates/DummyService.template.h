@@ -39,7 +39,7 @@
 
 {{classExportDefines}}
 
-#include "{{interface.fullyQualifiedPath}}PropertyAdapter.h"
+#include "{{interface.fullyQualifiedPath}}ImplementationBase.h"
 #include "DummyModel.h"
 
 {{module.namespaceCppOpen}}
@@ -47,12 +47,12 @@
 /**
  * Dummy implementation of the {{class}} API
  */
-class {{classExport}} {{class}}Dummy : public {{class}}PropertyAdapter {
+class {{classExport}} {{class}}Dummy : public {{class}}ImplementationBase {
 
     Q_OBJECT
 
 public:
-    {{class}}Dummy(QObject* parent = nullptr): {{class}}PropertyAdapter(parent), m_dummy(*this) {
+    {{class}}Dummy(QObject* parent = nullptr): {{class}}ImplementationBase(parent), m_dummy(*this) {
         setImplementationID("Dummy");
     }
 
@@ -118,7 +118,7 @@ public:
     class Dummy : public facelift::DummyModel<{{class}}> {
 
     public:
-        Dummy({{class}}PropertyAdapter& adapter) : facelift::DummyModel<{{class}}>(&adapter), m_adapter(adapter) {
+        Dummy({{class}}ImplementationBase& adapter) : facelift::DummyModel<{{class}}>(&adapter), m_adapter(adapter) {
             init();
             {% for property in interface.properties %}
             {% if property.type.is_interface -%}
@@ -163,7 +163,7 @@ public:
             {% endfor %}
         }
 
-        {{class}}PropertyAdapter& m_adapter;
+        {{class}}ImplementationBase& m_adapter;
 
     };
 

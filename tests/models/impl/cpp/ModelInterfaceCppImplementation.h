@@ -30,18 +30,18 @@
 
 #pragma once
 
-#include "tests/models/ModelInterfacePropertyAdapter.h"
+#include "tests/models/ModelInterfaceImplementationBase.h"
 #include <functional>
 #include <QStringBuilder>
 
 using namespace tests::models;
 
 
-class ModelInterfaceCppImplementation : public ModelInterfacePropertyAdapter
+class ModelInterfaceCppImplementation : public ModelInterfaceImplementationBase
 {
 public:
     ModelInterfaceCppImplementation(QObject *parent = nullptr) :
-        ModelInterfacePropertyAdapter(parent)
+        ModelInterfaceImplementationBase(parent)
     {
         int i = 0;
         for (; i < 100; i++)
