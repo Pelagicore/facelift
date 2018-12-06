@@ -27,15 +27,15 @@ usually a custom struct.
 \subsection impl-sub1 Implementation
 
 Models can only be implemented in C++, they cannot be implemented in QML. As usual, the
-implementation should derive from IModelPropertyAdapter. Here is the outline of a sample
+implementation should derive from IModelImplementationBase. Here is the outline of a sample
 implementation:
 
 \code
-class IModelImplementation : public IModelPropertyAdapter
+class IModelImplementation : public IModelImplementationBase
 {
     Q_OBJECT
 public:
-    IModelImplementation(QObject *parent = nullptr) : IModelPropertyAdapter(parent)
+    IModelImplementation(QObject *parent = nullptr) : IModelImplementationBase(parent)
     {
         m_theModel.reset(m_items.size(), std::bind(&IModelImplementation::getItem, this, std::placeholders::_1));
     }
@@ -51,7 +51,7 @@ private:
 \endcode
 
 The property adapter will include a public member variable that can be used to provide the model
-data. In our case IModelPropertyAdapter includes \c m_theModel. The \c reset methods of this member
+data. In our case IModelImplementationBase includes \c m_theModel. The \c reset methods of this member
 variable should be called (usually in the constructor) with the model size (as int) and a function
 that takes an index parameter of type int and returns the corresponding model item. In the example
 above the getter is simply called \c getItem.

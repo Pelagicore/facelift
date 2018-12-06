@@ -57,17 +57,17 @@ In order to provide an implementation of the interface, a new C++ concrete class
 defined, which extends the generated abstract class, and provides implementations for all the pure
 virtual methods.
 
-\subsubsection ssi Implementation Using C++ "PropertyAdapter" Base Class
+\subsubsection ssi Implementation Using C++ "ImplementationBase" Class
 
 To make developers' life easier, Facelift code generator generates another kind of class:
-\c MyInterfacePropertyAdapter. That class extends the \c MyInterface class, implements the property
+\c MyInterfaceImplementationBase. That class extends the \c MyInterface class, implements the property
 getter methods, and provides convenient "property" members, which can be used to manipulate the
 property values. Whenever a property value is changed, the corresponding signal is automatically
 triggered, which can save a lot of boilerplate code. Here is the generated code
-("MyInterfacePropertyAdapter.h"):
-\includelineno "MyInterfacePropertyAdapter.h"
+("MyInterfaceImplementationBase.h"):
+\includelineno "MyInterfaceImplementationBase.h"
 
-Here is an example of an implementation based on the PropertyAdapter base class
+Here is an example of an implementation based on the ImplementationBase class
 ("MyInterfaceCppImplementation.h"):
 \snippet "MyInterfaceCppImplementation.h" indoc
 

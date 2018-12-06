@@ -30,8 +30,8 @@
 
 #pragma once
 
-#include "tests/userData/ProducerPropertyAdapter.h"
-#include "tests/userData/ConsumerPropertyAdapter.h"
+#include "tests/userData/ProducerImplementationBase.h"
+#include "tests/userData/ConsumerImplementationBase.h"
 
 
 using namespace tests::userData;
@@ -46,10 +46,10 @@ struct Pod
 Q_DECLARE_METATYPE(Pod)
 
 
-class ProducerCppImplementation : public ProducerPropertyAdapter
+class ProducerCppImplementation : public ProducerImplementationBase
 {
 public:
-    ProducerCppImplementation(QObject *parent = nullptr) : ProducerPropertyAdapter(parent) {}
+    ProducerCppImplementation(QObject *parent = nullptr) : ProducerImplementationBase(parent) {}
 
     void produceUserData(Type type) override
     {
@@ -91,10 +91,10 @@ public:
 };
 
 
-class ConsumerCppImplementation : public ConsumerPropertyAdapter
+class ConsumerCppImplementation : public ConsumerImplementationBase
 {
 public:
-    ConsumerCppImplementation(QObject *parent = nullptr) : ConsumerPropertyAdapter(parent) {}
+    ConsumerCppImplementation(QObject *parent = nullptr) : ConsumerImplementationBase(parent) {}
 
     bool consumeUserData(Type type, TestStruct ts) override
     {

@@ -30,18 +30,18 @@
 
 #pragma once
 
-#include "advanced/AdvancedModelPropertyAdapter.h"
+#include "advanced/AdvancedModelImplementationBase.h"
 #include <functional>
 
 using namespace advanced;
 
-class AdvancedModelCpp : public AdvancedModelPropertyAdapter
+class AdvancedModelCpp : public AdvancedModelImplementationBase
 {
     Q_OBJECT
 
 public:
     AdvancedModelCpp(QObject *parent = nullptr) :
-        AdvancedModelPropertyAdapter(parent)
+        AdvancedModelImplementationBase(parent)
     {
         resetModel();
     }

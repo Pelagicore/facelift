@@ -39,7 +39,7 @@
 
 #include "QMLModel.h"
 
-#include "{{interface}}PropertyAdapter.h"
+#include "{{interface}}ImplementationBase.h"
 #include "{{interface}}QMLFrontend.h"
 {% for operation in interface.operations %}
 {% if operation.type.is_interface %}
@@ -55,14 +55,14 @@ class {{interface}}QMLImplementation;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{classExport}} {{interface}}QMLImplementationProvider : public {{interface}}PropertyAdapter,
+class {{classExport}} {{interface}}QMLImplementationProvider : public {{interface}}ImplementationBase,
                                                public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation>
 {
     Q_OBJECT
 
 public:
     using QMLImplementationModelType = {{interface}}QMLImplementation;
-    using AdapterType = {{interface}}PropertyAdapter;
+    using AdapterType = {{interface}}ImplementationBase;
 
     {{interface}}QMLImplementationProvider();
     {{interface}}QMLImplementationProvider({{interface}}QMLImplementation *qmlImpl);
@@ -334,7 +334,7 @@ public:
 
 
 inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationProvider({{interface}}QMLImplementation* qmlImpl)
-    : {{interface}}PropertyAdapter(qmlImpl)
+    : {{interface}}ImplementationBase(qmlImpl)
 {
     m_impl = qmlImpl;
 }

@@ -30,14 +30,14 @@
 
 #pragma once
 
-#include "tests/readyflag/ReadyFlagInterfacePropertyAdapter.h"
+#include "tests/readyflag/ReadyFlagInterfaceImplementationBase.h"
 
 using namespace tests::readyflag;
 
-class ReadyFlagInterfaceCppImplementation : public ReadyFlagInterfacePropertyAdapter
+class ReadyFlagInterfaceCppImplementation : public ReadyFlagInterfaceImplementationBase
 {
 public:
-    ReadyFlagInterfaceCppImplementation(QObject *parent = nullptr) : ReadyFlagInterfacePropertyAdapter(parent)
+    ReadyFlagInterfaceCppImplementation(QObject *parent = nullptr) : ReadyFlagInterfaceImplementationBase(parent)
     {
         m_intProperty.setReady(false);
         m_strProperty.setReady(false);

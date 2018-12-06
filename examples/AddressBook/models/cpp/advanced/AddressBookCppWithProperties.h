@@ -30,22 +30,22 @@
 
 #pragma once
 
-#include "facelift/example/addressbook/AddressBookPropertyAdapter.h"
-#include "facelift/example/addressbook/SubInterfacePropertyAdapter.h"
+#include "facelift/example/addressbook/AddressBookImplementationBase.h"
+#include "facelift/example/addressbook/SubInterfaceImplementationBase.h"
 
 
 using namespace facelift::example::addressbook;
 
 /**
- * C++ Implementation of the AddressBook API, using the PropertyAdapter helper class
+ * C++ Implementation of the AddressBook API, using the ImplementationBase helper class
  */
-class AddressBookCppWithProperties : public AddressBookPropertyAdapter
+class AddressBookCppWithProperties : public AddressBookImplementationBase
 {
 
     Q_OBJECT
 
 public:
-    AddressBookCppWithProperties(QObject *parent = nullptr) :        AddressBookPropertyAdapter(parent)
+    AddressBookCppWithProperties(QObject *parent = nullptr) :        AddressBookImplementationBase(parent)
     {
         setImplementationID("C++ model implemented with properties");
 
@@ -72,7 +72,7 @@ public:
         qDebug() << "privateMethod called !";
     }
 
-    class SubInterfaceImpl : public SubInterfacePropertyAdapter
+    class SubInterfaceImpl : public SubInterfaceImplementationBase
     {
         void doSomething() override
         {

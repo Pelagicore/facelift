@@ -30,15 +30,15 @@
 
 #pragma once
 
-#include "mainmodule/MainInterfacePropertyAdapter.h"
-#include "anothermodule/AnotherInterfacePropertyAdapter.h"
+#include "mainmodule/MainInterfaceImplementationBase.h"
+#include "anothermodule/AnotherInterfaceImplementationBase.h"
 
 using namespace mainmodule;
 using namespace anothermodule;
 
-class MainInterfaceCppImplementation : public MainInterfacePropertyAdapter
+class MainInterfaceCppImplementation : public MainInterfaceImplementationBase
 {
-    class AnotherInterfaceCppImplementation : public AnotherInterfacePropertyAdapter
+    class AnotherInterfaceCppImplementation : public AnotherInterfaceImplementationBase
     {
     public:
         void changeProperties() override
@@ -48,7 +48,7 @@ class MainInterfaceCppImplementation : public MainInterfacePropertyAdapter
     };
 
 public:
-    MainInterfaceCppImplementation(QObject *parent = nullptr) : MainInterfacePropertyAdapter(parent)
+    MainInterfaceCppImplementation(QObject *parent = nullptr) : MainInterfaceImplementationBase(parent)
     {
         m_anotherInterfaceInstance = &m_anotherInstanceCppImplObj;
     }
