@@ -57,7 +57,7 @@ Item {
         id: proxy
     }
 
-    AddressBookQMLImplementation {
+    AddressBookImplementationBase {
         id: impl
 
         isLoaded: false

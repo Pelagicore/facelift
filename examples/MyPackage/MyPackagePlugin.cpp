@@ -35,7 +35,7 @@
 #include "facelift/example/mypackage/Module.h"
 #include "facelift/example/mypackage/ModuleIPC.h"
 
-#include "facelift/example/mypackage/MyInterfaceQMLImplementation.h"
+#include "facelift/example/mypackage/MyInterfaceImplementationBaseQML.h"
 
 void MyPackagePlugin::registerTypes(const char *uri)
 {

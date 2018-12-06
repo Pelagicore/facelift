@@ -35,7 +35,7 @@
 #include "models/cpp/advanced/AddressBookCppWithProperties.h"
 #include "models/cpp/AddressBookCpp.h"
 
-#include "facelift/example/addressbook/AddressBookQMLImplementation.h"
+#include "facelift/example/addressbook/AddressBookImplementationBaseQML.h"
 
 using namespace facelift::example::addressbook;
 
@@ -49,5 +49,5 @@ void AddressBookPlugin::registerTypes(const char *uri)
     // The decision to register a dummy, QML, or C++ implementation should be taken here
     facelift::registerQmlComponent<AddressBookCppWithProperties>(uri, "AddressBookImpl");
     // facelift::registerQmlComponent<AddressBookCpp>(uri, , "AddressBookImpl");
-    // facelift::registerQmlComponent<AddressBookQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION) "/models/qml/addressbook/AddressBook.qml");
+    // facelift::registerQmlComponent<AddressBookImplementationBaseQML>(uri, STRINGIFY(QML_MODEL_LOCATION) "/models/qml/addressbook/AddressBook.qml");
 }
