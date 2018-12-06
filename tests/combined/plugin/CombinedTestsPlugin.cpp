@@ -34,7 +34,7 @@
 #include "tests/combined/CombinedInterfaceIPCProxy.h"
 #include "tests/combined/CombinedInterfaceAsyncIPCProxy.h"
 #if defined(QML_IMPL_LOCATION)
-#  include "tests/combined/CombinedInterfaceQMLImplementation.h"
+#  include "tests/combined/CombinedInterfaceImplementationBaseQML.h"
 #else
 #  include "impl/cpp/CombinedTestsCppImplementation.h"
 #endif
@@ -52,10 +52,10 @@ void CombinedTestsPlugin::registerTypes(const char *uri)
     tests::combined::other::Module::registerUncreatableQmlTypes(uri);
 
 #if defined(QML_IMPL_LOCATION)
-    facelift::registerQmlComponent<CombinedInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
+    facelift::registerQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
             "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceAPI");
 
-    facelift::registerSingletonQmlComponent<CombinedInterfaceQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)
+    facelift::registerSingletonQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
             "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceSingleton");
 #else
     facelift::registerQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceAPI");

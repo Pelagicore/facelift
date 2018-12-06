@@ -28,7 +28,7 @@ class InterfaceImplementation {
     Typically written by hand
 }
 
-class InterfaceQMLImplementation {
+class InterfaceImplementationBaseQML {
     Used as base component when implementing "Interface" using QML code
 }
 
@@ -36,7 +36,7 @@ Interface <|-- InterfaceImplementation
 
 InterfaceQMLFrontend --> "provider" Interface
 
-InterfaceQMLImplementation --> "provider" Interface
+InterfaceImplementationBaseQML --> "provider" Interface
 
 
 @enduml

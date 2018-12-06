@@ -49,7 +49,7 @@
 {% endfor %}
 
 {% for interface in module.interfaces %}
-#include "{{interface.fullyQualifiedPath}}QMLImplementation.h"
+#include "{{interface.fullyQualifiedPath}}ImplementationBaseQML.h"
 #include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
@@ -128,8 +128,9 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
     // Register components used to implement an interface in QML
     {% for interface in module.interfaces %}
-    if ({{interface}}QMLImplementation::ENABLED) {
-        ::qmlRegisterType<{{interface}}QMLImplementation>(uri, majorVersion, minorVersion, {{interface}}QMLImplementation::QML_NAME);
+    if ({{interface}}ImplementationBaseQML::ENABLED) {
+        ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME);
+        ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME_DEPRECATED);
     }
 
     {% endfor %}

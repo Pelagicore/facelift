@@ -37,7 +37,7 @@ import QtQuick.Controls 1.2
 /**
  * QML Implementation of the AddressBook model API
  */
-AddressBookQMLImplementation {
+AddressBookImplementationBase {
     id: root
 
     isLoaded: false

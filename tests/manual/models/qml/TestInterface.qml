@@ -32,7 +32,7 @@ import QtQuick 2.0
 import facelift.test 1.0
 
 
-TestInterfaceQMLImplementation {
+TestInterfaceImplementationBase {
     id: root
 
     intMapProperty: { 'one':1, 'two':2, 'three':3 }

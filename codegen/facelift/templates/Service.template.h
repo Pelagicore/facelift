@@ -51,7 +51,7 @@
 class {{interfaceName}}QMLFrontend;
 class {{interface}}IPCDBusAdapter;
 class {{interfaceName}}IPCDBusProxy;
-class {{interfaceName}}QMLImplementation;
+class {{interfaceName}}ImplementationBaseQML;
 
 {% if hasReadyFlags %}
 class {{classExport}} {{interfaceName}}ReadyFlags
@@ -90,7 +90,7 @@ public:
     using IPCDBusAdapterType = {{interface}}IPCDBusAdapter;
     using IPCDBusProxyType = {{interfaceName}}IPCDBusProxy;
     using ThisType = {{interfaceName}};
-    using QMLImplementationType = {{interfaceName}}QMLImplementation;
+    using ImplementationBaseQMLType = {{interfaceName}}ImplementationBaseQML;
     using InterfaceType = {{interfaceName}};
 
     friend QMLFrontendType;

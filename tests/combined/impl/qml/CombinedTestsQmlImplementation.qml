@@ -32,11 +32,11 @@ import QtQuick 2.0
 import tests.combined 1.0
 
 
-CombinedInterfaceQMLImplementation {
+CombinedInterfaceImplementationBase {
     id: root
     qmlImplementationUsed: true
 
-//    CombinedInterface2QMLImplementation {
+//    CombinedInterface2ImplementationBase {
 //        id: ci2
 
 //        doSomething: function() {

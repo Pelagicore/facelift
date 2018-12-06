@@ -84,7 +84,7 @@ after 1s:
 \endcode
 
 \subsection sub3 QML Implementation
-It is not possible to implement this in QML (derived from IReadyQmlImplementation in the example
+It is not possible to implement this in QML (derived from IReadyImplementationBaseQML in the example
 above).
 
 \subsection sub4 UI Usage

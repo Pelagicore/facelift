@@ -43,29 +43,29 @@
 #include "{{interface}}QMLFrontend.h"
 {% for operation in interface.operations %}
 {% if operation.type.is_interface %}
-#include "{{operation.type}}QMLImplementation.h"
+#include "{{operation.type}}ImplementationBaseQML.h"
 {% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}
 
-class {{interface}}QMLImplementation;
+class {{interface}}ImplementationBaseQML;
 
 /**
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
 class {{classExport}} {{interface}}QMLImplementationProvider : public {{interface}}ImplementationBase,
-                                               public facelift::QMLModelImplementationFrontend<{{interface}}QMLImplementation>
+                                               public facelift::QMLModelImplementationFrontend<{{interface}}ImplementationBaseQML>
 {
     Q_OBJECT
 
 public:
-    using QMLImplementationModelType = {{interface}}QMLImplementation;
+    using QMLImplementationModelType = {{interface}}ImplementationBaseQML;
     using AdapterType = {{interface}}ImplementationBase;
 
     {{interface}}QMLImplementationProvider();
-    {{interface}}QMLImplementationProvider({{interface}}QMLImplementation *qmlImpl);
+    {{interface}}QMLImplementationProvider({{interface}}ImplementationBaseQML *qmlImpl);
 
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
@@ -97,13 +97,13 @@ public:
 
     QObject* impl();
 
-    friend class {{interface}}QMLImplementation;
+    friend class {{interface}}ImplementationBaseQML;
 };
 
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{classExport}} {{interface}}QMLImplementation : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationProvider>
+class {{classExport}} {{interface}}ImplementationBaseQML : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationProvider>
 {
     Q_OBJECT
 
@@ -111,9 +111,10 @@ class {{classExport}} {{interface}}QMLImplementation : public facelift::ModelQML
 
 public:
     using Provider = {{interface}}QMLImplementationProvider;
-    using ThisType = {{interface}}QMLImplementation;
+    using ThisType = {{interface}}ImplementationBaseQML;
 
-    static constexpr const char* QML_NAME = "{{interface}}QMLImplementation";
+    static constexpr const char* QML_NAME = "{{interface}}ImplementationBase";
+    static constexpr const char* QML_NAME_DEPRECATED = "{{interface}}QMLImplementation";
     static constexpr bool ENABLED = true;
 
     {{interface}}QMLImplementationProvider* createFrontend() override
@@ -180,7 +181,7 @@ public:
         return returnValue;
         {% else %}
         {% if operation.type.is_interface %}
-        return &((static_cast<{{operation.cppType}}::QMLImplementationType*>(returnValue))->interface());
+        return &((static_cast<{{operation.cppType}}::ImplementationBaseQMLType*>(returnValue))->interface());
         {% else %}
         return facelift::toProviderCompatibleType<{{operation.cppType}}, {{operation.type.qmlCompatibleType}}>(returnValue);
         {% endif %}
@@ -238,7 +239,7 @@ public:
                 m_{{property.name}}.reset(value);
                 sync{{property.name}}();
                 if (m_{{property.name}}.isSet()) {
-                    m_{{property.name}}.addConnection(QObject::connect(m_{{property.name}}.object(), &{{property.cppType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}QMLImplementation::sync{{property.name}}));
+                    m_{{property.name}}.addConnection(QObject::connect(m_{{property.name}}.object(), &{{property.cppType}}QObjectWrapper::anyFieldChanged, this, &{{interface}}ImplementationBaseQML::sync{{property.name}}));
                 }
                 emit {{property.name}}Changed();
             }
@@ -321,7 +322,7 @@ public:
     {% endfor %}
 
 
-    {{interface}}QMLImplementation()
+    {{interface}}ImplementationBaseQML()
     {
         retrieveFrontend();
     }
@@ -333,7 +334,7 @@ public:
 };
 
 
-inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationProvider({{interface}}QMLImplementation* qmlImpl)
+inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationProvider({{interface}}ImplementationBaseQML* qmlImpl)
     : {{interface}}ImplementationBase(qmlImpl)
 {
     m_impl = qmlImpl;
@@ -341,7 +342,7 @@ inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationPro
 
 inline {{interface}}QMLImplementationProvider::{{interface}}QMLImplementationProvider()
 {
-    m_impl = createComponent<{{interface}}QMLImplementation>(qmlEngine(), this);
+    m_impl = createComponent<{{interface}}ImplementationBaseQML>(qmlEngine(), this);
 }
 
 inline QObject* {{interface}}QMLImplementationProvider::impl()

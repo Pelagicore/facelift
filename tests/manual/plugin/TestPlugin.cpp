@@ -31,7 +31,7 @@
 #include "TestPlugin.h"
 #include "facelift/test/Module.h"
 #include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceQMLImplementation.h"
+#include "facelift/test/TestInterfaceImplementationBaseQML.h"
 
 #ifdef FACELIFT_ENABLE_IPC
 #  include "facelift/test/ModuleIPC.h"
@@ -55,8 +55,8 @@ void TestPlugin::registerTypes(const char *uri)
 #else
     // This will register the "TestInterfaceQMLFrontend" class as an instantiatable QML type, named
     // "TestInterfaceImplementation". It's actual implementation will be delegated to the "TestInterface" QML
-    // component, that derives from "TestInterfaceQMLImplementation".
-    facelift::registerQmlComponent<TestInterfaceQMLImplementation>(uri, STRINGIFY(QML_MODEL_LOCATION)
+    // component, that derives from "TestInterfaceImplementationBaseQML".
+    facelift::registerQmlComponent<TestInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_MODEL_LOCATION)
             "/models/qml/TestInterface.qml", "TestInterfaceImplementation");
 #endif
 }
