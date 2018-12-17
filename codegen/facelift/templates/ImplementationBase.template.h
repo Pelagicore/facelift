@@ -102,6 +102,10 @@ protected:
         m_ready = ready;
     }
 
+    facelift::Property<bool>& readyProperty() {
+        return m_ready;
+    }
+
 private:
     facelift::Property<bool> m_ready;
 
