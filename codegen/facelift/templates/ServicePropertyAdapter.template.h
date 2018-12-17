@@ -35,8 +35,10 @@
 
 #pragma once
 
-// #pragma message ("{{interfaceName}}PropertyAdapter.h has been deprecated, " \
-//                  "use {{interfaceName}}ImplementationBase.h instead!")
+/*
+#pragma message ("{{interfaceName}}PropertyAdapter.h has been deprecated, " \
+                 "use {{interfaceName}}ImplementationBase.h instead!")
+*/
 
 #include "{{interfaceName}}ImplementationBase.h"
 
