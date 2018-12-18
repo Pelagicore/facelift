@@ -11,9 +11,8 @@ else()
    set(RELEASE_BUILD ON)
 endif()
 
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if(UNIX AND NOT APPLE)
+    # Ensure our shared libraries do not contain any undefined symbol. That is the default on OS X
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 endif()
 
@@ -48,11 +47,6 @@ set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_SOURCE_DI
 include("cmake/faceliftMacros.cmake")
 
 set(AUTO_UNITY_BUILD ON)
-
-# No undefined symbol allowed in our shared libraries when using GCC
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-endif()
 
 # Make our build folder look like our installation folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
