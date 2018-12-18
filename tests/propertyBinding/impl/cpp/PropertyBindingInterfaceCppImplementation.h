@@ -27,20 +27,28 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-module tests.propertybinding 1.0
 
-interface PropertyBindingInterfaceTest
-{
-    int intProperty1;
-    int intProperty2;
-    ComboStructure comboStr1;
-    ComboStructure comboStr2;
-    void setComboIntegerProperty(int data);
-}
+#pragma once
+#include "tests/propertybinding/PropertyBindingInterfaceTestPropertyAdapter.h"
 
-struct ComboStructure
+using namespace tests::propertybinding;
+
+class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceTestPropertyAdapter
 {
-    int iData;
-    string sData;
-    bool bData;
-}
+public:
+    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr): PropertyBindingInterfaceTestPropertyAdapter(parent) {
+
+        m_intProperty1.bind([this]() {
+            return m_intProperty2;
+        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::intProperty2Changed);
+
+        m_comboStr1.bind([this]() {
+            return m_comboStr2;
+        }).addTrigger(this, &PropertyBindingInterfaceTestPropertyAdapter::comboStr2Changed);
+    }
+
+    void setComboIntegerProperty(int data)
+    {
+        Q_UNUSED(data);
+    }
+};

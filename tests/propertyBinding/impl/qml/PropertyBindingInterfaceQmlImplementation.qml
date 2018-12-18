@@ -27,20 +27,25 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-module tests.propertybinding 1.0
 
-interface PropertyBindingInterfaceTest
-{
-    int intProperty1;
-    int intProperty2;
-    ComboStructure comboStr1;
-    ComboStructure comboStr2;
-    void setComboIntegerProperty(int data);
-}
+import QtQuick 2.0
+import tests.propertybinding 1.0
 
-struct ComboStructure
-{
-    int iData;
-    string sData;
-    bool bData;
+PropertyBindingInterfaceTestQMLImplementation {
+    id: root
+    Component.onCompleted: console.log("QML implementation is used.");
+
+    comboStr1: cmb
+
+    ComboStructure {
+        id: cmb
+        iData: 100
+        sData: "binding"
+        bData : true
+    }
+
+    setComboIntegerProperty: function(data)
+    {
+        cmb.iData = data;
+    }
 }

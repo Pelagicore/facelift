@@ -29,12 +29,21 @@
 **********************************************************************/
 #include "PropertyBindingPlugin.h"
 #include "tests/propertybinding/Module.h"
-#include "impl/PropertyBindingInterfaceCppImplementation.h"
+#include "impl/cpp/PropertyBindingInterfaceCppImplementation.h"
+
+#if defined(QML_IMPL_LOCATION)
+#include "tests/propertybinding/PropertyBindingInterfaceTestQMLImplementation.h"
+#endif
 
 using namespace tests::propertybinding;
 
 void PropertyBindingPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
+#if defined(QML_IMPL_LOCATION)
+        facelift::registerQmlComponent<PropertyBindingInterfaceTestQMLImplementation>(uri, STRINGIFY(QML_IMPL_LOCATION)"/impl/qml/PropertyBindingInterfaceQmlImplementation.qml",
+        "PropertyBindingQmlInterfaceTestAPI");
+#else
     facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceTestAPI");
+#endif
 }

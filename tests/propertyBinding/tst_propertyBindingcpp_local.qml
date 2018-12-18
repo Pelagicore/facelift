@@ -27,20 +27,27 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-module tests.propertybinding 1.0
+import QtTest 1.2
+import tests.propertybinding  1.0
 
-interface PropertyBindingInterfaceTest
-{
-    int intProperty1;
-    int intProperty2;
-    ComboStructure comboStr1;
-    ComboStructure comboStr2;
-    void setComboIntegerProperty(int data);
-}
+TestCase {
+    PropertyBindingInterfaceTestAPI {
+        id: api
+        intProperty1 : intProperty2
+        comboStr1 : comboStr2
+    }
 
-struct ComboStructure
-{
-    int iData;
-    string sData;
-    bool bData;
+    function test_intPropertyBinding() {
+        api.intProperty2++;
+        compare(api.intProperty1, 1);
+    }
+
+    function test_comboPropertyBinding() {
+        api.comboStr2.iData = 100;
+        api.comboStr2.sData = "binding"
+        api.comboStr2.bData = true;
+        compare(api.comboStr1.iData, 100);
+        compare(api.comboStr1.sData, "binding");
+        compare(api.comboStr1.bData, true);
+    }
 }
