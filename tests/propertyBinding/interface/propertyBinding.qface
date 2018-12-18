@@ -27,17 +27,21 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+
 module tests.propertybinding 1.0
 
-interface PropertyBindingInterfaceTest
+interface PropertyBindingInterface
 {
     int intProperty1;
     int intProperty2;
-    ComboStructure comboStr1;
-    ComboStructure comboStr2;
+    TestStruct structProperty1;
+    TestStruct structProperty2;
+    TestStruct structProperty3;
+
+    void updateStructElement();
 }
 
-struct ComboStructure
+struct TestStruct
 {
     int iData;
     string sData;
