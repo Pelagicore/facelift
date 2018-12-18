@@ -27,7 +27,9 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+
 #pragma once
+
 #include <QQmlExtensionPlugin>
 
 class PropertyBindingPlugin : public QQmlExtensionPlugin

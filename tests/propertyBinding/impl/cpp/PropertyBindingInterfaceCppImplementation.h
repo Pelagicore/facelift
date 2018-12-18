@@ -27,34 +27,44 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-import QtTest 1.2
-import tests.propertybinding 1.0
 
-TestCase {
-    PropertyBindingInterfaceAPI {
-        id: api
+#pragma once
+
+#include "tests/propertybinding/PropertyBindingInterfaceImplementationBase.h"
+
+using namespace tests::propertybinding;
+
+class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceImplementationBase
+{
+    Q_OBJECT
+public:
+    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr)
+        : PropertyBindingInterfaceImplementationBase(parent)
+    {
+        m_ts.init(this, &PropertyBindingInterfaceCppImplementation::propertyChanged, "Temp");
+
+        m_intProperty1.bind([this]() {
+            return m_intProperty2;
+        }).addTrigger(this, &PropertyBindingInterfaceImplementationBase::intProperty2Changed);
+
+        m_structProperty1.bind([this]() {
+            return m_structProperty2;
+        }).addTrigger(this, &PropertyBindingInterfaceImplementationBase::structProperty2Changed);
+
+        m_structProperty3.bind([this]() {
+            return m_ts;
+        }).addTrigger(this, &PropertyBindingInterfaceCppImplementation::propertyChanged);
     }
 
-    function test_intPropertyBinding() {
-        compare(api.intProperty1, 0);
-        compare(api.intProperty2, 0);
-        api.intProperty2++;
-        compare(api.intProperty1, 1);
+    void updateStructElement()
+    {
+        TestStruct ts;
+        ts.setiData(42);
+        m_ts = ts;
     }
 
-    function test_structPropertyBinding() {
-        api.structProperty2.iData = 100;
-        api.structProperty2.sData = "binding"
-        api.structProperty2.bData = true;
+    Q_SIGNAL void propertyChanged();
 
-        compare(api.structProperty1.iData, 100);
-        compare(api.structProperty1.sData, "binding");
-        compare(api.structProperty1.bData, true);
-
-        api.structProperty2.iData = 99;
-        compare(api.structProperty1.iData, 99);
-
-        api.updateStructElement();
-        compare(api.structProperty3.iData, 42);
-    }
-}
+private:
+    facelift::Property<tests::propertybinding::TestStruct> m_ts;
+};

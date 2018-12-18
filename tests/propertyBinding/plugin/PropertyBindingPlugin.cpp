@@ -27,14 +27,25 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+
 #include "PropertyBindingPlugin.h"
 #include "tests/propertybinding/Module.h"
-#include "impl/PropertyBindingInterfaceCppImplementation.h"
+#if defined(QML_IMPL_LOCATION)
+#include "tests/propertybinding/PropertyBindingInterfaceImplementationBaseQML.h"
+#else
+#include "impl/cpp/PropertyBindingInterfaceCppImplementation.h"
+#endif
 
 using namespace tests::propertybinding;
 
 void PropertyBindingPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceTestAPI");
+
+#if defined(QML_IMPL_LOCATION)
+    facelift::registerQmlComponent<PropertyBindingInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
+              "/impl/qml/PropertyBindingInterfaceQmlImplementation.qml", "PropertyBindingInterfaceAPI");
+#else
+    facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceAPI");
+#endif
 }

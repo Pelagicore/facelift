@@ -28,22 +28,19 @@
 **
 **********************************************************************/
 
-#pragma once
-#include "tests/propertybinding/PropertyBindingInterfaceTestImplementationBase.h"
+import QtQuick 2.0
+import tests.propertybinding 1.0
 
-using namespace tests::propertybinding;
+PropertyBindingInterfaceImplementationBase {
+    intProperty1: intProperty2          // This will only verify regular QML property binding
+    structProperty1: structProperty2    // Facelift augments bindings of structs, so that updating struct elements
+    structProperty3: ts                 // will trigger an update of the element in the bound struct
 
-class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceTestImplementationBase
-{
-public:
-    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr): PropertyBindingInterfaceTestImplementationBase(parent) {
-
-        m_intProperty1.bind([this]() {
-            return  m_intProperty2;
-        }).addTrigger(this, &PropertyBindingInterfaceTestImplementationBase::intProperty2Changed);
-
-        m_comboStr1.bind([this]() {
-            return m_comboStr2;
-        }).addTrigger(this, &PropertyBindingInterfaceTestImplementationBase::comboStr2Changed);
+    TestStruct {
+        id: ts
     }
-};
+
+    updateStructElement: function() {
+        ts.iData = 42;
+    }
+}
