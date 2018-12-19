@@ -312,6 +312,13 @@ public:
 
     ModelListModelBase();
 
+    /**
+     * Return the element at the given row index
+     */
+    Q_INVOKABLE QVariant get(int rowIndex) const {
+        return data(index(rowIndex));
+    }
+
     void setModelProperty(facelift::ModelBase &property)
     {
         beginResetModel();
