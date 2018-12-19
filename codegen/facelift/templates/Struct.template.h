@@ -41,7 +41,7 @@
 
 #include <QTextStream>
 
-#include "FaceliftModel.h"
+#include "StructureBase.h"
 #include "QMLModel.h"
 
 // Dependencies

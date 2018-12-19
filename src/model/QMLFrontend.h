@@ -45,6 +45,52 @@ namespace facelift {
 class IPCAttachedPropertyFactoryBase;
 class IPCServiceAdapterBase;
 
+
+template<typename Type, typename Sfinae = void>
+struct QMLModelTypeHandler
+{
+    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+    {
+        return engine->toScriptValue(facelift::toQMLCompatibleType(v));
+    }
+
+    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        v = engine->fromScriptValue<Type>(value);
+    }
+};
+
+template<typename Type>
+struct QMLModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+{
+    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+    {
+        Q_UNUSED(engine)
+        return QJSValue(v);
+    }
+
+    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
+    {
+        Q_UNUSED(engine)
+        v = static_cast<Type>(value.toInt());
+    }
+};
+
+
+template<typename Type>
+QJSValue toJSValue(const Type &v, QQmlEngine *engine)
+{
+    return QMLModelTypeHandler<Type>::toJSValue(v, engine);
+}
+
+
+template<typename Type>
+void fromJSValue(Type &v, const QJSValue &jsValue, QQmlEngine *engine)
+{
+    QMLModelTypeHandler<Type>::fromJSValue(v, jsValue, engine);
+}
+
+
 /*!
  * This is the base class which all QML frontends extend
  */
@@ -57,57 +103,36 @@ public:
 
     static const QJSValue NO_OPERATION_JS_CALLBACK;
 
-    QMLFrontendBase(QObject *parent) : QObject(parent)
-    {
-    }
+    QMLFrontendBase(QObject *parent);
 
     /**
      *  This constructor is used when instantiating a singleton
      */
-    QMLFrontendBase(QQmlEngine *engine) : QMLFrontendBase(static_cast<QObject*>(engine))
-    {
-        // store the reference to the engine since we can not get it from the "qmlEngine()" global function
-        m_qmlEngine = engine;
-    }
+    QMLFrontendBase(QQmlEngine *engine);
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
-    virtual InterfaceBase *provider() {
-        Q_ASSERT(m_provider != nullptr);
-        qWarning() << "Accessing private provider implementation object";
-        return m_provider;
-    }
+    virtual InterfaceBase *provider();
 
     Q_PROPERTY(bool ready READ ready NOTIFY readyChanged)
-    bool ready() const
-    {
-        return m_provider->ready();
-    }
+    bool ready() const;
 
     Q_SIGNAL void readyChanged();
 
     Q_PROPERTY(QString implementationID READ implementationID CONSTANT)
-    virtual const QString &implementationID() {
-        static QString id = "";
-        return id;
-    }
+    virtual const QString &implementationID();
 
-    void classBegin() override
-    {
-    }
+    void classBegin() override;
 
-    void componentComplete() override
-    {
-        m_provider->setComponentCompleted();
-    }
+    void componentComplete() override;
 
 protected:
-    void appendJSValue(QJSValueList& list, QQmlEngine * engine) {
+    static void appendJSValue(QJSValueList& list, QQmlEngine * engine) {
         Q_UNUSED(list);
         Q_UNUSED(engine);
     }
 
     template<typename Arg1Type, typename  ... Args>
-    void appendJSValue(QJSValueList& list, QQmlEngine * engine,  const Arg1Type & arg1, const Args & ...args) {
+    static void appendJSValue(QJSValueList& list, QQmlEngine * engine,  const Arg1Type & arg1, const Args & ...args) {
         list.append(facelift::toJSValue(arg1, engine));
         appendJSValue(list, engine, args...);
     }
@@ -135,11 +160,7 @@ protected:
         }
     }
 
-    void connectProvider(InterfaceBase &provider)
-    {
-        m_provider = &provider;
-        connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
-    }
+    void connectProvider(InterfaceBase &provider);
 
     InterfaceBase *providerPrivate()
     {
@@ -319,73 +340,29 @@ public:
     /**
      * Return the element at the given row index
      */
-    Q_INVOKABLE QVariant get(int rowIndex) const {
-        return data(index(rowIndex));
-    }
+    Q_INVOKABLE QVariant get(int rowIndex) const;
 
-    void setModelProperty(facelift::ModelBase &property)
-    {
-        beginResetModel();
-        m_property = &property;
-        QObject::connect(m_property, &facelift::ModelBase::beginInsertElements, this, &ModelListModelBase::onBeginInsertElements);
-        QObject::connect(m_property, &facelift::ModelBase::endInsertElements, this, &ModelListModelBase::onEndInsertElements);
-        QObject::connect(m_property, &facelift::ModelBase::beginRemoveElements, this, &ModelListModelBase::onBeginRemoveElements);
-        QObject::connect(m_property, &facelift::ModelBase::endRemoveElements, this, &ModelListModelBase::onEndRemoveElements);
-        QObject::connect(m_property, &facelift::ModelBase::beginResetModel, this, &ModelListModelBase::onBeginResetModel);
-        QObject::connect(m_property, &facelift::ModelBase::endResetModel, this, &ModelListModelBase::onEndResetModel);
-        QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
-                &ModelListModelBase::onDataChanged);
+    void setModelProperty(facelift::ModelBase &property);
 
-        endResetModel();
-    }
+    int rowCount(const QModelIndex &index = QModelIndex()) const override;
 
-    void onBeginResetModel()
-    {
-        beginResetModel();
-    }
+    QHash<int, QByteArray> roleNames() const override;
 
-    void onEndResetModel()
-    {
-        endResetModel();
-    }
+private:
 
-    void onBeginInsertElements(int first, int last)
-    {
-        beginInsertRows(QModelIndex(), first, last);
-    }
+    void onBeginResetModel();
 
-    void onEndInsertElements()
-    {
-        endInsertRows();
-    }
+    void onEndResetModel();
 
-    void onBeginRemoveElements(int first, int last)
-    {
-        beginRemoveRows(QModelIndex(), first, last);
-    }
+    void onBeginInsertElements(int first, int last);
 
-    void onEndRemoveElements()
-    {
-        endRemoveRows();
-    }
+    void onEndInsertElements();
 
-    void onDataChanged(int first, int last)
-    {
-        dataChanged(createIndex(first, 0), createIndex(last, 0));
-    }
+    void onBeginRemoveElements(int first, int last);
 
-    int rowCount(const QModelIndex &index = QModelIndex()) const override
-    {
-        Q_UNUSED(index);
-        return m_property->size();
-    }
+    void onEndRemoveElements();
 
-    QHash<int, QByteArray> roleNames() const override
-    {
-        QHash<int, QByteArray> roles;
-        roles[Qt::UserRole] = "modelData";
-        return roles;
-    }
+    void onDataChanged(int first, int last);
 
 protected:
     facelift::ModelBase *m_property = nullptr;

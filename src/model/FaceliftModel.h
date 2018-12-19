@@ -46,6 +46,7 @@
 
 #include "FaceliftUtils.h"
 
+#include "StructureBase.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -59,63 +60,8 @@
 
 namespace facelift {
 
-typedef int ModelElementID;
-
 template<typename ElementType>
 using Map = QMap<QString, ElementType>;
-
-
-class FaceliftModelLib_EXPORT StructureBase
-{
-    Q_GADGET
-
-public:
-    // Q_PROPERTIES defined here are not visible in subclasses, for some reason (Qt bug ?)
-
-    static constexpr int ROLE_ID = 1000;
-    static constexpr int ROLE_BASE = ROLE_ID + 1;
-
-    StructureBase();
-
-    virtual ~StructureBase();
-
-    ModelElementID id() const
-    {
-        return m_id;
-    }
-
-    void setId(ModelElementID id)
-    {
-        m_id = id;
-    }
-
-    template<typename T = QVariant>
-    T userData() const
-    {
-        if (!m_userData.canConvert<T>()) {
-            qCritical() << "Cannot convert type" << m_userData.typeName()
-                        << "to" << QVariant::fromValue(T()).typeName();
-        }
-        return m_userData.value<T>();
-    }
-
-    template<typename T>
-    void setUserData(const T &value)
-    {
-        m_userData.setValue<T>(value);
-    }
-
-    virtual QByteArray serialize() const = 0;
-
-    virtual void deserialize(const QByteArray &) = 0;
-
-protected:
-    ModelElementID m_id;
-    QVariant m_userData;
-
-private:
-    static ModelElementID s_nextID;
-};
 
 
 template<typename Type>
@@ -127,16 +73,6 @@ QString enumToString(const Type &v)
 }
 
 
-struct FaceliftModelLib_EXPORT BinarySeralizer
-{
-    BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
-    {
-    }
-    BinarySeralizer(const QByteArray &array) : stream(array)
-    {
-    }
-    QDataStream stream;
-};
 
 struct FaceliftModelLib_EXPORT TypeHandlerBase
 {
@@ -191,108 +127,7 @@ struct FaceliftModelLib_EXPORT TypeHandlerBase
 
 };
 
-template<typename Type, typename Enable = void>
-struct TypeHandler
-{
-    typedef Type QMLType;
 
-    static QString toString(const Type &v)
-    {
-        Q_UNUSED(v);
-        return "Unknown";
-    }
-
-};
-
-
-template<typename ... FieldTypes>
-class Structure : public StructureBase
-{
-
-public:
-    virtual ~Structure()
-    {
-    }
-
-    typedef std::tuple<FieldTypes ...> FieldTupleTypes;
-    static constexpr size_t FieldCount = sizeof ... (FieldTypes);
-
-    typedef std::array<const char *, FieldCount> FieldNames;
-
-    const FieldTupleTypes &asTuple() const
-    {
-        return m_values;
-    }
-
-    FieldTupleTypes &asTuple()
-    {
-        return m_values;
-    }
-
-    QByteArray serialize() const override
-    {
-        QByteArray array;
-        BinarySeralizer ds(array);
-        ds << *this;
-        return array;
-    }
-
-    void deserialize(const QByteArray &array) override
-    {
-        BinarySeralizer ds(array);
-        ds >> *this;
-    }
-
-    void setValue(FieldTupleTypes value)
-    {
-        m_values = value;
-    }
-
-    void copyFrom(const Structure &other)
-    {
-        setValue(other.m_values);
-        m_id = other.id();
-        m_userData = other.m_userData;
-    }
-
-    bool operator==(const Structure &right) const
-    {
-        return (m_values == right.m_values);
-    }
-
-protected:
-    template<std::size_t I = 0, typename ... Tp>
-    inline typename std::enable_if<I == sizeof ... (Tp), void>::type
-    toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
-    {
-        Q_UNUSED(t);
-        Q_UNUSED(names);
-        Q_UNUSED(outStream);
-    }
-
-    template<std::size_t I = 0, typename ... Tp>
-    inline typename std::enable_if < I<sizeof ... (Tp), void>::type
-    toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
-    {
-        typedef typename std::tuple_element<I, std::tuple<Tp ...> >::type TupleElementType;
-        outStream << ", ";
-        outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
-        toStringWithFields<I + 1, Tp ...>(t, names, outStream);
-    }
-
-    QString toStringWithFields(const QString &structName, const FieldNames &names) const
-    {
-        QString s;
-        QTextStream outStream(&s);
-        outStream << structName << " { id=" << id();
-        toStringWithFields(m_values, names, outStream);
-        outStream << "}";
-
-        return s;
-    }
-
-    FieldTupleTypes m_values = {};
-};
 
 
 template<typename Type>
@@ -940,42 +775,6 @@ public:
 };
 
 
-
-/**
- * Base class for all generated Module classes
- */
-class FaceliftModelLib_EXPORT ModuleBase
-{
-
-public:
-    ModuleBase()
-    {
-    }
-
-    static void registerQmlTypes(const char *uri, int majorVersion, int minorVersion);
-};
-
-
-class FaceliftModelLib_EXPORT StructureFactoryBase : public QObject
-{
-
-    Q_OBJECT
-
-public:
-    StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
-    {
-    }
-
-    template<typename Type>
-    static QObject *getter(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
-    {
-        Q_UNUSED(jsEngine);
-        return new Type(qmlEngine);
-    }
-
-};
-
-
 /**
  * This function simply calls Qt's qRegisterMetaType function
  */
@@ -1058,51 +857,6 @@ template<typename Type>
 inline const QList<Type> &validValues()
 {
     return QList<Type>();
-}
-
-
-template<typename Type, typename Sfinae = void>
-struct QMLModelTypeHandler
-{
-    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-    {
-        return engine->toScriptValue(facelift::toQMLCompatibleType(v));
-    }
-
-    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
-    {
-        v = engine->fromScriptValue<Type>(value);
-    }
-};
-
-template<typename Type>
-struct QMLModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
-{
-    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-    {
-        Q_UNUSED(engine)
-        return QJSValue(v);
-    }
-
-    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
-    {
-        Q_UNUSED(engine)
-        v = static_cast<Type>(value.toInt());
-    }
-};
-
-
-template<typename Type>
-QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-{
-    return QMLModelTypeHandler<Type>::toJSValue(v, engine);
-}
-
-
-template<typename Type>
-void fromJSValue(Type &v, const QJSValue &jsValue, QQmlEngine *engine)
-{
-    QMLModelTypeHandler<Type>::fromJSValue(v, jsValue, engine);
 }
 
 

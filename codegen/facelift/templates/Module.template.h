@@ -37,7 +37,7 @@
 
 {{classExportDefines}}
 
-#include "FaceliftModel.h"
+#include "ModuleBase.h"
 
 {% for interface in module.interfaces %}
 #include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
