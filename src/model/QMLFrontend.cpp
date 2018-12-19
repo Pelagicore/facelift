@@ -34,6 +34,121 @@ namespace facelift {
 
 const QJSValue QMLFrontendBase::NO_OPERATION_JS_CALLBACK = QJSValue(QJSValue::SpecialValue::UndefinedValue);
 
+QMLFrontendBase::QMLFrontendBase(QObject *parent) : QObject(parent)
+{
+}
+
+/**
+ *  This constructor is used when instantiating a singleton
+ */
+QMLFrontendBase::QMLFrontendBase(QQmlEngine *engine) : QMLFrontendBase(static_cast<QObject*>(engine))
+{
+    // store the reference to the engine since we can not get it from the "qmlEngine()" global function
+    m_qmlEngine = engine;
+}
+
+InterfaceBase *QMLFrontendBase::provider() {
+    Q_ASSERT(m_provider != nullptr);
+    qWarning() << "Accessing private provider implementation object";
+    return m_provider;
+}
+
+bool QMLFrontendBase::ready() const
+{
+    return m_provider->ready();
+}
+
+const QString &QMLFrontendBase::implementationID()
+{
+   static QString id;
+   return id;
+}
+
+void QMLFrontendBase::classBegin()
+{
+}
+
+void QMLFrontendBase::componentComplete()
+{
+   m_provider->setComponentCompleted();
+}
+
+void QMLFrontendBase::connectProvider(InterfaceBase &provider)
+{
+    m_provider = &provider;
+    connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
+}
+
+
+QVariant ModelListModelBase::get(int rowIndex) const {
+    return data(index(rowIndex));
+}
+
+void ModelListModelBase::setModelProperty(facelift::ModelBase &property)
+{
+    beginResetModel();
+    m_property = &property;
+    QObject::connect(m_property, &facelift::ModelBase::beginInsertElements, this, &ModelListModelBase::onBeginInsertElements);
+    QObject::connect(m_property, &facelift::ModelBase::endInsertElements, this, &ModelListModelBase::onEndInsertElements);
+    QObject::connect(m_property, &facelift::ModelBase::beginRemoveElements, this, &ModelListModelBase::onBeginRemoveElements);
+    QObject::connect(m_property, &facelift::ModelBase::endRemoveElements, this, &ModelListModelBase::onEndRemoveElements);
+    QObject::connect(m_property, &facelift::ModelBase::beginResetModel, this, &ModelListModelBase::onBeginResetModel);
+    QObject::connect(m_property, &facelift::ModelBase::endResetModel, this, &ModelListModelBase::onEndResetModel);
+    QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
+            &ModelListModelBase::onDataChanged);
+
+    endResetModel();
+}
+
+void ModelListModelBase::onBeginResetModel()
+{
+    beginResetModel();
+}
+
+void ModelListModelBase::onEndResetModel()
+{
+    endResetModel();
+}
+
+void ModelListModelBase::onBeginInsertElements(int first, int last)
+{
+    beginInsertRows(QModelIndex(), first, last);
+}
+
+void ModelListModelBase::onEndInsertElements()
+{
+    endInsertRows();
+}
+
+void ModelListModelBase::onBeginRemoveElements(int first, int last)
+{
+    beginRemoveRows(QModelIndex(), first, last);
+}
+
+void ModelListModelBase::onEndRemoveElements()
+{
+    endRemoveRows();
+}
+
+void ModelListModelBase::onDataChanged(int first, int last)
+{
+    dataChanged(createIndex(first, 0), createIndex(last, 0));
+}
+
+int ModelListModelBase::rowCount(const QModelIndex &index) const
+{
+    Q_UNUSED(index);
+    return m_property->size();
+}
+
+QHash<int, QByteArray> ModelListModelBase::roleNames() const
+{
+    QHash<int, QByteArray> roles;
+    roles[Qt::UserRole] = "modelData";
+    return roles;
+}
+
+
 ModelListModelBase::ModelListModelBase() {
     QObject::connect(this, &QAbstractItemModel::rowsInserted, this, &ModelListModelBase::countChanged);
     QObject::connect(this, &QAbstractItemModel::rowsRemoved, this, &ModelListModelBase::countChanged);

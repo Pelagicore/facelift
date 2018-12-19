@@ -28,46 +28,29 @@
 **
 **********************************************************************/
 
-#include "FaceliftModel.h"
+#pragma once
+
+#include <QObject>
+
+#if defined(FaceliftModelLib_LIBRARY)
+#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
+#endif
 
 namespace facelift {
 
-ServiceRegistry::~ServiceRegistry()
+
+/**
+ * Base class for all generated Module classes
+ */
+class FaceliftModelLib_EXPORT ModuleBase
 {
+
+public:
+
+    static void registerQmlTypes(const char *uri, int majorVersion, int minorVersion);
+};
+
 }
 
-void ServiceRegistry::registerObject(InterfaceBase *i)
-{
-    m_objects.append(i);
-
-    // Notify later since our object is not yet fully constructed at this point in time
-    QTimer::singleShot(0, [this, i] () {
-        emit objectRegistered(i);
-    });
-}
-
-ServiceRegistry &ServiceRegistry::instance()
-{
-    static ServiceRegistry reg;
-    return reg;
-}
-
-ModelBase::ModelBase()
-{
-    QObject::connect(this, &ModelBase::endResetModel, this, &ModelBase::onModelChanged);
-    QObject::connect(this, &ModelBase::endInsertElements, this, &ModelBase::onModelChanged);
-    QObject::connect(this, &ModelBase::endRemoveElements, this, &ModelBase::onModelChanged);
-}
-
-void ModelBase::onModelChanged()
-{
-    if (m_previousElementCount != size()) {
-        m_previousElementCount = size();
-        emit elementCountChanged();
-    }
-}
-
-StructureFactoryBase::StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
-{
-}
-}

@@ -28,46 +28,20 @@
 **
 **********************************************************************/
 
-#include "FaceliftModel.h"
+#include "StructureBase.h"
 
 namespace facelift {
 
-ServiceRegistry::~ServiceRegistry()
+ModelElementID StructureBase::s_nextID = 0;
+constexpr int StructureBase::ROLE_ID;
+
+StructureBase::StructureBase()
+{
+    m_id = s_nextID++;
+}
+
+StructureBase::~StructureBase()
 {
 }
 
-void ServiceRegistry::registerObject(InterfaceBase *i)
-{
-    m_objects.append(i);
-
-    // Notify later since our object is not yet fully constructed at this point in time
-    QTimer::singleShot(0, [this, i] () {
-        emit objectRegistered(i);
-    });
-}
-
-ServiceRegistry &ServiceRegistry::instance()
-{
-    static ServiceRegistry reg;
-    return reg;
-}
-
-ModelBase::ModelBase()
-{
-    QObject::connect(this, &ModelBase::endResetModel, this, &ModelBase::onModelChanged);
-    QObject::connect(this, &ModelBase::endInsertElements, this, &ModelBase::onModelChanged);
-    QObject::connect(this, &ModelBase::endRemoveElements, this, &ModelBase::onModelChanged);
-}
-
-void ModelBase::onModelChanged()
-{
-    if (m_previousElementCount != size()) {
-        m_previousElementCount = size();
-        emit elementCountChanged();
-    }
-}
-
-StructureFactoryBase::StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
-{
-}
 }

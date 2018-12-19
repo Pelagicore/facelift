@@ -42,6 +42,7 @@
 
 namespace facelift {
 
+
 /**
  * Base class for
  */
@@ -630,7 +631,5 @@ int registerSingletonQmlComponent(const char *uri, const char *qmlFilePath,
     typedef TQMLFrontend<typename ImplementationBaseQMLType::Provider> QMLType;
     return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
-
-
 
 }
