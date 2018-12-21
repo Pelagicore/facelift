@@ -35,9 +35,8 @@ namespace facelift {
 void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter)
 {
     Q_ASSERT(adapter);
-    if (!m_registry.contains(objectPath)) {
+    if ((!m_registry.contains(objectPath)) || (m_registry[objectPath] == nullptr)) {
         m_registry.insert(objectPath, adapter);
-        QObject::connect(adapter, &NewIPCServiceAdapterBase::destroyed, this, &InterfaceManager::onAdapterDestroyed);
         emit adapterAvailable(adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(objectPath),
@@ -52,12 +51,6 @@ NewIPCServiceAdapterBase *InterfaceManager::getAdapter(const QString &objectPath
     } else {
         return nullptr;
     }
-}
-
-void InterfaceManager::onAdapterDestroyed(NewIPCServiceAdapterBase *adapter)
-{
-    m_registry.remove(adapter->objectPath());
-    emit adapterDestroyed(adapter);
 }
 
 InterfaceManager &InterfaceManager::instance()

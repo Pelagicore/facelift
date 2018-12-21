@@ -72,15 +72,12 @@ public:
 
     NewIPCServiceAdapterBase *getAdapter(const QString &objectPath);
 
-    void onAdapterDestroyed(NewIPCServiceAdapterBase *object);
-
-    Q_SIGNAL void adapterDestroyed(NewIPCServiceAdapterBase *adapter);
     Q_SIGNAL void adapterAvailable(NewIPCServiceAdapterBase *adapter);
 
     static InterfaceManager &instance();
 
 private:
-    QMap<QString, NewIPCServiceAdapterBase *> m_registry;
+    QMap<QString, QPointer<NewIPCServiceAdapterBase>> m_registry;
 
 };
 
@@ -193,8 +190,6 @@ public:
     NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
     {
     }
-
-    Q_SIGNAL void destroyed(NewIPCServiceAdapterBase *adapter);
 
     virtual void init() = 0;
 
