@@ -32,12 +32,7 @@
 
 #include "ipc-common/ipc-common.h"
 
-#ifdef DBUS_IPC_ENABLED
-#include "dbus/ipc-dbus.h"
-#endif
-
 namespace facelift {
-
 
 template<typename InterfaceType>
 class IPCServiceAdapter : public NewIPCServiceAdapterBase
@@ -90,8 +85,6 @@ public:
     IPCProxy(QObject *parent) : WrapperType(parent)
         , IPCProxyNewBase(*static_cast<InterfaceBase *>(this))
         , m_localProviderBinder(*this)
-#ifdef DBUS_IPC_ENABLED
-#endif
     {
         QObject::connect(ipc(), &IPCProxyBinderBase::complete, this, [this] () {
                 m_localProviderBinder.init();

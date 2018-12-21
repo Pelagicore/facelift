@@ -54,7 +54,7 @@
 namespace facelift {
 namespace dbus {
 
-constexpr const char *DBusIPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME;
+constexpr const char *DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME;
 
 void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
 {
@@ -127,13 +127,13 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
 
     qDebug() << "Handling incoming message: " << requestMessage.toString();
 
-    if (dbusMsg.interface() == INTROSPECTABLE_INTERFACE_NAME) {
+    if (dbusMsg.interface() == DBusIPCCommon::INTROSPECTABLE_INTERFACE_NAME) {
         // TODO
-    } else if (dbusMsg.interface() == PROPERTIES_INTERFACE_NAME) {
+    } else if (dbusMsg.interface() == DBusIPCCommon::PROPERTIES_INTERFACE_NAME) {
         // TODO
     } else {
         bool sendReply = true;
-        if (requestMessage.member() == GET_PROPERTIES_MESSAGE_NAME) {
+        if (requestMessage.member() == DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
             serializePropertyValues(replyMessage, true);
         } else {
             auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
@@ -227,13 +227,13 @@ void DBusIPCProxyBinder::bindToIPC()
 
         auto successPropertyChangeSignal =
                 connection().connect(m_serviceName,
-                        objectPath(), m_interfaceName, DBusIPCServiceAdapterBase::PROPERTIES_CHANGED_SIGNAL_NAME, this,
+                        objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                         SLOT(onPropertiesChanged(const QDBusMessage&)));
         Q_ASSERT(successPropertyChangeSignal);
 
         auto successSignalTriggeredSignal =
                 connection().connect(m_serviceName,
-                        objectPath(), m_interfaceName, DBusIPCServiceAdapterBase::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
+                        objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
                         SLOT(onSignalTriggered(const QDBusMessage&)));
         Q_ASSERT(successSignalTriggeredSignal);
 
