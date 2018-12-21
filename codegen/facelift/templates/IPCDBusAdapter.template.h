@@ -37,7 +37,7 @@
 
 {{classExportDefines}}
 
-#include "dbus/ipc-dbus.h"
+#include "DBusIPCServiceAdapter.h"
 #include "FaceliftUtils.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"

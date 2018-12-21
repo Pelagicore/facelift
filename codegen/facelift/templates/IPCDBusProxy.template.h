@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include "facelift-ipc.h"
+#include "DBusIPCProxy.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 
 {% for property in interface.referencedInterfaceTypes %}
