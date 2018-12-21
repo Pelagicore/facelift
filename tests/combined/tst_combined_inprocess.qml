@@ -28,6 +28,7 @@
 **
 **********************************************************************/
 
+import QtQuick 2.6
 import QtTest 1.2
 import tests.combined 1.0
 import "check_combined.js" as Check
@@ -36,16 +37,22 @@ import "check_combined.js" as Check
 TestCase {
     name: "combined-inprocess"
 
-    CombinedInterfaceAPI {
-        IPC.enabled: true
-        IPC.objectPath: "/tests/combined/inprocess"
+    Loader {
+        id: implLoader
+        sourceComponent: CombinedInterfaceAPI {
+            IPC.enabled: true
+            IPC.objectPath: "/tests/combined/inprocess"
+        }
     }
 
-    CombinedInterfaceIPCProxy {
-        id: api
-        ipc.objectPath: "/tests/combined/inprocess"
+    Loader {
+        id: apiLoader
+        sourceComponent: CombinedInterfaceIPCProxy {
+            ipc.objectPath: "/tests/combined/inprocess"
+        }
     }
 
+    property alias api: apiLoader.item
 
     CombinedSignalSpys {
         id: spy
@@ -68,5 +75,13 @@ TestCase {
 
     function test_signals() {
         Check.signals();
+    }
+
+    function test_testcrash() {
+        apiLoader.active = false;
+        implLoader.active = false;
+        wait(1000);
+        implLoader.active = true;
+        apiLoader.active = true;
     }
 }
