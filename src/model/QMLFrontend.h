@@ -123,7 +123,11 @@ protected:
                 appendJSValue(jsList, engine, args...);
                 auto returnValue = callback.call(jsList);
                 if (returnValue.isError()) {
-                    qCritical("Error executing JS callback");
+                    qCritical().noquote() << "Error executing JS callback. Error type:" << returnValue.property("name").toString()
+                                          << "\nFile:" << returnValue.property("fileName").toString()
+                                          << "\nLine:" << returnValue.property("lineNumber").toInt()
+                                          << "\nMessage:" << returnValue.property("message").toString()
+                                          << "\nStack trace:" << returnValue.property("stack").toString();
                 }
             } else {
                 qCritical("Provided JS object is not callable");
