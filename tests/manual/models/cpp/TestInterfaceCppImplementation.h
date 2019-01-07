@@ -147,7 +147,7 @@ public:
         return TestEnum();
     }
 
-    QList<TestEnum> method4(TestStruct2 /*s*/)  override
+    QList<TestEnum> method4(const TestStruct2 & /*s*/)  override
     {
         return QList<TestEnum>();
     }

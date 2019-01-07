@@ -126,7 +126,7 @@ void {{className}}::deserializeSignal(::facelift::dbus::DBusIPCMessage &msg)
 
 {% if operation.isAsync %}
 void {{className}}::{{operation.name}}(
-    {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} {
+    {%- for parameter in operation.parameters -%}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} {
         sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
         {%- for parameter in operation.parameters -%}
         , {{parameter.name}}
@@ -136,7 +136,7 @@ void {{className}}::{{operation.name}}(
 {{operation.interfaceCppType}} {{className}}::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
-    {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
+    {{ comma() }}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}}
     {%- endfor -%}  ){% if operation.is_const %} const{% endif %}
 {
         {% if (operation.hasReturnValue) %}

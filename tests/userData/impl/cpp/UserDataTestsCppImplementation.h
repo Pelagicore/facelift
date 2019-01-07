@@ -51,7 +51,7 @@ class ProducerCppImplementation : public ProducerImplementationBase
 public:
     ProducerCppImplementation(QObject *parent = nullptr) : ProducerImplementationBase(parent) {}
 
-    void produceUserData(Type type) override
+    void produceUserData(const Type &type) override
     {
         TestStruct ts;
         ts.seti(21);
@@ -96,7 +96,7 @@ class ConsumerCppImplementation : public ConsumerImplementationBase
 public:
     ConsumerCppImplementation(QObject *parent = nullptr) : ConsumerImplementationBase(parent) {}
 
-    bool consumeUserData(Type type, TestStruct ts) override
+    bool consumeUserData(const Type &type, const TestStruct &ts) override
     {
         bool res = false;
         switch(type) {

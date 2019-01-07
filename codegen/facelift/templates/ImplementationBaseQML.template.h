@@ -70,7 +70,7 @@ public:
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
     void {{operation}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} /*{{parameter.name}}*/, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> /*answer*/){% if operation.is_const %} const{% endif %} override
+        {%- for parameter in operation.parameters -%}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}} /*{{parameter.name}}*/, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> /*answer*/){% if operation.is_const %} const{% endif %} override
     {
         Q_ASSERT(false);  // TODO: implement
     }
@@ -78,7 +78,7 @@ public:
     {{operation.interfaceCppType}} {{operation.name}}(
     {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+        {{ comma() }}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}}
         {%- endfor -%}
     ){% if operation.is_const %} const{% endif %} override;
     {% endif %}
@@ -160,7 +160,7 @@ public:
     {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+        {{ comma() }}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}}
         {%- endfor %})
     {
         QJSValueList args;
@@ -358,7 +358,7 @@ inline QObject* {{interface}}QMLImplementationProvider::impl()
 inline {{operation.interfaceCppType}} {{interface}}QMLImplementationProvider::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
-    {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+    {{ comma() }}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}}
     {%- endfor %}){% if operation.is_const %} const{% endif %}
 
 {

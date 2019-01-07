@@ -43,7 +43,7 @@ class OtherInterfaceImplementation : public OtherInterfaceImplementationBase
 public:
     OtherInterfaceImplementation(QObject *parent = nullptr) : OtherInterfaceImplementationBase(parent) {}
 
-    QString otherMethod(OtherEnum oe) override
+    QString otherMethod(const OtherEnum &oe) override
     {
         if (oe == OtherEnum::O3)
             return QStringLiteral("O3");
@@ -188,14 +188,14 @@ public:
         }
     }
 
-    CombiEnum method3(CombiEnum e) override
+    CombiEnum method3(const CombiEnum &e) override
     {
         if (e == CombiEnum::E2)
             return CombiEnum::E3;
         return CombiEnum::E1;
     }
 
-    QList<CombiEnum> method4(CombiStruct2 s)  override
+    QList<CombiEnum> method4(const CombiStruct2 &s)  override
     {
         if (s.cs().anInt() == 14 && s.cs().aString() == "hello" && s.e() == CombiEnum::E2) {
             QList<CombiEnum> lce = { CombiEnum::E3, CombiEnum::E1 };
@@ -226,7 +226,7 @@ public:
         return 0;
     }
 
-    OtherEnum method7(OtherStruct os) override
+    OtherEnum method7(const OtherStruct &os) override
     {
         if (os.ival() == 101)
             return OtherEnum::O3;

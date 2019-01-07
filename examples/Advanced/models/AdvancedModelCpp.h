@@ -79,7 +79,7 @@ public:
         return entry;
     }
 
-    void deleteModelItem(MyStruct item) override
+    void deleteModelItem(const MyStruct &item) override
     {
         qWarning() << "Deleting" << item;
         auto index = m_items.indexOf(item.id());
@@ -91,7 +91,7 @@ public:
         }
     }
 
-    void insertNewModelItemAfter(MyStruct item) override
+    void insertNewModelItemAfter(const MyStruct &item) override
     {
         qWarning() << "inserting" << item;
         auto index = m_items.indexOf(item.id());
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    void renameModelItem(MyStruct item, QString name) override
+    void renameModelItem(const MyStruct &item, QString name) override
     {
         qWarning() << "Renaming" << item;
         auto elementId = item.id();

@@ -139,14 +139,16 @@ public:
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
     virtual void {{operation}}(
-        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} = 0;
+        {%- for parameter in operation.parameters -%}
+        {%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %} {{parameter.cppType}} {% endif %}{{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} = 0;
     {% else %}
 
     {% if operation.comment %}
     {{operation.comment}}
     {% endif %}
     virtual {{operation.interfaceCppType}} {{operation}}({% set comma = joiner(",") %}
-        {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %}){% if operation.is_const %} const{% endif %} = 0;
+        {% for parameter in operation.parameters %}{{ comma() }}
+        {%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.cppType}} &{% else %}{{parameter.cppType}} {% endif %}{{parameter.name}}{% endfor %}){% if operation.is_const %} const{% endif %} = 0;
     {% endif %}
     {% endfor %}
 
@@ -154,8 +156,9 @@ public:
     {% if event.comment %}
     {{event.comment}}
     {% endif %}
+
     Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
-        {% for parameter in event.parameters -%}{{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}{% endfor %});
+        {% for parameter in event.parameters -%}{{ comma() }}{%if parameter.type.is_struct or parameter.type.is_enum %}const {{parameter.interfaceCppType}} &{% else %}{{parameter.interfaceCppType}} {% endif %}{{parameter.name}}{% endfor %});
     {% endfor %}
 
     {% if hasReadyFlags %}

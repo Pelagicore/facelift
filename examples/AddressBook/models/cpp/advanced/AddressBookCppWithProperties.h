@@ -91,7 +91,7 @@ public:
         }
     }
 
-    void updateContact(int contactId, Contact newContact) override
+    void updateContact(int contactId, const Contact &newContact) override
     {
         bool found = false;
         auto list = m_contacts.value();
