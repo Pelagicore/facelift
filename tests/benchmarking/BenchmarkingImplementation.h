@@ -80,14 +80,14 @@ public:
         });
     }
 
-    void requestString(QString someString, facelift::AsyncAnswer<QString> answer) override
+    void requestString(const QString &someString, facelift::AsyncAnswer<QString> answer) override
     {
         QTimer::singleShot(0, [this, answer, someString]() mutable {
             answer(someString);
         });
     }
 
-    void requestStructure(LargeStruct structData, facelift::AsyncAnswer<LargeStruct> answer) override
+    void requestStructure(const LargeStruct &structData, facelift::AsyncAnswer<LargeStruct> answer) override
     {
         QTimer::singleShot(0, [this, answer, structData]() mutable {
             answer(structData);

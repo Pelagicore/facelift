@@ -124,7 +124,7 @@ void {{className}}::deserializeSignal(::facelift::dbus::DBusIPCMessage &msg)
 
 {% if (not property.readonly) %}
 
-void {{className}}::set{{property}}(const {{property.cppType}}& newValue)
+void {{className}}::set{{property}}({{property.cppMethodArgumentType}} newValue)
 {
     {% if (not property.type.is_interface) %}
     ipc()->sendSetterCall(memberID(MethodID::set{{property.name}}, "set{{property.name}}"), newValue);
@@ -147,7 +147,7 @@ void {{className}}::set{{property}}(const {{property.cppType}}& newValue)
 
 {% if operation.isAsync %}
 void {{className}}::{{operation.name}}(
-    {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} {
+    {%- for parameter in operation.parameters -%}{{parameter.cppMethodArgumentType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} {
         ipc()->sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
         {%- for parameter in operation.parameters -%}
         , {{parameter.name}}
@@ -157,7 +157,7 @@ void {{className}}::{{operation.name}}(
 {{operation.interfaceCppType}} {{className}}::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
-    {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
+    {{ comma() }}{{ parameter.cppMethodArgumentType }} {{parameter.name}}
     {%- endfor -%}  ){% if operation.is_const %} const{% endif %}
 {
         {% if (operation.hasReturnValue) %}

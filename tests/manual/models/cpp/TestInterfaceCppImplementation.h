@@ -93,7 +93,7 @@ public:
         m_interfaceProperty = new Interface2Implementation(*this, "");
     }
 
-    void setintProperty(const int &newValue) override
+    void setintProperty(int newValue) override
     {
         qDebug() << "set intProperty:" << newValue;
         m_intProperty = newValue;
@@ -105,7 +105,7 @@ public:
         m_intMapProperty = newValue;
     }
 
-    void setwritableEnumProperty(const TestEnum & /*newValue*/) override
+    void setwritableEnumProperty(TestEnum  /*newValue*/) override
     {
     }
 
@@ -128,7 +128,7 @@ public:
         m_stringListProperty = newValue;
     }
 
-    void setreadyProperty(const int &newValue) override
+    void setreadyProperty(int newValue) override
     {
         qDebug() << "set readyProperty:" << newValue;
         m_intProperty = newValue;
@@ -149,7 +149,7 @@ public:
         return TestEnum();
     }
 
-    QList<TestEnum> method4(TestStruct2 /*s*/)  override
+    QList<TestEnum> method4(const TestStruct2 & /*s*/)  override
     {
         return QList<TestEnum>();
     }

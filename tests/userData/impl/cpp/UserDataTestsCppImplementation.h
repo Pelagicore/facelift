@@ -96,7 +96,7 @@ class ConsumerImplementation : public ConsumerImplementationBase
 public:
     ConsumerImplementation(QObject *parent = nullptr) : ConsumerImplementationBase(parent) {}
 
-    bool consumeUserData(Type type, TestStruct ts) override
+    bool consumeUserData(Type type, const TestStruct &ts) override
     {
         bool res = false;
         switch(type) {

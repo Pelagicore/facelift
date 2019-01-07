@@ -84,7 +84,7 @@ public:
     facelift::Property<{{property.interfaceCppType}}> m_{{property.name}};
     {% endif %}
     {% if (not property.readonly) %}
-    void set{{property}}(const {{property.cppType}}& newValue) override
+    void set{{property}}({{property.cppMethodArgumentType}} newValue) override
     {
         m_{{property.name}} = newValue;
     }

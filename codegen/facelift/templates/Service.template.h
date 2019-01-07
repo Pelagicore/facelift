@@ -119,7 +119,7 @@ public:
         return facelift::ServicePropertyInterface<ThisType, {{property.cppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
     {% if (not property.readonly) %}
-    virtual void set{{property}}(const {{property.cppType}}& newValue) = 0;
+    virtual void set{{property}}( {{property.cppMethodArgumentType}} newValue) = 0;
     {% endif %}
     {% else %}
     using PropertyType_{{property}} = {{property.interfaceCppType}};
@@ -129,7 +129,7 @@ public:
         return facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
     {% if (not property.readonly) %}
-    virtual void set{{property}}(const {{property.cppType}}& newValue) = 0;
+    virtual void set{{property}}( {{property.cppMethodArgumentType}} newValue) = 0;
     {% endif %}
     {% endif %}
     Q_SIGNAL void {{property}}Changed();
@@ -139,14 +139,14 @@ public:
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
     virtual void {{operation}}(
-        {%- for parameter in operation.parameters -%} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} = 0;
+        {%- for parameter in operation.parameters -%} {{parameter.cppMethodArgumentType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} = 0;
     {% else %}
 
     {% if operation.comment %}
     {{operation.comment}}
     {% endif %}
     virtual {{operation.interfaceCppType}} {{operation}}({% set comma = joiner(",") %}
-        {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %}){% if operation.is_const %} const{% endif %} = 0;
+        {% for parameter in operation.parameters %}{{ comma() }}{{parameter.cppMethodArgumentType}} {{parameter.name}}{% endfor %}){% if operation.is_const %} const{% endif %} = 0;
     {% endif %}
     {% endfor %}
 
@@ -155,7 +155,7 @@ public:
     {{event.comment}}
     {% endif %}
     Q_SIGNAL void {{event}}({% set comma = joiner(",") -%}
-        {% for parameter in event.parameters -%}{{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}{% endfor %});
+        {% for parameter in event.parameters -%}{{ comma() }}{{parameter.cppType}} {{parameter.name}}{% endfor %});
     {% endfor %}
 
     {% if hasReadyFlags %}

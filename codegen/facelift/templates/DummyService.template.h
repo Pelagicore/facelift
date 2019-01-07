@@ -59,7 +59,7 @@ public:
     {% for operation in interface.operations %}
 
     {% if operation.isAsync %}
-    void {{operation}}({% for parameter in operation.parameters %} {{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} override {
+    void {{operation}}({% for parameter in operation.parameters %} {{parameter.cppMethodArgumentType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} override {
         {% for parameter in operation.parameters %}
         Q_UNUSED({{parameter.name}});
         {% endfor %}
@@ -76,7 +76,7 @@ public:
             {% set comma = joiner(",") %}
             {% for parameter in operation.parameters %}
             {{ comma() }}
-            {{parameter.cppType}} {{parameter.name}}
+            {{parameter.cppMethodArgumentType}} {{parameter.name}}
             {% endfor %}
 ){% if operation.is_const %} const{% endif %} override {
 
@@ -102,7 +102,7 @@ public:
 
     {% for property in interface.properties %}
         {% if (not property.readonly) %}
-    void set{{property}}(const {{property.cppType}}& newValue) override {
+    void set{{property}}({{property.cppMethodArgumentType}} newValue) override {
         m_dummy.logSetterCall("{{property}}", newValue);
         {% if (not property.type.is_interface) %}
         m_{{property}} = newValue;
