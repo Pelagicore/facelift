@@ -48,6 +48,7 @@ void ServiceWrapperBase::reset()
         auto successfull = QObject::disconnect(connection);
         Q_ASSERT(successfull);
     }
+    m_connections.clear();
 }
 
 }

@@ -73,7 +73,7 @@ using namespace facelift;
 class OutputPayLoad;
 class InputPayLoad;
 
-struct DBusIPCCommon {
+struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
     static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
     static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
     static constexpr const char *SIGNAL_TRIGGERED_SIGNAL_NAME = "SignalTriggered";
