@@ -78,6 +78,7 @@ def qmlCompatibleType(self):
         return "QVariantMap"
     return cppTypeFromSymbol(self.type, True)
 
+
 def fullyQualifiedCppName(type):
     return getPrimitiveCppType(type) if type.is_primitive else fullyQualifiedCppType(type)
 
@@ -248,6 +249,17 @@ def requiredInclude(self):
         type = self.nested if self.nested else self
         return requiredIncludeFromType(type, ".h")
 
+def cppMethodArgumentType(self):
+    if self.type.is_model:
+        print("We don't support models as function arguments!")
+        exit()
+
+    if self.type.is_list or self.type.is_map or self.type.is_struct or (self.type.name == "string"):
+       return "const " + cppType(self.type) + "&"
+    else:
+        return cppType(self.type)
+
+
 setattr(qface.idl.domain.Operation, 'storageType', property(storageType))
 
 setattr(qface.idl.domain.TypeSymbol, 'cppType', property(cppType))
@@ -304,6 +316,8 @@ def hasReturnValue(self):
     return not self.type.name == 'void'
 
 setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
+setattr(qface.idl.domain.Parameter, 'cppMethodArgumentType', property(cppMethodArgumentType))
+setattr(qface.idl.domain.Property, 'cppMethodArgumentType', property(cppMethodArgumentType))
 
 ##############################
 

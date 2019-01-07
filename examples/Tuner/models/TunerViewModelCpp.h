@@ -89,7 +89,7 @@ public:
 
     }
 
-    void setenable_AF(const bool &enabled) override
+    void setenable_AF(bool enabled) override
     {
         m_service.setAFEnabled(enabled);
     }
@@ -104,7 +104,7 @@ public:
         trySelectStation(m_currentStationIndex - 1);
     }
 
-    void setCurrentStation(Station station) override
+    void setCurrentStation(const Station &station) override
     {
         m_service.setCurrentStationByID(station.stationId());
     }

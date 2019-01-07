@@ -92,12 +92,12 @@ public:
 
     {% if operation.isAsync %}
     void {{operation.name}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} override;
+        {%- for parameter in operation.parameters -%}{{parameter.cppMethodArgumentType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} override;
     {% else %}
     {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
+        {{ comma() }}{{ parameter.cppMethodArgumentType }} {{parameter.name}}
         {%- endfor -%}  ){% if operation.is_const %} const{% endif %} override;
     {% endif %}
     {% endfor %}
@@ -105,7 +105,7 @@ public:
     {%- for property in interface.properties %}
     {% if (not property.readonly) %}
 
-    void set{{property}}(const {{property.cppType}}& newValue) override;
+    void set{{property}}({{property.cppMethodArgumentType}} newValue) override;
     {% endif %}
 
     {% if property.type.is_model %}

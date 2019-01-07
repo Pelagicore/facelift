@@ -76,7 +76,7 @@ public:
     {% for operation in interface.operations %}
     {% if operation.isAsync %}
     void {{operation}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} /*{{parameter.name}}*/, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> /*answer*/){% if operation.is_const %} const{% endif %} override
+        {%- for parameter in operation.parameters -%}{{parameter.cppMethodArgumentType}} /*{{parameter.name}}*/, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> /*answer*/){% if operation.is_const %} const{% endif %} override
     {
         Q_ASSERT(false);  // TODO: implement
     }
@@ -84,7 +84,7 @@ public:
     {{operation.interfaceCppType}} {{operation.name}}(
     {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+        {{ comma() }}{{parameter.cppMethodArgumentType}} {{parameter.name}}
         {%- endfor -%}
     ){% if operation.is_const %} const{% endif %} override;
     {% endif %}
@@ -92,7 +92,7 @@ public:
 
     {% for property in interface.properties %}
         {% if (not property.readonly) %}
-    void set{{property}}(const {{property.cppType}}& newValue) override;
+    void set{{property}}({{property.cppMethodArgumentType}} newValue) override;
         {% endif %}
     {% endfor %}
 
@@ -165,7 +165,7 @@ public:
     {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+        {{ comma() }}{{parameter.cppMethodArgumentType}} {{parameter.name}}
         {%- endfor %})
     {
         QJSValueList args;
@@ -370,7 +370,7 @@ inline QObject* {{interface}}QMLImplementationProvider::impl()
 inline {{operation.interfaceCppType}} {{interface}}QMLImplementationProvider::{{operation.name}}(
     {%- set comma = joiner(", ") -%}
     {%- for parameter in operation.parameters -%}
-    {{ comma() }}{{parameter.cppType}} {{parameter.name}}
+    {{ comma() }}{{parameter.cppMethodArgumentType}} {{parameter.name}}
     {%- endfor %}){% if operation.is_const %} const{% endif %}
 
 {
@@ -385,7 +385,7 @@ inline {{operation.interfaceCppType}} {{interface}}QMLImplementationProvider::{{
 
 {% for property in interface.properties %}
     {% if (not property.readonly) %}
-inline void {{interface}}QMLImplementationProvider::set{{property}}(const {{property.cppType}}& newValue)
+inline void {{interface}}QMLImplementationProvider::set{{property}}({{property.cppMethodArgumentType}} newValue)
 {
     if (!m_impl->requestSet{{property}}(newValue)) {
         AdapterType::set{{property}}(newValue);

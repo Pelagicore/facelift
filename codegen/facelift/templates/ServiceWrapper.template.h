@@ -86,7 +86,7 @@ public:
     }
     {% endif %}
     {% if (not property.readonly) %}
-    void set{{property}}(const {{property.cppType}}& newValue) final override
+    void set{{property}}({{property.cppMethodArgumentType}} newValue) final override
     {
         wrapped()->set{{property.name}}(newValue);
     }
@@ -99,7 +99,7 @@ public:
 
     {% if operation.isAsync %}
     void {{operation.name}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} final override {
+        {%- for parameter in operation.parameters -%}{{parameter.cppMethodArgumentType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} final override {
             return wrapped()->{{operation.name}}(
                     {%- for parameter in operation.parameters -%}
                     {{parameter.name}},
@@ -109,7 +109,7 @@ public:
     {{operation.interfaceCppType}} {{operation.name}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
-        {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
+        {{ comma() }}{{ parameter.cppMethodArgumentType }} {{ parameter.name}}
         {%- endfor -%}  ){% if operation.is_const %} const{% endif %} final override
     {
         {% set comma = joiner(", ") %}

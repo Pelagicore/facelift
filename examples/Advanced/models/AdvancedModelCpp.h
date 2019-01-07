@@ -82,7 +82,7 @@ public:
         return INVALID_INDEX;
     }
 
-    void moveItemDown(MyStruct item) override {
+    void moveItemDown(const MyStruct &item) override {
         qDebug() << "Deleting" << item;
         auto index = getItemIndexById(item.id());
         if ((index != INVALID_INDEX) && (index < m_items.size() - 1)) {
@@ -93,8 +93,9 @@ public:
         }
     }
 
-    void moveItemUp(MyStruct item) override {
-        qDebug() << "Deleting" << item;
+
+    void moveItemUp(const MyStruct &item) override {
+        qWarning() << "Deleting" << item;
         auto index = getItemIndexById(item.id());
         if ((index != INVALID_INDEX) && (index > 0)) {
             emit m_theModel.beginMoveElements(index, index, index - 1);
@@ -104,7 +105,7 @@ public:
         }
     }
 
-    void deleteModelItem(MyStruct item) override
+    void deleteModelItem(const MyStruct &item) override
     {
         qDebug() << "Deleting" << item;
         auto index = getItemIndexById(item.id());
@@ -123,7 +124,7 @@ public:
         return s;
     }
 
-    void insertNewModelItemAfter(MyStruct item) override
+    void insertNewModelItemAfter(const MyStruct &item) override
     {
         qDebug() << "inserting" << item;
         auto index = getItemIndexById(item.id());
@@ -135,7 +136,7 @@ public:
         }
     }
 
-    void renameModelItem(MyStruct item, QString name) override
+    void renameModelItem(const MyStruct &item, const QString &name) override
     {
         qDebug() << "Renaming" << item;
         auto index = getItemIndexById(item.id());

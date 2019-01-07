@@ -74,7 +74,7 @@ public:
         contactCreated(newContact);
     }
 
-    void updateContact(int contactId, Contact newContact) override
+    void updateContact(int contactId, const Contact &newContact) override
     {
         Contact *contact = nullptr;
 

@@ -98,7 +98,7 @@ void DBusObjectRegistry::MasterImpl::init()
     m_objectRegistryAdapter.registerService(facelift::ipc::dbus::ObjectRegistry::SINGLETON_OBJECT_PATH, this);
 }
 
-bool DBusObjectRegistry::MasterImpl::registerObject(QString objectPath, QString serviceName)
+bool DBusObjectRegistry::MasterImpl::registerObject(const QString &objectPath, const QString &serviceName)
 {
     auto objects = m_objects.value();
     if (!objects.contains(objectPath)) {
@@ -112,7 +112,7 @@ bool DBusObjectRegistry::MasterImpl::registerObject(QString objectPath, QString 
     }
 }
 
-bool DBusObjectRegistry::MasterImpl::unregisterObject(QString objectPath, QString serviceName)
+bool DBusObjectRegistry::MasterImpl::unregisterObject(const QString &objectPath, const QString &serviceName)
 {
     auto objects = m_objects.value();
     Q_ASSERT(objects[objectPath] == serviceName);

@@ -134,7 +134,7 @@ public:
         m_intProperty = 101;
     }
 
-    void setintProperty(const int &newValue) override
+    void setintProperty(int newValue) override
     {
         m_intProperty = newValue > 0 ? newValue : 0;
     }
@@ -144,7 +144,7 @@ public:
         m_intMapProperty = newValue;
     }
 
-    void setwritableEnumProperty(const CombiEnum & /*newValue*/) override
+    void setwritableEnumProperty(CombiEnum  /*newValue*/) override
     {
     }
 
@@ -162,7 +162,7 @@ public:
         m_stringListProperty = newValue;
     }
 
-    void setreadyProperty(const int &newValue) override
+    void setreadyProperty(int newValue) override
     {
         qDebug() << "set readyProperty:" << newValue;
         m_intProperty = newValue;
@@ -195,7 +195,7 @@ public:
         return CombiEnum::E1;
     }
 
-    QList<CombiEnum> method4(CombiStruct2 s)  override
+    QList<CombiEnum> method4(const CombiStruct2 &s)  override
     {
         if (s.cs().anInt() == 14 && s.cs().aString() == "hello" && s.e() == CombiEnum::E2) {
             QList<CombiEnum> lce = { CombiEnum::E3, CombiEnum::E1 };
@@ -226,7 +226,7 @@ public:
         return 0;
     }
 
-    OtherEnum method7(OtherStruct os) override
+    OtherEnum method7(const OtherStruct &os) override
     {
         if (os.ival() == 101)
             return OtherEnum::O3;

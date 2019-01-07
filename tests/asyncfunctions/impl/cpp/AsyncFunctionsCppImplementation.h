@@ -77,10 +77,11 @@ public:
         });
     }
 
-    void append(QString str1, QString str2, facelift::AsyncAnswer<QString> answer) override
+    void append(const QString &str1, const QString &str2, facelift::AsyncAnswer<QString> answer) override
     {
         QTimer::singleShot(1, [answer, str1, str2]() mutable {
-            answer(str1.append(str2));
+            QString sum =  str1 + str2;
+            answer(sum);
         });
     }
 };
