@@ -76,6 +76,8 @@ public:
 
     static InterfaceManager &instance();
 
+    static InterfaceBase * serviceMatches(const QString& objectPath, NewIPCServiceAdapterBase *adapter);
+
 private:
     QMap<QString, QPointer<NewIPCServiceAdapterBase>> m_registry;
 
@@ -176,108 +178,6 @@ private:
     QString m_objectPath;
     QString m_interfaceName;
 };
-
-class FaceliftIPCLibLocal_EXPORT NewIPCServiceAdapterBase : public QObject
-{
-
-    Q_OBJECT
-
-public:
-    Q_PROPERTY(QObject * service READ service WRITE checkedSetService)
-    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
-    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
-
-    NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
-    {
-    }
-
-    virtual void init() = 0;
-
-    template<typename ServiceType>
-    ServiceType *bindToProvider(QObject *s)
-    {
-        auto service = qobject_cast<ServiceType *>(s);
-        if (service == nullptr) {
-            auto *qmlFrontend = qobject_cast<QMLFrontendBase *>(s);
-            if (qmlFrontend != nullptr) {
-                service = qobject_cast<ServiceType *>(qmlFrontend->providerPrivate());
-            }
-        }
-        if (service != nullptr) {
-            if (service->isComponentCompleted()) {
-                onProviderCompleted();
-            } else {
-                QObject::connect(service, &InterfaceBase::componentCompleted, this, &NewIPCServiceAdapterBase::onProviderCompleted);
-            }
-        } else {
-            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s)));
-        }
-        return service;
-    }
-
-    bool enabled() const
-    {
-        return m_enabled;
-    }
-
-    void setEnabled(bool enabled)
-    {
-        m_enabled = enabled;
-        onValueChanged();
-    }
-
-    void registerLocalService()
-    {
-        InterfaceManager::instance().registerAdapter(objectPath(), this);
-    }
-
-    virtual void setService(QObject *service) = 0;
-
-    void checkedSetService(QObject *service)
-    {
-        setService(service);
-        onValueChanged();
-    }
-
-    const QString &objectPath() const
-    {
-        return m_objectPath;
-    }
-
-    void setObjectPath(const QString &objectPath)
-    {
-        m_objectPath = objectPath;
-        onValueChanged();
-    }
-
-    virtual InterfaceBase *service() const = 0;
-
-    bool isReady() const
-    {
-        return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
-    }
-
-    void onValueChanged()
-    {
-        if (isReady()) {
-            init();
-        }
-    }
-
-    void onProviderCompleted()
-    {
-        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
-        m_providerReady = true;
-        onValueChanged();
-    }
-
-private:
-    QString m_objectPath;
-    bool m_enabled = true;
-    bool m_providerReady = false;
-
-};
-
 
 class FaceliftIPCLibLocal_EXPORT IPCProxyBinderBase : public QObject
 {
@@ -915,6 +815,8 @@ struct IPCTypeRegisterHandler<QMap<QString, Type> >
 };
 
 
+
+
 template<typename Type>
 struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
@@ -931,161 +833,6 @@ struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<In
         v = owner.template getOrCreateSubProxy<Type>(serializedValue);
     }
 
-};
-
-class FaceliftIPCLibLocal_EXPORT NotAvailableImplBase
-{
-
-protected:
-    void logMethodCall(const InterfaceBase &i, const char *methodName) const;
-    void logSetterCall(const InterfaceBase &i, const char *propertyName) const;
-    void logGetterCall(const InterfaceBase &i, const char *propertyName) const;
-
-};
-
-template<typename InterfaceType>
-class NotAvailableImpl : public InterfaceType, protected NotAvailableImplBase
-{
-public:
-    template<typename ElementType>
-    struct NotAvailableModel
-    {
-        static Model<ElementType> &value()
-        {
-            static TheModel instance;
-            return instance;
-        }
-
-        class TheModel : public Model<ElementType>
-        {
-        public:
-            ElementType elementAt(int index) const override
-            {
-                Q_UNUSED(index);
-                Q_ASSERT(false);
-                return ElementType {};
-            }
-
-            int size() const override
-            {
-                return 0;
-            }
-        };
-
-    };
-
-    template<typename Type>
-    struct NotAvailableValue
-    {
-        static const Type &value()
-        {
-            static Type instance = {};
-            return instance;
-        }
-    };
-
-    template<typename Type>
-    struct NotAvailableList
-    {
-        static const QList<Type> &value()
-        {
-            static QList<Type> instance;
-            return instance;
-        }
-    };
-
-    template<typename Type>
-    void logSetterCall(const char *propertyName, const Type &value) const
-    {
-        Q_UNUSED(value);
-        NotAvailableImplBase::logSetterCall(*this, propertyName);
-    }
-
-    void logGetterCall(const char *propertyName) const
-    {
-        NotAvailableImplBase::logGetterCall(*this, propertyName);
-    }
-
-    template<typename ... Args>
-    void logMethodCall(const char *methodName, const Args & ... args) const
-    {
-        M_UNUSED(args ...);
-        NotAvailableImplBase::logMethodCall(*this, methodName);
-    }
-
-    bool ready() const override
-    {
-        return false;
-    }
-
-};
-
-
-class FaceliftIPCLibLocal_EXPORT IPCProxyNewBase
-{
-public:
-    IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
-    {
-        QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
-    }
-
-    virtual void refreshProvider() = 0;
-
-    const QString &objectPath() const
-    {
-        return m_ipc.objectPath();
-    }
-
-    IPCProxyBinderBase *ipc()
-    {
-        return &m_ipc;
-    }
-
-private:
-    facelift::IPCProxyBinderBase m_ipc;
-
-};
-
-
-template<typename InterfaceType>
-class LocalProviderBinder : public QObject
-{
-
-public:
-    LocalProviderBinder(IPCProxyNewBase &proxy) : m_proxy(proxy)
-    {
-        QObject::connect(&InterfaceManager::instance(), &InterfaceManager::adapterAvailable, this,
-                &LocalProviderBinder::onLocalAdapterAvailable);
-    }
-
-    void init()
-    {
-        auto localAdapter = InterfaceManager::instance().getAdapter(m_proxy.objectPath());
-        if (localAdapter) {
-            onLocalAdapterAvailable(localAdapter);
-        }
-    }
-
-    void onLocalAdapterAvailable(NewIPCServiceAdapterBase *adapter)
-    {
-        if (adapter->objectPath() == m_proxy.objectPath()) {
-            auto provider = qobject_cast<InterfaceType *>(adapter->service());
-            m_provider = provider;
-            if (m_provider) {
-                qDebug() << "Local server found for " << m_proxy.objectPath();
-                m_proxy.refreshProvider();
-            }
-        }
-    }
-
-    InterfaceType *provider()
-    {
-        return m_provider;
-    }
-
-private:
-    QPointer<InterfaceType> m_provider;
-    IPCProxyNewBase &m_proxy;
 };
 
 

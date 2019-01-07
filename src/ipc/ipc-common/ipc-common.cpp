@@ -29,6 +29,8 @@
 **********************************************************************/
 
 #include "ipc-common.h"
+#include "IPCServiceAdapterBase.h"
+#include "IPCProxyBase.h"
 
 namespace facelift {
 
@@ -43,6 +45,16 @@ void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceA
                 qPrintable(facelift::toString(*m_registry[objectPath]->service())));
     }
 }
+
+
+InterfaceBase * InterfaceManager::serviceMatches(const QString& objectPath, NewIPCServiceAdapterBase *adapter) {
+    if (adapter->objectPath() == objectPath) {
+        return adapter->service();
+    } else {
+        return nullptr;
+    }
+}
+
 
 NewIPCServiceAdapterBase *InterfaceManager::getAdapter(const QString &objectPath)
 {

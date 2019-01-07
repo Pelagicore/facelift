@@ -30,7 +30,8 @@
 
 #pragma once
 
-#include "ipc-common/ipc-common.h"
+#include "ipc-common/IPCServiceAdapterBase.h"
+#include "ipc-common/IPCProxyBase.h"
 
 namespace facelift {
 

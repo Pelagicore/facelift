@@ -31,6 +31,7 @@
 #pragma once
 
 #include "ipc-dbus.h"
+#include "ipc-common/IPCProxyBase.h"
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
