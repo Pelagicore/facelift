@@ -80,20 +80,9 @@ public:
         checkInit();
     }
 
-    Q_SLOT
-    void onPropertiesChanged(const QDBusMessage &dbusMessage)
-    {
-        DBusIPCMessage msg(dbusMessage);
-        m_serviceObject->deserializePropertyValues(msg, false);
-    }
+    Q_SLOT void onPropertiesChanged(const QDBusMessage &dbusMessage);
 
-    Q_SLOT
-    void onSignalTriggered(const QDBusMessage &dbusMessage)
-    {
-        DBusIPCMessage msg(dbusMessage);
-        m_serviceObject->deserializePropertyValues(msg, false);
-        m_serviceObject->deserializeSignal(msg);
-    }
+    Q_SLOT void onSignalTriggered(const QDBusMessage &dbusMessage);
 
     void bindToIPC();
 
@@ -114,42 +103,13 @@ public:
 
     bool m_serviceAvailable = false;
 
-    void requestPropertyValues()
-    {
-        DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME);
-
-        auto replyHandler = [this](DBusIPCMessage &replyMessage) {
-            if (replyMessage.isReplyMessage()) {
-                m_serviceObject->deserializePropertyValues(replyMessage, true);
-                m_serviceObject->setServiceRegistered(true);
-            } else {
-                qDebug() << "Service not yet available : " << objectPath();
-            }
-        };
-
-        if (isSynchronous()) {
-            auto replyMessage = msg.call(connection());
-            replyHandler(replyMessage);
-        } else {
-            msg.asyncCall(connection(), this, replyHandler);
-        }
-    }
+    void requestPropertyValues();
 
     template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-    }
+    void serializeValue(DBusIPCMessage &msg, const Type &v);
 
     template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        SerializedType serializedValue;
-        IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
-        IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-    }
+    void deserializeValue(DBusIPCMessage &msg, Type &v);
 
     void onServerNotAvailableError(const char *methodName) const
     {
@@ -160,83 +120,26 @@ public:
     }
 
     template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value)
-    {
-        DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-        serializeValue(msg, value);
-        if (isSynchronous()) {
-            auto replyMessage = msg.call(connection());
-            if (replyMessage.isErrorMessage()) {
-                onServerNotAvailableError(methodName);
-            }
-        } else {
-            msg.asyncCall(connection(), this, [this, methodName](const DBusIPCMessage &replyMessage) {
-                if (replyMessage.isErrorMessage()) {
-                    onServerNotAvailableError(methodName);
-                }
-            });
-        }
-    }
-
-    struct SerializeParameterFunction
-    {
-        SerializeParameterFunction(DBusIPCMessage &msg, const DBusIPCProxyBinder &parent) :
-            m_msg(msg),
-            m_parent(parent)
-        {
-        }
-
-        DBusIPCMessage &m_msg;
-        const DBusIPCProxyBinder &m_parent;
-
-        template<typename Type>
-        void operator()(const Type &v)
-        {
-            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg.outputPayLoad(),
-                    IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
-        }
-    };
+    void sendSetterCall(const char *methodName, const PropertyType &value);
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const
-    {
-        DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-        auto argTuple = std::make_tuple(args ...);
-        for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
-        auto replyMessage = msg.call(connection());
-        if (replyMessage.isErrorMessage()) {
-            onServerNotAvailableError(methodName);
-        }
-        return replyMessage;
-    }
+    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
-    {
-        DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-        auto argTuple = std::make_tuple(args ...);
-        for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
-        msg.asyncCall(connection(), this, [this, answer](DBusIPCMessage &msg) {
-            ReturnType returnValue;
-            if (msg.isReplyMessage()) {
-                deserializeValue(msg, returnValue);
-                answer(returnValue);
-            } else {
-                qWarning() << "Error received" << msg.toString();
-            }
-        });
-    }
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args);
 
     template<typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args);
+
+    template<typename ReturnType, typename ... Args>
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
     {
-        DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-        auto argTuple = std::make_tuple(args ...);
-        for_each_in_tuple(argTuple, SerializeParameterFunction(msg, *this));
-        msg.asyncCall(connection(), this, [answer](DBusIPCMessage &msg) {
-            Q_UNUSED(msg);
-            answer();
-        });
+        DBusIPCMessage msg = sendMethodCall(methodName, args ...);
+        if (msg.isReplyMessage()) {
+            const_cast<DBusIPCProxyBinder *>(this)->deserializeValue(msg, returnValue);
+        } else {
+            assignDefaultValue(returnValue);
+        }
     }
 
     QDBusConnection &connection() const
@@ -267,16 +170,27 @@ private:
 };
 
 
+class FaceliftIPCLibDBus_EXPORT DBusIPCProxyBase : protected DBusRequestHandler
+{
+public:
+    DBusIPCProxyBase(DBusIPCProxyBinder& ipcBinder) : m_ipcBinder(ipcBinder) {
+    }
+
+protected:
+    DBusIPCProxyBinder& m_ipcBinder;
+    bool m_serviceRegistered = false;
+
+};
+
 
 template<typename InterfaceType>
-class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusRequestHandler
+class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusIPCProxyBase
 {
-    using IPCProxyBase<InterfaceType>::assignDefaultValue;
 
 public:
     typedef const char *MemberIDType;
 
-    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), m_ipcBinder(*this)
+    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), DBusIPCProxyBase(m_ipcBinder), m_ipcBinder(*this)
     {
         m_ipcBinder.setInterfaceName(InterfaceType::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
@@ -292,6 +206,7 @@ public:
         Q_UNUSED(member);
         return memberName;
     }
+
 
     template<typename Type>
     void serializeValue(DBusIPCMessage &msg, const Type &v)
@@ -342,44 +257,15 @@ public:
         m_ipcBinder.setServiceAvailable(isRegistered);
     }
 
-    template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value)
-    {
-        m_ipcBinder.sendSetterCall(methodName, value);
-    }
-
-    template<typename ... Args>
-    void sendMethodCall(const char *methodName, const Args & ... args) const
-    {
-        m_ipcBinder.sendMethodCall(methodName, args ...);
-    }
-
-    template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
-    {
-        DBusIPCMessage msg = m_ipcBinder.sendMethodCall(methodName, args ...);
-        if (msg.isReplyMessage()) {
-            const_cast<DBusIPCProxy *>(this)->deserializeValue(msg, returnValue);
-        } else {
-            assignDefaultValue(returnValue);
-        }
-    }
-
-    template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args) const
-    {
-        const_cast<DBusIPCProxy *>(this)->m_ipcBinder.sendAsyncMethodCall(methodName, answer, args ...);
-    }
-
     DBusIPCProxyBinder *ipc()
     {
         return &m_ipcBinder;
     }
 
-    template<typename InterfaceType_>
-    typename InterfaceType_::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
+    template<typename SubInterfaceType>
+    typename SubInterfaceType::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
     {
-        return m_ipcBinder.getOrCreateSubProxy<InterfaceType_>(objectPath);
+        return m_ipcBinder.getOrCreateSubProxy<SubInterfaceType>(objectPath);
     }
 
     void connectToServer()
@@ -389,7 +275,6 @@ public:
 
 private:
     DBusIPCProxyBinder m_ipcBinder;
-    bool m_serviceRegistered = false;
 
 };
 }

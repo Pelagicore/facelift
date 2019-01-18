@@ -37,6 +37,8 @@
 
 #include "{{className}}.h"
 
+#include "ipc-dbus-serialization.h"
+
 {{module.namespaceCppOpen}}
 
 {{className}}::{{className}}(QObject *parent) : BaseType(parent)
@@ -122,12 +124,35 @@ void {{className}}::deserializeSignal(::facelift::dbus::DBusIPCMessage &msg)
     }
 }
 
+{% for property in interface.properties %}
+
+{% if (not property.readonly) %}
+
+void {{className}}::set{{property}}(const {{property.cppType}}& newValue)
+{
+    {% if (not property.type.is_interface) %}
+    ipc()->sendSetterCall(memberID(MethodID::set{{property.name}}, "set{{property.name}}"), newValue);
+    {% else %}
+    Q_ASSERT(false); // Writable interface properties are unsupported
+    {% endif %}
+}
+{% endif %}
+
+{% if property.type.is_model %}
+{{property.nestedType.interfaceCppType}} {{className}}::{{property.name}}Data(int row)
+{
+    return m_{{property.name}}.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
+}
+{% endif %}
+{% endfor %}
+
+
 {% for operation in interface.operations %}
 
 {% if operation.isAsync %}
 void {{className}}::{{operation.name}}(
     {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer){% if operation.is_const %} const{% endif %} {
-        sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
+        ipc()->sendAsyncMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), answer
         {%- for parameter in operation.parameters -%}
         , {{parameter.name}}
         {%- endfor -%}  );
@@ -141,13 +166,13 @@ void {{className}}::{{operation.name}}(
 {
         {% if (operation.hasReturnValue) %}
         {{operation.interfaceCppType}} returnValue;
-        sendMethodCallWithReturn(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), returnValue
+        ipc()->sendMethodCallWithReturn(memberID(MethodID::{{operation.name}}, "{{operation.name}}"), returnValue
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%} );
         return returnValue;
         {% else %}
-        sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
+        ipc()->sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
         {%- for parameter in operation.parameters -%}
         , {{parameter.name}}
         {%- endfor -%}  );

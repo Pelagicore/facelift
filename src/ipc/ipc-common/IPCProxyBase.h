@@ -44,10 +44,7 @@ namespace facelift {
 class FaceliftIPCLibLocal_EXPORT IPCProxyNewBase
 {
 public:
-    IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
-    {
-        QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
-    }
+    IPCProxyNewBase(InterfaceBase &owner);
 
     virtual void refreshProvider() = 0;
 
@@ -114,10 +111,9 @@ class FaceliftIPCLibLocal_EXPORT NotAvailableImplBase
 {
 
 protected:
-    void logMethodCall(const InterfaceBase &i, const char *methodName) const;
-    void logSetterCall(const InterfaceBase &i, const char *propertyName) const;
-    void logGetterCall(const InterfaceBase &i, const char *propertyName) const;
-
+    static void logMethodCall(const InterfaceBase &i, const char *methodName);
+    static void logSetterCall(const InterfaceBase &i, const char *propertyName);
+    static void logGetterCall(const InterfaceBase &i, const char *propertyName);
 };
 
 template<typename InterfaceType>
