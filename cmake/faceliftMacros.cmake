@@ -147,7 +147,7 @@ endfunction()
 
 function(facelift_generate_code )
 
-    set(options)
+    set(options GENERATE_ALL)
     set(oneValueArgs INTERFACE_DEFINITION_FOLDER OUTPUT_PATH LIBRARY_NAME)
     set(multiValueArgs IMPORT_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -165,11 +165,15 @@ function(facelift_generate_code )
     set(BASE_CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} --input "${ARGUMENT_INTERFACE_DEFINITION_FOLDER}" --output "${WORK_PATH}")
 
     foreach(IMPORT_FOLDER ${ARGUMENT_IMPORT_FOLDERS})
-        set(BASE_CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND} --dependency ${IMPORT_FOLDER})
+        list(APPEND BASE_CODEGEN_COMMAND "--dependency" "${IMPORT_FOLDER}")
     endforeach()
 
     if(ARGUMENT_LIBRARY_NAME)
-        set(BASE_CODEGEN_COMMAND ${BASE_CODEGEN_COMMAND} --library ${ARGUMENT_LIBRARY_NAME})
+        list(APPEND BASE_CODEGEN_COMMAND "--library" "${ARGUMENT_LIBRARY_NAME}")
+    endif()
+
+    if(ARGUMENT_GENERATE_ALL)
+        list(APPEND BASE_CODEGEN_COMMAND "--all")
     endif()
 
     # find_package(PythonInterp) causes some issues if the another version has been searched before, and it is not needed anyway on non-Win32 platforms
@@ -178,7 +182,7 @@ function(facelift_generate_code )
     endif()
 
     string(REPLACE ";" " " BASE_CODEGEN_COMMAND_WITH_SPACES "${BASE_CODEGEN_COMMAND}")
-    message("Calling facelift code generator. Command:\n${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
+    message("Calling facelift code generator. Command:\n PYTHONPATH=$ENV{PYTHONPATH} ${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
 
     if(NOT DEFINED ENV{LANG}) # e.g. Qt Creator was started from the Apple Dock
         set(ENV{LANG} "en_US.UTF-8")
@@ -219,7 +223,7 @@ endfunction()
 
 function(facelift_add_interface TARGET_NAME)
 
-    set(options)
+    set(options GENERATE_ALL)
     set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
     set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -241,7 +245,12 @@ function(facelift_add_interface TARGET_NAME)
     set(IPC_DBUS_OUTPUT_PATH ${OUTPUT_PATH}/ipc_dbus)
     set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
 
-    facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH} LIBRARY_NAME ${TARGET_NAME})
+    unset(ADDITIONAL_ARGUMENTS)
+    if (ARGUMENT_GENERATE_ALL)
+        set(ADDITIONAL_ARGUMENTS "GENERATE_ALL")
+    endif()
+
+    facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH} LIBRARY_NAME ${TARGET_NAME} ${ADDITIONAL_ARGUMENTS})
 
     # Get the list of generated files
     facelift_add_library(${LIBRARY_NAME}_types
@@ -423,7 +432,7 @@ function(facelift_add_library TARGET_NAME)
        if(NOT ALL_SOURCES)
            set(EMPTY_FILE_PATH ${CMAKE_BINARY_DIR}/facelift_empty_file.cpp)
            if(NOT EXISTS ${EMPTY_FILE_PATH})
-              file(WRITE ${EMPTY_FILE_PATH} "")
+              file(WRITE ${EMPTY_FILE_PATH} "#include <QObject>\nQ_DECL_EXPORT void dummy_facelift_function() {}")
            endif()
            set(ALL_SOURCES ${EMPTY_FILE_PATH})
        endif()

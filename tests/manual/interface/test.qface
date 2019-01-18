@@ -30,11 +30,13 @@
 
 module facelift.test 1.0;
 
+@ipc-sync: true
 interface TestInterface2 {
     void doSomething();
     void triggerMainInterfaceSignal(int signalParameter);
 }
 
+@ipc-sync: true
 interface TestInterface {
 
     readonly bool boolProperty;

@@ -1,5 +1,6 @@
 module tests.asyncfunctions 1.0
 
+@ipc-sync: true
 interface AsyncFunctionsInterface {
 
  /*

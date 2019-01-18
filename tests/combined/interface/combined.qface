@@ -31,6 +31,8 @@
 module tests.combined 1.0
 import tests.combined.other 1.0
 
+@ipc-async: true
+@ipc-sync: true
 interface CombinedInterface {
     readonly bool qmlImplementationUsed;
     void initialize();
@@ -79,6 +81,8 @@ interface CombinedInterface {
     signal eventWithStructWithList(StructWithList p)
 }
 
+@ipc-async: true
+@ipc-sync: true
 interface CombinedInterface2 {
     void doSomething();
 }

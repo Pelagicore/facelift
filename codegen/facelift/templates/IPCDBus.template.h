@@ -33,51 +33,37 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "ModuleIPC.h"
-#include "facelift-ipc.h"
-
-{% for interface in module.interfaces %}
-
-{% if interface.isIPCEnabled %}
-#include "{{interface.fullyQualifiedPath}}IPCAdapter.h"
-{% endif %}
-
-{% if interface.isSynchronousIPCEnabled %}
-#include "{{interface.fullyQualifiedPath}}IPCProxy.h"
-{% endif %}
-
-{% if interface.isAsynchronousIPCEnabled %}
-#include "{{interface.fullyQualifiedPath}}AsyncIPCProxy.h"
-#include "{{interface.fullyQualifiedPath}}AsyncQMLFrontend.h"
-{% endif %}
-
-{% endfor %}
+#pragma once
 
 {{module.namespaceCppOpen}}
 
-void ModuleIPC::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
+class {{interfaceName}}IPCDBus
 {
-    {% for interface in module.interfaces %}
-
-        {% if interface.isIPCEnabled %}
-    facelift::qmlRegisterType<{{interface}}IPCAdapter>(uri, "{{interface}}IPCAdapter");
-    facelift::IPCAdapterFactoryManager::registerType<{{interface}}IPCAdapter>();
+public:
+    enum class MethodID {
+        {% for operation in interface.operations %}
+        {{operation.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {% if (not property.readonly) %}
+        set{{property.name}},
         {% endif %}
-
-        {% if interface.isSynchronousIPCEnabled %}
-    facelift::registerQmlComponent<{{interface}}IPCProxy>(uri, "{{interface}}IPCProxy");
+        {% if (property.type.is_model) %}
+        {{property.name}},  // model
         {% endif %}
+        {% endfor %}
+    };
 
-        {% if interface.isAsynchronousIPCEnabled %}
-    facelift::registerQmlComponent<{{interface}}AsyncIPCProxy>(uri, "{{interface}}AsyncIPCProxy");
-        {% endif %}
+    enum class SignalID {
+        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
+        {% for signal in interface.signals %}
+        {{signal.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {{property.name}},
+        {% endfor %}
+    };
 
-    {% endfor %}
-
-    qmlRegisterUncreatableType<facelift::IPCProxyBinderBase>(uri, majorVersion, minorVersion, "IPCProxyBinder",
-                                                 QStringLiteral("Cannot create objects of type IPCProxyBinder"));
-    qmlRegisterUncreatableType<facelift::IPCAttachedPropertyFactory>(uri, majorVersion, minorVersion, "IPC",
-                                       QStringLiteral("IPCBroker is only available via attached properties"));
-}
+};
 
 {{module.namespaceCppClose}}
