@@ -88,9 +88,7 @@ class FaceliftIPCLibLocal_EXPORT IPCServiceAdapterBase : public QObject
     Q_OBJECT
 
 public:
-    IPCServiceAdapterBase(QObject *parent = nullptr) : QObject(parent)
-    {
-    }
+    IPCServiceAdapterBase(QObject *parent = nullptr);
 
     const QString &interfaceName() const
     {
@@ -118,13 +116,7 @@ public:
         m_objectPath = objectPath;
     }
 
-    QString generateObjectPath(const QString &parentPath) const
-    {
-        static int s_nextInstanceID = 0;
-        QString path = parentPath + "/dynamic";
-        path += QString::number(s_nextInstanceID++);
-        return path;
-    }
+    QString generateObjectPath(const QString &parentPath) const;
 
     template<typename InterfaceType>
     typename InterfaceType::IPCDBusAdapterType *getOrCreateAdapter(InterfaceType *service)
@@ -187,9 +179,7 @@ public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
-    IPCProxyBinderBase(InterfaceBase &owner, QObject *parent) : QObject(parent), m_owner(owner)
-    {
-    }
+    IPCProxyBinderBase(InterfaceBase &owner, QObject *parent);
 
     bool enabled() const
     {
@@ -213,19 +203,9 @@ public:
         checkInit();
     }
 
-    void onComponentCompleted()
-    {
-        m_componentCompleted = true;
-        checkInit();
-    }
+    void onComponentCompleted();
 
-    void checkInit()
-    {
-        if (m_componentCompleted && enabled() && !objectPath().isEmpty()) {
-            this->connectToServer();
-            emit complete();
-        }
-    }
+    void checkInit();
 
     /**
      * Establish the connection with the server
@@ -245,10 +225,10 @@ public:
         return m_owner;
     }
 
-    template<typename InterfaceType>
-    typename InterfaceType::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
+    template<typename SubInterfaceType>
+    typename SubInterfaceType::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
     {
-        using InterfaceProxyType = typename InterfaceType::IPCDBusProxyType;
+        using InterfaceProxyType = typename SubInterfaceType::IPCDBusProxyType;
 
         if (objectPath.isEmpty()) {
             return nullptr;
@@ -267,8 +247,6 @@ public:
         return proxy;
     }
 
-    QMap<QString, IPCProxyBinderBase *> m_subProxies;
-
     void setSynchronous(bool isSynchronous)
     {
         m_isSynchronous = isSynchronous;
@@ -280,15 +258,21 @@ public:
     }
 
 private:
-    bool m_alreadyInitialized = false;
+    QMap<QString, IPCProxyBinderBase *> m_subProxies;
     QString m_objectPath;
+    InterfaceBase &m_owner;
+    bool m_alreadyInitialized = false;
     bool m_enabled = true;
     bool m_componentCompleted = false;
-    InterfaceBase &m_owner;
     bool m_isSynchronous = true;
 
 };
 
+template<typename Type>
+inline void assignDefaultValue(Type &v)
+{
+    v = Type {};
+}
 
 template<typename AdapterType>
 class IPCProxyBase : public AdapterType
@@ -300,12 +284,6 @@ public:
 public:
     IPCProxyBase(QObject *parent) : AdapterType(parent)
     {
-    }
-
-    template<typename Type>
-    void assignDefaultValue(Type &v) const
-    {
-        v = Type {};
     }
 
     template<typename BinderType>
@@ -394,28 +372,11 @@ class FaceliftIPCLibLocal_EXPORT IPCAttachedPropertyFactoryBase : public QObject
     Q_OBJECT
 
 public:
-    IPCAttachedPropertyFactoryBase(QObject *parent) : QObject(parent)
-    {
-    }
+    IPCAttachedPropertyFactoryBase(QObject *parent);
 
     static IPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
 
-    static InterfaceBase *getProvider(QObject *object)
-    {
-        InterfaceBase *provider = nullptr;
-
-        auto o = qobject_cast<facelift::QMLFrontendBase *>(object);
-        if (o == nullptr) {
-            auto qmlImpl = qobject_cast<facelift::ModelQMLImplementationBase *>(object);
-            if (qmlImpl != nullptr) {
-                provider = qmlImpl->interfac();
-            }
-        } else {
-            provider = o->providerPrivate();
-        }
-
-        return provider;
-    }
+    static InterfaceBase *getProvider(QObject *object);
 
 };
 
@@ -516,12 +477,12 @@ template<typename IPCProxyType, typename ModelDataType>
 class IPCProxyModelProperty : public facelift::ModelProperty<ModelDataType>
 {
 
+    using MemberID = typename IPCProxyType::MemberIDType;
+
 public:
     IPCProxyModelProperty(IPCProxyType &proxy) : m_proxy(proxy), m_cache(PREFETCH_ITEM_COUNT * 10)
     {
     }
-
-    using MemberID = typename IPCProxyType::MemberIDType;
 
     template<typename IPCMessage>
     void handleSignal(IPCMessage &msg)
@@ -600,7 +561,7 @@ public:
                 }
 
                 QList<ModelDataType> list;
-                m_proxy.sendMethodCallWithReturn(requestMemberID, list, first, last);
+                m_proxy.ipc()->sendMethodCallWithReturn(requestMemberID, list, first, last);
 
                 Q_ASSERT(list.size() == (last - first + 1));
 
@@ -636,7 +597,6 @@ public:
      */
     void requestItemsAsync(const MemberID &requestMemberID, int index)
     {
-
         // Find the first index which we should request, given what we already have in our cache
         int first = std::max(0, index - PREFETCH_ITEM_COUNT);
         while ((m_cache.exists(first) || m_itemsRequestedFromServer.contains(first)) && (first < this->size())) {
@@ -652,7 +612,7 @@ public:
             }
 
             if (first <= last) {
-                m_proxy.sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType> >(&m_proxy, [this, first,
+                m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType> >(&m_proxy, [this, first,
                         last](QList<ModelDataType> list) {
                         //                    qDebug() << "Received model items " << first << "-" << last;
                         for (int i = first; i <= last; ++i) {
@@ -703,23 +663,12 @@ public:
     template<typename AdapterType>
     static void registerType()
     {
-        auto &i = instance();
-        const auto &typeID = AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME;
-        if (i.m_factories.contains(typeID)) {
-            qWarning() << "IPC type already registered" << typeID;
-        } else {
-            i.m_factories.insert(typeID, &IPCAdapterFactoryManager::createInstance<AdapterType>);
-        }
+        instance().registerType(AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME,  &IPCAdapterFactoryManager::createInstance<AdapterType>);
     }
 
-    IPCAdapterFactory getFactory(const QString &typeID) const
-    {
-        if (m_factories.contains(typeID)) {
-            return m_factories[typeID];
-        } else {
-            return nullptr;
-        }
-    }
+    void registerType(const QString &typeID, IPCAdapterFactory f);
+
+    IPCAdapterFactory getFactory(const QString &typeID) const;
 
 private:
     QMap<QString, IPCAdapterFactory> m_factories;

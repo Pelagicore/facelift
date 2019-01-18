@@ -34,6 +34,23 @@
 
 namespace facelift {
 
+IPCProxyBinderBase::IPCProxyBinderBase(InterfaceBase &owner, QObject *parent) : QObject(parent), m_owner(owner)
+{
+}
+
+IPCServiceAdapterBase::IPCServiceAdapterBase(QObject *parent) : QObject(parent)
+{
+}
+
+QString IPCServiceAdapterBase::generateObjectPath(const QString &parentPath) const
+{
+    static int s_nextInstanceID = 0;
+    QString path = parentPath + "/dynamic";
+    path += QString::number(s_nextInstanceID++);
+    return path;
+}
+
+
 void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter)
 {
     Q_ASSERT(adapter);
@@ -79,6 +96,38 @@ void IPCProxyBinderBase::connectToServer()
     }
 }
 
+void IPCProxyBinderBase::checkInit()
+{
+    if (m_componentCompleted && enabled() && !objectPath().isEmpty()) {
+        this->connectToServer();
+        emit complete();
+    }
+}
+
+void IPCProxyBinderBase::onComponentCompleted()
+{
+    m_componentCompleted = true;
+    checkInit();
+}
+
+
+IPCAdapterFactoryManager::IPCAdapterFactory IPCAdapterFactoryManager::getFactory(const QString &typeID) const
+{
+    if (m_factories.contains(typeID)) {
+        return m_factories[typeID];
+    } else {
+        return nullptr;
+    }
+}
+
+void IPCAdapterFactoryManager::registerType(const QString &typeID, IPCAdapterFactory f) {
+    if (m_factories.contains(typeID)) {
+        qWarning() << "IPC type already registered" << typeID;
+    } else {
+        m_factories.insert(typeID, f);
+    }
+}
+
 IPCAdapterFactoryManager &IPCAdapterFactoryManager::instance()
 {
     static IPCAdapterFactoryManager factory;
@@ -108,17 +157,39 @@ NewIPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObj
     return serviceAdapter;
 }
 
-void NotAvailableImplBase::logMethodCall(const InterfaceBase &i, const char *methodName) const
+IPCAttachedPropertyFactoryBase::IPCAttachedPropertyFactoryBase(QObject *parent) : QObject(parent)
+{
+}
+
+InterfaceBase *IPCAttachedPropertyFactoryBase::getProvider(QObject *object)
+{
+    InterfaceBase *provider = nullptr;
+
+    auto o = qobject_cast<facelift::QMLFrontendBase *>(object);
+    if (o == nullptr) {
+        auto qmlImpl = qobject_cast<facelift::ModelQMLImplementationBase *>(object);
+        if (qmlImpl != nullptr) {
+            provider = qmlImpl->interfac();
+        }
+    } else {
+        provider = o->providerPrivate();
+    }
+
+    return provider;
+}
+
+
+void NotAvailableImplBase::logMethodCall(const InterfaceBase &i, const char *methodName)
 {
     qWarning() << "Can not call method" << methodName << "on proxy object" << i.interfaceID() << &i << i.interfaceID();
 }
 
-void NotAvailableImplBase::logSetterCall(const InterfaceBase &i, const char *propertyName) const
+void NotAvailableImplBase::logSetterCall(const InterfaceBase &i, const char *propertyName)
 {
     qWarning() << "Can not call setter of property" << propertyName << "on proxy object" << i.interfaceID() << &i << i.interfaceID();
 }
 
-void NotAvailableImplBase::logGetterCall(const InterfaceBase &i, const char *propertyName) const
+void NotAvailableImplBase::logGetterCall(const InterfaceBase &i, const char *propertyName)
 {
     qDebug() << "Getter of property" << propertyName << "is called" << i.interfaceID() << &i << i.interfaceID();
 }

@@ -1,6 +1,6 @@
 
 facelift_add_library(FaceliftIPCLibLocal
-    SOURCES ipc-common/ipc-common.cpp
+    SOURCES ipc-common/ipc-common.cpp ipc-common/IPCProxyBase.cpp
     HEADERS ipc-common/ipc-common.h ipc-common/IPCProxyBase.h ipc-common/IPCServiceAdapterBase.h
     LINK_LIBRARIES FaceliftModelLib FaceliftPropertyLib FaceliftCommonLib FaceliftQMLModelLib
 )

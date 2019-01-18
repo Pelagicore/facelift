@@ -105,21 +105,13 @@ public:
     {%- for property in interface.properties %}
     {% if (not property.readonly) %}
 
-    void set{{property}}(const {{property.cppType}}& newValue) override
-    {
-            {% if (not property.type.is_interface) %}
-            sendSetterCall(memberID(MethodID::set{{property.name}}, "set{{property.name}}"), newValue);
-            {% else %}
-            Q_ASSERT(false); // Writable interface properties are unsupported
-            {% endif %}
-    }
+    void set{{property}}(const {{property.cppType}}& newValue) override;
     {% endif %}
+
     {% if property.type.is_model %}
-    {{property.nestedType.interfaceCppType}} {{property.name}}Data(int row)
-    {
-        return m_{{property.name}}.modelData(memberID(MethodID::{{property.name}}, "{{property.name}}"), row);
-    }
+    {{property.nestedType.interfaceCppType}} {{property.name}}Data(int row);
     {% endif %}
+
     {% endfor %}
 
 

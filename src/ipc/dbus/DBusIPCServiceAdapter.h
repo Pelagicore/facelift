@@ -50,6 +50,8 @@ class FaceliftIPCLibDBus_EXPORT DBusIPCServiceAdapterBase : public IPCServiceAda
 {
     Q_OBJECT
 
+    typedef const char *MemberIDType;
+
 public:
 
     class DBusVirtualObject : public QDBusVirtualObject
@@ -74,73 +76,24 @@ public:
         DBusIPCServiceAdapterBase &m_adapter;
     };
 
-    DBusIPCServiceAdapterBase(QObject *parent = nullptr) : IPCServiceAdapterBase(parent), m_dbusVirtualObject(*this)
-    {
-    }
+    DBusIPCServiceAdapterBase(QObject *parent = nullptr);
 
     ~DBusIPCServiceAdapterBase();
 
-    virtual QString introspect(const QString &path) const = 0;
-
     bool handleMessage(const QDBusMessage &dbusMsg, const QDBusConnection &connection);
 
-    void flush()
-    {
-        if (m_pendingOutgoingMessage) {
-            m_pendingOutgoingMessage->send(dbusManager().connection());
-            m_pendingOutgoingMessage.reset();
-        }
-    }
-
-    struct SerializeParameterFunction
-    {
-        SerializeParameterFunction(OutputPayLoad &msg, DBusIPCServiceAdapterBase &parent) :
-            m_msg(msg),
-            m_parent(parent)
-        {
-        }
-
-        OutputPayLoad &m_msg;
-        DBusIPCServiceAdapterBase &m_parent;
-
-        template<typename Type>
-        void operator()(const Type &v)
-        {
-            IPCTypeHandler<typename IPCTypeRegisterHandler<Type>::SerializedType>::write(m_msg,
-                    IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
-        }
-    };
+    void flush();
 
     template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-    }
+    void serializeValue(DBusIPCMessage &msg, const Type &v);
 
     template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        SerializedType serializedValue;
-        IPCTypeHandler<Type>::read(msg.inputPayLoad(), serializedValue);
-        IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-    }
+    void deserializeValue(DBusIPCMessage &msg, Type &v);
+
+    void initOutgoingSignalMessage();
 
     template<typename MemberID, typename ... Args>
-    void sendSignal(MemberID signalID, const Args & ... args)
-    {
-        if (m_pendingOutgoingMessage == nullptr) {
-            m_pendingOutgoingMessage = std::make_unique<DBusIPCMessage>(objectPath(), interfaceName(), DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
-
-            // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
-            this->serializePropertyValues(*m_pendingOutgoingMessage, false);
-
-            auto argTuple = std::make_tuple(signalID, args ...);
-            for_each_in_tuple(argTuple, SerializeParameterFunction(m_pendingOutgoingMessage->outputPayLoad(), *this));
-            flush();
-        }
-    }
+    void sendSignal(MemberID signalID, const Args & ... args);
 
     template<typename ReturnType>
     void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
@@ -152,35 +105,6 @@ public:
     void sendAsyncCallAnswer(DBusIPCMessage &replyMessage)
     {
         replyMessage.send(dbusManager().connection());
-    }
-
-    template<typename Type>
-    void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly) const
-    {
-        s << "<property name=\"" << propertyName << "\" type=\"";
-        std::tuple<Type> dummyTuple;
-        appendDBUSTypeSignature(s, dummyTuple);
-        s << "\" access=\"" << (isReadonly ? "read" : "readwrite") << "\"/>";
-    }
-
-    template<typename ... Args>
-    void addMethodSignature(QTextStream &s, const char *methodName,
-            const std::array<const char *, sizeof ... (Args)> &argNames) const
-    {
-        s << "<method name=\"" << methodName << "\">";
-        std::tuple<Args ...> t;  // TODO : get rid of the tuple
-        appendDBUSMethodArgumentsSignature(s, t, argNames);
-        s << "</method>";
-    }
-
-    template<typename ... Args>
-    void addSignalSignature(QTextStream &s, const char *methodName,
-            const std::array<const char *, sizeof ... (Args)> &argNames) const
-    {
-        s << "<signal name=\"" << methodName << "\">";
-        std::tuple<Args ...> t;  // TODO : get rid of the tuple
-        appendDBUSSignalArgumentsSignature(s, t, argNames);
-        s << "</signal>";
     }
 
     virtual IPCHandlingResult handleMethodCallMessage(DBusIPCMessage &requestMessage, DBusIPCMessage &replyMessage) = 0;
@@ -224,6 +148,17 @@ public:
         }
     }
 
+    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
+
+    QString introspect(const QString &path) const;
+
+    template<typename T>
+    MemberIDType memberID(T member, MemberIDType memberName) const
+    {
+        // DBus member IDs are strings
+        Q_UNUSED(member);
+        return memberName;
+    }
 
 protected:
     std::unique_ptr<DBusIPCMessage> m_pendingOutgoingMessage;
@@ -236,25 +171,15 @@ protected:
 };
 
 
-
 template<typename ServiceType>
 class DBusIPCServiceAdapter : public DBusIPCServiceAdapterBase
 {
 public:
     typedef ServiceType TheServiceType;
-    typedef const char *MemberIDType;
 
     DBusIPCServiceAdapter(QObject *parent) : DBusIPCServiceAdapterBase(parent)
     {
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
-    }
-
-    template<typename T>
-    MemberIDType memberID(T member, const char *memberName) const
-    {
-        // DBus member IDs are strings
-        Q_UNUSED(member);
-        return memberName;
     }
 
     ServiceType *service() const override
@@ -265,25 +190,6 @@ public:
     void setService(ServiceType *service)
     {
         m_service = service;
-    }
-
-    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
-
-    QString introspect(const QString &path) const override
-    {
-        QString introspectionData;
-
-        if (path == objectPath()) {
-            QTextStream s(&introspectionData);
-            s << "<interface name=\"" << interfaceName() << "\">";
-            appendDBUSIntrospectionData(s);
-            s << "</interface>";
-        } else {
-            qFatal("Wrong object path");
-        }
-
-        qDebug() << "Introspection data for " << path << ":" << introspectionData;
-        return introspectionData;
     }
 
 protected:

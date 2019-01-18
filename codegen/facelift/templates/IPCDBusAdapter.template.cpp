@@ -35,6 +35,8 @@
 
 #include "{{interfaceName}}IPCDBusAdapter.h"
 
+#include "ipc-dbus-serialization.h"
+
 {{module.namespaceCppOpen}}
 
 facelift::IPCHandlingResult {{interfaceName}}IPCDBusAdapter::handleMethodCallMessage(::facelift::dbus::DBusIPCMessage &requestMessage,
@@ -106,7 +108,7 @@ void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s
 {
     Q_UNUSED(s);   // For empty interfaces
     {% for property in interface.properties %}
-    addPropertySignature<ServiceType::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
+    ::facelift::dbus::addPropertySignature<ServiceType::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
     {% endfor %}
     {% for operation in interface.operations %}
 
@@ -116,7 +118,7 @@ void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s
             "{{parameter}}",
             {%- endfor -%}
         } };
-        addMethodSignature<
+        ::facelift::dbus::addMethodSignature<
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
             {{ comma() }}{{parameter.cppType}}
@@ -133,7 +135,7 @@ void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s
                 "{{parameter}}",
             {%- endfor -%}
         }};
-        addSignalSignature<
+        ::facelift::dbus::addSignalSignature<
         {%- set comma = joiner(", ") -%}
         {%- for parameter in signal.parameters -%}
         {{ comma() }}{{parameter.interfaceCppType}}

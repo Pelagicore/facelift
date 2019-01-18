@@ -49,10 +49,21 @@
 #include "QMLFrontend.h"
 #include "QMLModel.h"
 
+#include "DBusIPCProxy.h"
 #include "ipc-dbus-object-registry.h"
+#include "ipc-dbus-serialization.h"
 
 namespace facelift {
 namespace dbus {
+
+struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
+    static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
+    static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
+    static constexpr const char *SIGNAL_TRIGGERED_SIGNAL_NAME = "SignalTriggered";
+    static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "SetProperty";
+    static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
+    static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
+};
 
 constexpr const char *DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME;
 
@@ -118,6 +129,20 @@ DBusManager &DBusManager::instance()
     return i;
 }
 
+void DBusIPCServiceAdapterBase::initOutgoingSignalMessage() {
+    m_pendingOutgoingMessage = std::make_unique<DBusIPCMessage>(objectPath(), interfaceName(), DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
+
+    // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
+    this->serializePropertyValues(*m_pendingOutgoingMessage, false);
+}
+
+void DBusIPCServiceAdapterBase::flush()
+{
+    if (m_pendingOutgoingMessage) {
+        m_pendingOutgoingMessage->send(dbusManager().connection());
+        m_pendingOutgoingMessage.reset();
+    }
+}
 
 bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const QDBusConnection &connection)
 {
@@ -152,12 +177,33 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
     return false;
 }
 
+DBusIPCServiceAdapterBase::DBusIPCServiceAdapterBase(QObject *parent) : IPCServiceAdapterBase(parent), m_dbusVirtualObject(*this)
+{
+}
+
 DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
 {
     emit destroyed(this);
     if (m_alreadyInitialized) {
         DBusManager::instance().objectRegistry().unregisterObject(objectPath());
     }
+}
+
+QString DBusIPCServiceAdapterBase::introspect(const QString &path) const
+{
+    QString introspectionData;
+
+    if (path == objectPath()) {
+        QTextStream s(&introspectionData);
+        s << "<interface name=\"" << interfaceName() << "\">";
+        appendDBUSIntrospectionData(s);
+        s << "</interface>";
+    } else {
+        qFatal("Wrong object path");
+    }
+
+    qDebug() << "Introspection data for " << path << ":" << introspectionData;
+    return introspectionData;
 }
 
 void DBusIPCServiceAdapterBase::init()
@@ -186,6 +232,42 @@ void DBusIPCServiceAdapterBase::init()
         }
     }
 }
+
+
+void DBusIPCProxyBinder::onPropertiesChanged(const QDBusMessage &dbusMessage)
+{
+    DBusIPCMessage msg(dbusMessage);
+    m_serviceObject->deserializePropertyValues(msg, false);
+}
+
+void DBusIPCProxyBinder::onSignalTriggered(const QDBusMessage &dbusMessage)
+{
+    DBusIPCMessage msg(dbusMessage);
+    m_serviceObject->deserializePropertyValues(msg, false);
+    m_serviceObject->deserializeSignal(msg);
+}
+
+void DBusIPCProxyBinder::requestPropertyValues()
+{
+    DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME);
+
+    auto replyHandler = [this](DBusIPCMessage &replyMessage) {
+        if (replyMessage.isReplyMessage()) {
+            m_serviceObject->deserializePropertyValues(replyMessage, true);
+            m_serviceObject->setServiceRegistered(true);
+        } else {
+            qDebug() << "Service not yet available : " << objectPath();
+        }
+    };
+
+    if (isSynchronous()) {
+        auto replyMessage = msg.call(connection());
+        replyHandler(replyMessage);
+    } else {
+        msg.asyncCall(connection(), this, replyHandler);
+    }
+}
+
 
 void DBusIPCProxyBinder::onServiceAvailable()
 {
@@ -262,6 +344,23 @@ QString DBusIPCMessage::toString() const
     s << " signature:" << m_message.signature();
 
     return str;
+}
+
+OutputPayLoad &DBusIPCMessage::outputPayLoad()
+{
+    if (m_outputPayload == nullptr) {
+        m_outputPayload = std::make_unique<OutputPayLoad>();
+    }
+    return *m_outputPayload;
+}
+
+InputPayLoad &DBusIPCMessage::inputPayLoad()
+{
+    if (m_inputPayload == nullptr) {
+        auto byteArray = m_message.arguments()[0].value<QByteArray>();
+        m_inputPayload = std::make_unique<InputPayLoad>(byteArray);
+    }
+    return *m_inputPayload;
 }
 
 

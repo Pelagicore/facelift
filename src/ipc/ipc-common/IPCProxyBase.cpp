@@ -1,10 +1,10 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
-** Permission is hereby granted, free of charge, to any person
+** Permission is hereby granted, freIPCServiceAdapterBasee of charge, to any person
 ** obtaining a copy of this software and associated documentation files
 ** (the "Software"), to deal in the Software without restriction,
 ** including without limitation the rights to use, copy, modify, merge,
@@ -28,18 +28,13 @@
 **
 **********************************************************************/
 
-#include "facelift-ipc.h"
+#include "IPCProxyBase.h"
 
 namespace facelift {
 
-#if defined(FaceliftIPCLib_LIBRARY)
-#  define FaceliftIPCLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLib_EXPORT Q_DECL_IMPORT
-#endif
-
-// this dummy export is necessary for creating a *.lib file with MSVC based compiler
-// otherwise no lib file will be created
-FaceliftIPCLib_EXPORT int dummy_value_2;
+IPCProxyNewBase::IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
+{
+    QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
+}
 
 }
