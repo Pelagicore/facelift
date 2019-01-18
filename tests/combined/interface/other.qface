@@ -30,6 +30,8 @@
 
 module tests.combined.other 1.0
 
+@ipc-async: true
+@ipc-sync: true
 interface OtherInterface {
     int otherInt
     string otherMethod(OtherEnum oe);

@@ -30,6 +30,8 @@
 
 module facelift.ipc.dbus 1.0;
 
+@ipc-async: true
+@ipc-sync: true
 interface ObjectRegistry {
     readonly map<string> objects;
     bool registerObject(string objectPath, string serviceName);

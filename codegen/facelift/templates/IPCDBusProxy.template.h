@@ -39,6 +39,7 @@
 
 #include "DBusIPCProxy.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
+#include "{{module.fullyQualifiedPath}}/{{interface}}IPCDBus.h"
 
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusProxy.h"
@@ -58,32 +59,10 @@ class {{classExport}} {{className}} : public ::facelift::dbus::DBusIPCProxy<{{in
 
 public:
 
-    enum class MethodID {
-        {% for operation in interface.operations %}
-        {{operation.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {% if (not property.readonly) %}
-        set{{property.name}},
-        {% endif %}
-        {% if (property.type.is_model) %}
-        {{property.name}},  // model
-        {% endif %}
-        {% endfor %}
-    };
-
-    enum class SignalID {
-        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
-        {% for signal in interface.signals %}
-        {{signal.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {{property.name}},
-        {% endfor %}
-    };
-
     using ThisType = {{className}};
     using BaseType = ::facelift::dbus::DBusIPCProxy<{{interfaceName}}>;
+    using SignalID = {{interface}}IPCDBus::SignalID;
+    using MethodID = {{interface}}IPCDBus::MethodID;
 
     // override the default QMLFrontend type to add the IPC related properties
     using QMLFrontendType = {{className}}QMLFrontendType;

@@ -99,7 +99,7 @@ NewIPCServiceAdapterBase *IPCAttachedPropertyFactory::qmlAttachedProperties(QObj
             serviceAdapter = factory(provider);
             serviceAdapter->setEnabled(false);  // We disable by default to force people to write "IPC.enabled: true"
         } else {
-            qFatal("No factory found for interface '%s'", qPrintable(interfaceID));
+            qFatal("No IPC factory found for interface '%s'. Missing '@ipc-sync' or '@ipc-async' decorators ?", qPrintable(interfaceID));
         }
     } else {
         qFatal("Can't attach IPC to object with bad type: %s", object->metaObject()->className());

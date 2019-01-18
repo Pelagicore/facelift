@@ -47,6 +47,9 @@ log = logging.getLogger(__name__)
 global generateAsyncProxy
 generateAsyncProxy = False
 
+global generateAll
+generateAll = False
+
 def generateAsync():
     global generateAsyncProxy
     return generateAsyncProxy
@@ -212,6 +215,19 @@ def isAsync(self):
         return True
     return generateAsync()
 
+def isIPCEnabled(self):
+    return self.isSynchronousIPCEnabled or self.isAsynchronousIPCEnabled
+
+def isSynchronousIPCEnabled(self):
+    if self.tags.get('ipc-sync'):
+        return True
+    return generateAll
+
+def isAsynchronousIPCEnabled(self):
+    if self.tags.get('ipc-async'):
+        return True
+    return generateAll
+
 def verifyStruct(self):
     blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
     for field in self.fields:
@@ -280,6 +296,9 @@ setattr(qface.idl.domain.Interface, 'referencedTypes', property(referencedTypes)
 
 setattr(qface.idl.domain.Interface, 'hasPropertyWithReadyFlag', property(hasPropertyWithReadyFlag))
 setattr(qface.idl.domain.Interface, 'hasModelProperty', property(hasModelProperty))
+setattr(qface.idl.domain.Interface, 'isAsynchronousIPCEnabled', property(isAsynchronousIPCEnabled))
+setattr(qface.idl.domain.Interface, 'isSynchronousIPCEnabled', property(isSynchronousIPCEnabled))
+setattr(qface.idl.domain.Interface, 'isIPCEnabled', property(isIPCEnabled))
 
 setattr(qface.idl.domain.Module, 'namespaceCppOpen', property(namespaceCppOpen))
 setattr(qface.idl.domain.Module, 'namespaceCppClose', property(namespaceCppClose))
@@ -304,8 +323,10 @@ def generateFile(generator, outputPath, templatePath, context, libraryName, libr
         context.update({'classExport': ""})
     generator.write(outputPath, templatePath, context)
 
-def run_generation(input, output, dependency, libraryName):
+def run_generation(input, output, dependency, libraryName, all):
     global generateAsyncProxy
+    global generateAll
+    generateAll = all
     FileSystem.strict = True
     Generator.strict = True
 
@@ -352,29 +373,37 @@ def run_generation(input, output, dependency, libraryName):
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLFrontend.cpp', 'QMLFrontend.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "desktop_dev_tools")
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}IPC.h', 'IPC.template.h', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusAdapter.template.h', ctx, libraryName, "ipc_dbus")
-                generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusAdapter.template.cpp', ctx, libraryName, "ipc_dbus")
-                generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxy.template.h', ctx, libraryName, "ipc_dbus")
-                generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxy.template.cpp', ctx, libraryName, "ipc_dbus")
-                generateAsyncProxy = True
-                ctx.update({'generateAsyncProxy': generateAsyncProxy})
-                ctx.update({'interfaceName': interface.name + interfaceNameSuffix()})
-                generateFile(generator, 'types/{{path}}/{{interface}}Async.h', 'Service.template.h', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{interface}}Async.cpp', 'Service.template.cpp', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.cpp', 'QMLFrontend.template.cpp', ctx, libraryName, "types")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
-                generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxy.template.h', ctx, libraryName, "ipc_dbus")
-                generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxy.template.cpp', ctx, libraryName, "ipc_dbus")
+
+                if isIPCEnabled(interface):
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBus.h', 'IPCDBus.template.h', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusAdapter.template.h', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusAdapter.template.cpp', ctx, libraryName, "ipc_dbus")
+
+                if isSynchronousIPCEnabled(interface):
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPC.h', 'IPC.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxy.template.h', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxy.template.cpp', ctx, libraryName, "ipc_dbus")
+
+                if isAsynchronousIPCEnabled(interface):
+                    generateAsyncProxy = True
+                    ctx.update({'generateAsyncProxy': generateAsyncProxy})
+                    ctx.update({'interfaceName': interface.name + interfaceNameSuffix()})
+                    generateFile(generator, 'types/{{path}}/{{interface}}Async.h', 'Service.template.h', ctx, libraryName, "types")
+                    generateFile(generator, 'types/{{path}}/{{interface}}Async.cpp', 'Service.template.cpp', ctx, libraryName, "types")
+                    generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
+                    generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLFrontend.cpp', 'QMLFrontend.template.cpp', ctx, libraryName, "types")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxy.template.h', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxy.template.cpp', ctx, libraryName, "ipc_dbus")
+
             for enum in module.enums:
                 ctx.update({'enum': enum})
                 generateFile(generator, 'types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx, libraryName, "types")
@@ -390,10 +419,11 @@ def run_generation(input, output, dependency, libraryName):
 @click.option('--output', default=".")
 @click.option('--input', '-i', multiple=True)
 @click.option('--dependency', '-d', multiple=True)
-def generate(input, output, dependency, library):
+@click.option('--all', is_flag=True)
+def generate(input, output, dependency, library, all):
     """Takes several files or directories as input and generates the code
     in the given output directory."""
-    run_generation(input, output, dependency, library)
+    run_generation(input, output, dependency, library, all)
 
 
 if __name__ == '__main__':

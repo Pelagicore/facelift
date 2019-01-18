@@ -44,7 +44,6 @@
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
 
 #ifdef DBUS_IPC_ENABLED
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"

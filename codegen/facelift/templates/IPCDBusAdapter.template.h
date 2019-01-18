@@ -42,7 +42,7 @@
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBus.h"
 
 //// Sub interfaces
 {% for property in interface.referencedInterfaceTypes %}
@@ -62,9 +62,8 @@ public:
     using ServiceType = {{interfaceName}};
     using BaseType = ::facelift::dbus::DBusIPCServiceAdapter<{{interfaceName}}>;
     using ThisType = {{interfaceName}}IPCDBusAdapter;
-    using IPCProxyType = {{interfaceName}}IPCDBusProxy;
-    using SignalID = IPCProxyType::SignalID;
-    using MethodID = IPCProxyType::MethodID;
+    using SignalID = {{interface}}IPCDBus::SignalID;
+    using MethodID = {{interface}}IPCDBus::MethodID;
 
     {{interfaceName}}IPCDBusAdapter(QObject* parent = nullptr) : BaseType(parent)
     {% for property in interface.properties %}
