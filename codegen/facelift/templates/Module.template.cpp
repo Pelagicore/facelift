@@ -42,6 +42,7 @@
 
 {% for struct in module.structs %}
 #include "{{struct.fullyQualifiedPath}}.h"
+#include "{{struct.fullyQualifiedPath}}QObjectWrapper.h"
 {% endfor %}
 
 {% for enum in module.enums %}
