@@ -47,6 +47,10 @@
 {% endif %}
 {% endfor %}
 
+{% for property in interface.referencedStructureTypes %}
+#include "{{property.fullyQualifiedPath}}QObjectWrapper.h"
+{% endfor %}
+
 {{module.namespaceCppOpen}}
 
 class {{interface}}ImplementationBaseQML;

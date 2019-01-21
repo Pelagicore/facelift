@@ -1,6 +1,6 @@
 {#*********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -35,59 +35,61 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{struct}}.h"
+#include "{{struct}}QObjectWrapper.h"
 
 {{module.namespaceCppOpen}}
 
 
-const QString {{struct.name}}::CLASS_ID = QStringLiteral("{{struct.qualified_name}}");
-
-{{struct.name}}::{{struct.name}}(){% if struct.fields %} : {% endif %}
-{% for field in struct.fields %}
-
-    m_{{field}}(std::get<{{loop.index-1}}>(m_values)){% if not loop.last %}, {% endif %}
-{% endfor %}
-
+void {{struct.name}}QObjectWrapper::init()
 {
-}
-
-{{struct.name}}::{{struct.name}}(const {{struct.name}} &other){% if struct.fields %} : {% endif %}
-{% for field in struct.fields %}
-
-    m_{{field}}(std::get<{{loop.index-1}}>(m_values)){% if not loop.last %}, {% endif %}
-{% endfor %}
-
-{
-    copyFrom(other);
+    {% for field in struct.fields %}
+    m_{{field.name}}.init(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, "{{field.name}}");
+    QObject::connect(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, this, &{{struct.name}}QObjectWrapper::anyFieldChanged);
+    {% endfor %}
 }
 
 
-const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
-    {%- for field in struct.fields -%}
-    {{ comma() }}
-    "{{field.name}}"
-    {%- endfor %}
-} };
-
-
-{{struct.fullyQualifiedCppType}} {{struct.name}}::clone() const
+{{struct.name}} {{struct.name}}QObjectWrapper::gadget() const
 {
     {{struct.name}} s;
-    s.setValue(asTuple());
+    {% for field in struct.fields %}
+    s.set{{field.name}}(m_{{field.name}}.value());
+    {% endfor %}
+    s.setId(id());
     return s;
 }
 
-
-{{struct.name}}& {{struct.name}}::operator=(const {{struct.name}} &right)
+void {{struct.name}}QObjectWrapper::assignFromGadget(const {{struct.fullyQualifiedCppType}} &gadget)
 {
-    copyFrom(right);
-    return *this;
+    {% for field in struct.fields %}
+    m_{{field.name}} = gadget.{{field.name}}();
+    {% endfor %}
+    m_id = gadget.id();
 }
 
 
-QString {{struct.name}}::toString() const
+QByteArray {{struct.name}}QObjectWrapper::serialized() const
 {
-    return toStringWithFields(CLASS_ID, FIELD_NAMES);
+    return gadget().serialize();
+}
+
+void {{struct.name}}QObjectWrapper::setSerialized(const QByteArray &array)
+{
+    {{struct.fullyQualifiedCppType}} v;
+    v.deserialize(array);
+    assignFromGadget(v);
+}
+
+
+{{struct.name}}QObjectWrapper::{{struct.name}}QObjectWrapper(QObject* parent) : StructQObjectWrapper(parent)
+{
+    init();
+}
+
+{{struct.name}}QObjectWrapper::{{struct.name}}QObjectWrapper(const {{struct.name}}& value, QObject* parent) : StructQObjectWrapper(parent)
+{
+    assignFromGadget(value);
+    init();
 }
 
 

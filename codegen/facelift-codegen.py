@@ -171,6 +171,23 @@ def referencedTypes(self):
             insertUniqueType(param, types)
     return types
 
+def appendTypeIfStructure(symbol, list):
+    type = symbol.type.nested if symbol.type.nested else symbol.type
+    if type.is_struct:
+        list.append(type)
+
+def referencedStructureTypes(self):
+    interfaces = []
+    for property in self.properties:
+        appendTypeIfStructure(property, interfaces)
+    for m in self.operations:
+        for param in m.parameters:
+            appendTypeIfStructure(param, interfaces)
+    for m in self.signals:
+        for param in m.parameters:
+            appendTypeIfStructure(param, interfaces)
+    return interfaces
+
 def appendTypeIfInterface(symbol, list):
     type = symbol.type.nested if symbol.type.nested else symbol.type
     if type.is_interface:
@@ -292,6 +309,7 @@ setattr(qface.idl.domain.Module, 'fullyQualifiedCppType', property(fullyQualifie
 setattr(qface.idl.domain.Interface, 'fullyQualifiedCppType', property(fullyQualifiedCppType))
 
 setattr(qface.idl.domain.Interface, 'referencedInterfaceTypes', property(referencedInterfaceTypes))
+setattr(qface.idl.domain.Interface, 'referencedStructureTypes', property(referencedStructureTypes))
 setattr(qface.idl.domain.Interface, 'referencedTypes', property(referencedTypes))
 
 setattr(qface.idl.domain.Interface, 'hasPropertyWithReadyFlag', property(hasPropertyWithReadyFlag))
@@ -412,6 +430,8 @@ def run_generation(input, output, dependency, libraryName, all):
                 ctx.update({'struct': struct})
                 generateFile(generator, 'types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.h', 'StructQObjectWrapper.template.h', ctx, libraryName, "types")
+                generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.cpp', 'StructQObjectWrapper.template.cpp', ctx, libraryName, "types")
 
 
 @click.command()
