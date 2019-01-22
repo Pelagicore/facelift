@@ -129,12 +129,27 @@ DBusManager &DBusManager::instance()
     return i;
 }
 
+bool DBusManager::registerServiceName(const QString &serviceName)
+{
+    qDebug() << "Registering serviceName " << serviceName;
+    auto success = m_busConnection.registerService(serviceName);
+    return success;
+}
+
 void DBusIPCServiceAdapterBase::initOutgoingSignalMessage() {
     m_pendingOutgoingMessage = std::make_unique<DBusIPCMessage>(objectPath(), interfaceName(), DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
 
     // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
     this->serializePropertyValues(*m_pendingOutgoingMessage, false);
 }
+
+void DBusIPCServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
+{
+    Q_UNUSED(isCompleteSnapshot);
+    Q_ASSERT(service());
+    serializeValue(msg, service()->ready());
+}
+
 
 void DBusIPCServiceAdapterBase::flush()
 {
@@ -180,6 +195,12 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
 DBusIPCServiceAdapterBase::DBusIPCServiceAdapterBase(QObject *parent) : IPCServiceAdapterBase(parent), m_dbusVirtualObject(*this)
 {
 }
+
+void DBusIPCServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage)
+{
+    replyMessage.send(dbusManager().connection());
+}
+
 
 DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
 {
@@ -233,6 +254,35 @@ void DBusIPCServiceAdapterBase::init()
     }
 }
 
+void DBusIPCProxyBinder::setServiceAvailable(bool isRegistered)
+{
+    if (m_serviceAvailable != isRegistered) {
+        m_serviceAvailable = isRegistered;
+        emit serviceAvailableChanged();
+    }
+}
+
+void DBusIPCProxyBinder::setServiceName(const QString &name)
+{
+    m_serviceName = name;
+    m_explicitServiceName = true;
+    checkInit();
+}
+
+void DBusIPCProxyBinder::setInterfaceName(const QString &name)
+{
+    m_interfaceName = name;
+    checkInit();
+}
+
+
+void DBusIPCProxyBinder::onServerNotAvailableError(const char *methodName) const
+{
+    qCritical(
+        "Error message received when calling method '%s' on service at path '%s'. "
+        "This likely indicates that the server you are trying to access is not available yet",
+        qPrintable(methodName), qPrintable(objectPath()));
+}
 
 void DBusIPCProxyBinder::onPropertiesChanged(const QDBusMessage &dbusMessage)
 {

@@ -470,6 +470,18 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
     });
 }
 
+template<typename ReturnType, typename ... Args>
+inline void DBusIPCProxyBinder::sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
+{
+    DBusIPCMessage msg = sendMethodCall(methodName, args ...);
+    if (msg.isReplyMessage()) {
+        const_cast<DBusIPCProxyBinder *>(this)->deserializeValue(msg, returnValue);
+    } else {
+        assignDefaultValue(returnValue);
+    }
+}
+
+
 template<typename PropertyType>
 inline void DBusIPCProxyBinder::sendSetterCall(const char *methodName, const PropertyType &value)
 {
@@ -501,6 +513,37 @@ inline void DBusIPCServiceAdapterBase::sendSignal(MemberID signalID, const Args 
     }
 }
 
+template<typename ReturnType>
+inline void DBusIPCServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
+{
+    serializeValue(replyMessage, returnValue);
+    replyMessage.send(dbusManager().connection());
+}
+
+template<typename Type>
+inline void DBusIPCServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot)
+{
+    if (isCompleteSnapshot) {
+        serializeValue(msg, currentValue);
+    } else {
+        if (previousValue == currentValue) {
+            msg.outputPayLoad().writeSimple(false);
+        } else {
+            msg.outputPayLoad().writeSimple(true);
+            serializeValue(msg, currentValue);
+            previousValue = currentValue;
+        }
+    }
+}
+
+template<typename Type>
+inline void DBusIPCServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot)
+{
+    msg.outputPayLoad().writeSimple(isCompleteSnapshot);
+    if (isCompleteSnapshot) {
+        serializeValue(msg, currentValue);
+    }
+}
 }
 
 }

@@ -96,25 +96,13 @@ public:
     void sendSignal(MemberID signalID, const Args & ... args);
 
     template<typename ReturnType>
-    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
-    {
-        serializeValue(replyMessage, returnValue);
-        replyMessage.send(dbusManager().connection());
-    }
+    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue);
 
-    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage)
-    {
-        replyMessage.send(dbusManager().connection());
-    }
+    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage);
 
     virtual IPCHandlingResult handleMethodCallMessage(DBusIPCMessage &requestMessage, DBusIPCMessage &replyMessage) = 0;
 
-    virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
-    {
-        Q_UNUSED(isCompleteSnapshot);
-        Q_ASSERT(service());
-        serializeValue(msg, service()->ready());
-    }
+    virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot);
 
     void init();
 
@@ -124,29 +112,10 @@ public:
     }
 
     template<typename Type>
-    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot)
-    {
-        if (isCompleteSnapshot) {
-            serializeValue(msg, currentValue);
-        } else {
-            if (previousValue == currentValue) {
-                msg.outputPayLoad().writeSimple(false);
-            } else {
-                msg.outputPayLoad().writeSimple(true);
-                serializeValue(msg, currentValue);
-                previousValue = currentValue;
-            }
-        }
-    }
+    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
 
     template<typename Type>
-    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot)
-    {
-        msg.outputPayLoad().writeSimple(isCompleteSnapshot);
-        if (isCompleteSnapshot) {
-            serializeValue(msg, currentValue);
-        }
-    }
+    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
 
