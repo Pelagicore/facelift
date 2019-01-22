@@ -62,23 +62,14 @@ public:
         return m_serviceName;
     }
 
-    void setServiceName(const QString &name)
-    {
-        m_serviceName = name;
-        m_explicitServiceName = true;
-        checkInit();
-    }
+    void setServiceName(const QString &name);
 
     const QString &interfaceName() const
     {
         return m_interfaceName;
     }
 
-    void setInterfaceName(const QString &name)
-    {
-        m_interfaceName = name;
-        checkInit();
-    }
+    void setInterfaceName(const QString &name);
 
     Q_SLOT void onPropertiesChanged(const QDBusMessage &dbusMessage);
 
@@ -88,20 +79,12 @@ public:
 
     void onServiceAvailable();
 
-    void setServiceAvailable(bool isRegistered)
-    {
-        if (m_serviceAvailable != isRegistered) {
-            m_serviceAvailable = isRegistered;
-            emit serviceAvailableChanged();
-        }
-    }
+    void setServiceAvailable(bool isRegistered);
 
     bool isServiceAvailable() const
     {
         return m_serviceAvailable;
     }
-
-    bool m_serviceAvailable = false;
 
     void requestPropertyValues();
 
@@ -111,13 +94,7 @@ public:
     template<typename Type>
     void deserializeValue(DBusIPCMessage &msg, Type &v);
 
-    void onServerNotAvailableError(const char *methodName) const
-    {
-        qCritical(
-            "Error message received when calling method '%s' on service at path '%s'. "
-            "This likely indicates that the server you are trying to access is not available yet",
-            qPrintable(methodName), qPrintable(objectPath()));
-    }
+    void onServerNotAvailableError(const char *methodName) const;
 
     template<typename PropertyType>
     void sendSetterCall(const char *methodName, const PropertyType &value);
@@ -132,15 +109,7 @@ public:
     void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args);
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
-    {
-        DBusIPCMessage msg = sendMethodCall(methodName, args ...);
-        if (msg.isReplyMessage()) {
-            const_cast<DBusIPCProxyBinder *>(this)->deserializeValue(msg, returnValue);
-        } else {
-            assignDefaultValue(returnValue);
-        }
-    }
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
 
     QDBusConnection &connection() const
     {
@@ -161,11 +130,10 @@ public:
 private:
     QString m_serviceName;
     QString m_interfaceName;
-
-    DBusRequestHandler *m_serviceObject = nullptr;
-
     QDBusServiceWatcher m_busWatcher;
+    DBusRequestHandler *m_serviceObject = nullptr;
     bool m_explicitServiceName = false;
+    bool m_serviceAvailable = false;
 
 };
 

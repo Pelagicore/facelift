@@ -249,12 +249,7 @@ public:
         return m_dbusConnected;
     }
 
-    bool registerServiceName(const QString &serviceName)
-    {
-        qDebug() << "Registering serviceName " << serviceName;
-        auto success = m_busConnection.registerService(serviceName);
-        return success;
-    }
+    bool registerServiceName(const QString &serviceName);
 
     QDBusConnection &connection()
     {
@@ -280,9 +275,6 @@ class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
 {
 
 public:
-    virtual ~DBusRequestHandler()
-    {
-    }
 
     virtual void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) = 0;
     virtual void deserializeSignal(DBusIPCMessage &msg) = 0;
