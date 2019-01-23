@@ -46,10 +46,10 @@ struct Pod
 Q_DECLARE_METATYPE(Pod)
 
 
-class ProducerCppImplementation : public ProducerImplementationBase
+class ProducerImplementation : public ProducerImplementationBase
 {
 public:
-    ProducerCppImplementation(QObject *parent = nullptr) : ProducerImplementationBase(parent) {}
+    ProducerImplementation(QObject *parent = nullptr) : ProducerImplementationBase(parent) {}
 
     void produceUserData(Type type) override
     {
@@ -91,10 +91,10 @@ public:
 };
 
 
-class ConsumerCppImplementation : public ConsumerImplementationBase
+class ConsumerImplementation : public ConsumerImplementationBase
 {
 public:
-    ConsumerCppImplementation(QObject *parent = nullptr) : ConsumerImplementationBase(parent) {}
+    ConsumerImplementation(QObject *parent = nullptr) : ConsumerImplementationBase(parent) {}
 
     bool consumeUserData(Type type, TestStruct ts) override
     {

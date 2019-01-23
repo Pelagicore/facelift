@@ -36,9 +36,9 @@
 using namespace mainmodule;
 using namespace anothermodule;
 
-class MainInterfaceCppImplementation : public MainInterfaceImplementationBase
+class MainInterfaceImplementation : public MainInterfaceImplementationBase
 {
-    class AnotherInterfaceCppImplementation : public AnotherInterfaceImplementationBase
+    class AnotherInterfaceImplementation : public AnotherInterfaceImplementationBase
     {
     public:
         void changeProperties() override
@@ -48,11 +48,11 @@ class MainInterfaceCppImplementation : public MainInterfaceImplementationBase
     };
 
 public:
-    MainInterfaceCppImplementation(QObject *parent = nullptr) : MainInterfaceImplementationBase(parent)
+    MainInterfaceImplementation(QObject *parent = nullptr) : MainInterfaceImplementationBase(parent)
     {
         m_anotherInterfaceInstance = &m_anotherInstanceCppImplObj;
     }
 
 private:
-    AnotherInterfaceCppImplementation m_anotherInstanceCppImplObj;
+    AnotherInterfaceImplementation m_anotherInstanceCppImplObj;
 };

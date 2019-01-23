@@ -37,5 +37,5 @@ void TunerModelPlugin::registerTypes(const char *uri)
 {
     tuner::Module::registerQmlTypes(uri);
 
-    facelift::registerQmlComponent<TunerViewModelCpp>(uri);
+    facelift::registerQmlComponent<TunerViewModelImplementation>(uri);
 }

@@ -36,17 +36,17 @@
 
 using namespace mediaplayer;
 
-class MediaIndexerModelCpp :
+class MediaIndexerModelImplementation :
     public MediaIndexerModelImplementationBase
 {
 
     Q_OBJECT
 
 public:
-    MediaIndexerModelCpp(QObject *parent = nullptr) :
+    MediaIndexerModelImplementation(QObject *parent = nullptr) :
         MediaIndexerModelImplementationBase(parent)
     {
-        connect(&m_service, &MediaIndexerService::filesChanged, this, &MediaIndexerModelCpp::onFilesChanged);
+        connect(&m_service, &MediaIndexerService::filesChanged, this, &MediaIndexerModelImplementation::onFilesChanged);
         onFilesChanged();
     }
 

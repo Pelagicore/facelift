@@ -27,7 +27,6 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 import QtTest 1.2
 import tests.combined 1.0
 import "check_combined.js" as Check

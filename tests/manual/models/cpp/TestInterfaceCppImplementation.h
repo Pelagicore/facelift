@@ -41,13 +41,13 @@ using namespace facelift::test;
 /**
  * C++ Implementation of the TestInterface API
  */
-class TestInterfaceCppImplementation : public TestInterfaceImplementationBase
+class TestInterfaceImplementation : public TestInterfaceImplementationBase
 {
 
     class Interface2Implementation : public TestInterface2ImplementationBase {
 
     public:
-        Interface2Implementation(TestInterfaceCppImplementation& main, QString id) : TestInterface2ImplementationBase(&main), m_main(main) {
+        Interface2Implementation(TestInterfaceImplementation& main, QString id) : TestInterface2ImplementationBase(&main), m_main(main) {
             m_id = id;
         }
 
@@ -61,12 +61,12 @@ class TestInterfaceCppImplementation : public TestInterfaceImplementationBase
 
     private:
         QString m_id;
-        TestInterfaceCppImplementation& m_main;
+        TestInterfaceImplementation& m_main;
     };
 
 
 public:
-    TestInterfaceCppImplementation(QObject *parent = nullptr) : TestInterfaceImplementationBase(parent)
+    TestInterfaceImplementation(QObject *parent = nullptr) : TestInterfaceImplementationBase(parent)
     {
         qDebug() << "C++ implementation of TestInterface is used";
         m_readyProperty = 0;

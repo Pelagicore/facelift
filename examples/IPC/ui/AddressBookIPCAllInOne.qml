@@ -51,8 +51,8 @@ Item {
         anchors.fill: parent
         viewModel: viewModelProxy
     }
-    
-    AddressBookImpl {
+
+    AddressBook {
         id: viewModel
         IPC.enabled: true
     }
@@ -60,5 +60,5 @@ Item {
     AddressBookIPCProxy {
          id: viewModelProxy
     }
-    
+
 }

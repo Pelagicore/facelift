@@ -38,6 +38,6 @@ using namespace tests::asyncfunctions;
 void AsyncFunctionsPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
-    facelift::registerQmlComponent<AsyncFunctionsInterfaceCppImplementation>(uri, "AsyncFunctionsInterface");
+    facelift::registerUncreatableQmlComponent<AsyncFunctionsInterfaceImplementation>(uri, "AsyncFunctionsUnCreatableInterface");
+    facelift::registerQmlComponent<AsyncFunctionsInterfaceImplementation>(uri, "AsyncFunctionsInterface");
 }

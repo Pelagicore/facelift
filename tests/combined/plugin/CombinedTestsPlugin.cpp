@@ -46,10 +46,14 @@ using namespace tests::combined;
 void CombinedTestsPlugin::registerTypes(const char *uri)
 {
     tests::combined::Module::registerQmlTypes(uri);
-    tests::combined::Module::registerUncreatableQmlTypes(uri);
+
+    //tests::combined::Module::registerUncreatableQmlTypes(uri);
+
+    //facelift::registerUncreatableQmlComponent<tests::combined::CombiEnumGadget>(uri, "CombiEnumUnCreatable");
 
     tests::combined::other::Module::registerQmlTypes(uri);
-    tests::combined::other::Module::registerUncreatableQmlTypes(uri);
+
+  //  tests::combined::other::Module::registerUncreatableQmlTypes(uri);
 
 #if defined(QML_IMPL_LOCATION)
     facelift::registerQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
@@ -58,9 +62,9 @@ void CombinedTestsPlugin::registerTypes(const char *uri)
     facelift::registerSingletonQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
             "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceSingleton");
 #else
-    facelift::registerQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceAPI");
+    facelift::registerQmlComponent<CombinedInterfaceImplementation>(uri, "CombinedInterfaceAPI");
 
-    facelift::registerSingletonQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceSingleton");
+    facelift::registerSingletonQmlComponent<CombinedInterfaceImplementation>(uri, "CombinedInterfaceSingleton");
 #endif
 
     facelift::registerSingletonQmlComponent<CombinedInterfaceIPCProxy>(uri, "CombinedInterfaceIPCProxySingleton");

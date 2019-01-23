@@ -96,20 +96,6 @@ void Module::registerTypes()
 #endif
 }
 
-
-void Module::registerUncreatableQmlTypes(const char* uri, int majorVersion, int minorVersion)
-{
-    Q_UNUSED(uri);
-    Q_UNUSED(majorVersion);
-    Q_UNUSED(minorVersion);
-
-    // register an uncreatable type for every interface, so that this type can be used in QML
-    {% for interface in module.interfaces %}
-    qmlRegisterUncreatableType<{{interface}}QMLFrontend>(uri, majorVersion, minorVersion, "{{interface}}", "");
-    {% endfor %}
-}
-
-
 void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersion)
 {
     registerTypes();

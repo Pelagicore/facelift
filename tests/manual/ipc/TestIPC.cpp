@@ -57,7 +57,7 @@ int main(int argc, char * *argv)
 {
     QCoreApplication app(argc, argv);
 
-    TestInterfaceCppImplementation i;
+    TestInterfaceImplementation i;
 
     checkInterface(i);
 
