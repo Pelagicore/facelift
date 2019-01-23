@@ -44,8 +44,8 @@ void PropertyBindingPlugin::registerTypes(const char *uri)
 
 #if defined(QML_IMPL_LOCATION)
     facelift::registerQmlComponent<PropertyBindingInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
-              "/impl/qml/PropertyBindingInterfaceQmlImplementation.qml", "PropertyBindingInterfaceAPI");
+              "/impl/qml/PropertyBindingInterfaceImplementation.qml", "PropertyBindingInterfaceAPI");
 #else
-    facelift::registerQmlComponent<PropertyBindingInterfaceCppImplementation>(uri, "PropertyBindingInterfaceAPI");
+    facelift::registerQmlComponent<PropertyBindingInterfaceImplementation>(uri, "PropertyBindingInterfaceAPI");
 #endif
 }

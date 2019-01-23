@@ -35,14 +35,14 @@
 
 using namespace tuner;
 
-class TunerViewModelCpp :
+class TunerViewModelImplementation :
     public TunerViewModelImplementationBase
 {
 
     Q_OBJECT
 
 public:
-    TunerViewModelCpp(QObject *parent = nullptr) :
+    TunerViewModelImplementation(QObject *parent = nullptr) :
         TunerViewModelImplementationBase(parent)
     {
         m_currentStation.bind([this] () {

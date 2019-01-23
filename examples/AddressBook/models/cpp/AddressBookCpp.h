@@ -37,13 +37,13 @@ using namespace facelift::example::addressbook;
 /**
  * C++ Implementation of the AddressBook API
  */
-class AddressBookCpp : public AddressBook
+class AddressBookImplementation : public AddressBook
 {
 
     Q_OBJECT
 
 public:
-    AddressBookCpp(QObject *parent = nullptr) :
+    AddressBookImplementation(QObject *parent = nullptr) :
         AddressBook(parent)
     {
         setImplementationID("C++ model");

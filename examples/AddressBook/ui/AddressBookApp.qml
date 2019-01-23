@@ -51,7 +51,7 @@ Item {
         viewModel: viewModel
     }
 
-    AddressBookImpl {
+    AddressBook {
         id: viewModel
     }
 

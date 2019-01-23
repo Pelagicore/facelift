@@ -27,7 +27,6 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 import QtTest 1.2
 import tests.combined 1.0
 import "check_combined.js" as Check
@@ -37,12 +36,10 @@ TestCase {
 
     property var api: CombinedInterfaceAsyncIPCProxySingleton
 
-
     CombinedSignalSpys {
         id: spy
         dest: api
     }
-
 
     function initTestCase() {
         Check.defaults();

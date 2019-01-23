@@ -39,5 +39,5 @@ void AsyncFunctionsPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
     Module::registerUncreatableQmlTypes(uri);
-    facelift::registerQmlComponent<AsyncFunctionsInterfaceCppImplementation>(uri, "AsyncFunctionsInterface");
+    facelift::registerQmlComponent<AsyncFunctionsInterfaceImplementation>(uri, "AsyncFunctionsInterface");
 }

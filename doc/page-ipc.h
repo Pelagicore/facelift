@@ -128,7 +128,7 @@ through \c MyInterfaceIPCAdapter. This class is registered with the same name in
 \c ModuleIPC::registerQmlTypes() (which is called from Module::registerQmlTypes(), if IPC is
 enabled). The singleton implementation needs to be registered, too:
 \code
-facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
+facelift::registerSingletonQmlComponent<MyInterfaceImplementation>(uri, "MyInterfaceSingleton");
 \endcode
 Now the server can be implemented, as follows:
 \code

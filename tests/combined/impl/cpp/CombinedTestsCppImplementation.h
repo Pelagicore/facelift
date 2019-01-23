@@ -52,12 +52,12 @@ public:
 };
 
 
-class CombinedInterfaceCppImplementation : public CombinedInterfaceImplementationBase
+class CombinedInterfaceImplementation : public CombinedInterfaceImplementationBase
 {
     class CombinedInterface2Implementation : public CombinedInterface2ImplementationBase
     {
     public:
-        CombinedInterface2Implementation(CombinedInterfaceCppImplementation* parent, QString id)
+        CombinedInterface2Implementation(CombinedInterfaceImplementation* parent, QString id)
             : CombinedInterface2ImplementationBase(parent)
         {
             m_id = id;
@@ -72,7 +72,7 @@ class CombinedInterfaceCppImplementation : public CombinedInterfaceImplementatio
     };
 
 public:
-    CombinedInterfaceCppImplementation(QObject *parent = nullptr) : CombinedInterfaceImplementationBase(parent)
+    CombinedInterfaceImplementation(QObject *parent = nullptr) : CombinedInterfaceImplementationBase(parent)
     {
         qDebug() << "C++ implementation is used.";
         m_readyProperty = 0;

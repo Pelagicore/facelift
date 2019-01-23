@@ -36,8 +36,8 @@ import facelift.example.mypackage 1.0
  * QML Implementation of the MyInterface interface
  */
 MyInterfaceImplementationBase {
-    id: root
 
+    id: root
     counter: 100
 
     Timer {
@@ -53,5 +53,4 @@ MyInterfaceImplementationBase {
         counter = 0;
         counterReset();
     }
-
 }
