@@ -245,6 +245,11 @@ def isAsynchronousIPCEnabled(self):
         return True
     return generateAll
 
+def isQMLImplementationEnabled(self):
+    if self.tags.get('qml-implementation'):
+        return True
+    return generateAll
+
 def verifyStruct(self):
     blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
     for field in self.fields:
@@ -317,6 +322,7 @@ setattr(qface.idl.domain.Interface, 'hasModelProperty', property(hasModelPropert
 setattr(qface.idl.domain.Interface, 'isAsynchronousIPCEnabled', property(isAsynchronousIPCEnabled))
 setattr(qface.idl.domain.Interface, 'isSynchronousIPCEnabled', property(isSynchronousIPCEnabled))
 setattr(qface.idl.domain.Interface, 'isIPCEnabled', property(isIPCEnabled))
+setattr(qface.idl.domain.Interface, 'isQMLImplementationEnabled', property(isQMLImplementationEnabled))
 
 setattr(qface.idl.domain.Module, 'namespaceCppOpen', property(namespaceCppOpen))
 setattr(qface.idl.domain.Module, 'namespaceCppClose', property(namespaceCppClose))
@@ -386,11 +392,13 @@ def run_generation(input, output, dependency, libraryName, all):
                 generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.h', 'ImplementationBase.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.cpp', 'ImplementationBase.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}PropertyAdapter.h', 'ServicePropertyAdapter.template.h', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBaseQML.h', 'ImplementationBaseQML.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLFrontend.cpp', 'QMLFrontend.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "desktop_dev_tools")
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
+
+                if isQMLImplementationEnabled(interface):
+                    generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBaseQML.h', 'ImplementationBaseQML.template.h', ctx, libraryName, "types")
 
                 if isIPCEnabled(interface):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "ipc")

@@ -30,6 +30,7 @@
 
 module tests.propertybinding 1.0
 
+@qml-implementation: true
 interface PropertyBindingInterface
 {
     int intProperty1;

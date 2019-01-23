@@ -36,6 +36,7 @@ interface SubInterface {
 }
 
 @ipc-sync: true
+@qml-implementation: true
 interface AddressBook {
 
     readonly SubInterface subService;
