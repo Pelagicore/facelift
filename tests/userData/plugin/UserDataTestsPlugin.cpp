@@ -39,6 +39,6 @@ void UserDataTestsPlugin::registerTypes(const char *uri)
     Module::registerQmlTypes(uri);
     Module::registerUncreatableQmlTypes(uri);
 
-    facelift::registerQmlComponent<ProducerCppImplementation>(uri, "ProducerAPI");
-    facelift::registerQmlComponent<ConsumerCppImplementation>(uri, "ConsumerAPI");
+    facelift::registerQmlComponent<ProducerImplementation>(uri, "ProducerAPI");
+    facelift::registerQmlComponent<ConsumerImplementation>(uri, "ConsumerAPI");
 }

@@ -40,5 +40,5 @@ void ModelsTestsPlugin::registerTypes(const char *uri)
     Module::registerQmlTypes(uri);
     Module::registerUncreatableQmlTypes(uri);
 
-    facelift::registerQmlComponent<ModelInterfaceCppImplementation>(uri, "ModelInterfaceAPI");
+    facelift::registerQmlComponent<ModelInterfaceImplementation>(uri, "ModelInterfaceAPI");
 }

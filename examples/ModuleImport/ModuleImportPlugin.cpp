@@ -40,5 +40,5 @@ void ModuleImportPlugin::registerTypes(const char *uri)
 
     // We register our C++ implementation class as a creatable type, which can be
     // instantiated by the UI code, using the given string identifier
-    facelift::registerQmlComponent<MainInterfaceCppImplementation>(uri, "MainInterface");
+    facelift::registerQmlComponent<MainInterfaceImplementation>(uri, "MainInterface");
 }

@@ -45,7 +45,7 @@ Window {
         color: "wheat"
         visible: myInterface.ready
 
-        MyInterfaceImplementation {
+        MyInterface {
             id: myInterface
             IPC.enabled: true
             IPC.objectPath: "/my/object/path"

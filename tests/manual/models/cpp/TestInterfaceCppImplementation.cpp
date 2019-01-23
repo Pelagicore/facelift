@@ -30,6 +30,6 @@
 
 #include "TestInterfaceCppImplementation.h"
 
-void TestInterfaceCppImplementation::setstructProperty2(const TestStruct2 & /*newValue*/)
+void TestInterfaceImplementation::setstructProperty2(const TestStruct2 & /*newValue*/)
 {
 }

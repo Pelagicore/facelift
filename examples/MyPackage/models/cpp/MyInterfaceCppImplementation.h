@@ -41,11 +41,11 @@ using namespace facelift::example::mypackage;
 /**
  * C++ Implementation of the MyInterface API
  */
-class MyInterfaceCppImplementation : public MyInterfaceImplementationBase
+class MyInterfaceImplementation : public MyInterfaceImplementationBase
 {
 
 public:
-    MyInterfaceCppImplementation(QObject *parent = nullptr) : MyInterfaceImplementationBase(parent)
+    MyInterfaceImplementation(QObject *parent = nullptr) : MyInterfaceImplementationBase(parent)
     {
         connect(&m_timer, &QTimer::timeout, this, [this] () {
             m_counter++;   // The value change signal is automatically triggered for you here
@@ -69,9 +69,9 @@ public:
         });
     }
 
-    static MyInterfaceCppImplementation &instance()
+    static MyInterfaceImplementation &instance()
     {
-        static MyInterfaceCppImplementation i;
+        static MyInterfaceImplementation i;
         return i;
     }
 

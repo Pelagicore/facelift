@@ -35,12 +35,12 @@
 
 using namespace advanced;
 
-class AdvancedModelCpp : public AdvancedModelImplementationBase
+class AdvancedModelImplementation : public AdvancedModelImplementationBase
 {
     Q_OBJECT
 
 public:
-    AdvancedModelCpp(QObject *parent = nullptr) :
+    AdvancedModelImplementation(QObject *parent = nullptr) :
         AdvancedModelImplementationBase(parent)
     {
         resetModel();
@@ -62,7 +62,7 @@ public:
 
         m_nextAvailableID = i;
 
-        m_theModel.reset(m_items.size(), std::bind(&AdvancedModelCpp::getItem, this, std::placeholders::_1));
+        m_theModel.reset(m_items.size(), std::bind(&AdvancedModelImplementation::getItem, this, std::placeholders::_1));
         m_theModel.endResetModel();
     }
 

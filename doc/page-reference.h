@@ -154,9 +154,9 @@ int facelift::registerQmlComponent(const char *uri,
 Both return the QML type id. The registered types are instantiatable from QML.
 
 This is how the C++ implementation can be registered (explicitly as "MyInterface"), assuming that
-you provide an implementation class called \c MyInterfaceCppImplementation:
+you provide an implementation class called \c MyInterfaceImplementation:
 \code
-facelift::registerQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterface");
+facelift::registerQmlComponent<MyInterfaceImplementation>(uri, "MyInterface");
 \endcode
 
 And here is how the QML implementation can be registered (explicitly as "MyInterface"), assuming
@@ -173,7 +173,7 @@ above).  The QML name also defaults to the interface name ("MyInterface" here). 
 will register a singleton with the explicit name \c MyInterfaceSingleton. C++ backend
 implementation:
 \code
-facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation>(uri, "MyInterfaceSingleton");
+facelift::registerSingletonQmlComponent<MyInterfaceImplementation>(uri, "MyInterfaceSingleton");
 \endcode
 or with a QML backend implementation:
 \code

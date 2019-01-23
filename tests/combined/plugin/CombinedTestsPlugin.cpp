@@ -58,9 +58,9 @@ void CombinedTestsPlugin::registerTypes(const char *uri)
     facelift::registerSingletonQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
             "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceSingleton");
 #else
-    facelift::registerQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceAPI");
+    facelift::registerQmlComponent<CombinedInterfaceImplementation>(uri, "CombinedInterfaceAPI");
 
-    facelift::registerSingletonQmlComponent<CombinedInterfaceCppImplementation>(uri, "CombinedInterfaceSingleton");
+    facelift::registerSingletonQmlComponent<CombinedInterfaceImplementation>(uri, "CombinedInterfaceSingleton");
 #endif
 
     facelift::registerSingletonQmlComponent<CombinedInterfaceIPCProxy>(uri, "CombinedInterfaceIPCProxySingleton");

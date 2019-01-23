@@ -51,12 +51,12 @@ void TestPlugin::registerTypes(const char *uri)
 #if !defined(QML_MODEL_LOCATION)
     // This will register the "TestInterfaceQMLFrontend" class as an instantiatable QML type, named
     // "TestInterfaceImplementation". It's actual implementation will be delegated to "TestInterfaceCppImplementation".
-    facelift::registerQmlComponent<TestInterfaceCppImplementation>(uri, "TestInterfaceImplementation");
+    facelift::registerQmlComponent<TestInterfaceImplementation>(uri, "TestInterface");
 #else
     // This will register the "TestInterfaceQMLFrontend" class as an instantiatable QML type, named
     // "TestInterfaceImplementation". It's actual implementation will be delegated to the "TestInterface" QML
     // component, that derives from "TestInterfaceImplementationBaseQML".
     facelift::registerQmlComponent<TestInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_MODEL_LOCATION)
-            "/models/qml/TestInterface.qml", "TestInterfaceImplementation");
+            "/models/qml/TestInterface.qml", "TestInterface");
 #endif
 }

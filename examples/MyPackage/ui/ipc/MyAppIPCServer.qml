@@ -39,7 +39,7 @@ Window {
     color: "lightblue"
     title: "Server"
 
-    MyInterfaceImplementation {
+    MyInterface {
         id: myInterface
         IPC.enabled: true
         IPC.objectPath: "/my/object/path"

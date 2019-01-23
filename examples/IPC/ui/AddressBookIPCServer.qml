@@ -52,7 +52,7 @@ Item {
         viewModel: viewModel
     }
 
-    AddressBookImpl {
+    AddressBook {
         id: viewModel
         IPC.objectPath: "/non/default/object/path"
         IPC.enabled: true

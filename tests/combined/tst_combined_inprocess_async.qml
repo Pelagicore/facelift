@@ -46,12 +46,10 @@ TestCase {
         ipc.objectPath: "/tests/combined/inprocess/async"
     }
 
-
     CombinedSignalSpys {
         id: spy
         dest: api
     }
-
 
     function initTestCase() {
         Check.defaults();

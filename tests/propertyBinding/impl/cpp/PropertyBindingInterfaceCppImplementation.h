@@ -34,14 +34,14 @@
 
 using namespace tests::propertybinding;
 
-class PropertyBindingInterfaceCppImplementation : public PropertyBindingInterfaceImplementationBase
+class PropertyBindingInterfaceImplementation : public PropertyBindingInterfaceImplementationBase
 {
     Q_OBJECT
 public:
-    PropertyBindingInterfaceCppImplementation(QObject *parent = nullptr)
+    PropertyBindingInterfaceImplementation(QObject *parent = nullptr)
         : PropertyBindingInterfaceImplementationBase(parent)
     {
-        m_ts.init(this, &PropertyBindingInterfaceCppImplementation::propertyChanged, "Temp");
+        m_ts.init(this, &PropertyBindingInterfaceImplementation::propertyChanged, "Temp");
 
         m_intProperty1.bind([this]() {
             return m_intProperty2;
@@ -53,7 +53,7 @@ public:
 
         m_structProperty3.bind([this]() {
             return m_ts;
-        }).addTrigger(this, &PropertyBindingInterfaceCppImplementation::propertyChanged);
+        }).addTrigger(this, &PropertyBindingInterfaceImplementation::propertyChanged);
     }
 
     void updateStructElement()

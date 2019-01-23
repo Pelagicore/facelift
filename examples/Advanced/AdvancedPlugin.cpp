@@ -36,6 +36,6 @@
 void TunerModelPlugin::registerTypes(const char *uri)
 {
     advanced::Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<AdvancedModelCpp>(uri, "AdvancedModel");
+    facelift::registerQmlComponent<AdvancedModelImplementation>(uri, "AdvancedModel");
     //facelift::registerSingletonQmlComponent<AdvancedModelCpp>(uri);
 }

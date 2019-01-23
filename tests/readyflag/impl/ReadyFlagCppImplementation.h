@@ -34,10 +34,10 @@
 
 using namespace tests::readyflag;
 
-class ReadyFlagInterfaceCppImplementation : public ReadyFlagInterfaceImplementationBase
+class ReadyFlagInterfaceImplementation : public ReadyFlagInterfaceImplementationBase
 {
 public:
-    ReadyFlagInterfaceCppImplementation(QObject *parent = nullptr) : ReadyFlagInterfaceImplementationBase(parent)
+    ReadyFlagInterfaceImplementation(QObject *parent = nullptr) : ReadyFlagInterfaceImplementationBase(parent)
     {
         m_intProperty.setReady(false);
         m_strProperty.setReady(false);

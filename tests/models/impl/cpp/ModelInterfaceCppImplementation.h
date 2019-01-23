@@ -37,10 +37,10 @@
 using namespace tests::models;
 
 
-class ModelInterfaceCppImplementation : public ModelInterfaceImplementationBase
+class ModelInterfaceImplementation : public ModelInterfaceImplementationBase
 {
 public:
-    ModelInterfaceCppImplementation(QObject *parent = nullptr) :
+    ModelInterfaceImplementation(QObject *parent = nullptr) :
         ModelInterfaceImplementationBase(parent)
     {
         int i = 0;
@@ -50,7 +50,7 @@ public:
         m_nextAvailableID = i;
 
         m_theModel.reset(m_items.size(),
-                         std::bind(&ModelInterfaceCppImplementation::getItem, this, std::placeholders::_1));
+                         std::bind(&ModelInterfaceImplementation::getItem, this, std::placeholders::_1));
     }
 
     TestStruct getItem(int index)

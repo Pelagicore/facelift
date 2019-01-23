@@ -34,11 +34,11 @@
 
 using namespace tests::asyncfunctions;
 
-class AsyncFunctionsInterfaceCppImplementation : public AsyncFunctionsInterfaceImplementationBase
+class AsyncFunctionsInterfaceImplementation : public AsyncFunctionsInterfaceImplementationBase
 {
 public:
 
-    AsyncFunctionsInterfaceCppImplementation(QObject *parent = nullptr) : AsyncFunctionsInterfaceImplementationBase(parent)
+    AsyncFunctionsInterfaceImplementation(QObject *parent = nullptr) : AsyncFunctionsInterfaceImplementationBase(parent)
     {
     }
 

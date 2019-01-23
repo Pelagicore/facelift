@@ -37,5 +37,5 @@ using namespace tests::readyflag;
 void ReadyFlagPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    facelift::registerQmlComponent<ReadyFlagInterfaceCppImplementation>(uri, "ReadyFlagInterfaceAPI");
+    facelift::registerQmlComponent<ReadyFlagInterfaceImplementation>(uri, "ReadyFlagInterfaceAPI");
 }
