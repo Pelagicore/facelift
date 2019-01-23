@@ -31,6 +31,8 @@
 //! [indoc]
 module facelift.example.mypackage 1.0;
 
+@ipc-sync: true
+@ipc-async: true
 interface MyInterface {
 
     // the counter property
