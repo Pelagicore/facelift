@@ -50,7 +50,9 @@
 {% endfor %}
 
 {% for interface in module.interfaces %}
+{% if interface.isQMLImplementationEnabled %}
 #include "{{interface.fullyQualifiedPath}}ImplementationBaseQML.h"
+{% endif %}
 #include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
 {% endfor %}
 
@@ -129,10 +131,10 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
     // Register components used to implement an interface in QML
     {% for interface in module.interfaces %}
-    if ({{interface}}ImplementationBaseQML::ENABLED) {
-        ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME);
-        ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME_DEPRECATED);
-    }
+    {% if interface.isQMLImplementationEnabled %}
+    ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME);
+    ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME_DEPRECATED);
+    {% endif %}
 
     {% endfor %}
 #ifdef ENABLE_IPC

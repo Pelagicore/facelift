@@ -31,11 +31,13 @@
 module facelift.test 1.0;
 
 @ipc-sync: true
+@qml-implementation: true
 interface TestInterface2 {
     void doSomething();
     void triggerMainInterfaceSignal(int signalParameter);
 }
 
+@qml-implementation: true
 @ipc-sync: true
 interface TestInterface {
 

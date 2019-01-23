@@ -35,6 +35,7 @@ struct MyStruct {
     bool enabled
 }
 
+@ipc-sync: true
 interface AdvancedModel {
     readonly model<MyStruct> theModel;
     void deleteModelItem(MyStruct item);

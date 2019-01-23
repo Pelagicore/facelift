@@ -33,6 +33,7 @@ import tests.combined.other 1.0
 
 @ipc-async: true
 @ipc-sync: true
+@qml-implementation: true
 interface CombinedInterface {
     readonly bool qmlImplementationUsed;
     void initialize();
