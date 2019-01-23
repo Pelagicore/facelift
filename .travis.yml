@@ -7,45 +7,36 @@ git:
 matrix:
   include:
   - os: linux
-    compiler: gcc           # g++-5, Qt5.9.6, IPC enabled
+    compiler: gcc           # g++-5, Qt5.12.0, IPC enabled
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - sourceline: 'ppa:beineri/opt-qt596-xenial'
-        packages: [ g++-5 qt59base qt59x11extras qt59quickcontrols2 ]
-    env: COMPILER=g++-5 QT=59 DISABLE_IPC=OFF
+        - sourceline: 'ppa:beineri/opt-qt-5.12.0-xenial'
+        packages: [ g++-5 qt512base qt512declarative ]
+    env: COMPILER=g++-5 QT=512 DISABLE_IPC=OFF
   - os: linux
-    compiler: gcc           # g++-5, Qt5.11.1, IPC enabled
+    compiler: gcc           # g++-5, Qt5.12.0, IPC disabled
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - sourceline: 'ppa:beineri/opt-qt-5.11.1-xenial'
-        packages: [ g++-5 qt511base qt511x11extras qt511quickcontrols2 ]
-    env: COMPILER=g++-5 QT=511 DISABLE_IPC=OFF
+        - sourceline: 'ppa:beineri/opt-qt-5.12.0-xenial'
+        packages: [ g++-5 qt512base qt512declarative ]
+    env: COMPILER=g++-5 QT=512 DISABLE_IPC=ON
   - os: linux
-    compiler: gcc           # g++-5, Qt5.11.1, IPC disabled
+    compiler: clang          # clang-6.0, Qt5.12.0, IPC enabled
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - sourceline: 'ppa:beineri/opt-qt-5.11.1-xenial'
-        packages: [ g++-5 qt511base qt511x11extras qt511quickcontrols2 ]
-    env: COMPILER=g++-5 QT=511 DISABLE_IPC=ON
-  - os: linux
-    compiler: clang          # clang-4.0, Qt5.11.1, IPC enabled
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        - sourceline: 'ppa:beineri/opt-qt-5.11.1-xenial'
-        packages: [ clang-4.0 libstdc++-6-dev qt511base qt511x11extras qt511quickcontrols2 ]
-    env: COMPILER=clang++-4.0 QT=511 DISABLE_IPC=OFF
+        - sourceline: 'ppa:beineri/opt-qt-5.12.0-xenial'
+        packages: [ clang-6.0 libstdc++-6-dev qt512base qt512declarative ]
+    env: COMPILER=clang++-6.0 QT=512 DISABLE_IPC=OFF
 
   # TODO: all combined-inprocess-async-... tests fail, if IPC is disabled. The interface never becomes ready.
   allow_failures:
-  - env: COMPILER=g++-5 QT=511 DISABLE_IPC=ON
+  - env: COMPILER=g++-5 QT=512 DISABLE_IPC=ON
 
 install:
 - sudo apt-get install python3 python3-pip python3-setuptools doxygen libgl1-mesa-dev
