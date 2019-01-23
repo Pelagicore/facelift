@@ -55,6 +55,17 @@ The API and behavior of synchronous and asynchronous proxies are similar, but th
  produce the same method signature in both the synchronous and the asynchronous proxies. In other words, an asynchronous proxy is similar to a synchronous
  proxy where all QFace methods are marked "@async".
 
+\section ipc-annotations IPC interface annotations
+
+An interface can be used over IPC only if it is properly annotated. Two distinct annotations are available:
+  - "@ipc-sync: true" : is used to enable the creation of a synchronous IPC proxy.
+  - "@ipc-async: true" : is used to enable the creation of a asynchronous IPC proxy.
+
+Note that the server-side IPC code will be generated if at least one of those annotations has been specified.
+
+Example ("MyPackage.qface"):
+\snippet "MyPackage.qface" indoc
+
 \section ipc-sec2 Server Side
 
 Let's have a second look at the \ref MyAppExample and see how this simple interface can be used
