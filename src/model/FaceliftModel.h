@@ -715,12 +715,28 @@ public:
 
     Q_SIGNAL void elementCountChanged();
 
-    virtual int size() const = 0;
+    int size() const
+    {
+        return m_size;
+    }
+
+    void bindOtherModel(facelift::ModelBase *otherModel);
+
+protected:
+    void setSize(int size)
+    {
+        m_size = size;
+    }
+
+    bool m_resettingModel = false;
 
 private:
     void onModelChanged();
+    void applyNewSize();
 
+    int m_size = 0;
     int m_previousElementCount = 0;
+    int m_pendingSize = -1;
 
 };
 

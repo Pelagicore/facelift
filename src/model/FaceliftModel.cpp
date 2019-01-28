@@ -54,9 +54,46 @@ ServiceRegistry &ServiceRegistry::instance()
 
 ModelBase::ModelBase()
 {
+    QObject::connect(this, &facelift::ModelBase::beginInsertElements, this, [this] (int first, int last) {
+        Q_ASSERT(m_pendingSize == -1);
+        m_pendingSize = size() + last - first + 1;
+    });
+    QObject::connect(this, &facelift::ModelBase::beginRemoveElements, this, [this] (int first, int last) {
+        Q_ASSERT(m_pendingSize == -1);
+        m_pendingSize = size() - last + first - 1;
+    });
+    QObject::connect(this, &facelift::ModelBase::endRemoveElements, this, &ModelBase::applyNewSize);
+    QObject::connect(this, &facelift::ModelBase::endInsertElements, this, &ModelBase::applyNewSize);
+    QObject::connect(this, &facelift::ModelBase::beginResetModel, this, [this] () {
+        m_resettingModel = true;
+    });
+    QObject::connect(this, &facelift::ModelBase::endResetModel, this, [this] () {
+        m_resettingModel = false;
+    });
+
     QObject::connect(this, &ModelBase::endResetModel, this, &ModelBase::onModelChanged);
     QObject::connect(this, &ModelBase::endInsertElements, this, &ModelBase::onModelChanged);
     QObject::connect(this, &ModelBase::endRemoveElements, this, &ModelBase::onModelChanged);
+}
+
+void ModelBase::bindOtherModel(facelift::ModelBase *otherModel) {
+    QObject::connect(otherModel, &facelift::ModelBase::beginInsertElements, this, &facelift::ModelBase::beginInsertElements);
+    QObject::connect(otherModel, &facelift::ModelBase::endInsertElements, this, &facelift::ModelBase::endInsertElements);
+    QObject::connect(otherModel, &facelift::ModelBase::beginRemoveElements, this, &facelift::ModelBase::beginRemoveElements);
+    QObject::connect(otherModel, &facelift::ModelBase::endRemoveElements, this, &facelift::ModelBase::endRemoveElements);
+    QObject::connect(otherModel, &facelift::ModelBase::beginResetModel, this, &facelift::ModelBase::beginResetModel);
+    QObject::connect(otherModel, &facelift::ModelBase::endResetModel, this, [this, otherModel] () {
+        setSize(otherModel->size());
+    });
+    QObject::connect(otherModel, &facelift::ModelBase::endResetModel, this, &facelift::ModelBase::endResetModel);
+    QObject::connect(otherModel, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged),
+            (facelift::ModelBase*)this, static_cast<void (facelift::ModelBase::*)(int,int)>(&facelift::ModelBase::dataChanged));
+}
+
+void ModelBase::applyNewSize()
+{
+    setSize(m_pendingSize);
+    m_pendingSize = -1;
 }
 
 void ModelBase::onModelChanged()
