@@ -31,6 +31,8 @@
 //! [indoc]
 #pragma once
 
+#include <QTimer>
+
 #include "facelift/example/mypackage/MyInterfaceImplementationBase.h"
 
 

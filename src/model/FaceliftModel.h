@@ -30,22 +30,13 @@
 
 #pragma once
 
+#include <memory>
 #include <QObject>
-#include <QQmlListProperty>
 #include <QDebug>
-#include <QQuickItem>
-#include <QQmlEngine>
-#include <QJSValue>
-#include <QTimer>
 #include <QMap>
 #include <QPointer>
 
-#include <memory>
-
-#include <array>
-
 #include "FaceliftUtils.h"
-
 #include "StructureBase.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
@@ -512,33 +503,6 @@ BinarySeralizer &operator>>(BinarySeralizer &stream, Structure<FieldTypes ...> &
 template<typename InterfaceType, typename PropertyType>
 using PropertyGetter = const PropertyType &(*)();
 
-class InterfaceBase;
-
-
-class FaceliftModelLib_EXPORT ServiceRegistry : public QObject
-{
-    Q_OBJECT
-
-public:
-    static ServiceRegistry &instance();
-
-    virtual ~ServiceRegistry();
-
-    void registerObject(InterfaceBase *i);
-
-    const QList<InterfaceBase *> objects() const
-    {
-        return m_objects;
-    }
-
-    Q_SIGNAL void objectRegistered(InterfaceBase *object);
-    Q_SIGNAL void objectDeregistered(InterfaceBase *object);
-
-private:
-    QList<InterfaceBase *> m_objects;
-
-};
-
 /**
  * Base interface which every interface inherits from
  */
@@ -573,11 +537,7 @@ public:
         return this;
     }
 
-    void init(const QString &interfaceName)
-    {
-        m_interfaceName = interfaceName;
-        facelift::ServiceRegistry::instance().registerObject(this);
-    }
+    void init(const QString &interfaceName);
 
     const QString &interfaceID() const
     {
@@ -791,15 +751,6 @@ public:
 };
 
 
-/**
- * This function simply calls Qt's qRegisterMetaType function
- */
-template<typename Type>
-inline int qRegisterMetaType()
-{
-    auto r = ::qRegisterMetaType<Type>();
-    return r;
-}
 
 
 template<typename Type>
