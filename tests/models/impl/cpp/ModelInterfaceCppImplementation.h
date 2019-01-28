@@ -67,6 +67,9 @@ public:
 
     void deleteModelItems(int first, int last) override
     {
+        Q_ASSERT(first >= 0);
+        Q_ASSERT(last >= 0);
+        Q_ASSERT(last < m_items.count());
         QTimer::singleShot(0, [this, first, last] () {
             emit m_theModel.beginRemoveElements(first, last);
             m_items.remove(first, last - first + 1);

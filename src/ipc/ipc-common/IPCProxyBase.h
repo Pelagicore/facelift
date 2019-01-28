@@ -138,11 +138,6 @@ public:
                 Q_ASSERT(false);
                 return ElementType {};
             }
-
-            int size() const override
-            {
-                return 0;
-            }
         };
 
     };
