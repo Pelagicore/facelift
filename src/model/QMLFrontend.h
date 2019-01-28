@@ -34,7 +34,6 @@
 #include <QDebug>
 #include <QQmlEngine>
 #include <QtQml>
-#include <functional>
 #include <QQmlParserStatus>
 #include <QAbstractListModel>
 

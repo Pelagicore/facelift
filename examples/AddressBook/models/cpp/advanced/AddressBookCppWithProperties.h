@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <QTimer>
+
 #include "facelift/example/addressbook/AddressBookImplementationBase.h"
 #include "facelift/example/addressbook/SubInterfaceImplementationBase.h"
 

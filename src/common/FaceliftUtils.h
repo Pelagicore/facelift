@@ -30,15 +30,12 @@
 
 #pragma once
 
-#include "assert.h"
-#include "stddef.h"
 #include <list>
 #include <unordered_map>
 #include <tuple>
 
 #include <QTextStream>
 #include <QList>
-#include <QMap>
 
 #if defined(FaceliftCommonLib_LIBRARY)
 #  define FaceliftCommonLib_EXPORT Q_DECL_EXPORT

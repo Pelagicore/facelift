@@ -40,6 +40,15 @@
 
 namespace facelift {
 
+/**
+ * This function simply calls Qt's qRegisterMetaType function
+ */
+template<typename Type>
+inline int qRegisterMetaType()
+{
+    auto r = ::qRegisterMetaType<Type>();
+    return r;
+}
 
 /**
  * Base class for all generated Module classes

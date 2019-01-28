@@ -29,6 +29,9 @@
 **********************************************************************/
 
 #include "FaceliftModel.h"
+#include "ServiceRegistry.h"
+
+#include <QTimer>
 
 namespace facelift {
 
@@ -107,4 +110,11 @@ void ModelBase::onModelChanged()
 StructureFactoryBase::StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
 {
 }
+
+void InterfaceBase::init(const QString &interfaceName)
+{
+    m_interfaceName = interfaceName;
+    facelift::ServiceRegistry::instance().registerObject(this);
+}
+
 }

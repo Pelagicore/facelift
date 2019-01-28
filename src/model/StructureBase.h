@@ -35,6 +35,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include <QQmlEngine>
+#include <array>
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT

@@ -36,12 +36,9 @@
 #  define FaceliftPropertyLib_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <vector>
-#include <assert.h>
 #include <QString>
 #include <QObject>
 #include <QDebug>
-#include <QTimer>
 #include <functional>
 
 #include "FaceliftModel.h"

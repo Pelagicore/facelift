@@ -28,60 +28,42 @@
 **
 **********************************************************************/
 
-#include "FaceliftProperty.h"
-#include <QTimer>
+#pragma once
+
+#include "FaceliftModel.h"
+
+#if defined(FaceliftModelLib_LIBRARY)
+#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
+#endif
 
 namespace facelift {
 
-PropertyBase::PropertyBase()
-{
-}
+class InterfaceBase;
 
-PropertyBase::~PropertyBase()
+class FaceliftModelLib_EXPORT ServiceRegistry : public QObject
 {
-}
+    Q_OBJECT
 
-void PropertyBase::doBreakBinding()
-{
-    qDebug() << this->name() << " property : breaking binding";
+public:
+    static ServiceRegistry &instance();
 
-    for (const auto &connection : m_connections) {
-        QObject::disconnect(connection);
+    virtual ~ServiceRegistry();
+
+    void registerObject(InterfaceBase *i);
+
+    const QList<InterfaceBase *> objects() const
+    {
+        return m_objects;
     }
-    m_connections.clear();
-}
 
+    Q_SIGNAL void objectRegistered(InterfaceBase *object);
+    Q_SIGNAL void objectDeregistered(InterfaceBase *object);
 
-void PropertyBase::triggerValueChangedSignal()
-{
-    if (m_asynchronousNotification) {
-        // Asynchronous notification is enabled => we will actually trigger the change signal during the next main loop iteration
-        if (!m_notificationTimerEnabled) {
-            m_notificationTimerEnabled = true;
+private:
+    QList<InterfaceBase *> m_objects;
 
-            QTimer::singleShot(0, m_ownerObject, [this] () {
-                    doTriggerChangeSignal();
-                    m_notificationTimerEnabled = false;
-                });
-
-        }
-    } else {
-        doTriggerChangeSignal();
-    }
-}
-
-void PropertyBase::doTriggerChangeSignal()
-{
-    setReady(true);
-
-    if (signalPointer() != nullptr) {
-        if (isDirty()) {
-            qDebug() << "Property" << name() << ": Triggering notification. New value:" << toString();
-            // Trigger the signal
-            clean();
-            (m_ownerObject->*signalPointer())();
-        }
-    }
-}
+};
 
 }

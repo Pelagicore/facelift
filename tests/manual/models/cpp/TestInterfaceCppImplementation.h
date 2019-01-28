@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <QTimer>
+
 #include "facelift/test/TestInterfaceImplementationBase.h"
 #include "facelift/test/TestInterface2ImplementationBase.h"
 
