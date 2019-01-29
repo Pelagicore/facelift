@@ -45,51 +45,6 @@ class IPCAttachedPropertyFactoryBase;
 class IPCServiceAdapterBase;
 
 
-template<typename Type, typename Sfinae = void>
-struct QMLModelTypeHandler
-{
-    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-    {
-        return engine->toScriptValue(facelift::toQMLCompatibleType(v));
-    }
-
-    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
-    {
-        v = engine->fromScriptValue<Type>(value);
-    }
-};
-
-template<typename Type>
-struct QMLModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
-{
-    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-    {
-        Q_UNUSED(engine)
-        return QJSValue(v);
-    }
-
-    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
-    {
-        Q_UNUSED(engine)
-        v = static_cast<Type>(value.toInt());
-    }
-};
-
-
-template<typename Type>
-QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-{
-    return QMLModelTypeHandler<Type>::toJSValue(v, engine);
-}
-
-
-template<typename Type>
-void fromJSValue(Type &v, const QJSValue &jsValue, QQmlEngine *engine)
-{
-    QMLModelTypeHandler<Type>::fromJSValue(v, jsValue, engine);
-}
-
-
 /*!
  * This is the base class which all QML frontends extend
  */
@@ -124,40 +79,9 @@ public:
 
     void componentComplete() override;
 
+    QQmlEngine* qmlEngine() const;
+
 protected:
-    static void appendJSValue(QJSValueList& list, QQmlEngine * engine) {
-        Q_UNUSED(list);
-        Q_UNUSED(engine);
-    }
-
-    template<typename Arg1Type, typename  ... Args>
-    static void appendJSValue(QJSValueList& list, QQmlEngine * engine,  const Arg1Type & arg1, const Args & ...args) {
-        list.append(facelift::toJSValue(arg1, engine));
-        appendJSValue(list, engine, args...);
-    }
-
-    template<typename  ... Args>
-    void callJSCallback(QJSValue &callback, const Args & ...args)
-    {
-        if (!callback.isUndefined()) {
-            if (callback.isCallable()) {
-                QQmlEngine *engine = (m_qmlEngine ? m_qmlEngine : qmlEngine(this));
-                Q_ASSERT(engine != nullptr);
-                QJSValueList jsList;
-                appendJSValue(jsList, engine, args...);
-                auto returnValue = callback.call(jsList);
-                if (returnValue.isError()) {
-                    qCritical().noquote() << "Error executing JS callback. Error type:" << returnValue.property("name").toString()
-                                          << "\nFile:" << returnValue.property("fileName").toString()
-                                          << "\nLine:" << returnValue.property("lineNumber").toInt()
-                                          << "\nMessage:" << returnValue.property("message").toString()
-                                          << "\nStack trace:" << returnValue.property("stack").toString();
-                }
-            } else {
-                qCritical("Provided JS object is not callable");
-            }
-        }
-    }
 
     void connectProvider(InterfaceBase &provider);
 

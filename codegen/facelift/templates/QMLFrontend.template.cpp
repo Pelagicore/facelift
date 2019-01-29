@@ -43,6 +43,8 @@
 #include <QtCore>
 #include <QQmlEngine>
 
+#include "FaceliftConversion.h"
+
 #include "{{interfaceName}}QMLFrontend.h"
 
 {{module.namespaceCppOpen}}
@@ -98,5 +100,89 @@ void {{className}}::connectProvider({{interfaceName}}& provider)
     {% endif %}
 }
 
+
+{% for property in interface.properties %}
+
+{{- printif(property.comment)}}
+{% if property.type.is_model %}
+{% elif property.type.is_list or property.type.is_map %}
+{{property.type.qmlCompatibleType}} {{className}}::{{property}}() const
+{
+    return facelift::toQMLCompatibleType(m_provider->{{property}}());
+}
+    {% if not property.readonly %}
+void {{className}}::set{{property}}(const {{property.type.qmlCompatibleType}}& newValue)
+{
+    // qDebug() << "Request to set property {{property}} to " << newValue;
+    Q_ASSERT(m_provider);
+    {{property.cppType}} tmp;
+    facelift::assignFromQmlType(tmp, newValue);
+    m_provider->set{{property}}(tmp);
+}
+    {% endif %}
+{%- elif property.type.is_interface %}
+{{property.cppType}}QMLFrontend* {{className}}::{{property}}()
+{
+    return facelift::getQMLFrontend(m_provider->{{property}}());
+}
+{% else %}
+    {% if property.readonly %}
+    {%- else %}
+    {%- endif %}
+
+{% endif %}
+{% endfor %}
+
+
+{% for operation in interface.operations %}
+
+{% if operation.isAsync %}
+void {{className}}::{{operation}}(
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in operation.parameters -%}
+        {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
+    {%- endfor -%}
+    {{ comma() }}QJSValue callback){% if operation.is_const %} const{% endif %}
+{
+    Q_ASSERT(m_provider);
+    m_provider->{{operation}}(
+        {%- for parameter in operation.parameters -%}
+        {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
+        {{parameter.name}},
+        {%- else -%}
+        facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}}),
+        {%- endif -%}
+        {%- endfor -%}
+        facelift::AsyncAnswer<{{operation.interfaceCppType}}>(this, [this, callback]({% if operation.hasReturnValue %} {{operation.interfaceCppType}} const &returnValue{% endif %}) mutable {
+        facelift::callJSCallback(qmlEngine(), callback{% if operation.hasReturnValue %}, returnValue{% endif %});
+    }));
+}
+{% else %}
+{{operation.type.qmlCompatibleType}} {{className}}::{{operation}}(
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in operation.parameters -%}
+    {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
+    {%- endfor -%}
+)
+{
+    Q_ASSERT(m_provider);
+    {% if operation.hasReturnValue %}
+    return facelift::toQMLCompatibleType(m_provider->{{operation}}(
+    {%- else %}
+    m_provider->{{operation}}(
+    {%- endif -%}
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in operation.parameters -%}
+    {{ comma() }}
+    {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
+    {{parameter.name}}
+    {%- else -%}
+    facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
+    {%- endif -%}
+    {%- endfor -%}
+    ){% if operation.hasReturnValue %}){% endif %};
+}
+{% endif %}
+{% endfor %}
 
 {{module.namespaceCppClose}}

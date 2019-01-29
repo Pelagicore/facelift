@@ -34,6 +34,8 @@
 ****************************************************************************/
 
 #include "{{interfaceName}}.h"
+#include "FaceliftConversion.h"
+
 
 {{module.namespaceCppOpen}}
 

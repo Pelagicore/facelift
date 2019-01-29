@@ -250,6 +250,11 @@ def isQMLImplementationEnabled(self):
         return True
     return generateAll
 
+def isSerializable(self):
+    if self.tags.get('serializable'):
+        return True
+    return generateAll
+
 def verifyStruct(self):
     blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
     for field in self.fields:
@@ -330,6 +335,7 @@ setattr(qface.idl.domain.Module, 'namespaceCppClose', property(namespaceCppClose
 setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
 
 setattr(qface.idl.domain.Struct, 'verifyStruct', property(verifyStruct))
+setattr(qface.idl.domain.Struct, 'isSerializable', property(isSerializable))
 
 def hasReturnValue(self):
     return not self.type.name == 'void'

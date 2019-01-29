@@ -7,7 +7,7 @@ facelift_add_interface(TestInterface
 facelift_add_executable(test1
     HEADERS test1.h
     SOURCES test1.cpp
-    LINK_LIBRARIES FaceliftModelLib FaceliftPropertyLib
+    LINK_LIBRARIES FaceliftModelLib
 )
 
 add_subdirectory(models)

@@ -76,7 +76,6 @@ public:
 
     // This seems to be necessary even if the base class already contains an "id" property. TODO: clarify
     Q_PROPERTY(int id READ id WRITE setId)
-    Q_PROPERTY(QByteArray serialized READ serialize WRITE deserialize)
 
     {{struct.name}}();
 
@@ -86,6 +85,16 @@ public:
 
     Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const;
 
+    {% if struct.isSerializable %}
+
+    Q_PROPERTY(QByteArray serialized READ serialize WRITE deserialize)
+
+    QByteArray serialize() const;
+
+    void deserialize(const QByteArray &array);
+
+    {% endif %}
+
     QString toString() const;
 
 {% for field in struct.fields %}
@@ -94,19 +103,14 @@ public:
     {{field.comment}}
     {% endif %}
     Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}})
-    {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const
-    {
-        return facelift::toQMLCompatibleType({{field.name}}());
-    }
+    {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const;
+
     const {{field.cppType}} &{{field.name}}() const
     {
         return m_{{field.name}};
     }
-    void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
-    {
-        // qDebug() << "Setting field {{field.name}} with value:" << value;
-        facelift::assignFromQmlType(m_{{field.name}}, value);
-    }
+    void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value);
+
     void set{{field.name}}({{field.cppType}} value)
     {
         // qDebug() << "Setting field {{field.name}} with value:" << value;
