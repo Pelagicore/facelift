@@ -107,6 +107,6 @@ inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v
 
 inline QTextStream &operator <<(QTextStream &outStream, const {{enum.fullyQualifiedCppType}}& f)
 {
-    outStream << facelift::toString(f);
+    outStream << facelift::enumToString(f);
     return outStream;
 }

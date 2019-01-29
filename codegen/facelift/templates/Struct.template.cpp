@@ -36,6 +36,7 @@
 ****************************************************************************/
 
 #include "{{struct}}.h"
+#include "FaceliftConversion.h"
 
 {{module.namespaceCppOpen}}
 
@@ -60,6 +61,39 @@ const QString {{struct.name}}::CLASS_ID = QStringLiteral("{{struct.qualified_nam
 {
     copyFrom(other);
 }
+
+{% for field in struct.fields %}
+
+    {{field.type.qmlCompatibleType}} {{struct.name}}::qmlCompatible{{field.name}}() const
+    {
+        return facelift::toQMLCompatibleType({{field.name}}());
+    }
+    void {{struct.name}}::qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
+    {
+        // qDebug() << "Setting field {{field.name}} with value:" << value;
+        facelift::assignFromQmlType(m_{{field.name}}, value);
+    }
+
+{% endfor %}
+
+
+{% if struct.isSerializable %}
+
+QByteArray {{struct.name}}::serialize() const
+{
+    QByteArray array;
+    facelift::BinarySeralizer ds(array);
+    ds << *this;
+    return array;
+}
+
+void {{struct.name}}::deserialize(const QByteArray &array)
+{
+    facelift::BinarySeralizer ds(array);
+    ds >> *this;
+}
+
+{% endif %}
 
 
 const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {

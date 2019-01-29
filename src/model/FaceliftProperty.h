@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftPropertyLib_LIBRARY)
-#  define FaceliftPropertyLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftPropertyLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QString>
 #include <QObject>
 #include <QDebug>
@@ -45,7 +39,7 @@
 
 namespace facelift {
 
-class FaceliftPropertyLib_EXPORT PropertyBase
+class FaceliftModelLib_EXPORT PropertyBase
 {
 
 public:

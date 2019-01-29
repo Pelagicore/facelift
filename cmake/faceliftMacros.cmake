@@ -256,7 +256,7 @@ function(facelift_add_interface TARGET_NAME)
     facelift_add_library(${LIBRARY_NAME}_types
         SOURCES_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES FaceliftModelLib FaceliftQMLModelLib FaceliftPropertyLib ${ARGUMENT_LINK_LIBRARIES}
+        LINK_LIBRARIES FaceliftModelLib ${ARGUMENT_LINK_LIBRARIES}
         PUBLIC_HEADER_BASE_PATH ${TYPES_OUTPUT_PATH}
         UNITY_BUILD
     )

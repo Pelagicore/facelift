@@ -87,10 +87,6 @@ public:
         m_userData.setValue<T>(value);
     }
 
-    virtual QByteArray serialize() const = 0;
-
-    virtual void deserialize(const QByteArray &) = 0;
-
 protected:
     ModelElementID m_id;
     QVariant m_userData;
@@ -147,20 +143,6 @@ public:
     FieldTupleTypes &asTuple()
     {
         return m_values;
-    }
-
-    QByteArray serialize() const override
-    {
-        QByteArray array;
-        BinarySeralizer ds(array);
-        ds << *this;
-        return array;
-    }
-
-    void deserialize(const QByteArray &array) override
-    {
-        BinarySeralizer ds(array);
-        ds >> *this;
     }
 
     void setValue(FieldTupleTypes value)

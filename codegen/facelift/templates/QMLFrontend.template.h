@@ -107,26 +107,14 @@ public:
     // Using {{property.type.qmlCompatibleType}}, since exposing {{property.interfaceCppType}} to QML does not seem to work
     Q_PROPERTY({{property.type.qmlCompatibleType}} {{property}} READ {{property}}
                {%- if not property.readonly %} WRITE set{{property}}{% endif %} NOTIFY {{property.name}}Changed)
-    {{property.type.qmlCompatibleType}} {{property}}() const
-    {
-        return facelift::toQMLCompatibleType(m_provider->{{property}}());
-    }
+    {{property.type.qmlCompatibleType}} {{property}}() const;
+
         {% if not property.readonly %}
-    void set{{property}}(const {{property.type.qmlCompatibleType}}& newValue)
-    {
-        // qDebug() << "Request to set property {{property}} to " << newValue;
-        Q_ASSERT(m_provider);
-        {{property.cppType}} tmp;
-        facelift::assignFromQmlType(tmp, newValue);
-        m_provider->set{{property}}(tmp);
-    }
+    void set{{property}}(const {{property.type.qmlCompatibleType}}& newValue);
         {% endif %}
     {%- elif property.type.is_interface %}
     Q_PROPERTY({{property.cppType}}QMLFrontend* {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
-    {{property.cppType}}QMLFrontend* {{property}}()
-    {
-        return facelift::getQMLFrontend(m_provider->{{property}}());
-    }
+    {{property.cppType}}QMLFrontend* {{property}}();
     {% else %}
         {% if property.readonly %}
     Q_PROPERTY({{property.type.qmlCompatibleType}} {{property}} READ {{property}} NOTIFY {{property.name}}Changed)
@@ -158,46 +146,14 @@ public:
         {%- for parameter in operation.parameters -%}
             {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
-        {{ comma() }}QJSValue callback = NO_OPERATION_JS_CALLBACK){% if operation.is_const %} const{% endif %}
-    {
-        Q_ASSERT(m_provider);
-        m_provider->{{operation}}(
-            {%- for parameter in operation.parameters -%}
-            {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
-            {{parameter.name}},
-            {%- else -%}
-            facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}}),
-            {%- endif -%}
-            {%- endfor -%}
-            facelift::AsyncAnswer<{{operation.interfaceCppType}}>(this, [this, callback]({% if operation.hasReturnValue %} {{operation.interfaceCppType}} const &returnValue{% endif %}) mutable {
-            callJSCallback(callback{% if operation.hasReturnValue %}, returnValue{% endif %});
-        }));
-    }
+        {{ comma() }}QJSValue callback = NO_OPERATION_JS_CALLBACK){% if operation.is_const %} const{% endif %};
     {% else %}
     Q_INVOKABLE {{operation.type.qmlCompatibleType}} {{operation}}(
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{parameter.type.qmlCompatibleType}} {{parameter.name}}
         {%- endfor -%}
-    )
-    {
-        Q_ASSERT(m_provider);
-        {% if operation.hasReturnValue %}
-        return facelift::toQMLCompatibleType(m_provider->{{operation}}(
-        {%- else %}
-        m_provider->{{operation}}(
-        {%- endif -%}
-        {%- set comma = joiner(", ") -%}
-        {%- for parameter in operation.parameters -%}
-        {{ comma() }}
-        {%- if parameter.cppType == parameter.type.qmlCompatibleType -%}
-        {{parameter.name}}
-        {%- else -%}
-        facelift::toProviderCompatibleType<{{parameter.cppType}}, {{parameter.type.qmlCompatibleType}}>({{parameter.name}})
-        {%- endif -%}
-        {%- endfor -%}
-        ){% if operation.hasReturnValue %}){% endif %};
-    }
+    );
     {% endif %}
     {% endfor %}
 

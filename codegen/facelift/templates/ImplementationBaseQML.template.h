@@ -168,7 +168,7 @@ public:
         {%- endfor %})
     {
         QJSValueList args;
-        QQmlEngine* engine = qmlEngine(this);
+        auto engine = this->qmlEngine();
         Q_UNUSED(engine);
 
         {% if operation.parameters %}
@@ -289,9 +289,9 @@ public:
             checkInterface();
             QJSValueList args;
 
-            QQmlEngine* engine = qmlEngine(this);
+            auto qmlEngine = this->qmlEngine();
             {% if (not property.type.is_interface) %}
-            args.append(facelift::toJSValue(value, engine));
+            args.append(facelift::toJSValue(value, qmlEngine));
             {% else %}
             Q_ASSERT(false); // Writable interface properties are unsupported
             {% endif %}

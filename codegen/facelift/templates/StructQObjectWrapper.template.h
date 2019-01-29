@@ -39,10 +39,8 @@
 
 {{classExportDefines}}
 
-#include <QTextStream>
-
 #include "{{struct.name}}.h"
-#include "QMLModel.h"
+#include "StructQObjectWrapper.h"
 
 // Dependencies
 {% for field in struct.fields %}
@@ -82,28 +80,25 @@ public:
     {% if field.comment %}
     {{field.comment}}
     {% endif %}
+public:
     Q_PROPERTY({{field.type.qmlCompatibleType}} {{field}} READ qmlCompatible{{field}} WRITE qmlCompatibleSet{{field}} NOTIFY {{field}}Changed)
-    {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const
-    {
-        return facelift::toQMLCompatibleType({{field.name}}());
-    }
-    void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
-    {
-        assignFromQmlType(m_{{field.name}}, value);
-    }
+
+    {{field.type.qmlCompatibleType}} qmlCompatible{{field.name}}() const;
+
+    void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value);
+
+    const {{field.cppType}}& {{field.name}}() const;
+
+    void set{{field.name}}({{field.cppType}} value);
+
     Q_SIGNAL void {{field}}Changed();
-    const {{field.cppType}}& {{field.name}}() const
-    {
-        return m_{{field.name}}.value();
-    }
-    void set{{field.name}}({{field.cppType}} value)
-    {
-        m_{{field.name}} = value;
-    }
+
+private:
     facelift::Property<{{field.cppType}}> m_{{field.name}};
 
 {% endfor %}
 
+public:
     /**
      * This property gives you access to the underlying gadget object
      */
@@ -112,6 +107,9 @@ public:
     {{struct.name}} gadget() const;
 
     void assignFromGadget(const {{struct.fullyQualifiedCppType}} &gadget);
+
+
+    {% if struct.isSerializable %}
 
     /**
      * This property contains the serialized form of the structure
@@ -122,10 +120,12 @@ public:
 
     void setSerialized(const QByteArray &array);
 
+    {% endif %}
+
     /**
      * This signal is triggered when one of the fields is changed
      */
-    Q_SIGNAL void anyFieldChanged();
+//    Q_SIGNAL void anyFieldChanged();
 };
 
 {{module.namespaceCppClose}}

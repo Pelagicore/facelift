@@ -73,6 +73,12 @@ void QMLFrontendBase::componentComplete()
    m_provider->setComponentCompleted();
 }
 
+QQmlEngine* QMLFrontendBase::qmlEngine() const
+{
+    return (m_qmlEngine ? m_qmlEngine : ::qmlEngine(this));
+}
+
+
 void QMLFrontendBase::connectProvider(InterfaceBase &provider)
 {
     m_provider = &provider;

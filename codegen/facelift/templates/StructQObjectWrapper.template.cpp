@@ -36,6 +36,7 @@
 ****************************************************************************/
 
 #include "{{struct}}QObjectWrapper.h"
+#include "FaceliftConversion.h"
 
 {{module.namespaceCppOpen}}
 
@@ -67,19 +68,21 @@ void {{struct.name}}QObjectWrapper::assignFromGadget(const {{struct.fullyQualifi
     m_id = gadget.id();
 }
 
+{% if struct.isSerializable %}
 
 QByteArray {{struct.name}}QObjectWrapper::serialized() const
 {
-    return gadget().serialize();
+    return facelift::serializeStructure(gadget());
 }
 
 void {{struct.name}}QObjectWrapper::setSerialized(const QByteArray &array)
 {
     {{struct.fullyQualifiedCppType}} v;
-    v.deserialize(array);
+    facelift::deserializeStructure(v, array);
     assignFromGadget(v);
 }
 
+{% endif %}
 
 {{struct.name}}QObjectWrapper::{{struct.name}}QObjectWrapper(QObject* parent) : StructQObjectWrapper(parent)
 {
@@ -92,5 +95,25 @@ void {{struct.name}}QObjectWrapper::setSerialized(const QByteArray &array)
     init();
 }
 
+{% for field in struct.fields %}
+
+    {{field.type.qmlCompatibleType}} {{struct.name}}QObjectWrapper::qmlCompatible{{field.name}}() const
+    {
+        return facelift::toQMLCompatibleType({{field.name}}());
+    }
+    void {{struct.name}}QObjectWrapper::qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value)
+    {
+        assignFromQmlType(m_{{field.name}}, value);
+    }
+    const {{field.cppType}}& {{struct.name}}QObjectWrapper::{{field.name}}() const
+    {
+        return m_{{field.name}}.value();
+    }
+    void {{struct.name}}QObjectWrapper::set{{field.name}}({{field.cppType}} value)
+    {
+        m_{{field.name}} = value;
+    }
+
+{% endfor %}
 
 {{module.namespaceCppClose}}
