@@ -30,16 +30,17 @@ look like the following:
 The following table describes the C++ classes which are generated from the QFace definition of
 "MyInterface".
 
-C++ class name                      | Description
------------------------------------ | -------------
-MyInterface                         | This C++ abstract class (or interface) is the direct translation of the QFace interface definition into C++. Any concrete implementation of "MyInterface" should extend somehow this class (not necessarily directly)
-MyInterfaceImplementationBase       | This C++ abstract class extends "MyInterface" and provides a more convenient base class to write an implementation of "MyInterface".
-MyInterfaceQMLFrontend              | This class wraps an instance of "MyInterface" into an object which can be exposed directly to QML. Note that the "MyInterface" class is intentionally not QML-friendly.
-MyInterfaceImplementationBaseQML    | This class is used to enable the implementation of "MyInterface" using the QML language.
-MyInterfaceIPCAdapter               | This class is used to make an implementation of "MyInterface" accessible through an IPC.
-MyInterfaceIPCProxy                 | This class is an IPC proxy for the "MyInterface" type. A proxy object implements the same interface as the actual implementation object, which typically lives in another process.
-MyInterfaceMonitor                  | This class provides a minimalistic Qt-Widget based GUI window which shows the state (property values) of an implementation of "MyInterface". It can also be used to invoke methods (TBD) and to log any signal triggered by the implementation.
-MyInterfaceDummy                    | This type is an implementation of "MyInterface" which shows a control GUI where property values can be set manually, and signals can be triggered. It can be useful during development, in order to test the behavior of the UI code under specific conditions, or when an actual implement of the interface is not available yet.
+|C++ class name                      | Description | Required annotation |
+|----------------------------------- |:-----------:|---------------------|
+|MyInterface                         | This C++ abstract class (or interface) is the direct translation of the QFace interface definition into C++. Any concrete implementation of "MyInterface" should extend somehow this class (not necessarily directly) | none |
+|MyInterfaceImplementationBase       | This C++ abstract class extends "MyInterface" and provides a more convenient base class to write an implementation of "MyInterface". | none |
+|MyInterfaceQMLFrontend              | This class wraps an instance of "MyInterface" into an object which can be exposed directly to QML. Note that the "MyInterface" class is intentionally not QML-friendly. | none |
+|MyInterfaceImplementationBaseQML    | This class is used to enable the implementation of "MyInterface" using the QML language. | none |
+|MyInterfaceIPCAdapter               | This class is used to make an implementation of "MyInterface" accessible through an IPC. | \@ipc-sync: true or \@ipc-async: true |
+|MyInterfaceIPCProxy                 | This class is an IPC proxy for the "MyInterface" type. A proxy object implements the same interface as the actual implementation object, which typically lives in another process. | \@ipc-sync: true |
+|MyInterfaceAsyncIPCProxy            | This class is an asynchronous IPC proxy for the "MyInterface" type. Asynchronous proxies only contain asynchronous (non-blocking) methods. | \@ipc-async: true |
+|MyInterfaceMonitor                  | This class provides a minimalistic Qt-Widget based GUI window which shows the state (property values) of an implementation of "MyInterface". It can also be used to invoke methods (TBD) and to log any signal triggered by the implementation. | none |
+|MyInterfaceDummy                    | This type is an implementation of "MyInterface" which shows a control GUI where property values can be set manually, and signals can be triggered. It can be useful during development, in order to test the behavior of the UI code under specific conditions, or when an actual implement of the interface is not available yet. | none |
 
 
 The following graph depicts the relationship among the types:
