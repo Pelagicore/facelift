@@ -44,9 +44,8 @@ void TestPlugin::registerTypes(const char *uri)
     // Register the generated types
     Module::registerQmlTypes(uri);
 
-    // This additional call registers all interfaces as uncreatable types, so that we can use typed properties in our
-    // QML files. The type names are exactly the interface names as defined in the QFace file
-    Module::registerUncreatableQmlTypes(uri);
+    facelift::registerUncreatableQmlComponent<TestInterfaceImplementation>(uri, "TestInterfaceUncreateAble");
+
 
 #if !defined(QML_MODEL_LOCATION)
     // This will register the "TestInterfaceQMLFrontend" class as an instantiatable QML type, named

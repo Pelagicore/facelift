@@ -32,13 +32,12 @@
 #include "tests/models/Module.h"
 #include "impl/cpp/ModelInterfaceCppImplementation.h"
 
-
 using namespace tests::models;
 
 void ModelsTestsPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
 
+    facelift::registerUncreatableQmlComponent<ModelInterfaceImplementation>(uri, "ModelInterfaceAPIUncreateAble");
     facelift::registerQmlComponent<ModelInterfaceImplementation>(uri, "ModelInterfaceAPI");
 }

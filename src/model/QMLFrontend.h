@@ -183,6 +183,16 @@ QObject *singletonGetterByFunction(QQmlEngine *engine, QJSEngine *scriptEngine)
 }
 
 
+template<typename ProviderType>
+int registerUncreatableQmlComponent(const char *uri, const char *name = ProviderType::INTERFACE_NAME, int majorVersion =
+        ProviderType::VERSION_MAJOR,
+        int minorVersion = ProviderType::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
+{
+    return ::qmlRegisterUncreatableType<TQMLFrontend<ProviderType> >(uri, majorVersion, minorVersion, name, "");
+}
+
+
 /*!
  * Register the given interface QML implementation as a creatable QML component.
  * By default, the component is registered under the same name as defined in the QFace definition.
