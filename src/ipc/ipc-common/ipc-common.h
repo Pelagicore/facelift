@@ -436,7 +436,7 @@ public:
         });
         QObject::connect(m_model, &facelift::ModelBase::endResetModel, &m_adapter, [this, signalID] () {
             Q_ASSERT(m_resettingModel);
-            m_adapter.sendSignal(signalID, ModelUpdateEvent::Reset);
+            m_adapter.sendSignal(signalID, ModelUpdateEvent::Reset, m_model->size());
             m_resettingModel = false;
         });
     }
@@ -527,6 +527,9 @@ public:
         case ModelUpdateEvent::Reset:
         {
             emit this->beginResetModel();
+            int size;
+            m_proxy.deserializeValue(msg, size);
+            this->setSize(size);
             clear();
             emit this->endResetModel();
         } break;
