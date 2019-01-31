@@ -378,7 +378,12 @@ macro(_facelift_add_target_start)
         qt5_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
     endif()
 
-    qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} ${HEADERS_NO_INSTALL} TARGET ${TARGET_NAME})
+    set(HEADERS_TO_BE_MOCCED ${HEADERS} ${HEADERS_NO_INSTALL})
+    unset(HEADERS_MOCS)
+
+    if(HEADERS_TO_BE_MOCCED)
+        qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} ${HEADERS_NO_INSTALL} TARGET ${TARGET_NAME})
+    endif()
 
     unset(UI_FILES)
     if(ARGUMENT_UI_FILES)
@@ -409,11 +414,15 @@ endmacro()
 
 macro(_facelift_add_target_finish)
 
-    target_compile_definitions(${TARGET_NAME} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
+    if(NOT __INTERFACE)
 
-    # create a valid preprocessor macro base on the target name
-    string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${TARGET_NAME}_LIBRARY")
-    target_compile_definitions(${TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION})
+        target_compile_definitions(${TARGET_NAME} ${__INTERFACE} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
+
+        # create a valid preprocessor macro base on the target name
+        string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${TARGET_NAME}_LIBRARY")
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION})
+
+    endif()
 
     # We assume every lib links against QtCore at least
     target_link_libraries(${TARGET_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})

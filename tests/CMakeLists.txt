@@ -12,6 +12,8 @@ if(NOT WIN32)
     add_subdirectory(manual)
 endif()
 
+add_subdirectory(cmake)
+
 add_subdirectory(combined)
 add_test(NAME combined-local-cpp COMMAND test-driver.sh combined/tst_combined_local.qml cpp)
 add_test(NAME combined-local-qml COMMAND test-driver.sh combined/tst_combined_local.qml qml)
