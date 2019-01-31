@@ -1,0 +1,2 @@
+
+facelift_add_library(DummyInterfaceLib INTERFACE)
