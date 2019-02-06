@@ -47,8 +47,10 @@
 {% endif %}
 {% endfor %}
 
-{% for property in interface.referencedStructureTypes %}
-#include "{{property.fullyQualifiedPath}}QObjectWrapper.h"
+{% for struct in interface.referencedStructureTypes %}
+{% if struct.reference.isQObjectWrapperEnabled %}
+#include "{{struct.fullyQualifiedPath}}QObjectWrapper.h"
+{% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}
@@ -226,18 +228,22 @@ public:
     Q_PROPERTY(QVariant {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
     QVariant {{property.name}}() const
     {
+        {% if property.type.reference.isQObjectWrapperEnabled %}
         if (m_{{property.name}}.isSet())
             return QVariant::fromValue(m_{{property.name}}.object());
         else
+        {% endif %}
             return QVariant::fromValue(interface().m_{{property.name}}.value());
     }
     void set{{property.name}}(const QVariant& var)
     {
         if (var.canConvert<{{property.cppType}}>()) {
             interface().m_{{property.name}} = facelift::fromVariant<{{property.cppType}}>(var);
+            {% if property.type.reference.isQObjectWrapperEnabled %}
             m_{{property.name}}.clear();
+            {% endif %}
             emit {{property.name}}Changed();
-        } else if (var.canConvert<{{property.cppType}}QObjectWrapper*>()) {
+        } {% if property.type.reference.isQObjectWrapperEnabled %} else if (var.canConvert<{{property.cppType}}QObjectWrapper*>()) {
             auto value = qvariant_cast<{{property.cppType}}QObjectWrapper*>(var);
             if (m_{{property.name}}.object() != value) {
                 m_{{property.name}}.reset(value);
@@ -247,8 +253,9 @@ public:
                 }
                 emit {{property.name}}Changed();
             }
-        }
+        } {% endif %}
     }
+    {% if property.type.reference.isQObjectWrapperEnabled %}
     void sync{{property.name}}()
     {
         checkInterface();
@@ -259,6 +266,8 @@ public:
         }
     }
     facelift::QObjectWrapperPointer<{{property.cppType}}QObjectWrapper> m_{{property.name}};
+    {% endif %}
+
     {% else %}
     Q_PROPERTY({{property.type.qmlCompatibleType}} {{property.name}} READ {{property.name}} WRITE set{{property.name}} NOTIFY {{property.name}}Changed)
     const {{property.type.qmlCompatibleType}}& {{property.name}}() const

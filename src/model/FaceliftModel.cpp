@@ -107,10 +107,6 @@ void ModelBase::onModelChanged()
     }
 }
 
-StructureFactoryBase::StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
-{
-}
-
 void InterfaceBase::init(const QString &interfaceName)
 {
     m_interfaceName = interfaceName;

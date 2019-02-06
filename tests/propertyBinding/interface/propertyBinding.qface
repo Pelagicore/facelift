@@ -42,6 +42,7 @@ interface PropertyBindingInterface
     void updateStructElement();
 }
 
+@qml-component: true
 struct TestStruct
 {
     int iData;

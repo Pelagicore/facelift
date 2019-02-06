@@ -42,7 +42,9 @@
 
 {% for struct in module.structs %}
 #include "{{struct.fullyQualifiedPath}}.h"
+{% if struct.isQObjectWrapperEnabled %}
 #include "{{struct.fullyQualifiedPath}}QObjectWrapper.h"
+{% endif %}
 {% endfor %}
 
 {% for enum in module.enums %}
@@ -120,7 +122,9 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
 
     // register structure QObject wrappers and gadget factories
     {% for struct in module.structs %}
+    {% if struct.isQObjectWrapperEnabled %}
     ::qmlRegisterType<{{struct}}QObjectWrapper>(uri, majorVersion, minorVersion, "{{struct}}");
+    {% endif %}
     ::qmlRegisterSingletonType<{{struct}}Factory>(uri, majorVersion, minorVersion, "{{struct}}Factory", facelift::StructureFactoryBase::getter<{{struct}}Factory>);
     {% endfor %}
 

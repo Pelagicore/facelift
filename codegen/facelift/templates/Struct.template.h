@@ -48,7 +48,9 @@
 
 {{module.namespaceCppOpen}}
 
+{% if struct.isQObjectWrapperEnabled %}
 class {{struct.name}}QObjectWrapper;
+{% endif %}
 
 /**
 * \ingroup {{struct.module.name|toValidId}}
@@ -64,7 +66,12 @@ class {{classExport}} {{struct.name}} : public facelift::Structure<
 
 public:
 
+    {% if struct.isQObjectWrapperEnabled %}
     using QObjectWrapperType = {{struct.name}}QObjectWrapper;
+    static constexpr bool IsStructWithQObjectWrapperType = true;
+    {% else %}
+    static constexpr bool IsStructWithoutQObjectWrapperType = true;
+    {% endif %}
 
     static const FieldNames FIELD_NAMES;
 

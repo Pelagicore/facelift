@@ -44,4 +44,9 @@ StructureBase::~StructureBase()
 {
 }
 
+StructureFactoryBase::StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
+{
+}
+
+
 }
