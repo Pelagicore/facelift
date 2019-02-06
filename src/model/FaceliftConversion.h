@@ -221,7 +221,7 @@ BinarySeralizer &operator>>(BinarySeralizer &msg, Type &v)
 }
 
 template<typename Type>
-struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
+struct StructTypeHandler
 {
     typedef Type QMLType;
 
@@ -243,6 +243,32 @@ struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, 
         param.setId(id);
     }
 
+    static QString toString(const Type &v)
+    {
+        return v.toString();
+    }
+
+    static const Type &toQMLCompatibleType(const Type &v)
+    {
+        return v;
+    }
+
+    static QVariant toQmlContainerElement(const Type& v)
+    {
+        return QVariant::fromValue(v);
+    }
+
+    static void assignFromQmlType(Type &field, const Type &qmlValue)
+    {
+        field = qmlValue;
+    }
+};
+
+
+// Specialization for structures which have QObjectWrapperType enabled
+template<typename Type>
+struct TypeHandler<Type, typename std::enable_if<Type::IsStructWithQObjectWrapperType>::type> : public StructTypeHandler<Type>
+{
     static Type fromVariant(const QVariant &variant)
     {
         Type v;
@@ -250,7 +276,7 @@ struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, 
 
         if (variant.canConvert<QObjectWrapperType *>()) {
             auto qobjectWrapper = variant.value<QObjectWrapperType *>();
-            v = qobjectWrapper->gadget();               // TODO : check how to react on changes in the wrapper QObject
+            v = qobjectWrapper->gadget();
         } else if (variant.canConvert<Type>()) {
             v = variant.value<Type>();
         } else {
@@ -271,27 +297,34 @@ struct TypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, 
         }
     }
 
-    static QString toString(const Type &v)
-    {
-        return v.toString();
-    }
+};
 
-    static const Type &toQMLCompatibleType(const Type &v)
+
+template<typename Type>
+struct TypeHandler<Type, typename std::enable_if<Type::IsStructWithoutQObjectWrapperType>::type> : public StructTypeHandler<Type>
+{
+    static Type fromVariant(const QVariant &variant)
     {
+        Type v;
+        if (variant.canConvert<Type>()) {
+            v = variant.value<Type>();
+        } else {
+            qFatal("Bad argument");
+        }
+
         return v;
     }
 
-    static QVariant toQmlContainerElement(const Type& v)
+    template<typename ReceiverType, typename Function>
+    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
+            QList<QMetaObject::Connection> &connections)
     {
-        return QVariant::fromValue(v);
+        M_UNUSED(variant, receiver, function, connections);
     }
-
-    static void assignFromQmlType(Type &field, const Type &qmlValue)
-    {
-        field = qmlValue;
-    }
-
 };
+
+
+
 
 
 template<typename Type>

@@ -255,6 +255,11 @@ def isSerializable(self):
         return True
     return generateAll
 
+def isQObjectWrapperEnabled(self):
+    if self.tags.get('qml-component'):
+        return True
+    return generateAll
+
 def verifyStruct(self):
     blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
     for field in self.fields:
@@ -336,6 +341,7 @@ setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
 
 setattr(qface.idl.domain.Struct, 'verifyStruct', property(verifyStruct))
 setattr(qface.idl.domain.Struct, 'isSerializable', property(isSerializable))
+setattr(qface.idl.domain.Struct, 'isQObjectWrapperEnabled', property(isQObjectWrapperEnabled))
 
 def hasReturnValue(self):
     return not self.type.name == 'void'
@@ -444,8 +450,10 @@ def run_generation(input, output, dependency, libraryName, all):
                 ctx.update({'struct': struct})
                 generateFile(generator, 'types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.h', 'StructQObjectWrapper.template.h', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.cpp', 'StructQObjectWrapper.template.cpp', ctx, libraryName, "types")
+
+                if isQObjectWrapperEnabled(struct):
+                    generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.h', 'StructQObjectWrapper.template.h', ctx, libraryName, "types")
+                    generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.cpp', 'StructQObjectWrapper.template.cpp', ctx, libraryName, "types")
 
 
 @click.command()
