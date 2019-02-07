@@ -39,11 +39,7 @@
 
 {{classExportDefines}}
 
-#include <QTextStream>
-
 #include "StructureBase.h"
-#include "FaceliftModel.h"
-
 
 // Dependencies
 {% for field in struct.fields %}

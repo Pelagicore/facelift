@@ -30,7 +30,10 @@
 
 #pragma once
 
+#include "FaceliftCommon.h"
 #include "FaceliftModel.h"
+#include "FaceliftUtils.h"
+#include "StructureBase.h"
 
 namespace facelift {
 
@@ -69,6 +72,18 @@ static Type toProviderCompatibleType(const QmlType &qmlValue)
     assignFromQmlType<Type, QmlType>(value, qmlValue);
     return value;
 }
+
+
+struct FaceliftModelLib_EXPORT BinarySeralizer
+{
+    BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
+    {
+    }
+    BinarySeralizer(const QByteArray &array) : stream(array)
+    {
+    }
+    QDataStream stream;
+};
 
 
 
@@ -671,6 +686,7 @@ void deserializeStructure(Type& o, const QByteArray &array)
     BinarySeralizer ds(array);
     ds >> o;
 }
+
 
 
 }

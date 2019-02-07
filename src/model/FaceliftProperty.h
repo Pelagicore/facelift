@@ -35,6 +35,7 @@
 #include <QDebug>
 #include <functional>
 
+#include "FaceliftCommon.h"
 #include "FaceliftModel.h"
 
 namespace facelift {
