@@ -35,7 +35,10 @@
 #include <QDebug>
 #include <QDataStream>
 #include <QQmlEngine>
+#include <QTextStream>
 #include <array>
+
+#include "FaceliftCommon.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -44,8 +47,6 @@
 #endif
 
 namespace facelift {
-
-typedef int ModelElementID;
 
 class FaceliftModelLib_EXPORT StructureBase
 {
@@ -95,30 +96,6 @@ private:
     static ModelElementID s_nextID;
 };
 
-struct FaceliftModelLib_EXPORT BinarySeralizer
-{
-    BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
-    {
-    }
-    BinarySeralizer(const QByteArray &array) : stream(array)
-    {
-    }
-    QDataStream stream;
-};
-
-
-template<typename Type, typename Enable = void>
-struct TypeHandler
-{
-    typedef Type QMLType;
-
-    static QString toString(const Type &v)
-    {
-        Q_UNUSED(v);
-        return "Unknown";
-    }
-
-};
 
 
 template<typename ... FieldTypes>

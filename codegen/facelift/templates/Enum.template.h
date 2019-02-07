@@ -37,7 +37,7 @@
 
 {{classExportDefines}}
 
-#include "FaceliftModel.h"
+#include "FaceliftEnum.h"
 
 {{module.namespaceCppOpen}}
 

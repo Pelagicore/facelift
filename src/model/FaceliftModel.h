@@ -34,10 +34,10 @@
 #include <QObject>
 #include <QDebug>
 #include <QMap>
+#include <qqml.h>
 #include <QPointer>
 
-#include "FaceliftUtils.h"
-#include "StructureBase.h"
+#include "FaceliftCommon.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -46,23 +46,10 @@
 #endif
 
 
-#define STRINGIFY_(x) # x
-#define STRINGIFY(x) STRINGIFY_(x)
-
 namespace facelift {
 
 template<typename ElementType>
 using Map = QMap<QString, ElementType>;
-
-
-template<typename Type>
-QString enumToString(const Type &v)
-{
-    Q_UNUSED(v);
-    static_assert(!std::is_enum<Type>::value, "Missing specialization of enumToString() template");
-    return "";
-}
-
 
 
 template<typename InterfaceType, typename PropertyType>
@@ -277,18 +264,6 @@ public:
 
 
 
-
-template<typename Type>
-inline QString toString(const Type &v)
-{
-    return TypeHandler<Type>::toString(v);
-}
-
-template<typename Type>
-inline const QList<Type> &validValues()
-{
-    return QList<Type>();
-}
 
 
 template<typename CallBack>

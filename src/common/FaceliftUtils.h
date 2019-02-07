@@ -45,15 +45,6 @@
 
 #define NOT_IMPLEMENTED() qFatal("Not implemented yet")
 
-/**
- *  Avoid "unused parameter" warnings, with multiple arguments
- */
-template<typename ... Args>
-void M_UNUSED(const Args & ... args)
-{
-    (void)(sizeof ... (args));
-}
-
 template<typename ElementType>
 inline QTextStream &operator<<(QTextStream &outStream, const QList<ElementType> &f)
 {
