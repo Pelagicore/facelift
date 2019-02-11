@@ -35,15 +35,16 @@
 
 #pragma once
 
-/*
+
 #pragma message ("{{interfaceName}}PropertyAdapter.h has been deprecated, " \
                  "use {{interfaceName}}ImplementationBase.h instead!")
-*/
+
 
 #include "{{interfaceName}}ImplementationBase.h"
 
+
 {{module.namespaceCppOpen}}
 
-using {{interfaceName}}PropertyAdapter = {{interfaceName}}ImplementationBase;
+using {{interfaceName}}PropertyAdapter [[deprecated("use {{interfaceName}}ImplementationBase instead")]] = {{interfaceName}}ImplementationBase;
 
 {{module.namespaceCppClose}}
