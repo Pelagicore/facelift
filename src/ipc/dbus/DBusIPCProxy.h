@@ -32,6 +32,7 @@
 
 #include "ipc-dbus.h"
 #include "ipc-common/IPCProxyBase.h"
+#include <QDBusServiceWatcher>
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
@@ -52,7 +53,7 @@ class FaceliftIPCLibDBus_EXPORT DBusIPCProxyBinder : public IPCProxyBinderBase
 
 public:
 
-    DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent)
+    DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr) : IPCProxyBinderBase(owner, parent), m_registry(DBusManager::instance().objectRegistry())
     {
         m_busWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration);
     }
@@ -77,7 +78,7 @@ public:
 
     void bindToIPC();
 
-    void onServiceAvailable();
+    void onServiceNameKnown();
 
     void setServiceAvailable(bool isRegistered);
 
@@ -128,13 +129,15 @@ public:
     }
 
 private:
+    void checkRegistry();
+
     QString m_serviceName;
     QString m_interfaceName;
     QDBusServiceWatcher m_busWatcher;
     DBusRequestHandler *m_serviceObject = nullptr;
     bool m_explicitServiceName = false;
     bool m_serviceAvailable = false;
-
+    DBusObjectRegistry &m_registry;
 };
 
 

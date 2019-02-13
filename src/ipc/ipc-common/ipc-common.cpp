@@ -50,7 +50,6 @@ QString IPCServiceAdapterBase::generateObjectPath(const QString &parentPath) con
     return path;
 }
 
-
 void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter)
 {
     Q_ASSERT(adapter);
@@ -63,6 +62,16 @@ void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceA
     }
 }
 
+void InterfaceManager::unregisterAdapter(NewIPCServiceAdapterBase *adapter) {
+    for (auto& key : m_registry.keys()) {
+        if (m_registry[key] == adapter) {
+            m_registry.remove(key);
+            emit adapterUnavailable(key, adapter);
+            qDebug() << "IPC service unregistered" << adapter;
+            break;
+        }
+    }
+}
 
 InterfaceBase * InterfaceManager::serviceMatches(const QString& objectPath, NewIPCServiceAdapterBase *adapter) {
     if (adapter->objectPath() == objectPath) {
@@ -71,7 +80,6 @@ InterfaceBase * InterfaceManager::serviceMatches(const QString& objectPath, NewI
         return nullptr;
     }
 }
-
 
 NewIPCServiceAdapterBase *InterfaceManager::getAdapter(const QString &objectPath)
 {
@@ -109,7 +117,6 @@ void IPCProxyBinderBase::onComponentCompleted()
     m_componentCompleted = true;
     checkInit();
 }
-
 
 IPCAdapterFactoryManager::IPCAdapterFactory IPCAdapterFactoryManager::getFactory(const QString &typeID) const
 {
@@ -177,7 +184,6 @@ InterfaceBase *IPCAttachedPropertyFactoryBase::getProvider(QObject *object)
 
     return provider;
 }
-
 
 void NotAvailableImplBase::logMethodCall(const InterfaceBase &i, const char *methodName)
 {

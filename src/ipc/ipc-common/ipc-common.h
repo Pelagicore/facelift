@@ -70,9 +70,13 @@ class FaceliftIPCLibLocal_EXPORT InterfaceManager : public QObject
 public:
     void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter);
 
+    void unregisterAdapter(NewIPCServiceAdapterBase *adapter);
+
     NewIPCServiceAdapterBase *getAdapter(const QString &objectPath);
 
     Q_SIGNAL void adapterAvailable(NewIPCServiceAdapterBase *adapter);
+
+    Q_SIGNAL void adapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter);
 
     static InterfaceManager &instance();
 
@@ -100,7 +104,7 @@ public:
         m_interfaceName = name;
     }
 
-    virtual void init() = 0;
+    virtual void registerService() = 0;
 
     virtual void connectSignals() = 0;
 
@@ -135,9 +139,7 @@ public:
         }
 
         auto serviceAdapter = new InterfaceAdapterType(service); // This object will be deleted together with the service itself
-        serviceAdapter->setObjectPath(this->generateObjectPath(this->objectPath()));
-        serviceAdapter->setService(service);
-        serviceAdapter->init();
+        serviceAdapter->registerService(this->generateObjectPath(this->objectPath()), service);
         m_subAdapters.append(serviceAdapter);
 
         return serviceAdapter;
@@ -757,6 +759,7 @@ struct IPCTypeRegisterHandler<QMap<QString, Type> >
     template<typename OwnerType>
     static void convertToDeserializedType(QMap<QString, Type> &v, const SerializedType &serializedValue, OwnerType &adapter)
     {
+        v.clear();
         for (const auto &key : serializedValue.keys()) {
             Type c;
             IPCTypeRegisterHandler<Type>::convertToDeserializedType(c, serializedValue[key], adapter);

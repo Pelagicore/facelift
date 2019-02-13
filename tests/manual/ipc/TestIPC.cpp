@@ -63,7 +63,7 @@ int main(int argc, char * *argv)
 
     TestInterfaceIPCAdapter ipcAdapter;
     ipcAdapter.setService(&i);
-    ipcAdapter.init();
+    ipcAdapter.registerService();
 
     TestInterfaceIPCProxy proxy;
     proxy.connectToServer();

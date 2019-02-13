@@ -41,7 +41,7 @@ class FaceliftModelLib_EXPORT ServiceWrapperBase
 protected:
     void addConnection(QMetaObject::Connection connection);
 
-    void reset();
+    void clearConnections();
 
     void setWrapped(InterfaceBase &wrapper, InterfaceBase *wrapped);
 
@@ -59,27 +59,17 @@ class ServiceWrapper : public WrappedType, public ServiceWrapperBase
 {
 
 public:
-    void setWrapped(WrappedType *wrapped)
-    {
-        if (wrapped != m_wrapped) {
-            facelift::ServiceWrapperBase::reset();
-            WrappedType *previouslyWrapped = m_wrapped;
-            m_wrapped = wrapped;
-            bind(wrapped, previouslyWrapped);
-            emit this->readyChanged();
-            facelift::ServiceWrapperBase::setWrapped(*this, m_wrapped);
-        }
-    }
-
     bool ready() const override
     {
         return wrapped()->ready();
     }
 
 protected:
-    ServiceWrapper(QObject *parent) : WrappedType(parent)
+    ServiceWrapper(QObject *parent = nullptr) : WrappedType(parent)
     {
     }
+
+    virtual void bind(WrappedType *wrapped, WrappedType *previouslyWrapped) = 0;
 
     WrappedType *wrapped() const
     {
@@ -87,9 +77,29 @@ protected:
         return m_wrapped.data();
     }
 
-    virtual void bind(WrappedType *wrapped, WrappedType *previouslyWrapped) = 0;
+    void setWrapped(WrappedType *wrapped)
+    {
+        if (wrapped != m_wrapped) {
+            WrappedType *previouslyWrapped = m_wrapped;
+            __clearConnections__();
+            m_wrapped = wrapped;
+            facelift::ServiceWrapperBase::setWrapped(*this, m_wrapped);
+            bind(wrapped, previouslyWrapped);
+            emit this->readyChanged();
+        }
+    }
 
 private:
+
+    /**
+     * Clear connections established to the currently wrapped object.
+     * The name of this method is chosen in order to prevent from overriding any of the base class methods
+     */
+    void __clearConnections__() {
+        if (m_wrapped)
+            clearConnections();
+    }
+
     QPointer<WrappedType> m_wrapped;
 
 };

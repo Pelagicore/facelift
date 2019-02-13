@@ -34,7 +34,7 @@ namespace facelift {
 
 void ServiceWrapperBase::setWrapped(InterfaceBase &wrapper, InterfaceBase *wrapped)
 {
-    qDebug() << "Wrapped type for" << &wrapper << "" << wrapper.interfaceID() << ":" << wrapped;
+    qDebug() << "Wrapped type for" << this << &wrapper << "" << wrapper.interfaceID() << ":" << wrapped;
 }
 
 void ServiceWrapperBase::addConnection(QMetaObject::Connection connection)
@@ -42,7 +42,7 @@ void ServiceWrapperBase::addConnection(QMetaObject::Connection connection)
     m_connections.append(connection);
 }
 
-void ServiceWrapperBase::reset()
+void ServiceWrapperBase::clearConnections()
 {
     for (const auto &connection : m_connections) {
         auto successfull = QObject::disconnect(connection);

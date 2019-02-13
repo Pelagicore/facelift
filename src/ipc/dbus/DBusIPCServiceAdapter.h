@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <QDBusVirtualObject>
+
 #include "ipc-dbus.h"
 #include "ipc-common/IPCServiceAdapterBase.h"
 
@@ -104,7 +106,9 @@ public:
 
     virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot);
 
-    void init();
+    void registerService();
+
+    void unregisterService();
 
     DBusManager &dbusManager()
     {
@@ -143,6 +147,8 @@ protected:
 template<typename ServiceType>
 class DBusIPCServiceAdapter : public DBusIPCServiceAdapterBase
 {
+    using DBusIPCServiceAdapterBase::registerService;
+
 public:
     typedef ServiceType TheServiceType;
 
@@ -151,14 +157,25 @@ public:
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
+    ~DBusIPCServiceAdapter() {
+        unregisterService();
+    }
+
+    void registerService(const QString& objectPath, ServiceType *service) {
+        setObjectPath(objectPath);
+        m_service = service;
+        this->registerService();
+    }
+
+    void unregisterService() {
+        DBusIPCServiceAdapterBase::unregisterService();
+        setObjectPath("");
+        m_service = nullptr;
+    }
+
     ServiceType *service() const override
     {
         return m_service;
-    }
-
-    void setService(ServiceType *service)
-    {
-        m_service = service;
     }
 
 protected:
