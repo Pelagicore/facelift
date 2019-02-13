@@ -48,6 +48,8 @@ class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
 public:
     static constexpr const char *SERVICE_NAME = "facelift.registry";
 
+    using Content = QMap<QString, QString>;
+
     class MasterImpl : public facelift::ipc::dbus::ObjectRegistryImplementationBase
     {
 
@@ -78,7 +80,7 @@ public:
 
     void unregisterObject(const QString &objectPath);
 
-    const QMap<QString, QString> &objects(bool blocking);
+    const Content &objects(bool blocking);
 
     Q_SIGNAL void objectsChanged();
 

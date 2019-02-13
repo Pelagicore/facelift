@@ -65,28 +65,28 @@ public:
     {% for property in interface.properties %}
 
     {% if property.type.is_model %}
-    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() override
+    facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() final override
     {
         return wrapped()->{{property.name}}();
     }
     {% elif property.type.is_list %}
-    const {{property.interfaceCppType}}& {{property}}() const override
+    const {{property.interfaceCppType}}& {{property}}() const final override
     {
         return wrapped()->{{property.name}}();
     }
     {% elif property.type.is_interface %}
-    {{property.interfaceCppType}} {{property}}() override
+    {{property.interfaceCppType}} {{property}}() final override
     {
         return wrapped()->{{property.name}}();
     }
     {% else %}
-    const {{property.interfaceCppType}} &{{property}}() const override
+    const {{property.interfaceCppType}} &{{property}}() const final override
     {
         return wrapped()->{{property.name}}();
     }
     {% endif %}
     {% if (not property.readonly) %}
-    void set{{property}}(const {{property.cppType}}& newValue) override
+    void set{{property}}(const {{property.cppType}}& newValue) final override
     {
         wrapped()->set{{property.name}}(newValue);
     }
@@ -99,7 +99,7 @@ public:
 
     {% if operation.isAsync %}
     void {{operation.name}}(
-        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} override {
+        {%- for parameter in operation.parameters -%}{{parameter.cppType}} {{parameter.name}}, {% endfor %}facelift::AsyncAnswer<{{operation.interfaceCppType}}> answer = facelift::AsyncAnswer<{{operation.interfaceCppType}}>()){% if operation.is_const %} const{% endif %} final override {
             return wrapped()->{{operation.name}}(
                     {%- for parameter in operation.parameters -%}
                     {{parameter.name}},
@@ -110,7 +110,7 @@ public:
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
         {{ comma() }}{{ parameter.cppType }} {{ parameter.name }}
-        {%- endfor -%}  ){% if operation.is_const %} const{% endif %} override
+        {%- endfor -%}  ){% if operation.is_const %} const{% endif %} final override
     {
         {% set comma = joiner(", ") %}
         return wrapped()->{{operation.name}}(

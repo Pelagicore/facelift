@@ -41,6 +41,7 @@
 #include <QDBusAbstractInterface>
 #include <QDBusInterface>
 #include <QDBusServiceWatcher>
+#include <QDBusPendingCallWatcher>
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
@@ -205,9 +206,7 @@ void DBusIPCServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage
 DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
 {
     emit destroyed(this);
-    if (m_alreadyInitialized) {
-        DBusManager::instance().objectRegistry().unregisterObject(objectPath());
-    }
+    unregisterService();
 }
 
 QString DBusIPCServiceAdapterBase::introspect(const QString &path) const
@@ -227,7 +226,16 @@ QString DBusIPCServiceAdapterBase::introspect(const QString &path) const
     return introspectionData;
 }
 
-void DBusIPCServiceAdapterBase::init()
+void DBusIPCServiceAdapterBase::unregisterService()
+{
+    if (m_alreadyInitialized) {
+        dbusManager().connection().unregisterObject(objectPath());
+        DBusManager::instance().objectRegistry().unregisterObject(objectPath());
+        m_alreadyInitialized = false;
+    }
+}
+
+void DBusIPCServiceAdapterBase::registerService()
 {
     if (!m_alreadyInitialized) {
         if (dbusManager().isDBusConnected()) {
@@ -318,58 +326,71 @@ void DBusIPCProxyBinder::requestPropertyValues()
     }
 }
 
-
-void DBusIPCProxyBinder::onServiceAvailable()
+void DBusIPCProxyBinder::onServiceNameKnown()
 {
+    auto successPropertyChangeSignal = connection().connect(m_serviceName,
+                    objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
+                    SLOT(onPropertiesChanged(const QDBusMessage&)));
+
+    auto successSignalTriggeredSignal = connection().connect(m_serviceName,
+                    objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
+                    SLOT(onSignalTriggered(const QDBusMessage&)));
+
+    m_busWatcher.addWatchedService(m_serviceName);
+    m_busWatcher.setConnection(connection());
+    QObject::connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, [this](){
+        requestPropertyValues();
+    });
+
     requestPropertyValues();
+}
+
+void DBusIPCProxyBinder::checkRegistry()
+{
+    auto registryObjects = m_registry.objects(isSynchronous());
+    if (registryObjects.contains(objectPath())) {
+        auto serviceName = registryObjects[objectPath()];
+        if (serviceName != m_serviceName) {
+            m_serviceName = serviceName;
+
+            if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
+                onServiceNameKnown();
+            }
+
+        }
+    } else {
+        m_serviceName.clear();
+
+        m_busWatcher.removeWatchedService(m_serviceName);
+
+        connection().disconnect(m_serviceName,
+                objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
+                SLOT(onPropertiesChanged(const QDBusMessage&)));
+
+
+        connection().disconnect(m_serviceName,
+                objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
+                SLOT(onSignalTriggered(const QDBusMessage&)));
+
+                setServiceAvailable(false);
+    }
 }
 
 void DBusIPCProxyBinder::bindToIPC()
 {
-    if (!m_explicitServiceName) {
+    if (m_explicitServiceName) {
+        onServiceNameKnown();
+    } else {
         auto &registry = DBusManager::instance().objectRegistry();
 
-        auto registryObjects = registry.objects(isSynchronous());
-        if (registryObjects.contains(objectPath())) {
-            m_serviceName = registryObjects[objectPath()];
+        if (isSynchronous()) {
+            registry.objects(true); // Read property value in a blocking way
         }
+        QObject::connect(&registry, &DBusObjectRegistry::objectsChanged, this, [this] () {
+            checkRegistry();
+        }, Qt::UniqueConnection);
 
-        QObject::connect(&registry, &DBusObjectRegistry::objectsChanged, this, [this, &registry] () {
-            auto registryObjects = registry.objects(isSynchronous());
-            if (registryObjects.contains(objectPath())) {
-                auto serviceName = registryObjects[objectPath()];
-                if (serviceName != m_serviceName) {
-                    m_serviceName = serviceName;
-                    bindToIPC();
-                }
-            } else {
-                m_serviceName.clear();
-            }
-        });
-
-    }
-
-    if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
-
-        qDebug() << "Initializing IPC proxy. objectPath:" << objectPath() << "Service name:" << m_serviceName;
-
-        m_busWatcher.addWatchedService(m_serviceName);
-        m_busWatcher.setConnection(connection());
-        QObject::connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, &DBusIPCProxyBinder::onServiceAvailable);
-
-        auto successPropertyChangeSignal =
-                connection().connect(m_serviceName,
-                        objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
-                        SLOT(onPropertiesChanged(const QDBusMessage&)));
-        Q_ASSERT(successPropertyChangeSignal);
-
-        auto successSignalTriggeredSignal =
-                connection().connect(m_serviceName,
-                        objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
-                        SLOT(onSignalTriggered(const QDBusMessage&)));
-        Q_ASSERT(successSignalTriggeredSignal);
-
-        requestPropertyValues();
+        checkRegistry();
     }
 
 }

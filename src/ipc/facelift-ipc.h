@@ -51,14 +51,20 @@ public:
         return m_service;
     }
 
-    void init() override
+    void registerService() override
     {
         registerLocalService();
-
 #ifdef DBUS_IPC_ENABLED
-        m_ipcAdapter.setObjectPath(objectPath());
-        m_ipcAdapter.setService(m_service);
-        m_ipcAdapter.init();
+        m_ipcAdapter.reset(new IPCDBusAdapterType());
+        m_ipcAdapter->registerService(objectPath(), m_service);
+#endif
+    }
+
+    void unregisterService() override
+    {
+        unregisterLocalService();
+#ifdef DBUS_IPC_ENABLED
+        m_ipcAdapter.reset();
 #endif
     }
 
@@ -72,7 +78,7 @@ private:
 
 #ifdef DBUS_IPC_ENABLED
     using IPCDBusAdapterType = typename InterfaceType::IPCDBusAdapterType;
-    IPCDBusAdapterType m_ipcAdapter;
+    std::unique_ptr<IPCDBusAdapterType> m_ipcAdapter;
 #endif
 
 };

@@ -45,8 +45,6 @@ namespace facelift {
 namespace dbus {
 
 
-
-
 template<>
 struct IPCTypeHandler<float>
 {

@@ -95,9 +95,7 @@ const QMap<QString, QString> &DBusObjectRegistry::objects(bool blocking)
 
 void DBusObjectRegistry::MasterImpl::init()
 {
-    m_objectRegistryAdapter.setService(this);
-    m_objectRegistryAdapter.setObjectPath(facelift::ipc::dbus::ObjectRegistry::SINGLETON_OBJECT_PATH);
-    m_objectRegistryAdapter.init();
+    m_objectRegistryAdapter.registerService(facelift::ipc::dbus::ObjectRegistry::SINGLETON_OBJECT_PATH, this);
 }
 
 bool DBusObjectRegistry::MasterImpl::registerObject(QString objectPath, QString serviceName)

@@ -55,7 +55,9 @@ public:
     {
     }
 
-    virtual void init() = 0;
+    virtual void registerService() = 0;
+
+    virtual void unregisterService() = 0;
 
     template<typename ServiceType>
     ServiceType *bindToProvider(QObject *s)
@@ -95,6 +97,11 @@ public:
         InterfaceManager::instance().registerAdapter(objectPath(), this);
     }
 
+    void unregisterLocalService()
+    {
+        InterfaceManager::instance().unregisterAdapter(this);
+    }
+
     virtual void setService(QObject *service) = 0;
 
     void checkedSetService(QObject *service)
@@ -124,7 +131,15 @@ public:
     void onValueChanged()
     {
         if (isReady()) {
-            init();
+            if (!m_registered) {
+                registerService();
+                m_registered = true;
+            }
+        } else {
+            if (m_registered) {
+                unregisterService();
+                m_registered = false;
+            }
         }
     }
 
@@ -139,7 +154,7 @@ private:
     QString m_objectPath;
     bool m_enabled = true;
     bool m_providerReady = false;
-
+    bool m_registered = false;
 };
 
 

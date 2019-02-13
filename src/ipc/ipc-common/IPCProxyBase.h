@@ -71,21 +71,33 @@ class LocalProviderBinder : public QObject
 public:
     LocalProviderBinder(IPCProxyNewBase &proxy) : m_proxy(proxy)
     {
-        QObject::connect(&InterfaceManager::instance(), &InterfaceManager::adapterAvailable, this,
+        QObject::connect(&m_interfaceManager, &InterfaceManager::adapterAvailable, this,
                 &LocalProviderBinder::onLocalAdapterAvailable);
+        QObject::connect(&m_interfaceManager, &InterfaceManager::adapterUnavailable, this,
+                &LocalProviderBinder::onLocalAdapterUnavailable);
     }
 
     void init()
     {
-        auto localAdapter = InterfaceManager::instance().getAdapter(m_proxy.objectPath());
+        auto localAdapter = m_interfaceManager.getAdapter(m_proxy.objectPath());
         if (localAdapter) {
             onLocalAdapterAvailable(localAdapter);
         }
     }
 
+    void onLocalAdapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter)
+    {
+        Q_UNUSED(objectPath);
+        auto service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
+        if (service) {
+            m_provider = nullptr;
+            m_proxy.refreshProvider();
+        }
+    }
+
     void onLocalAdapterAvailable(NewIPCServiceAdapterBase *adapter)
     {
-        auto service = InterfaceManager::instance().serviceMatches(m_proxy.objectPath(), adapter);
+        auto service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
         if (service) {
             auto provider = qobject_cast<InterfaceType *>(service);
             m_provider = provider;
@@ -104,6 +116,7 @@ public:
 private:
     QPointer<InterfaceType> m_provider;
     IPCProxyNewBase &m_proxy;
+    InterfaceManager &m_interfaceManager = InterfaceManager::instance();
 };
 
 

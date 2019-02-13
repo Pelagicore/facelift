@@ -42,16 +42,6 @@
 
 #include <QDBusConnection>
 #include <QDBusMessage>
-#include <QDBusVirtualObject>
-#include <QDBusAbstractInterface>
-#include <QDBusInterface>
-#include <QDBusServiceWatcher>
-#include <QDBusContext>
-#include <QDataStream>
-#include <QByteArray>
-#include <QDBusPendingReply>
-#include <QDBusPendingCallWatcher>
-
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
