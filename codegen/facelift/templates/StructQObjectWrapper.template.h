@@ -69,8 +69,14 @@ public:
         return {{struct.fullyQualifiedCppType}}::CLASS_ID;
     }
 
+{% if struct.isQObjectWrapperDeprecated %}
+    [[deprecated("QFace definition of structure '{{struct.qualified_name}}' is missing '@qml-component: true' annotation. This type will not be created anymore in the next version of Facelift.")]]
+{% endif %}
     {{struct.name}}QObjectWrapper(QObject* parent = nullptr);
 
+{% if struct.isQObjectWrapperDeprecated %}
+    [[deprecated("QFace definition of structure '{{struct.qualified_name}}' is missing '@qml-component: true' annotation. This type will not be created anymore in the next version of Facelift.")]]
+{% endif %}
     {{struct.name}}QObjectWrapper(const {{struct.name}}& value, QObject* parent = nullptr);
 
     void init();
