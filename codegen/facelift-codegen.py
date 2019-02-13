@@ -258,7 +258,12 @@ def isSerializable(self):
 def isQObjectWrapperEnabled(self):
     if self.tags.get('qml-component'):
         return True
-    return generateAll
+    return True   # Only mark deprecated for now
+
+def isQObjectWrapperDeprecated(self):
+    if self.tags.get('qml-component'):
+        return False
+    return True
 
 def verifyStruct(self):
     blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
@@ -342,6 +347,7 @@ setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
 setattr(qface.idl.domain.Struct, 'verifyStruct', property(verifyStruct))
 setattr(qface.idl.domain.Struct, 'isSerializable', property(isSerializable))
 setattr(qface.idl.domain.Struct, 'isQObjectWrapperEnabled', property(isQObjectWrapperEnabled))
+setattr(qface.idl.domain.Struct, 'isQObjectWrapperDeprecated', property(isQObjectWrapperDeprecated))
 
 def hasReturnValue(self):
     return not self.type.name == 'void'
