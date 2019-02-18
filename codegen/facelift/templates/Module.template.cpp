@@ -79,23 +79,21 @@ Module::Module() : facelift::ModuleBase()
 
 void Module::registerTypes()
 {
-#ifndef NDEBUG
     static bool alreadyRegistered = false;
-    if (alreadyRegistered)
-        qWarning() << "Types from facelift module \"{{module.name}}\" already registered. Do not call registerTypes() explicitly";
-    alreadyRegistered = true;
-#endif
+    if (!alreadyRegistered) {
+        alreadyRegistered = true;
 
-    {% for enum in module.enums %}
-    facelift::qRegisterMetaType<{{enum.fullyQualifiedCppType}}>();
-    {% endfor %}
-    {% for struct in module.structs %}
-    qRegisterMetaType<{{struct.fullyQualifiedCppType}}>();
-    {% endfor %}
+        {% for enum in module.enums %}
+        facelift::qRegisterMetaType<{{enum.fullyQualifiedCppType}}>();
+        {% endfor %}
+        {% for struct in module.structs %}
+        qRegisterMetaType<{{struct.fullyQualifiedCppType}}>();
+        {% endfor %}
 
-#ifdef ENABLE_DESKTOP_TOOLS
-    ModuleMonitor::registerTypes();
-#endif
+    #ifdef ENABLE_DESKTOP_TOOLS
+        ModuleMonitor::registerTypes();
+    #endif
+    }
 }
 
 

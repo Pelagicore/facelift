@@ -129,7 +129,7 @@ IPCAdapterFactoryManager::IPCAdapterFactory IPCAdapterFactoryManager::getFactory
 
 void IPCAdapterFactoryManager::registerType(const QString &typeID, IPCAdapterFactory f) {
     if (m_factories.contains(typeID)) {
-        qWarning() << "IPC type already registered" << typeID;
+        qDebug() << "IPC type already registered" << typeID;
     } else {
         m_factories.insert(typeID, f);
     }
