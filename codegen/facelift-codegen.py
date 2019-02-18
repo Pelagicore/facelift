@@ -358,8 +358,11 @@ setattr(qface.idl.domain.Operation, 'hasReturnValue', property(hasReturnValue))
 
 def generateFile(generator, outputPath, templatePath, context, libraryName, libraryType):
     if libraryName:
-        context.update({'classExportDefines': classExportDefines(libraryName + "_" + libraryType)})
-        context.update({'classExport': classExport(libraryName + "_" + libraryType)})
+        name = libraryName
+        if libraryType:
+            name = libraryName + "_" + libraryType
+        context.update({'classExportDefines': classExportDefines(name)})
+        context.update({'classExport': classExport(name)})
     else:
         context.update({'classExportDefines': ""})
         context.update({'classExport': ""})
@@ -391,9 +394,9 @@ def run_generation(input, output, dependency, libraryName, all):
             module_path = '/'.join(module.name_parts)
             log.debug('process module %s' % module.module_name)
             ctx.update({'path': module_path})
-            generateFile(generator, 'module/{{path}}/ModulePrivate.h', 'ModulePrivate.template.h', ctx, libraryName, "types")
-            generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "types")
-            generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "types")
+            generateFile(generator, 'module/{{path}}/ModulePrivate.h', 'ModulePrivate.template.h', ctx, libraryName, "")
+            generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "")
+            generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "ipc")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx, libraryName, "ipc")
             generateFile(generator, 'devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx, libraryName, "desktop_dev_tools")
