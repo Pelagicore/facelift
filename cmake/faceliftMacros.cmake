@@ -214,7 +214,7 @@ function(facelift_generate_code )
     file(REMOVE_RECURSE ${WORK_PATH})
 
     # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
-    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
+    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*.qface)
     file(GLOB_RECURSE CODEGEN_FILES ${CODEGEN_LOCATION}/*)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_FILES};${QFACE_FILES}")
 
@@ -307,7 +307,7 @@ function(facelift_add_interface TARGET_NAME)
     set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "${MODULE_COMPILE_DEFINITIONS}")
 
     # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
-    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*)
+    file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*.qface)
     target_sources(${LIBRARY_NAME} PRIVATE ${QFACE_FILES})
 
 endfunction()
