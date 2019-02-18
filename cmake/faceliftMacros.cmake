@@ -304,7 +304,7 @@ function(facelift_add_interface TARGET_NAME)
         endif()
     endif()
 
-    set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "${MODULE_COMPILE_DEFINITIONS}")
+    target_compile_definitions(${LIBRARY_NAME} PRIVATE "${MODULE_COMPILE_DEFINITIONS}")
 
     # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
     file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*.qface)
@@ -705,12 +705,10 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
 
     get_target_property(TARGET_TYPE ${PLUGIN_NAME} TYPE)
     if (TARGET_TYPE STREQUAL "STATIC_LIBRARY")
-        set_directory_properties(PROPERTIES COMPILE_DEFINITIONS QT_STATICPLUGIN)
+        target_compile_definitions(${PLUGIN_NAME} PRIVATE QT_STATICPLUGIN)
     endif ()
 
-    set_target_properties(${PLUGIN_NAME} PROPERTIES
-        COMPILE_DEFINITIONS "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}"
-    )
+    target_compile_definitions(${PLUGIN_NAME} PRIVATE "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}")
 
     set(INSTALL_PATH ${ARGUMENT_OUTPUT_BASE_DIRECTORY}/${PLUGIN_PATH})
 
