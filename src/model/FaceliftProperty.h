@@ -59,10 +59,8 @@ public:
     }
 
     template<typename ServiceType>
-    void init(QObject *ownerObject, void (ServiceType::*changeSignal)(), void (ServiceType::*readySignal)(),
-            const char *name = "Unknown")
+    void setReadyChangedSlot(void (ServiceType::*readySignal)())
     {
-        init(ownerObject, changeSignal, name);
         m_readySignal = static_cast<ChangeSignal>(readySignal);
     }
 

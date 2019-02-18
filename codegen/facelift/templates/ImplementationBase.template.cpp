@@ -35,6 +35,7 @@
 
 #include "{{interfaceName}}ImplementationBase.h"
 #include "FaceliftConversion.h"
+#include "FaceliftImplementationBase.h"
 
 {{module.namespaceCppOpen}}
 
@@ -42,12 +43,16 @@
 {
     m_ready.init(this, &ThisType::readyChanged, "ready");
 
+    facelift::PropertyInit::initProperties(this, {
+    {% for property in interface.properties %}
+        facelift::PropertyInit { m_{{property.name}}, static_cast<facelift::PropertyInit::ChangeSignal>(&ThisType::{{property.name}}Changed), "{{property.name}}" },
+    {% endfor %}
+    });
+
     {% for property in interface.properties %}
     {% if property.tags.hasReadyFlag %}
-    m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, &ThisType::readyFlagsChanged, "{{property.name}}");
+    m_{{property.name}}.setReadyChangedSlot(&ThisType::readyFlagsChanged);
     m_readyFlags.m_{{property.name}} = &m_{{property.name}}.isReady();
-    {% else %}
-    m_{{property.name}}.init(this, &ThisType::{{property.name}}Changed, "{{property.name}}");
     {% endif %}
     {% endfor %}
 }
