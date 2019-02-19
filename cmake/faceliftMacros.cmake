@@ -1,9 +1,21 @@
 
 option(IGNORE_AUTO_UNITY_BUILD "Disable unity build even if AUTO_UNITY_BUILD option is ON" OFF)
 option(DISABLE_UNITY_BUILD "Completely disable unity build" OFF)
+option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
+
+if(ENABLE_LTO)
+    cmake_minimum_required(VERSION 3.9.0)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT IPO_AVAILABLE)
+    if (IPO_AVAILABLE)
+        message("Using LTO linker")
+    else()
+        message(FATAL_ERROR "Link Time Optimization is requested but it is not available on this build toolchain")
+    endif()
+endif()
 
 function(facelift_add_unity_files TARGET_NAME VAR_NAME)
     set(FILE_INDEX "0")
@@ -451,7 +463,10 @@ function(facelift_add_library TARGET_NAME)
         if(${ARGUMENT_SHARED})
             set(LIBRARY_TYPE SHARED)
         endif()
-    add_library(${TARGET_NAME} ${LIBRARY_TYPE} ${ALL_SOURCES})
+        add_library(${TARGET_NAME} ${LIBRARY_TYPE} ${ALL_SOURCES})
+        if(ENABLE_LTO)
+           set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        endif()
     endif()
 
     if (NOT ${ARGUMENT_NO_INSTALL})
