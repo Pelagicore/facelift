@@ -94,9 +94,9 @@ void {{className}}::deserializeSignal(::facelift::dbus::DBusIPCMessage &msg)
     SignalID member;
     deserializeValue(msg, member);
 
-    switch (member) {
     {% for event in interface.signals %}
-    case SignalID::{{event}}: {
+    if (member == SignalID::{{event}})
+    {
         {% for parameter in event.parameters %}
         {{parameter.interfaceCppType}} param_{{parameter.name}};
         deserializeValue(msg, param_{{parameter.name}});
@@ -106,22 +106,18 @@ void {{className}}::deserializeSignal(::facelift::dbus::DBusIPCMessage &msg)
         {%- for parameter in event.parameters -%}
             {{ comma() }}param_{{parameter.name}}
         {%- endfor -%}  );
-    }    break;
-
+    } else
     {% endfor %}
     {% for property in interface.properties %}
-    case SignalID::{{property.name}}:
+    if (member == SignalID::{{property.name}}) {
     {% if property.type.is_model %}
         m_{{property.name}}.handleSignal(msg);
     {% else %}
         emit {{property.name}}Changed();
     {% endif %}
-        break;
+    } else
     {% endfor %}
-    default :
         BaseType::deserializeCommonSignal(static_cast<facelift::CommonSignalID>(member));
-        break;
-    }
 }
 
 {% for property in interface.properties %}
