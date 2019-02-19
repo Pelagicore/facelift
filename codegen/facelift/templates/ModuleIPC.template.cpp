@@ -34,6 +34,7 @@
 ****************************************************************************/
 
 #include "ModuleIPC.h"
+#include "ipc-common/ModuleIPCBase.h"
 #include "facelift-ipc.h"
 
 {% for interface in module.interfaces %}
@@ -74,10 +75,7 @@ void ModuleIPC::registerQmlTypes(const char* uri, int majorVersion, int minorVer
 
     {% endfor %}
 
-    qmlRegisterUncreatableType<facelift::IPCProxyBinderBase>(uri, majorVersion, minorVersion, "IPCProxyBinder",
-                                                 QStringLiteral("Cannot create objects of type IPCProxyBinder"));
-    qmlRegisterUncreatableType<facelift::IPCAttachedPropertyFactory>(uri, majorVersion, minorVersion, "IPC",
-                                       QStringLiteral("IPCBroker is only available via attached properties"));
+    facelift::ModuleIPCBase::registerQmlTypes(uri, majorVersion, minorVersion);
 }
 
 {{module.namespaceCppClose}}
