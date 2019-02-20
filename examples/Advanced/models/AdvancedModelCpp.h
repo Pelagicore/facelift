@@ -39,6 +39,8 @@ class AdvancedModelImplementation : public AdvancedModelImplementationBase
 {
     Q_OBJECT
 
+    static constexpr int INVALID_INDEX = -1;
+
 public:
     AdvancedModelImplementation(QObject *parent = nullptr) :
         AdvancedModelImplementationBase(parent)
@@ -51,16 +53,15 @@ public:
 
         m_theModel.beginResetModel();
 
-        m_renamedItems.clear();
+        m_nextAvailableID = 0;
         m_items.clear();
 
         int count = qrand() % 1000;
 
         int i = 0;
-        for (; i < count; i++)
-            m_items.append(i);
-
-        m_nextAvailableID = i;
+        for (; i < count; i++) {
+            m_items.append(newElement());
+        }
 
         m_theModel.reset(m_items.size(), std::bind(&AdvancedModelImplementation::getItem, this, std::placeholders::_1));
         m_theModel.endResetModel();
@@ -69,21 +70,45 @@ public:
     MyStruct getItem(int index)
     {
         qWarning() << "Get item at" << index;
-        const auto &itemId = m_items[index];
-        MyStruct entry;
-        QString s = "entry ";
-        s += QString::number(itemId);
-        entry.setname(m_renamedItems.contains(itemId) ? m_renamedItems[itemId] : s);
-        entry.setenabled((itemId % 2) == 0);
-        entry.setId(itemId);
-        return entry;
+        return m_items[index];
+    }
+
+    int getItemIndexById(int id) const {
+        for (int i = 0; i< m_items.size(); i++) {
+            if (m_items[i].id() == id) {
+                return i;
+            }
+        }
+        return INVALID_INDEX;
+    }
+
+    void moveItemDown(MyStruct item) override {
+        qWarning() << "Deleting" << item;
+        auto index = getItemIndexById(item.id());
+        if ((index != INVALID_INDEX) && (index < m_items.size() - 1)) {
+            emit m_theModel.beginMoveElements(index, index, index + 2);
+            std::swap(m_items[index], m_items[index+1]);
+            emit m_theModel.endMoveElements();
+            qWarning() << "Moved down" << item;
+        }
+    }
+
+    void moveItemUp(MyStruct item) override {
+        qWarning() << "Deleting" << item;
+        auto index = getItemIndexById(item.id());
+        if ((index != INVALID_INDEX) && (index > 0)) {
+            emit m_theModel.beginMoveElements(index, index, index - 1);
+            std::swap(m_items[index], m_items[index-1]);
+            emit m_theModel.endMoveElements();
+            qWarning() << "Moved up" << item;
+        }
     }
 
     void deleteModelItem(MyStruct item) override
     {
         qWarning() << "Deleting" << item;
-        auto index = m_items.indexOf(item.id());
-        if (index != -1) {
+        auto index = getItemIndexById(item.id());
+        if (index != INVALID_INDEX) {
             emit m_theModel.beginRemoveElements(index, index);
             m_items.remove(index);
             emit m_theModel.endRemoveElements();
@@ -91,13 +116,20 @@ public:
         }
     }
 
+    MyStruct newElement() {
+        MyStruct s;
+        s.setId(m_nextAvailableID++);
+        s.setname(QString("entry %1").arg(s.id()));
+        return s;
+    }
+
     void insertNewModelItemAfter(MyStruct item) override
     {
         qWarning() << "inserting" << item;
-        auto index = m_items.indexOf(item.id());
-        if (index != -1) {
+        auto index = getItemIndexById(item.id());
+        if (index != INVALID_INDEX) {
             emit m_theModel.beginInsertElements(index, index);
-            m_items.insert(index, m_nextAvailableID++);
+            m_items.insert(index, newElement());
             emit m_theModel.endInsertElements();
             qWarning() << "Duplicated" << item;
         }
@@ -106,17 +138,16 @@ public:
     void renameModelItem(MyStruct item, QString name) override
     {
         qWarning() << "Renaming" << item;
-        auto elementId = item.id();
-        m_renamedItems[elementId] = name;
-        auto index = m_items.indexOf(elementId);
-        if (index != -1) {
+        auto index = getItemIndexById(item.id());
+
+        if (index != INVALID_INDEX) {
+            m_items[index].setname(name);
             emit m_theModel.dataChanged(index);
-            qWarning() << "Renamed" << item << m_renamedItems << "index" << index;
+            qWarning() << "Renamed" << item << "at index" << index;
         }
     }
 
 private:
-    QVector<int> m_items;
-    QMap<int, QString> m_renamedItems;
     int m_nextAvailableID = 0;
+    QVector<MyStruct> m_items;
 };

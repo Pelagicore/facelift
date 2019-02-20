@@ -98,6 +98,8 @@ void ModelListModelBase::setModelProperty(facelift::ModelBase &property)
     QObject::connect(m_property, &facelift::ModelBase::endInsertElements, this, &ModelListModelBase::onEndInsertElements);
     QObject::connect(m_property, &facelift::ModelBase::beginRemoveElements, this, &ModelListModelBase::onBeginRemoveElements);
     QObject::connect(m_property, &facelift::ModelBase::endRemoveElements, this, &ModelListModelBase::onEndRemoveElements);
+    QObject::connect(m_property, &facelift::ModelBase::beginMoveElements, this, &ModelListModelBase::onBeginMoveElements);
+    QObject::connect(m_property, &facelift::ModelBase::endMoveElements, this, &ModelListModelBase::onEndMoveElements);
     QObject::connect(m_property, &facelift::ModelBase::beginResetModel, this, &ModelListModelBase::onBeginResetModel);
     QObject::connect(m_property, &facelift::ModelBase::endResetModel, this, &ModelListModelBase::onEndResetModel);
     QObject::connect(m_property, static_cast<void (facelift::ModelBase::*)(int, int)>(&facelift::ModelBase::dataChanged), this,
@@ -114,6 +116,18 @@ void ModelListModelBase::onBeginResetModel()
 void ModelListModelBase::onEndResetModel()
 {
     endResetModel();
+}
+
+void ModelListModelBase::onBeginMoveElements(int sourceFirstIndex, int sourceLastIndex, int destinationIndex)
+{
+    auto isOK = beginMoveRows(QModelIndex(), sourceFirstIndex, sourceLastIndex, QModelIndex(), destinationIndex);
+    if (!isOK)
+        qFatal("Invalid move operation");
+}
+
+void ModelListModelBase::onEndMoveElements()
+{
+    endMoveRows();
 }
 
 void ModelListModelBase::onBeginInsertElements(int first, int last)
