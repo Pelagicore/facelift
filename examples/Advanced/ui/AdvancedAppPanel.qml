@@ -126,6 +126,37 @@ Item {
                             onClicked: advancedModel.deleteModelItem(modelData);
                         }
                     }
+
+                    Rectangle {
+                        width: 60
+                        height: parent.height
+                        color: "blue"
+
+                        Text {
+                            text: "Move down"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: advancedModel.moveItemDown(modelData);
+                        }
+                    }
+
+                    Rectangle {
+                        width: 60
+                        height: parent.height
+                        color: "yellow"
+
+                        Text {
+                            text: "Move up"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: advancedModel.moveItemUp(modelData);
+                        }
+                    }
+
                 }
             }
         }

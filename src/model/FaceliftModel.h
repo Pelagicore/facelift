@@ -169,20 +169,57 @@ public:
 
     ModelBase();
 
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#dataChanged
+     */
     Q_SIGNAL void dataChanged(int first, int last);
 
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#dataChanged
+     */
     void dataChanged(int index)
     {
         dataChanged(index, index);
     }
 
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#beginInsertRows
+     */
     Q_SIGNAL void beginInsertElements(int first, int last);
+
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#beginRemoveRows
+     */
     Q_SIGNAL void beginRemoveElements(int first, int last);
 
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#beginMoveRows
+     */
+    Q_SIGNAL void beginMoveElements(int sourceFirst, int sourceLast, int destinationRow);
+
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#endMoveRows
+     */
+    Q_SIGNAL void endMoveElements();
+
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#endInsertRows
+     */
     Q_SIGNAL void endInsertElements();
+
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#endRemoveRows
+     */
     Q_SIGNAL void endRemoveElements();
 
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#beginResetModel
+     */
     Q_SIGNAL void beginResetModel();
+
+    /**
+     * See https://doc.qt.io/qt-5/qabstractitemmodel.html#endResetModel
+     */
     Q_SIGNAL void endResetModel();
 
     Q_SIGNAL void elementCountChanged();
@@ -200,8 +237,6 @@ protected:
         m_size = size;
     }
 
-    bool m_resettingModel = false;
-
 private:
     void onModelChanged();
     void applyNewSize();
@@ -209,6 +244,9 @@ private:
     int m_size = 0;
     int m_previousElementCount = 0;
     int m_pendingSize = -1;
+
+protected:
+    bool m_resettingModel = false;
 
 };
 

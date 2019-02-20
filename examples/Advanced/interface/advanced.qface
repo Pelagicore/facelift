@@ -32,12 +32,13 @@ module advanced 1.0
 
 struct MyStruct {
     string name
-    bool enabled
 }
 
 @ipc-sync: true
 interface AdvancedModel {
     readonly model<MyStruct> theModel;
+    void moveItemUp(MyStruct item);
+    void moveItemDown(MyStruct item);
     void deleteModelItem(MyStruct item);
     void insertNewModelItemAfter(MyStruct item);
     void renameModelItem(MyStruct item, string name);

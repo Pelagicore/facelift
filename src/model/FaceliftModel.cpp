@@ -84,6 +84,8 @@ void ModelBase::bindOtherModel(facelift::ModelBase *otherModel) {
     QObject::connect(otherModel, &facelift::ModelBase::endInsertElements, this, &facelift::ModelBase::endInsertElements);
     QObject::connect(otherModel, &facelift::ModelBase::beginRemoveElements, this, &facelift::ModelBase::beginRemoveElements);
     QObject::connect(otherModel, &facelift::ModelBase::endRemoveElements, this, &facelift::ModelBase::endRemoveElements);
+    QObject::connect(otherModel, &facelift::ModelBase::beginMoveElements, this, &facelift::ModelBase::beginMoveElements);
+    QObject::connect(otherModel, &facelift::ModelBase::endMoveElements, this, &facelift::ModelBase::endMoveElements);
     QObject::connect(otherModel, &facelift::ModelBase::beginResetModel, this, &facelift::ModelBase::beginResetModel);
     QObject::connect(otherModel, &facelift::ModelBase::endResetModel, this, [this, otherModel] () {
         setSize(otherModel->size());

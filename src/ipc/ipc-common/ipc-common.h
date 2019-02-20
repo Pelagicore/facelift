@@ -386,6 +386,7 @@ enum class ModelUpdateEvent {
     DataChanged,
     Insert,
     Remove,
+    Move,
     Reset
 };
 
@@ -421,6 +422,20 @@ public:
             m_adapter.sendSignal(signalID, ModelUpdateEvent::Remove, m_removeFirst, m_removeLast);
             m_removeFirst = UNDEFINED;
             m_removeLast = UNDEFINED;
+        });
+        QObject::connect(m_model, &facelift::ModelBase::beginMoveElements, &m_adapter, [this] (int sourceFirstIndex, int sourceLastIndex, int destinationIndex) {
+            m_moveSourceFirstIndex = sourceFirstIndex;
+            m_moveSourceLastIndex = sourceLastIndex;
+            m_moveDestinationIndex = destinationIndex;
+        });
+        QObject::connect(m_model, &facelift::ModelBase::endMoveElements, &m_adapter, [this, signalID] () {
+            Q_ASSERT(m_moveSourceFirstIndex != UNDEFINED);
+            Q_ASSERT(m_moveSourceLastIndex != UNDEFINED);
+            Q_ASSERT(m_moveDestinationIndex != UNDEFINED);
+            m_adapter.sendSignal(signalID, ModelUpdateEvent::Move, m_moveSourceFirstIndex, m_moveSourceLastIndex, m_moveDestinationIndex);
+            m_moveSourceFirstIndex = UNDEFINED;
+            m_moveSourceLastIndex = UNDEFINED;
+            m_moveDestinationIndex = UNDEFINED;
         });
         QObject::connect(m_model, &facelift::ModelBase::beginInsertElements, &m_adapter, [this] (int first, int last) {
             m_insertFirst = first;
@@ -470,6 +485,9 @@ private:
     int m_removeLast = UNDEFINED;
     int m_insertFirst = UNDEFINED;
     int m_insertLast = UNDEFINED;
+    int m_moveSourceFirstIndex = UNDEFINED;
+    int m_moveSourceLastIndex = UNDEFINED;
+    int m_moveDestinationIndex = UNDEFINED;
     bool m_resettingModel = false;
 };
 
@@ -524,6 +542,17 @@ public:
             emit this->beginRemoveElements(first, last);
             m_cache.clear(); // TODO: remove elements from cache without clear()
             emit this->endRemoveElements();
+        } break;
+
+        case ModelUpdateEvent::Move:
+        {
+            int sourceFirstIndex, sourceLastIndex, destinationIndex;
+            m_proxy.deserializeValue(msg, sourceFirstIndex);
+            m_proxy.deserializeValue(msg, sourceLastIndex);
+            m_proxy.deserializeValue(msg, destinationIndex);
+            emit this->beginMoveElements(sourceFirstIndex, sourceLastIndex, destinationIndex);
+            m_cache.clear(); // TODO: move elements in cache without clear()
+            emit this->endMoveElements();
         } break;
 
         case ModelUpdateEvent::Reset:

@@ -281,6 +281,10 @@ private:
 
     void onEndInsertElements();
 
+    void onBeginMoveElements(int sourceFirstIndex, int sourceLastIndex, int destinationIndex);
+
+    void onEndMoveElements();
+
     void onBeginRemoveElements(int first, int last);
 
     void onEndRemoveElements();
