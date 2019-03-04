@@ -46,6 +46,10 @@ public:
         setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
     }
 
+    ~IPCServiceAdapter() {
+        unregisterLocalService();
+    }
+
     InterfaceBase *service() const override
     {
         return m_service;
