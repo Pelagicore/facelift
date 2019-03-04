@@ -45,8 +45,7 @@ void ServiceWrapperBase::addConnection(QMetaObject::Connection connection)
 void ServiceWrapperBase::clearConnections()
 {
     for (const auto &connection : m_connections) {
-        auto successfull = QObject::disconnect(connection);
-        Q_ASSERT(successfull);
+        QObject::disconnect(connection);
     }
     m_connections.clear();
 }
