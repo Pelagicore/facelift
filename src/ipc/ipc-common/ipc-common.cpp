@@ -187,12 +187,12 @@ InterfaceBase *IPCAttachedPropertyFactoryBase::getProvider(QObject *object)
 
 void NotAvailableImplBase::logMethodCall(const InterfaceBase &i, const char *methodName)
 {
-    qCritical() << "Can not call method" << methodName << "(...) on IPC proxy for interface" << i.interfaceID() << ". Make sure that the corresponding server is registered";
+    qCritical().nospace().noquote() << "Can not call method \"" << methodName << "(...)\" on IPC proxy for interface \"" << i.interfaceID() << "\". Make sure that the corresponding server is registered";
 }
 
 void NotAvailableImplBase::logSetterCall(const InterfaceBase &i, const char *propertyName)
 {
-    qCritical() << "Can not call setter of property" << propertyName << "on IPC proxy for interface" << i.interfaceID() << ". Make sure that the corresponding server is registered";
+    qCritical().nospace().noquote() << "Can not call setter of property \"" << propertyName << "\" on IPC proxy for interface \"" << i.interfaceID() << "\". Make sure that the corresponding server is registered";
 }
 
 void NotAvailableImplBase::logGetterCall(const InterfaceBase &i, const char *propertyName)
