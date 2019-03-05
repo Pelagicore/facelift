@@ -258,7 +258,7 @@ def isSerializable(self):
 def isQObjectWrapperEnabled(self):
     if self.tags.get('qml-component'):
         return True
-    return True   # Only mark deprecated for now
+    return False
 
 def isQObjectWrapperDeprecated(self):
     if self.tags.get('qml-component'):
