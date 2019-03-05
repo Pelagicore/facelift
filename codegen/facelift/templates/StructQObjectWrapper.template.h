@@ -128,10 +128,6 @@ public:
 
     {% endif %}
 
-    /**
-     * This signal is triggered when one of the fields is changed
-     */
-//    Q_SIGNAL void anyFieldChanged();
 };
 
 {{module.namespaceCppClose}}
