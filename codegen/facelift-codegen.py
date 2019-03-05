@@ -33,21 +33,16 @@
 import click
 from qface.generator import FileSystem, Generator
 from path import Path
-import logging
 import logging.config
 import yaml
 import qface
-import pdb
 
 here = Path(__file__).dirname()
 
-logging.config.dictConfig(yaml.load(open(here / 'facelift/facelift-log.yaml')))
+logging.config.dictConfig(yaml.load(open(here / 'facelift' / 'facelift-log.yaml')))
 log = logging.getLogger(__name__)
 
-global generateAsyncProxy
 generateAsyncProxy = False
-
-global generateAll
 generateAll = False
 
 def generateAsync():
@@ -76,7 +71,7 @@ def getPrimitiveCppType(symbol):
         return 'QString'
     if symbol.name == 'real':
         return 'float'
-    return symbol;
+    return symbol
 
 def qmlCompatibleType(self):
     if self.is_interface:
@@ -140,7 +135,6 @@ def cppBool(b):
         return "false"
 
 def requiredIncludeFromType(symbol, suffix):
-    typeName = ''
     if not symbol.is_primitive:
         symbol = symbol.nested if symbol.nested else symbol
         typeName = fullyQualifiedCppName(symbol)
@@ -150,12 +144,10 @@ def requiredIncludeFromType(symbol, suffix):
     else:
         return ""
 
-def insertUniqueType(symbol, list):
+def insertUniqueType(symbol, unique_types):
     type = symbol.type.nested if symbol.type.nested else symbol.type
-    for t in list:
-        if (t.name == type.name):
-            return
-    list.append(type)
+    if type not in (t.name for t in unique_types):
+        unique_types.append(type)
 
 def referencedTypes(self):
     types = []
@@ -376,12 +368,11 @@ def run_generation(input, output, dependency, libraryName, all):
     Generator.strict = True
 
     # Build the list of modules to be generated
-    modulesToGenerate = []
-    for module in FileSystem.parse(list(input)).modules:
-        modulesToGenerate.append(module.name)
+    system = FileSystem.parse(list(input))
+    modulesToGenerate = [module.name for module in system.modules]
 
     system = FileSystem.parse(list(input) + list(dependency))
-    generator = Generator(search_path=Path(here / 'facelift/templates'))
+    generator = Generator(search_path=Path(here / 'facelift' / 'templates'))
     generator.register_filter('cppBool', cppBool)
     generator.register_filter('toValidId', toValidId)
     generator.register_filter('hasQMLIncompatibleParameter', hasQMLIncompatibleParameter)
