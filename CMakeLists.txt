@@ -85,7 +85,7 @@ get_property(FACELIFT_CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION
 set(FACELIFT_IMPORT_DIRS ${CMAKE_BINARY_DIR}/imports)
 configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake @ONLY)
 
-set(FACELIFT_CODEGEN_LOCATION \${CMAKE_CURRENT_LIST_DIR}/../../../bin)   # relative path of the installed code generator
+set(FACELIFT_CODEGEN_LOCATION \${CMAKE_CURRENT_LIST_DIR}/../../../bin/host-tools)   # relative path of the installed code generator
 set(FACELIFT_IMPORT_DIRS \${CMAKE_CURRENT_LIST_DIR}/../../../imports)
 configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed @ONLY)
 
