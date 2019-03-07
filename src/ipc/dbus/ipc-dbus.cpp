@@ -230,7 +230,7 @@ void DBusIPCServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
         dbusManager().connection().unregisterObject(objectPath());
-        DBusManager::instance().objectRegistry().unregisterObject(objectPath());
+        dbusManager().objectRegistry().unregisterObject(objectPath());
         m_alreadyInitialized = false;
     }
 }
@@ -252,7 +252,7 @@ void DBusIPCServiceAdapterBase::registerService()
                 });
                 connectSignals();
             } else {
-                qFatal("Could no register service at object path '%s'", qPrintable(objectPath()));
+                qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));
             }
 
             DBusManager::instance().objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
@@ -282,7 +282,6 @@ void DBusIPCProxyBinder::setInterfaceName(const QString &name)
     m_interfaceName = name;
     checkInit();
 }
-
 
 void DBusIPCProxyBinder::onServerNotAvailableError(const char *methodName) const
 {
@@ -332,9 +331,13 @@ void DBusIPCProxyBinder::onServiceNameKnown()
                     objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
+    Q_UNUSED(successPropertyChangeSignal); // TODO: check
+
     auto successSignalTriggeredSignal = connection().connect(m_serviceName,
                     objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
                     SLOT(onSignalTriggered(const QDBusMessage&)));
+
+    Q_UNUSED(successSignalTriggeredSignal); // TODO: check
 
     m_busWatcher.addWatchedService(m_serviceName);
     m_busWatcher.setConnection(connection());
@@ -367,12 +370,11 @@ void DBusIPCProxyBinder::checkRegistry()
                 objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                 SLOT(onPropertiesChanged(const QDBusMessage&)));
 
-
         connection().disconnect(m_serviceName,
                 objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
                 SLOT(onSignalTriggered(const QDBusMessage&)));
 
-                setServiceAvailable(false);
+        setServiceAvailable(false);
     }
 }
 
