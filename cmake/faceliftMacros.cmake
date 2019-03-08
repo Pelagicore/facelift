@@ -13,7 +13,7 @@ if(ENABLE_LTO)
     if (IPO_AVAILABLE)
         message("Using LTO linker")
     else()
-        message(FATAL_ERROR "Link Time Optimization is requested but it is not available on this build toolchain")
+        message(WARNING "Link Time Optimization is requested but does not seem to be available on this build toolchain. The build might fail !")
     endif()
 endif()
 
