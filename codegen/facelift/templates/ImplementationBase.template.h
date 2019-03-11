@@ -100,6 +100,7 @@ protected:
     void setReady(bool ready)
     {
         m_ready = ready;
+        emit readyChanged();
     }
 
     facelift::Property<bool>& readyProperty() {
