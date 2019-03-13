@@ -31,6 +31,8 @@
 #pragma once
 
 #include <memory>
+#include <functional>
+
 #include <QObject>
 #include <QDebug>
 #include <QMap>

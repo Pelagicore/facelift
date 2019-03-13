@@ -55,12 +55,6 @@ def interfaceNameSuffix():
     else:
         return ""
 
-def parameterType(symbol):
-    return symbol
-
-def toValidId(name):
-    return name.replace('.', '_')
-
 def fullyQualifiedName(symbol):
     if symbol.type.is_interface:
         return symbol.qualified_name + interfaceNameSuffix()
@@ -85,11 +79,7 @@ def qmlCompatibleType(self):
     return cppTypeFromSymbol(self.type, True)
 
 def fullyQualifiedCppName(type):
-    if type.is_primitive:
-        return getPrimitiveCppType(type)
-    else:
-        s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
-        return s
+    return getPrimitiveCppType(type) if type.is_primitive else fullyQualifiedCppType(type)
 
 def namespaceCppOpen(symbol):
     parts = symbol.qualified_name.split('.')
@@ -128,11 +118,6 @@ def cppTypeFromSymbol(type, isInterfaceType):
     else:
         return fullyQualifiedCppName(type)
 
-def cppBool(b):
-    if b:
-        return "true"
-    else:
-        return "false"
 
 def requiredIncludeFromType(symbol, suffix):
     if not symbol.is_primitive:
@@ -197,65 +182,39 @@ def referencedInterfaceTypes(self):
             appendTypeIfInterface(param, interfaces)
     return interfaces
 
-def hasQMLIncompatibleParameter(parameters):
-    for param in parameters:
-        if param.type.is_list or param.type.is_map or param.type.is_interface:
-            return True
-    return False
-
 def hasPropertyWithReadyFlag(interface):
-    for property in interface.properties:
-        if property.tags.get('hasReadyFlag'):
-            return True
-    return False
+    return any(prop.tags.get('hasReadyFlag') for prop in interface.properties)
 
 def hasModelProperty(interface):
-    for property in interface.properties:
-        if property.type.is_model:
-            return True
-    return False
+    return any(prop.type.is_model for prop in interface.properties)
 
 def fullyQualifiedCppType(type):
     s = '{0}'.format(fullyQualifiedName(type)).replace(".", "::")
     return s
 
 def isAsync(self):
-    if self.tags.get('async'):
-        return True
-    return generateAsync()
+    return True if self.tags.get('async') else generateAsync()
 
 def isIPCEnabled(self):
     return self.isSynchronousIPCEnabled or self.isAsynchronousIPCEnabled
 
 def isSynchronousIPCEnabled(self):
-    if self.tags.get('ipc-sync'):
-        return True
-    return generateAll
+    return True if self.tags.get('ipc-sync') else generateAll
 
 def isAsynchronousIPCEnabled(self):
-    if self.tags.get('ipc-async'):
-        return True
-    return generateAll
+    return True if self.tags.get('ipc-async') else generateAll
 
 def isQMLImplementationEnabled(self):
-    if self.tags.get('qml-implementation'):
-        return True
-    return generateAll
+    return True if self.tags.get('qml-implementation') else generateAll
 
 def isSerializable(self):
-    if self.tags.get('serializable'):
-        return True
-    return generateAll
+    return True if self.tags.get('serializable') else generateAll
 
 def isQObjectWrapperEnabled(self):
-    if self.tags.get('qml-component'):
-        return True
-    return False
+    return True if self.tags.get('qml-component') else False
 
 def isQObjectWrapperDeprecated(self):
-    if self.tags.get('qml-component'):
-        return False
-    return True
+    return False if self.tags.get('qml-component') else True
 
 def verifyStruct(self):
     blackList = [ 'userData', 'UserData', 'serialize', 'deserialize', 'clone', 'toString' ]
@@ -373,9 +332,13 @@ def run_generation(input, output, dependency, libraryName, all):
 
     system = FileSystem.parse(list(input) + list(dependency))
     generator = Generator(search_path=Path(here / 'facelift' / 'templates'))
-    generator.register_filter('cppBool', cppBool)
-    generator.register_filter('toValidId', toValidId)
-    generator.register_filter('hasQMLIncompatibleParameter', hasQMLIncompatibleParameter)
+    generator.register_filter('cppBool',
+                              lambda var: "true" if var else "false")
+    generator.register_filter('toValidId',
+                              lambda name: name.replace('.', '_'))
+    generator.register_filter('hasQMLIncompatibleParameter',
+                              lambda parameters: any(p.type.is_list or p.type.is_map or p.type.is_interface
+                                                     for p in parameters))
     generator.destination = output
 
     ctx = {'output': output}
