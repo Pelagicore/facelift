@@ -65,3 +65,11 @@ add_test(NAME propertyBinding-local-qml COMMAND test-driver.sh propertyBinding/t
 
 add_subdirectory(userData)
 add_test(NAME userData-local-cpp COMMAND test-driver.sh userData/tst_userData.qml cpp)
+
+add_subdirectory(benchmarking)
+add_test(NAME benchmarking-local.cpp COMMAND test-driver.sh benchmarking/tst_benchmarking_local.qml cpp)
+add_test(NAME benchmarking-inprocess.cpp COMMAND test-driver.sh benchmarking/tst_benchmarking_inprocess.qml cpp)
+
+#if (FACELIFT_DBUS_IPC_ENABLED)
+#add_test(NAME benchmarking-ipc-cpp COMMAND test-driver.sh benchmarking/tst_benchmarking_ipc.qml cpp)
+#endif()

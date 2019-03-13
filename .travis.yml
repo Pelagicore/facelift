@@ -54,4 +54,4 @@ script:
 - >
   cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=Release -DFACELIFT_DISABLE_DBUS_IPC=${DISABLE_IPC}
   -DFACELIFT_BUILD_TESTS=ON ..
-- make -j2 && dbus-launch make check
+- make -j2 && dbus-launch make check && cat ./tests/results.csv

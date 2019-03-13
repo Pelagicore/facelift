@@ -1,0 +1,39 @@
+
+module facelift.tests.benchmarking 1.0;
+
+@ipc-sync: true
+interface Benchmarking
+{
+    @async: true
+    int requestInteger(int intData);
+
+    @async: true
+    string requestString(string someString);
+
+    @async: true
+    LargeStruct requestStructure(LargeStruct structData);
+
+    readonly model<SmallStruct> smallModel;
+    readonly model<LargeStruct> largeModel;
+
+    int someInteger;
+    LargeStruct someStruct;
+    string someString;
+    BenchmarkingEnum someEnum;
+}
+
+struct SmallStruct {
+    int id
+}
+
+struct LargeStruct {
+    int id
+    string name
+    BenchmarkingEnum someEnum ;
+}
+
+enum BenchmarkingEnum {
+    BE1,
+    BE2,
+    BE3,
+}
