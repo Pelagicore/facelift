@@ -46,6 +46,7 @@ using namespace tests::combined;
 void CombinedTestsPlugin::registerTypes(const char *uri)
 {
     tests::combined::Module::registerQmlTypes(uri);
+
     tests::combined::other::Module::registerQmlTypes(uri);
 
 #if defined(QML_IMPL_LOCATION)

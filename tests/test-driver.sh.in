@@ -9,6 +9,7 @@ SRC_FOLDER=@CMAKE_SOURCE_DIR@
 BUILD_FOLDER=@CMAKE_BINARY_DIR@
 QML_BINARY=@_qt5Core_install_prefix@/bin/qml
 QML_TEST_RUNNER=@_qt5Core_install_prefix@/bin/qmltestrunner
+OUTPUT="-o  results.csv -csv"
 
 export QT_LOGGING_RULES="*=false;*.warning=true;*.critical=true"
 export QT_QPA_PLATFORM="minimal"
@@ -22,7 +23,7 @@ fi
 
 # execute test provided in $1 with backend provided in $2 (cpp or qml)
 echo "CLIENT: $QML_TEST_RUNNER -input $SRC_FOLDER/tests/$1 -import $BUILD_FOLDER/imports/$2"
-$QML_TEST_RUNNER -input "$SRC_FOLDER/tests/$1" -import "$BUILD_FOLDER/imports/$2"
+$QML_TEST_RUNNER -input "$SRC_FOLDER/tests/$1" -import "$BUILD_FOLDER/imports/$2"  $OUTPUT
 
 EXIT_CODE=$?
 
