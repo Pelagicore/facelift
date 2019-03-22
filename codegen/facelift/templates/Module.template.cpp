@@ -135,7 +135,6 @@ void Module::registerQmlTypes(const char* uri, int majorVersion, int minorVersio
     {% for interface in module.interfaces %}
     {% if interface.isQMLImplementationEnabled %}
     ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME);
-    ::qmlRegisterType<{{interface}}ImplementationBaseQML>(uri, majorVersion, minorVersion, {{interface}}ImplementationBaseQML::QML_NAME_DEPRECATED);
     {% endif %}
 
     {% endfor %}
