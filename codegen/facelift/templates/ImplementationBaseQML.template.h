@@ -120,7 +120,6 @@ public:
     using ThisType = {{interface}}ImplementationBaseQML;
 
     static constexpr const char* QML_NAME = "{{interface}}ImplementationBase";
-    static constexpr const char* QML_NAME_DEPRECATED = "{{interface}}QMLImplementation";
     static constexpr bool ENABLED = true;
 
     {{interface}}QMLImplementationProvider* createFrontend() override
