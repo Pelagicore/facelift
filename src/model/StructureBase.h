@@ -32,13 +32,13 @@
 
 #include <QObject>
 #include <QVariant>
-#include <QDebug>
 #include <QDataStream>
 #include <QQmlEngine>
 #include <QTextStream>
 #include <array>
 
 #include "FaceliftCommon.h"
+#include "FaceliftLogging.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -76,7 +76,7 @@ public:
     T userData() const
     {
         if (!m_userData.canConvert<T>()) {
-            qCritical() << "Cannot convert type" << m_userData.typeName()
+            qCCritical(LogModel) << "Cannot convert type" << m_userData.typeName()
                         << "to" << QVariant::fromValue(T()).typeName();
         }
         return m_userData.value<T>();

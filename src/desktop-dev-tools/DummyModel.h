@@ -47,6 +47,7 @@
 #include "ControlWidgets.h"
 
 #include "QMLFrontend.h"
+#include "FaceliftLogging.h"
 
 class Ui_DummyModelPanel;
 
@@ -332,10 +333,10 @@ protected:
         success = jsonFile.open(QFile::ReadOnly);
         if (success) {
             QJsonDocument jsonDoc = QJsonDocument().fromJson(jsonFile.readAll());
-            qDebug() << "Loaded JSON file " << jsonFile.fileName();
+            qCDebug(LogTools) << "Loaded JSON file " << jsonFile.fileName();
             return jsonDoc;
         } else {
-            qWarning() << "Can't load JSON file " << jsonFile.fileName();
+            qCWarning(LogTools) << "Can't load JSON file " << jsonFile.fileName();
         }
 
         return QJsonDocument();
@@ -354,15 +355,15 @@ protected:
         QFile jsonFile(filePath);
         QDir folder = QFileInfo(filePath).absoluteDir();
         if (!folder.mkpath(folder.path())) {
-            qWarning() << "Can't create folder " << folder;
+            qCWarning(LogTools) << "Can't create folder " << folder;
         }
 
         auto success = jsonFile.open(QFile::WriteOnly);
         if (success) {
             jsonFile.write(doc.toJson());
-            qDebug() << "JSON file written to " << jsonFile.fileName() << " : " << doc.toJson();
+            qCDebug(LogTools) << "JSON file written to " << jsonFile.fileName() << " : " << doc.toJson();
         } else {
-            qWarning() << "Can't save JSON file " << jsonFile.fileName();
+            qCWarning(LogTools) << "Can't save JSON file " << jsonFile.fileName();
         }
     }
 
@@ -531,7 +532,7 @@ public:
             auto elements = readJSONArray<ListElementType>(jsonValue);
             property.setValue(elements);
         } else {
-            qWarning() << "Expected array in property " << propertyName;
+            qCWarning(LogTools) << "Expected array in property " << propertyName;
         }
     }
 
@@ -545,7 +546,7 @@ public:
                 return elements[index];
             });
         } else {
-            qWarning() << "Expected array in property " << propertyName;
+            qCWarning(LogTools) << "Expected array in property " << propertyName;
         }
     }
 
@@ -678,7 +679,7 @@ public:
 private:
     void addPropertyWidget_(PropertyBase &property, PropertyWidgetBase &widget)
     {
-        qDebug() << "Added property widget" << property.name();
+        qCDebug(LogTools) << "Added property widget" << property.name();
         addWidget(widget);
 
         PropertyConnector<TypeName>::connect(property, this, [this] () {
@@ -703,10 +704,10 @@ public:
 
         // We register the dummy under the "real" name only if nothing is yet registered
         if (isTypeRegistered(fullyQualifiedTypeName, DummyInterfaceType::VERSION_MAJOR, DummyInterfaceType::VERSION_MINOR)) {
-            qDebug() << "Registering dummy type for interface " << fullyQualifiedTypeName;
+            qCDebug(LogTools) << "Registering dummy type for interface " << fullyQualifiedTypeName;
             registerQmlComponent<DummyInterfaceType>(uri, DummyInterfaceType::INTERFACE_NAME);
         } else {
-            qDebug() << "QML type already registered : " << fullyQualifiedTypeName << " => not registering dummy implementation";
+            qCDebug(LogTools) << "QML type already registered : " << fullyQualifiedTypeName << " => not registering dummy implementation";
         }
     }
 

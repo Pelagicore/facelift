@@ -73,7 +73,7 @@ void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject 
     if (m_outputPayload) {
         m_message << m_outputPayload->getContent();
     }
-    qDebug() << "Sending async IPC message : " << toString();
+    qCDebug(LogIpc) << "Sending async IPC message : " << toString();
     auto reply = new QDBusPendingCallWatcher(connection.asyncCall(m_message));
     QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
         DBusIPCMessage msg(reply->reply());
@@ -89,7 +89,7 @@ DBusIPCMessage DBusIPCMessage::call(const QDBusConnection &connection)
     if (m_outputPayload) {
         m_message << m_outputPayload->getContent();
     }
-    qDebug() << "Sending blocking IPC message : " << toString();
+    qCDebug(LogIpc) << "Sending blocking IPC message : " << toString();
     auto replyDbusMessage = connection.call(m_message);
     DBusIPCMessage reply(replyDbusMessage);
     return reply;
@@ -101,7 +101,7 @@ void DBusIPCMessage::send(const QDBusConnection &connection)
     if (m_outputPayload) {
         m_message << m_outputPayload->getContent();
     }
-    qDebug() << "Sending IPC message : " << toString();
+    qCDebug(LogIpc) << "Sending IPC message : " << toString();
     bool successful = connection.send(m_message);
     Q_ASSERT(successful);
 }
@@ -110,7 +110,7 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
     m_dbusConnected = m_busConnection.isConnected();
     if (!m_dbusConnected) {
-        qCritical() << "NOT connected to DBUS";
+        qCCritical(LogIpc) << "NOT connected to DBUS";
     }
 }
 
@@ -132,7 +132,7 @@ DBusManager &DBusManager::instance()
 
 bool DBusManager::registerServiceName(const QString &serviceName)
 {
-    qDebug() << "Registering serviceName " << serviceName;
+    qCDebug(LogIpc) << "Registering serviceName " << serviceName;
     auto success = m_busConnection.registerService(serviceName);
     return success;
 }
@@ -166,7 +166,7 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
 
     DBusIPCMessage replyMessage = requestMessage.createReply();
 
-    qDebug() << "Handling incoming message: " << requestMessage.toString();
+    qCDebug(LogIpc) << "Handling incoming message: " << requestMessage.toString();
 
     if (dbusMsg.interface() == DBusIPCCommon::INTROSPECTABLE_INTERFACE_NAME) {
         // TODO
@@ -222,7 +222,7 @@ QString DBusIPCServiceAdapterBase::introspect(const QString &path) const
         qFatal("Wrong object path");
     }
 
-    qDebug() << "Introspection data for " << path << ":" << introspectionData;
+    qCDebug(LogIpc) << "Introspection data for " << path << ":" << introspectionData;
     return introspectionData;
 }
 
@@ -244,7 +244,7 @@ void DBusIPCServiceAdapterBase::registerService()
                 DBusManager::instance().registerServiceName(m_serviceName);
             }
 
-            qDebug() << "Registering IPC object at " << objectPath();
+            qCDebug(LogIpc) << "Registering IPC object at " << objectPath();
             m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
             if (m_alreadyInitialized) {
                 QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
@@ -313,7 +313,7 @@ void DBusIPCProxyBinder::requestPropertyValues()
             m_serviceObject->deserializePropertyValues(replyMessage, true);
             m_serviceObject->setServiceRegistered(true);
         } else {
-            qDebug() << "Service not yet available : " << objectPath();
+            qCDebug(LogIpc) << "Service not yet available : " << objectPath();
         }
     };
 

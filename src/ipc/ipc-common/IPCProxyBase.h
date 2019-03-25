@@ -102,7 +102,7 @@ public:
             auto provider = qobject_cast<InterfaceType *>(service);
             m_provider = provider;
             if (m_provider) {
-                qDebug() << "Local server found for " << m_proxy.objectPath();
+                qCDebug(LogIpc) << "Local server found for " << m_proxy.objectPath();
                 m_proxy.refreshProvider();
             }
         }

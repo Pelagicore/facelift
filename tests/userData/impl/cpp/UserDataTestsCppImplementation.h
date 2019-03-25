@@ -32,6 +32,7 @@
 
 #include "tests/userData/ProducerImplementationBase.h"
 #include "tests/userData/ConsumerImplementationBase.h"
+#include "FaceliftLogging.h"
 
 
 using namespace tests::userData;
@@ -122,7 +123,7 @@ public:
         }
 
         if (!res)
-            qInfo() << "consumed:" << ts.id() << ts.userData();
+            qCInfo(LogGeneral) << "consumed:" << ts.id() << ts.userData();
 
         return res;
     }

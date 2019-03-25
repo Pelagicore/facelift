@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,27 +28,13 @@
 **
 **********************************************************************/
 
-#include "ServiceWrapper.h"
-#include "FaceliftLogging.h"
+#pragma once
 
-namespace facelift {
+#include "FaceliftUtils.h"
+#include <QLoggingCategory>
 
-void ServiceWrapperBase::setWrapped(InterfaceBase &wrapper, InterfaceBase *wrapped)
-{
-    qCDebug(LogModel) << "Wrapped type for" << this << &wrapper << "" << wrapper.interfaceID() << ":" << wrapped;
-}
+FaceliftCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogGeneral)
+FaceliftCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
+FaceliftCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogModel)
+FaceliftCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogTools)
 
-void ServiceWrapperBase::addConnection(QMetaObject::Connection connection)
-{
-    m_connections.append(connection);
-}
-
-void ServiceWrapperBase::clearConnections()
-{
-    for (const auto &connection : m_connections) {
-        QObject::disconnect(connection);
-    }
-    m_connections.clear();
-}
-
-}

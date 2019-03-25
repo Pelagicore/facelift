@@ -83,6 +83,6 @@ int main()
     i3.do1();
     i3.do2();
 
-    qDebug() << "OKKK";
+    qCDebug(LogGeneral) << "OKKK";
     return 0;
 }

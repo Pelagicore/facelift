@@ -36,6 +36,7 @@
 #include "FaceliftProperty.h"
 
 #include "StructQObjectWrapper.h"
+#include "FaceliftLogging.h"
 
 // TODO: remove from header
 #include "FaceliftConversion.h"
@@ -269,13 +270,13 @@ protected:
         // to access it from its constructor
         ModelImplClass::setFrontendUnderConstruction(frontend);
         ModelImplClass *r = nullptr;
-        qDebug() << "Creating QML component from file : " << path;
+        qCDebug(LogModel) << "Creating QML component from file : " << path;
         QQmlComponent component(engine, QUrl::fromLocalFile(path));
         if (!component.isError()) {
             QObject *object = component.create();
             r = qobject_cast<ModelImplClass *>(object);
         } else {
-            qWarning() << "Error : " << component.errorString();
+            qCWarning(LogModel) << "Error : " << component.errorString();
             qFatal("Can't create QML model");
         }
         return r;
@@ -355,7 +356,7 @@ int registerQmlComponent(const char *uri, const char *qmlFilePath,
         int minorVersion = ImplementationBaseQMLType::Provider::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, ImplementationBaseQMLType>::value>::type * = nullptr)
 {
-    //    qDebug() << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
+    //    qCDebug(LogModel) << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
     ImplementationBaseQMLType::Provider::registerTypes(uri);
     ImplementationBaseQMLType::setModelImplementationFilePath(qmlFilePath);
     return ::qmlRegisterType<TQMLFrontend<typename ImplementationBaseQMLType::Provider> >(uri, majorVersion, minorVersion, componentName);

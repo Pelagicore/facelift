@@ -49,7 +49,7 @@ public:
     }
 
     void resetModel() override {
-        qWarning() << "Resetting model";
+        qCWarning(LogGeneral) << "Resetting model";
 
         m_theModel.beginResetModel();
 
@@ -69,7 +69,7 @@ public:
 
     MyStruct getItem(int index)
     {
-        qWarning() << "Get item at" << index;
+        qCWarning(LogGeneral) << "Get item at" << index;
         return m_items[index];
     }
 
@@ -83,36 +83,36 @@ public:
     }
 
     void moveItemDown(MyStruct item) override {
-        qWarning() << "Deleting" << item;
+        qCWarning(LogGeneral) << "Deleting" << item;
         auto index = getItemIndexById(item.id());
         if ((index != INVALID_INDEX) && (index < m_items.size() - 1)) {
             emit m_theModel.beginMoveElements(index, index, index + 2);
             std::swap(m_items[index], m_items[index+1]);
             emit m_theModel.endMoveElements();
-            qWarning() << "Moved down" << item;
+            qCWarning(LogGeneral) << "Moved down" << item;
         }
     }
 
     void moveItemUp(MyStruct item) override {
-        qWarning() << "Deleting" << item;
+        qCWarning(LogGeneral) << "Deleting" << item;
         auto index = getItemIndexById(item.id());
         if ((index != INVALID_INDEX) && (index > 0)) {
             emit m_theModel.beginMoveElements(index, index, index - 1);
             std::swap(m_items[index], m_items[index-1]);
             emit m_theModel.endMoveElements();
-            qWarning() << "Moved up" << item;
+            qCWarning(LogGeneral) << "Moved up" << item;
         }
     }
 
     void deleteModelItem(MyStruct item) override
     {
-        qWarning() << "Deleting" << item;
+        qCWarning(LogGeneral) << "Deleting" << item;
         auto index = getItemIndexById(item.id());
         if (index != INVALID_INDEX) {
             emit m_theModel.beginRemoveElements(index, index);
             m_items.remove(index);
             emit m_theModel.endRemoveElements();
-            qWarning() << "Deleted" << item;
+            qCWarning(LogGeneral) << "Deleted" << item;
         }
     }
 
@@ -125,25 +125,25 @@ public:
 
     void insertNewModelItemAfter(MyStruct item) override
     {
-        qWarning() << "inserting" << item;
+        qCWarning(LogGeneral) << "inserting" << item;
         auto index = getItemIndexById(item.id());
         if (index != INVALID_INDEX) {
             emit m_theModel.beginInsertElements(index, index);
             m_items.insert(index, newElement());
             emit m_theModel.endInsertElements();
-            qWarning() << "Duplicated" << item;
+            qCWarning(LogGeneral) << "Duplicated" << item;
         }
     }
 
     void renameModelItem(MyStruct item, QString name) override
     {
-        qWarning() << "Renaming" << item;
+        qCWarning(LogGeneral) << "Renaming" << item;
         auto index = getItemIndexById(item.id());
 
         if (index != INVALID_INDEX) {
             m_items[index].setname(name);
             emit m_theModel.dataChanged(index);
-            qWarning() << "Renamed" << item << "at index" << index;
+            qCWarning(LogGeneral) << "Renamed" << item << "at index" << index;
         }
     }
 

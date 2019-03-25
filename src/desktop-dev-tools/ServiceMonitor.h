@@ -34,6 +34,7 @@
 #include <QMap>
 #include <QListWidgetItem>
 
+#include "FaceliftLogging.h"
 #include "ControlWidgets.h"
 
 
@@ -195,7 +196,7 @@ public:
 
         widget->enableEdition();
         connect(widget, &PropertyWidgetBase::valueChanged, this, [property, this, widget, propertyName, setter]() {
-                qDebug() << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
+                qCDebug(LogTools) << "Value changed " << propertyName << " : " << facelift::toString(widget->value());
                 if (!(property.value() == widget->value())) {
                     (m_provider.*setter)(widget->value());
                 }

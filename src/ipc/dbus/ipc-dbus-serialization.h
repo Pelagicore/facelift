@@ -451,7 +451,7 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
             deserializeValue(msg, returnValue);
             answer(returnValue);
         } else {
-            qWarning() << "Error received" << msg.toString();
+            qCWarning(LogIpc) << "Error received" << msg.toString();
         }
     });
 }

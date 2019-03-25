@@ -48,6 +48,7 @@
 #include "FaceliftProperty.h"
 
 #include "ipc-common/ipc-common.h"
+#include "FaceliftLogging.h"
 
 namespace facelift {
 
@@ -158,7 +159,7 @@ public:
     template<typename Type>
     void writeSimple(const Type &v)
     {
-        //        qDebug() << "Writing to message : " << v;
+        //        qCDebug(LogIpc) << "Writing to message : " << v;
         m_dataStream << v;
     }
 
@@ -189,7 +190,7 @@ public:
     void readNextParameter(Type &v)
     {
         m_dataStream >> v;
-        //        qDebug() << "Read from message : " << v;
+        //        qCDebug(LogIpc) << "Read from message : " << v;
     }
 
 private:

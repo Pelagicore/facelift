@@ -36,8 +36,7 @@
 #  define FaceliftIPCLibLocal_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <QDebug>
-
+#include "FaceliftLogging.h"
 #include "FaceliftModel.h"
 #include "QMLFrontend.h"
 #include "QMLModel.h"
@@ -648,7 +647,7 @@ public:
             if (first <= last) {
                 m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType> >(&m_proxy, [this, first,
                         last](QList<ModelDataType> list) {
-                        //                    qDebug() << "Received model items " << first << "-" << last;
+                        //                    qCDebug(LogIpc) << "Received model items " << first << "-" << last;
                         for (int i = first; i <= last; ++i) {
                             auto &newItem = list[i - first];
                             if (!((m_cache.exists(i)) && (newItem == m_cache.get(i)))) {
@@ -690,7 +689,7 @@ public:
     {
         auto adapter = new AdapterType(i);
         adapter->setService(i);
-        qDebug() << "Created adapter for interface " << i->interfaceID();
+        qCDebug(LogIpc) << "Created adapter for interface " << i->interfaceID();
         return adapter;
     }
 
