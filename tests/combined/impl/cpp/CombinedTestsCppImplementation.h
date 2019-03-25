@@ -33,6 +33,7 @@
 #include "tests/combined/CombinedInterfaceImplementationBase.h"
 #include "tests/combined/CombinedInterface2ImplementationBase.h"
 #include "tests/combined/other/OtherInterfaceImplementationBase.h"
+#include "FaceliftLogging.h"
 
 using namespace tests::combined;
 using namespace tests::combined::other;
@@ -65,7 +66,7 @@ class CombinedInterfaceImplementation : public CombinedInterfaceImplementationBa
 
         void doSomething() override
         {
-            qDebug() << "doSomething() called, id =" << m_id;
+            qCDebug(LogGeneral) << "doSomething() called, id =" << m_id;
         }
 
         QString m_id;
@@ -74,7 +75,7 @@ class CombinedInterfaceImplementation : public CombinedInterfaceImplementationBa
 public:
     CombinedInterfaceImplementation(QObject *parent = nullptr) : CombinedInterfaceImplementationBase(parent)
     {
-        qDebug() << "C++ implementation is used.";
+        qCDebug(LogGeneral) << "C++ implementation is used.";
         m_readyProperty = 0;
         m_readyProperty.setReady(false);
     }
@@ -158,13 +159,13 @@ public:
 
     void setstringListProperty(const QList<QString> & newValue) override
     {
-        qDebug() << "set stringListProperty:" << newValue;
+        qCDebug(LogGeneral) << "set stringListProperty:" << newValue;
         m_stringListProperty = newValue;
     }
 
     void setreadyProperty(const int &newValue) override
     {
-        qDebug() << "set readyProperty:" << newValue;
+        qCDebug(LogGeneral) << "set readyProperty:" << newValue;
         m_intProperty = newValue;
     }
 

@@ -29,6 +29,7 @@
 **********************************************************************/
 
 #include "ipc-dbus-object-registry.h"
+#include "FaceliftLogging.h"
 
 namespace facelift {
 namespace dbus {
@@ -107,7 +108,7 @@ bool DBusObjectRegistry::MasterImpl::registerObject(QString objectPath, QString 
         m_objects = objects;
         return true;
     } else {
-        qCritical() << "Object path is already registered" << objectPath;
+        qCCritical(LogIpc) << "Object path is already registered" << objectPath;
         return false;
     }
 }

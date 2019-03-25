@@ -73,7 +73,7 @@ public:
                 }
 
                 if (targetInterface != nullptr) {
-                    qWarning() << "Creating monitor for " << targetInterface;
+                    qCWarning(LogGeneral) << "Creating monitor for " << targetInterface;
                     m_monitor = ServiceMonitorManager::instance().createMonitor(targetInterface);
                     m_window.setWindowTitle(m_monitor->mainWidget()->windowTitle());
                     m_layout.addWidget(m_monitor->mainWidget());

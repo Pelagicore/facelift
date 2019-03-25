@@ -48,7 +48,8 @@ void {{struct.name}}QObjectWrapper::init()
     QObject::connect(this, &{{struct.name}}QObjectWrapper::{{field.name}}Changed, this, &{{struct.name}}QObjectWrapper::anyFieldChanged);
     {% endfor %}
     {% if struct.isQObjectWrapperDeprecated %}
-    qCritical() << "QFace definition of structure '{{struct.qualified_name}}' is missing '@qml-component: true' annotation. This type will not be created anymore in the next version of Facelift.";
+    qCritical() << "QFace definition of structure '{{struct.qualified_name}}' is missing '@qml-component: true' annotation. "
+                   "This type will not be created anymore in the next version of Facelift.";
     {% endif %}
 }
 

@@ -34,6 +34,7 @@
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
 #include "StructureBase.h"
+#include "FaceliftLogging.h"
 
 namespace facelift {
 
@@ -674,7 +675,7 @@ inline void callJSCallback(QQmlEngine* engine, QJSValue &callback, const Args & 
             appendJSValue(jsList, engine, args...);
             auto returnValue = callback.call(jsList);
             if (returnValue.isError()) {
-                qCritical().noquote() << "Error executing JS callback. Error type:" << returnValue.property("name").toString()
+                qCCritical(LogModel).noquote() << "Error executing JS callback. Error type:" << returnValue.property("name").toString()
                                       << "\nFile:" << returnValue.property("fileName").toString()
                                       << "\nLine:" << returnValue.property("lineNumber").toInt()
                                       << "\nMessage:" << returnValue.property("message").toString()

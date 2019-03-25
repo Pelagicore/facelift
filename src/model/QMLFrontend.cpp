@@ -49,7 +49,7 @@ QMLFrontendBase::QMLFrontendBase(QQmlEngine *engine) : QMLFrontendBase(static_ca
 
 InterfaceBase *QMLFrontendBase::provider() {
     Q_ASSERT(m_provider != nullptr);
-    qWarning() << "Accessing private provider implementation object";
+    qCWarning(LogModel) << "Accessing private provider implementation object";
     return m_provider;
 }
 

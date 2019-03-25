@@ -32,6 +32,7 @@
 
 #include "tuner/TunerViewModelImplementationBase.h"
 #include "TunerService.h"
+#include "FaceliftLogging.h"
 
 using namespace tuner;
 
@@ -69,16 +70,16 @@ public:
 
             for (const auto &station: m_service.stationList()) {
                 Station modelStation;
-                qDebug() << station.name;
-                qDebug() << station.stationId;
+                qCDebug(LogGeneral) << station.name;
+                qCDebug(LogGeneral) << station.stationId;
                 modelStation.setname(station.name);
                 modelStation.setstationId(station.stationId);
                 modelStation.setprogramType(station.isInfo ? ProgramType::Info : ProgramType::Music);
                 modelStation.setisPlaying(m_service.currentStation().stationId == station.stationId);
                 modelStationList.push_back(modelStation);
-                qDebug() << modelStation;
+                qCDebug(LogGeneral) << modelStation;
             }
-            qDebug() << modelStationList;
+            qCDebug(LogGeneral) << modelStationList;
             return modelStationList;
         }).addTrigger(&m_service, &TunerService::onStationListChanged).addTrigger(&m_service,
                 &TunerService::onCurrentStationChanged);

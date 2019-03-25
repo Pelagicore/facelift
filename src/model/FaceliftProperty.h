@@ -32,7 +32,7 @@
 
 #include <QString>
 #include <QObject>
-#include <QDebug>
+#include "FaceliftLogging.h"
 #include <functional>
 
 #include "FaceliftCommon.h"
@@ -205,7 +205,7 @@ public:
         breakBinding();
 
         m_value = right;
-        qDebug() << "Written value to property " << name() << ":" << toString();
+        qCDebug(LogModel) << "Written value to property " << name() << ":" << toString();
         triggerValueChangedSignal();
     }
 
@@ -223,7 +223,7 @@ public:
     void clean() override
     {
         m_previousValue = m_value;
-        //        qDebug() << "Cleaning " << name() << " value: " << m_previousValue;
+        //        qCDebug(LogModel) << "Cleaning " << name() << " value: " << m_previousValue;
     }
 
     Type &operator-=(const Type &right)

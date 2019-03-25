@@ -30,9 +30,8 @@
 
 #pragma once
 
-#include <QDebug>
-
 #include "FaceliftProperty.h"
+#include "FaceliftLogging.h"
 
 
 class QMLFrontendBase :

@@ -38,6 +38,7 @@
 #include <QPointer>
 
 #include "FaceliftCommon.h"
+#include "FaceliftLogging.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -317,7 +318,7 @@ public:
     ~TAsyncAnswerMaster()
     {
         if (!m_isAlreadyAnswered) {
-            qWarning() << "No answer provided to asynchronous call";
+            qCWarning(LogModel) << "No answer provided to asynchronous call";
         }
     }
 

@@ -31,6 +31,7 @@
 #include "ipc-common.h"
 #include "IPCServiceAdapterBase.h"
 #include "IPCProxyBase.h"
+#include "FaceliftLogging.h"
 
 namespace facelift {
 
@@ -187,17 +188,19 @@ InterfaceBase *IPCAttachedPropertyFactoryBase::getProvider(QObject *object)
 
 void NotAvailableImplBase::logMethodCall(const InterfaceBase &i, const char *methodName)
 {
-    qCritical().nospace().noquote() << "Can not call method \"" << methodName << "(...)\" on IPC proxy for interface \"" << i.interfaceID() << "\". Make sure that the corresponding server is registered";
+    qCCritical(LogIpc).nospace().noquote() << "Can not call method \"" << methodName << "(...)\" on IPC proxy for interface \"" << i.interfaceID()
+                                           << "\". Make sure that the corresponding server is registered";
 }
 
 void NotAvailableImplBase::logSetterCall(const InterfaceBase &i, const char *propertyName)
 {
-    qCritical().nospace().noquote() << "Can not call setter of property \"" << propertyName << "\" on IPC proxy for interface \"" << i.interfaceID() << "\". Make sure that the corresponding server is registered";
+    qCCritical(LogIpc).nospace().noquote() << "Can not call setter of property \"" << propertyName << "\" on IPC proxy for interface \"" << i.interfaceID()
+                                           << "\". Make sure that the corresponding server is registered";
 }
 
 void NotAvailableImplBase::logGetterCall(const InterfaceBase &i, const char *propertyName)
 {
-    qDebug() << "Getter of property" << propertyName << "is called" << i.interfaceID() << &i << i.interfaceID();
+    qCDebug(LogIpc) << "Getter of property" << propertyName << "is called" << i.interfaceID() << &i << i.interfaceID();
 }
 
 }
