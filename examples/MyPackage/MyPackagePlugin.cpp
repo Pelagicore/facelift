@@ -46,13 +46,13 @@ void MyPackagePlugin::registerTypes(const char *uri)
 
     // This additional call registers all interfaces as uncreatable types, so that we can use typed properties in our QML files
     // The type names are exactly the interface names as defined in the QFace file
-    Module::registerUncreatableQmlTypes(uri);
+    // Module::registerUncreatableQmlTypes(uri);
 
     // We register our C++ implementation class as a creatable type, which can be instantiated by the UI code, using the given string identifier
     facelift::registerQmlComponent<MyInterfaceImplementation>(uri, "MyInterface");
 
     // We register our C++ implementation class as a creatable type, which can be instantiated by the UI code, using the given string identifier
-//    facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation, &instance>(uri, "MyInterfaceSingleton2");
+    // facelift::registerSingletonQmlComponent<MyInterfaceCppImplementation, &instance>(uri, "MyInterfaceSingleton2");
     facelift::registerSingletonQmlComponent<MyInterfaceImplementation, &MyInterfaceImplementation::instance>(uri, "MyInterfaceSingleton");
 
     // Other possibility: we register our C++ implementation class as a singleton, which can be used by the UI code, using the given string identifier

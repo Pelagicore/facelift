@@ -46,10 +46,7 @@ using namespace tests::combined;
 void CombinedTestsPlugin::registerTypes(const char *uri)
 {
     tests::combined::Module::registerQmlTypes(uri);
-    tests::combined::Module::registerUncreatableQmlTypes(uri);
-
     tests::combined::other::Module::registerQmlTypes(uri);
-    tests::combined::other::Module::registerUncreatableQmlTypes(uri);
 
 #if defined(QML_IMPL_LOCATION)
     facelift::registerQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)

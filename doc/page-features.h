@@ -3,7 +3,7 @@
 \page Features
 
 
-\section async Asynchronous methods
+\section async-methods Asynchronous methods
 
 In addition to standard methods, which block the caller until the method execution is finished and
 provide an immediate return value, Facelift supports asynchronous methods. Asynchronous methods have
@@ -19,7 +19,7 @@ module facelift.example 1.0;
 
 interface MyInterface {
 
-    @async : true
+    @async: true
     int myAsyncMethod(int inputArgument);
 
 }
@@ -52,7 +52,7 @@ lambda function:
     }
 \endcode
 
-\section Property Ready Flag
+\section property-ready-flag Ready Flag
 
 \subsection sub1 QFace Syntax
 In the QFace IDL file properties of an interface can be annotated with
