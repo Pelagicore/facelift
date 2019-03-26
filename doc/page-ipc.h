@@ -114,6 +114,7 @@ examples/launch-mypackage-ipcserver.sh
 the synchronous client with:
 \code
 examples/launch-mypackage-ipcclient.sh
+\endcode
 the asynchronous client with:
 \code
 examples/launch-mypackage-ipcclient-async.sh
@@ -141,8 +142,8 @@ The \c service property of the IPCAdapter has to be set to the interface impleme
 provided by the \c MyInterfaceSingleton in this example. Finally, IPC has to be enabled by setting
 the \c enabled property of the IPCAdapter to \c true. The optional objectPath could be set, as well.
 However, for a singleton the default path should be sufficient. It consists of "/singletons",
-followed bye the module name followed by the interface name, all separated by slashes and lower
-case, in our example: "singletons/facelift/example/mypackage/myinterface". Of course, the client
+followed by the module name followed by the interface name, all separated by slashes and lower
+case, in our example: "/singletons/facelift/example/mypackage/myinterface". Of course, the client
 IPCProxy needs to refer to the same path in its \c ipc.objectPath property (the default path is
 the same).
 

@@ -38,7 +38,6 @@ using namespace tests::models;
 void ModelsTestsPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
 
     facelift::registerQmlComponent<ModelInterfaceImplementation>(uri, "ModelInterfaceAPI");
 }

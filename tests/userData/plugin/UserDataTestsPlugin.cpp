@@ -37,7 +37,6 @@ using namespace tests::userData;
 void UserDataTestsPlugin::registerTypes(const char *uri)
 {
     Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
 
     facelift::registerQmlComponent<ProducerImplementation>(uri, "ProducerAPI");
     facelift::registerQmlComponent<ConsumerImplementation>(uri, "ConsumerAPI");

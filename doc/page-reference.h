@@ -100,13 +100,14 @@ called (defined in the generated Module.h file):
 \code
 Module:registerQmlTypes(uri)
 \endcode
-In our example it will register the C++ classes \c MyInterfaceImplementationBaseQML (for backend usage)
-and \c MyInterfaceIPCProxy (for UI usage) with identical name to QML. The \c MyInterfaceIPCProxy
-type will only be registered, if IPC is enabled. In addition this method registers all structures
-and enums as creatable QML types with the same name as given in the QFace document. For usage in
-JavaScript there is also a QML singleton type registered with the postfix "Factory" for each
-structure. This type exports a \c create() method, that instantiates and returns a structure of
-this type. Suppose there would be a
+In our example it will register the C++ classes \c MyInterfaceImplementationBaseQML as QML type \c
+MyInterfaceImplementationBase (for backend usage) and \c MyInterfaceIPCProxy with identical name to
+QML (for UI usage). The \c MyInterfaceIPCProxy type will only be registered, if IPC is enabled. In
+addition this method registers structures (with annotation <tt>\@qml-component: true</tt>) and
+enums as QML types with the same name as given in the QFace document. For usage in JavaScript there
+is also a QML singleton type registered with the postfix "Factory" for each structure. This type
+exports a \c create() method, that instantiates and returns a structure of this type. Suppose there
+would be a
 \code
 struct MyStruct {
     int i
@@ -161,7 +162,7 @@ facelift::registerQmlComponent<MyInterfaceImplementation>(uri, "MyInterface");
 
 And here is how the QML implementation can be registered (explicitly as "MyInterface"), assuming
 that you provide a QML implementation component called \c MyInterfaceImplementation (derived from
-\c MyInterfaceImplementationBaseQML):
+the QML type \c MyInterfaceImplementationBase):
 \code
 facelift::registerQmlComponent<MyInterfaceImplementationBaseQML>(uri, "path/to/MyInterfaceImplementation.qml", "MyInterface");
 \endcode
@@ -169,7 +170,7 @@ Note again that both calls actually register a \c MyInterfaceQMLFrontend derived
 engine. This is done implicitly without mentioning this type.
 
 There are equivalent functions to register a singleton type (in contrast to an instantiatable type
-above).  The QML name also defaults to the interface name ("MyInterface" here). The following calls
+above). The QML name also defaults to the interface name ("MyInterface" here). The following calls
 will register a singleton with the explicit name \c MyInterfaceSingleton. C++ backend
 implementation:
 \code
