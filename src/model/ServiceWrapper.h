@@ -83,6 +83,8 @@ protected:
             WrappedType *previouslyWrapped = m_wrapped;
             __clearConnections__();
             m_wrapped = wrapped;
+            addConnection(QObject::connect(this->wrapped(), &WrappedType::readyChanged,
+                          [this] { emit this->readyChanged(); }));
             facelift::ServiceWrapperBase::setWrapped(*this, m_wrapped);
             bind(wrapped, previouslyWrapped);
             emit this->readyChanged();
