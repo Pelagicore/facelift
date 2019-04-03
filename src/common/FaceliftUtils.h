@@ -43,8 +43,6 @@
 #  define FaceliftCommonLib_EXPORT Q_DECL_IMPORT
 #endif
 
-#define NOT_IMPLEMENTED() qFatal("Not implemented yet")
-
 template<typename ElementType>
 inline QTextStream &operator<<(QTextStream &outStream, const QList<ElementType> &f)
 {

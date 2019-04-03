@@ -84,17 +84,17 @@ static void testService()
 
     // Delete the previously assigned object and allocate a new one (which is going to have the same address as the previous one) => signal
     signalSpy.reset();
-    qCWarning(LogGeneral) << o2;
+    qInfo() << o2;
     delete o2;
     o2 = new QObject();
-    qCWarning(LogGeneral) << o2;
+    qInfo() << o2;
     prop = o2;  // We expect a signal to be triggered here
     EXPECT_TRUE(signalSpy.wasTriggered());
 
     signalSpy.reset();
-    qCWarning(LogGeneral) << o2;
+    qInfo() << o2;
     o2 = new QObject();
-    qCWarning(LogGeneral) << o2;
+    qInfo() << o2;
     prop = o2;  // We expect a signal to be triggered here
     EXPECT_TRUE(signalSpy.wasTriggered());
 

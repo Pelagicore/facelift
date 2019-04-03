@@ -31,7 +31,6 @@
 #pragma once
 
 #include "FaceliftProperty.h"
-#include "FaceliftLogging.h"
 
 
 class QMLFrontendBase :

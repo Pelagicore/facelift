@@ -35,8 +35,6 @@
 #include "facelift/example/addressbook/AddressBookImplementationBase.h"
 #include "facelift/example/addressbook/SubInterfaceImplementationBase.h"
 
-#include "FaceliftLogging.h"
-
 using namespace facelift::example::addressbook;
 
 /**
@@ -72,14 +70,14 @@ public:
     // This method is not defined as part of the public interface (IDL), but it can be called via the "provider" property
     Q_INVOKABLE void privateMethod()
     {
-        qCDebug(LogGeneral) << "privateMethod called !";
+        qDebug() << "privateMethod called !";
     }
 
     class SubInterfaceImpl : public SubInterfaceImplementationBase
     {
         void doSomething() override
         {
-            qCDebug(LogGeneral) << "doSomething() called";
+            qDebug() << "doSomething() called";
         }
     };
 
@@ -90,7 +88,7 @@ public:
         if (contact != nullptr) {
             m_currentContact = *contact;
         } else {
-            qCWarning(LogGeneral) << "Unknown elementID " << contactId;
+            qWarning() << "Unknown elementID " << contactId;
         }
     }
 
@@ -102,7 +100,7 @@ public:
             if (contact.id() == contactId) {
                 contact = newContact;
                 contact.setId(contactId);
-                qCDebug(LogGeneral) << "Updated contact " << contact.toString();
+                qDebug() << "Updated contact " << contact.toString();
                 found = true;
             }
         }
@@ -111,7 +109,7 @@ public:
             // Assign the new list
             m_contacts = list;
         } else {
-            qCWarning(LogGeneral) << "Unknown elementID " << newContact.id();
+            qWarning() << "Unknown elementID " << newContact.id();
         }
     }
 
@@ -133,14 +131,14 @@ public:
 
             contactsChanged();
         } else {
-            qCWarning(LogGeneral) << "Unknown elementID " << contactId;
+            qWarning() << "Unknown elementID " << contactId;
         }
     }
 
     void createNewContact() override
     {
         if (m_contacts.size() < 10) {
-            qCDebug(LogGeneral) << "C++ createNewContact called";
+            qDebug() << "C++ createNewContact called";
 
             static int nextContactIndex = 0;
 

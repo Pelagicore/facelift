@@ -31,7 +31,6 @@
 #pragma once
 
 #include "facelift/example/addressbook/AddressBook.h"
-#include "FaceliftLogging.h"
 
 
 using namespace facelift::example::addressbook;
@@ -58,7 +57,7 @@ public:
 
     void createNewContact() override
     {
-        qCDebug(LogGeneral) << "C++ createNewContact called";
+        qDebug() << "C++ createNewContact called";
 
         static int nextContactIndex = 0;
 
@@ -93,14 +92,14 @@ public:
             selectContact(contactId);
             contactsChanged();
         } else {
-            qCDebug(LogGeneral) << "Unknown elementID " << newContact.id();
+            qDebug() << "Unknown elementID " << newContact.id();
         }
     }
 
     void deleteContact(int contactId) override
     {
         Q_UNUSED(contactId);
-        qCDebug(LogGeneral) << "TODO";
+        qDebug() << "TODO";
     }
 
     void selectContact(int contactId) override
@@ -110,7 +109,7 @@ public:
                 if (contactId == contact.id()) {
                     m_currentContact = contact;
                     currentContactChanged();
-                    qCDebug(LogGeneral) << "Current contact changed to " << m_currentContact.toString();
+                    qDebug() << "Current contact changed to " << m_currentContact.toString();
                 }
             }
         }

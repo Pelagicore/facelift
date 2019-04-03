@@ -48,8 +48,11 @@
 
 #include "FaceliftUtils.h"
 #include "FaceliftModel.h"
+#include "StructureBase.h"
 
 namespace facelift {
+
+Q_DECLARE_LOGGING_CATEGORY(LogTools)
 
 class PropertyWidgetBase : public QWidget
 {

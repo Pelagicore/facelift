@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #include "ServiceWrapper.h"
-#include "FaceliftLogging.h"
 
 namespace facelift {
 

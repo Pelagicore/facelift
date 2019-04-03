@@ -38,7 +38,6 @@
 #include <array>
 
 #include "FaceliftCommon.h"
-#include "FaceliftLogging.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT

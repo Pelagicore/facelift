@@ -32,6 +32,9 @@
 
 namespace facelift {
 
+Q_LOGGING_CATEGORY(LogGeneral, "facelift.general")
+Q_LOGGING_CATEGORY(LogModel, "facelift.model")
+
 QQmlEngine *QMLModelImplementationFrontendBase::s_engine = nullptr;
 
 }

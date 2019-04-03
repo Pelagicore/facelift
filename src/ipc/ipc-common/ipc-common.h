@@ -36,12 +36,13 @@
 #  define FaceliftIPCLibLocal_EXPORT Q_DECL_IMPORT
 #endif
 
-#include "FaceliftLogging.h"
 #include "FaceliftModel.h"
 #include "QMLFrontend.h"
 #include "QMLModel.h"
 
 namespace facelift {
+
+FaceliftIPCLibLocal_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
 
 enum class CommonSignalID {
     readyChanged,

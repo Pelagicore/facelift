@@ -34,7 +34,6 @@
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
 #include "StructureBase.h"
-#include "FaceliftLogging.h"
 
 namespace facelift {
 
@@ -86,6 +85,7 @@ struct FaceliftModelLib_EXPORT BinarySeralizer
     QDataStream stream;
 };
 
+#define NOT_IMPLEMENTED() qFatal("Not implemented yet")
 
 
 template<typename Type>

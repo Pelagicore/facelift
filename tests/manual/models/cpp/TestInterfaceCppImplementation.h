@@ -34,7 +34,6 @@
 
 #include "facelift/test/TestInterfaceImplementationBase.h"
 #include "facelift/test/TestInterface2ImplementationBase.h"
-#include "FaceliftLogging.h"
 
 
 using namespace facelift::test;
@@ -53,7 +52,7 @@ class TestInterfaceImplementation : public TestInterfaceImplementationBase
         }
 
         void doSomething() override {
-            qCWarning(LogGeneral) << "doSomething called. id =" << m_id;
+            qDebug() << "doSomething called. id =" << m_id;
         }
 
         void triggerMainInterfaceSignal(int signalParameter) override {
@@ -125,13 +124,13 @@ public:
 
     void setstringListProperty(const QList<QString> & newValue) override
     {
-        qCDebug(LogGeneral) << "set stringListProperty:" << newValue;
+        qDebug() << "set stringListProperty:" << newValue;
         m_stringListProperty = newValue;
     }
 
     void setreadyProperty(const int &newValue) override
     {
-        qCDebug(LogGeneral) << "set readyProperty:" << newValue;
+        qDebug() << "set readyProperty:" << newValue;
         m_intProperty = newValue;
     }
 

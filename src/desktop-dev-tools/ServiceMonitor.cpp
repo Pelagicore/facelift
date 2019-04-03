@@ -29,6 +29,8 @@
 **********************************************************************/
 
 #include "ServiceMonitor.h"
+
+#include "ServiceRegistry.h"
 #include "ui_servicemonitorpanel.h"
 #include "ui_servicemonitormanagerwindow.h"
 

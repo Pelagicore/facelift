@@ -32,7 +32,6 @@
 
 #include <QString>
 #include <QObject>
-#include "FaceliftLogging.h"
 #include <functional>
 
 #include "FaceliftCommon.h"
