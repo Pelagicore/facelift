@@ -31,9 +31,10 @@
 #include "ipc-common.h"
 #include "IPCServiceAdapterBase.h"
 #include "IPCProxyBase.h"
-#include "FaceliftLogging.h"
 
 namespace facelift {
+
+Q_LOGGING_CATEGORY(LogIpc, "facelift.ipc")
 
 IPCProxyBinderBase::IPCProxyBinderBase(InterfaceBase &owner, QObject *parent) : QObject(parent), m_owner(owner)
 {

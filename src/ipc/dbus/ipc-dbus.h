@@ -48,7 +48,6 @@
 #include "FaceliftProperty.h"
 
 #include "ipc-common/ipc-common.h"
-#include "FaceliftLogging.h"
 
 namespace facelift {
 

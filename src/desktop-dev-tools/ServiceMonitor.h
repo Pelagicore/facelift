@@ -34,7 +34,7 @@
 #include <QMap>
 #include <QListWidgetItem>
 
-#include "FaceliftLogging.h"
+#include "ServiceRegistry.h"
 #include "ControlWidgets.h"
 
 

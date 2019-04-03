@@ -36,7 +36,6 @@
 #include "FaceliftProperty.h"
 
 #include "StructQObjectWrapper.h"
-#include "FaceliftLogging.h"
 
 // TODO: remove from header
 #include "FaceliftConversion.h"

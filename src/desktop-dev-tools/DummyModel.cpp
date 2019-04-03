@@ -36,6 +36,8 @@
 
 namespace facelift {
 
+Q_LOGGING_CATEGORY(LogTools, "facelift.tools")
+
 void DummyModelBase::init(const QString &interfaceName)
 {
     m_interfaceName = interfaceName;

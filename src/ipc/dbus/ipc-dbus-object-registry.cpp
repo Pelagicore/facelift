@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #include "ipc-dbus-object-registry.h"
-#include "FaceliftLogging.h"
 
 namespace facelift {
 namespace dbus {

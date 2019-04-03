@@ -32,6 +32,7 @@
 
 #include <type_traits>
 #include <QString>
+#include <QLoggingCategory>
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -52,6 +53,9 @@ void M_UNUSED(const Args & ... args)
 }
 
 namespace facelift {
+
+FaceliftModelLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogGeneral)
+FaceliftModelLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogModel)
 
 typedef int ModelElementID;
 

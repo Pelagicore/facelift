@@ -36,7 +36,6 @@
 
 #include "facelift/test/TestInterface.h"
 #include "facelift/test/TestInterfaceIPCProxy.h"
-#include "FaceliftLogging.h"
 
 using namespace facelift::test;
 
@@ -45,23 +44,23 @@ void mainClient(int &argc, char * *argv)
     QCoreApplication app(argc, argv);
     auto sessionBus = QDBusConnection::sessionBus();
 
-    qCDebug(LogIpc) << "Client running";
+    qDebug() << "Client running";
 
     TestInterfaceIPCProxy proxy;
 
     QTimer timer;
     QObject::connect(&timer, &QTimer::timeout, [&] () {
-        qCWarning(LogIpc) << "boolProperty" << proxy.boolProperty();
+        qWarning() << "boolProperty" << proxy.boolProperty();
         proxy.method1();
     });
     timer.start(1000);
 
     QObject::connect(&proxy, &TestInterface::boolPropertyChanged, [&] () {
-        qCWarning(LogIpc) << "boolProperty changed " << proxy.boolProperty();
+        qWarning() << "boolProperty changed " << proxy.boolProperty();
     });
 
     app.exec();
-    qCDebug(LogIpc) << "Client exited";
+    qDebug() << "Client exited";
 
 }
 
@@ -90,9 +89,9 @@ void mainServer(int &argc, char * *argv)
     });
     timer.start();
 
-    qCDebug(LogIpc) << "Server running";
+    qDebug() << "Server running";
     app.exec();
-    qCDebug(LogIpc) << "Server exited";
+    qDebug() << "Server exited";
 
 }
 

@@ -36,6 +36,7 @@
 
 #include "FaceliftModel.h"
 #include "FaceliftProperty.h"
+#include "StructureBase.h"
 
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -47,7 +48,6 @@
 #include "ControlWidgets.h"
 
 #include "QMLFrontend.h"
-#include "FaceliftLogging.h"
 
 class Ui_DummyModelPanel;
 
