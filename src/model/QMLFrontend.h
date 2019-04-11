@@ -165,7 +165,7 @@ QObject *singletonGetter(QQmlEngine *engine, QJSEngine *scriptEngine)
     Q_UNUSED(engine);
     auto obj = new Type(engine);
     obj->componentComplete();
-    qDebug() << "Singleton created" << obj;
+    qCDebug(LogModel) << "Singleton created" << obj;
     return obj;
 }
 
@@ -178,7 +178,7 @@ QObject *singletonGetterByFunction(QQmlEngine *engine, QJSEngine *scriptEngine)
     auto obj = new QMLFrontendByReference<ProviderType>(getter());
     obj->connectProvider();
     obj->componentComplete();
-    qDebug() << "Singleton created" << obj;
+    qCDebug(LogModel) << "Singleton created" << obj;
     return obj;
 }
 

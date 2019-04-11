@@ -285,7 +285,7 @@ void DBusIPCProxyBinder::setInterfaceName(const QString &name)
 
 void DBusIPCProxyBinder::onServerNotAvailableError(const char *methodName) const
 {
-    qCritical(
+    qCCritical(LogIpc,
         "Error message received when calling method '%s' on service at path '%s'. "
         "This likely indicates that the server you are trying to access is not available yet",
         qPrintable(methodName), qPrintable(objectPath()));

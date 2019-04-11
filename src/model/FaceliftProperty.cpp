@@ -43,7 +43,7 @@ PropertyBase::~PropertyBase()
 
 void PropertyBase::doBreakBinding()
 {
-    qDebug() << this->name() << " property : breaking binding";
+    qCDebug(LogModel) << this->name() << " property : breaking binding";
 
     for (const auto &connection : m_connections) {
         QObject::disconnect(connection);
@@ -76,7 +76,7 @@ void PropertyBase::doTriggerChangeSignal()
 
     if (signalPointer() != nullptr) {
         if (isDirty()) {
-            qDebug() << "Property" << name() << ": Triggering notification. New value:" << toString();
+            qCDebug(LogModel) << "Property" << name() << ": Triggering notification. New value:" << toString();
             // Trigger the signal
             clean();
             (m_ownerObject->*signalPointer())();
