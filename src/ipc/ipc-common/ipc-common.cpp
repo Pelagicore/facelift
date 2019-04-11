@@ -69,7 +69,7 @@ void InterfaceManager::unregisterAdapter(NewIPCServiceAdapterBase *adapter) {
         if (m_registry[key] == adapter) {
             m_registry.remove(key);
             emit adapterUnavailable(key, adapter);
-            qDebug() << "IPC service unregistered" << adapter;
+            qCDebug(LogIpc) << "IPC service unregistered" << adapter;
             break;
         }
     }
@@ -131,7 +131,7 @@ IPCAdapterFactoryManager::IPCAdapterFactory IPCAdapterFactoryManager::getFactory
 
 void IPCAdapterFactoryManager::registerType(const QString &typeID, IPCAdapterFactory f) {
     if (m_factories.contains(typeID)) {
-        qDebug() << "IPC type already registered" << typeID;
+        qCDebug(LogIpc) << "IPC type already registered" << typeID;
     } else {
         m_factories.insert(typeID, f);
     }

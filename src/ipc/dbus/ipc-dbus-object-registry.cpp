@@ -102,7 +102,7 @@ bool DBusObjectRegistry::MasterImpl::registerObject(QString objectPath, QString 
 {
     auto objects = m_objects.value();
     if (!objects.contains(objectPath)) {
-        qDebug() << "Object registered at path" << objectPath << "service name:" << serviceName;
+        qCDebug(LogIpc) << "Object registered at path" << objectPath << "service name:" << serviceName;
         objects[objectPath] = serviceName;
         m_objects = objects;
         return true;

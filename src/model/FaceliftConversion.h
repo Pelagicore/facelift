@@ -682,7 +682,7 @@ inline void callJSCallback(QQmlEngine* engine, QJSValue &callback, const Args & 
                                       << "\nStack trace:" << returnValue.property("stack").toString();
             }
         } else {
-            qCritical("Provided JS object is not callable");
+            qCCritical(LogModel, "Provided JS object is not callable");
         }
     }
 }
