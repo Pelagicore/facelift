@@ -383,7 +383,6 @@ def run_generation(input, output, dependency, libraryName, all):
                 if isSynchronousIPCEnabled(interface):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPC.h', 'IPC.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxy.template.h', ctx, libraryName, "ipc_dbus")
