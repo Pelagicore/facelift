@@ -61,7 +61,6 @@ public:
         s += QString::number(itemId);
         entry.setname(s);
         entry.setenabled((itemId % 2) == 0);
-        entry.setId(itemId);
         return entry;
     }
 

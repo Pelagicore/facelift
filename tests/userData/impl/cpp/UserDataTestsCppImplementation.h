@@ -59,22 +59,22 @@ public:
 
         switch(type) {
         case Type::E_INT:
-            ts.setId(1);
+            ts.seti(1);
             ts.setUserData(42);
             break;
         case Type::E_STRING:
-            ts.setId(2);
+            ts.seti(2);
             ts.setUserData(QStringLiteral("foo"));
             break;
         case Type::E_STRUCT:
-            ts.setId(3);
+            ts.seti(3);
             {
                 Pod pod = { 3, true };
                 ts.setUserData(pod);
             }
             break;
         case Type::E_MAP:
-            ts.setId(4);
+            ts.seti(4);
             {
                 QVariantMap vm;
                 vm["one"] = QVariant::fromValue(42);
@@ -101,20 +101,20 @@ public:
         bool res = false;
         switch(type) {
         case Type::E_INT:
-            if (ts.id() == 1 && ts.userData<int>() == 42)
+            if (ts.i() == 1 && ts.userData<int>() == 42)
                 res = true;
             break;
         case Type::E_STRING:
-            if (ts.id() == 2 && ts.userData<QString>() == QLatin1String("foo"))
+            if (ts.i() == 2 && ts.userData<QString>() == QLatin1String("foo"))
                 res = true;
             break;
         case Type::E_STRUCT:
-            if (ts.id() == 3 && ts.userData<Pod>().i == 3 && ts.userData<Pod>().b)
+            if (ts.i() == 3 && ts.userData<Pod>().i == 3 && ts.userData<Pod>().b)
                 res = true;
             break;
         case Type::E_MAP:
             QVariantMap vm = ts.userData<QVariantMap>();
-            if (ts.id() == 4 && vm.value("one") == 42 && vm.value("two") == QLatin1String("foo")
+            if (ts.i() == 4 && vm.value("one") == 42 && vm.value("two") == QLatin1String("foo")
                                                       && vm.value("three").value<Pod>().i == 4) {
                 res = true;
             }
@@ -122,7 +122,7 @@ public:
         }
 
         if (!res)
-            qInfo() << "consumed:" << ts.id() << ts.userData();
+            qInfo() << "consumed:" << ts.i() << ts.userData();
 
         return res;
     }
