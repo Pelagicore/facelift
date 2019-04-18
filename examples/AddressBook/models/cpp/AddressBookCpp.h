@@ -62,6 +62,7 @@ public:
         static int nextContactIndex = 0;
 
         Contact newContact;
+        newContact.setidx(nextContactIndex);
         newContact.setname("New contact " + QString::number(nextContactIndex));
         newContact.setnumber("089 " + QString::number(nextContactIndex));
         m_contacts.append(newContact);
@@ -79,7 +80,7 @@ public:
         Contact *contact = nullptr;
 
         for (auto &c : m_contacts) {
-            if (c.id() == contactId) {
+            if (c.idx() == contactId) {
                 contact = &c;
             }
         }
@@ -87,12 +88,12 @@ public:
         Q_ASSERT(contact != nullptr);
         if (contact != nullptr) {
             *contact = newContact;
-            contact->setId(contactId);
+            contact->setidx(contactId);
             qDebug() << "Updated contact " << newContact.toString();
             selectContact(contactId);
             contactsChanged();
         } else {
-            qDebug() << "Unknown elementID " << newContact.id();
+            qDebug() << "Unknown elementID " << newContact.idx();
         }
     }
 
@@ -104,9 +105,9 @@ public:
 
     void selectContact(int contactId) override
     {
-        if (m_currentContact.id() != contactId) {
+        if (m_currentContact.idx() != contactId) {
             for (auto &contact : m_contacts) {
-                if (contactId == contact.id()) {
+                if (contactId == contact.idx()) {
                     m_currentContact = contact;
                     currentContactChanged();
                     qDebug() << "Current contact changed to " << m_currentContact.toString();

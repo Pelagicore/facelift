@@ -46,7 +46,7 @@ class AddressBookCppWithProperties : public AddressBookImplementationBase
     Q_OBJECT
 
 public:
-    AddressBookCppWithProperties(QObject *parent = nullptr) :        AddressBookImplementationBase(parent)
+    AddressBookCppWithProperties(QObject *parent = nullptr) : AddressBookImplementationBase(parent)
     {
         setImplementationID("C++ model implemented with properties");
 
@@ -84,9 +84,12 @@ public:
 
     void selectContact(int contactId) override
     {
-        auto *contact = m_contacts.elementPointerById(contactId);
-        if (contact != nullptr) {
-            m_currentContact = *contact;
+        int i = 0;
+        while (i < m_contacts.size() && contactId != m_contacts.value()[i].idx())
+            ++i;
+
+        if (i < m_contacts.size()) {
+            m_currentContact = m_contacts.value()[i];
         } else {
             qWarning() << "Unknown elementID " << contactId;
         }
@@ -97,9 +100,9 @@ public:
         bool found = false;
         auto list = m_contacts.value();
         for (auto &contact : list) {
-            if (contact.id() == contactId) {
+            if (contact.idx() == contactId) {
                 contact = newContact;
-                contact.setId(contactId);
+                contact.setidx(contactId);
                 qDebug() << "Updated contact " << contact.toString();
                 found = true;
             }
@@ -109,22 +112,24 @@ public:
             // Assign the new list
             m_contacts = list;
         } else {
-            qWarning() << "Unknown elementID " << newContact.id();
+            qWarning() << "Unknown elementID " << newContact.idx();
         }
     }
 
     void deleteContact(int contactId) override
     {
-        auto *contact = m_contacts.elementPointerById(contactId);
+        int i = 0;
+        while (i < m_contacts.size() && contactId != m_contacts.value()[i].idx())
+            ++i;
 
-        if (contact != nullptr) {
-
-            contactDeleted(*contact);
-            m_contacts.removeElementById(contactId);
+        if (i < m_contacts.size()) {
+            const Contact &contact = m_contacts.value()[i];
+            contactDeleted(contact);
+            m_contacts.removeAt(i);
 
             // Select first contact from the list if it exists
             if (m_contacts.size() > 0) {
-                selectContact(m_contacts.value()[0].id());
+                selectContact(m_contacts.value()[0].idx());
             } else {
                 m_currentContact = Contact();
             }
@@ -143,6 +148,7 @@ public:
             static int nextContactIndex = 0;
 
             Contact newContact;
+            newContact.setidx(nextContactIndex);
             newContact.setname("New contact " + QString::number(nextContactIndex));
             newContact.setnumber("089 " + QString::number(nextContactIndex));
             m_contacts.addElement(newContact);

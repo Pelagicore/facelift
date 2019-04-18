@@ -86,10 +86,10 @@ Item {
                 }
 
                 function updateSelection() {
-                    var contactID = viewModel.currentContact.id;
+                    var contactID = viewModel.currentContact.idx;
                     selection.clear()
                     for (var contactIndex in model) {
-                        if (model[contactIndex].id === contactID) {
+                        if (model[contactIndex].idx === contactID) {
                             selection.select(contactIndex)
                         }
                     }
@@ -105,8 +105,8 @@ Item {
             Connections {
                 target: tableView.selection
                 onSelectionChanged: tableView.selection.forEach(function(rowIndex) {
-                    var elementID = tableView.model[rowIndex].id;
-                    if (viewModel.currentContact.id != elementID) {
+                    var elementID = tableView.model[rowIndex].idx;
+                    if (viewModel.currentContact.idx !== elementID) {
                         viewModel.selectContact(elementID);
                     }
                 });
@@ -162,7 +162,7 @@ Item {
             Button {
                 text: "Delete contact"
                 onClicked: {
-                    viewModel.deleteContact(viewModel.currentContact.id)
+                    viewModel.deleteContact(viewModel.currentContact.idx)
                 }
             }
 
@@ -173,7 +173,7 @@ Item {
                     var contact = viewModel.currentContact.clone();
                     contact.name = nameField.editedText;
                     contact.number = numberField.editedText;
-                    viewModel.updateContact(viewModel.currentContact.id, contact)
+                    viewModel.updateContact(viewModel.currentContact.idx, contact)
                 }
             }
 

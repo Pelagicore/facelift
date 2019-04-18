@@ -57,6 +57,7 @@ interface AddressBook {
 }
 
 struct Contact {
+    int idx
     string name
     string number
     ContactType type

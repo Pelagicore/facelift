@@ -396,6 +396,12 @@ public:
         }
     }
 
+    void removeAt(int i)
+    {
+        this->modifiableValue().removeAt(i);
+        this->triggerValueChangedSignal();
+    }
+
     void addElement(ElementType element)
     {
         this->modifiableValue().append(element);
@@ -457,6 +463,12 @@ public:
         if (bModified) {
             this->triggerValueChangedSignal();
         }
+    }
+
+    void removeAt(int i)
+    {
+        this->modifiableValue().removeAt(i);
+        this->triggerValueChangedSignal();
     }
 
     void addElement(ElementType element)

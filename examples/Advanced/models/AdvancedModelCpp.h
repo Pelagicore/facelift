@@ -73,9 +73,9 @@ public:
         return m_items[index];
     }
 
-    int getItemIndexById(int id) const {
+    int getItemIndexByStructId(int id) const {
         for (int i = 0; i< m_items.size(); i++) {
-            if (m_items[i].id() == id) {
+            if (m_items[i].structId() == id) {
                 return i;
             }
         }
@@ -84,7 +84,7 @@ public:
 
     void moveItemDown(const MyStruct &item) override {
         qDebug() << "Deleting" << item;
-        auto index = getItemIndexById(item.id());
+        auto index = getItemIndexByStructId(item.structId());
         if ((index != INVALID_INDEX) && (index < m_items.size() - 1)) {
             emit m_theModel.beginMoveElements(index, index, index + 2);
             std::swap(m_items[index], m_items[index+1]);
@@ -96,7 +96,7 @@ public:
 
     void moveItemUp(const MyStruct &item) override {
         qWarning() << "Deleting" << item;
-        auto index = getItemIndexById(item.id());
+        auto index = getItemIndexByStructId(item.structId());
         if ((index != INVALID_INDEX) && (index > 0)) {
             emit m_theModel.beginMoveElements(index, index, index - 1);
             std::swap(m_items[index], m_items[index-1]);
@@ -108,7 +108,7 @@ public:
     void deleteModelItem(const MyStruct &item) override
     {
         qDebug() << "Deleting" << item;
-        auto index = getItemIndexById(item.id());
+        auto index = getItemIndexByStructId(item.structId());
         if (index != INVALID_INDEX) {
             emit m_theModel.beginRemoveElements(index, index);
             m_items.remove(index);
@@ -119,15 +119,15 @@ public:
 
     MyStruct newElement() {
         MyStruct s;
-        s.setId(m_nextAvailableID++);
-        s.setname(QString("entry %1").arg(s.id()));
+        s.setstructId(m_nextAvailableID++);
+        s.setname(QString("entry %1").arg(s.structId()));
         return s;
     }
 
     void insertNewModelItemAfter(const MyStruct &item) override
     {
         qDebug() << "inserting" << item;
-        auto index = getItemIndexById(item.id());
+        auto index = getItemIndexByStructId(item.structId());
         if (index != INVALID_INDEX) {
             emit m_theModel.beginInsertElements(index, index);
             m_items.insert(index, newElement());
@@ -139,7 +139,7 @@ public:
     void renameModelItem(const MyStruct &item, const QString &name) override
     {
         qDebug() << "Renaming" << item;
-        auto index = getItemIndexById(item.id());
+        auto index = getItemIndexByStructId(item.structId());
 
         if (index != INVALID_INDEX) {
             m_items[index].setname(name);
