@@ -2,6 +2,7 @@
 option(IGNORE_AUTO_UNITY_BUILD "Disable unity build even if AUTO_UNITY_BUILD option is ON" OFF)
 option(DISABLE_UNITY_BUILD "Completely disable unity build" OFF)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
+option(DISABLE_DEVELOPMENT_FILE_INSTALLATION "Disable development file installation" OFF)
 
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
@@ -489,16 +490,18 @@ function(facelift_add_library TARGET_NAME)
 
         set(HEADERS_INSTALLATION_LOCATION ${PROJECT_NAME}/${TARGET_NAME})
 
-        # Create the directory for the installed headers
-        install(DIRECTORY DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION})
+        if (NOT DISABLE_DEVELOPMENT_FILE_INSTALLATION)
+            # Create the directory for the installed headers
+            install(DIRECTORY DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION})
 
-        # Install every headers
-        foreach(HEADER ${HEADERS})
-            get_filename_component(ABSOLUTE_HEADER_PATH ${HEADER} ABSOLUTE)
-            file(RELATIVE_PATH relativePath "${PUBLIC_HEADER_BASE_PATH}" ${ABSOLUTE_HEADER_PATH})
-            get_filename_component(ABSOLUTE_HEADER_INSTALLATION_DIR ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}/${relativePath} DIRECTORY)
-            install(FILES ${HEADER} DESTINATION ${ABSOLUTE_HEADER_INSTALLATION_DIR})
-        endforeach()
+            # Install headers
+            foreach(HEADER ${HEADERS})
+                get_filename_component(ABSOLUTE_HEADER_PATH ${HEADER} ABSOLUTE)
+                file(RELATIVE_PATH relativePath "${PUBLIC_HEADER_BASE_PATH}" ${ABSOLUTE_HEADER_PATH})
+                get_filename_component(ABSOLUTE_HEADER_INSTALLATION_DIR ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}/${relativePath} DIRECTORY)
+                install(FILES ${HEADER} DESTINATION ${ABSOLUTE_HEADER_INSTALLATION_DIR})
+            endforeach()
+        endif()
 
         if(__INTERFACE)
         else()
