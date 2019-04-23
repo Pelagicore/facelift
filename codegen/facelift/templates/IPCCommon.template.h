@@ -1,4 +1,4 @@
-/**********************************************************************
+{#*********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
 **
@@ -26,25 +26,44 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-**********************************************************************/
+*********************************************************************#}
+
+/****************************************************************************
+** This is an auto-generated file.
+** Do not edit! All changes made to it will be lost.
+****************************************************************************/
 
 #pragma once
 
-#include <QtCore/qglobal.h>
+{{module.namespaceCppOpen}}
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
-namespace facelift {
-
-class FaceliftIPCCommonLib_EXPORT ModuleIPCBase {
-
+class {{interfaceName}}IPCCommon
+{
 public:
+    enum class MethodID {
+        {% for operation in interface.operations %}
+        {{operation.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {% if (not property.readonly) %}
+        set{{property.name}},
+        {% endif %}
+        {% if (property.type.is_model) %}
+        {{property.name}},  // model
+        {% endif %}
+        {% endfor %}
+    };
 
-    static void registerQmlTypes(const char* uri, int majorVersion, int minorVersion);
+    enum class SignalID {
+        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
+        {% for signal in interface.signals %}
+        {{signal.name}},
+        {% endfor %}
+        {% for property in interface.properties %}
+        {{property.name}},
+        {% endfor %}
+    };
+
 };
 
-}
+{{module.namespaceCppClose}}

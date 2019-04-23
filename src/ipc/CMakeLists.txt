@@ -1,21 +1,12 @@
 
-facelift_add_library(FaceliftIPCLibLocal
-    SOURCES
-        ipc-common/ipc-common.cpp
-        ipc-common/IPCProxyBase.cpp
-        ipc-common/ModuleIPCBase.cpp
-    HEADERS
-        ipc-common/ipc-common.h
-        ipc-common/IPCProxyBase.h
-        ipc-common/IPCServiceAdapterBase.h
-        ipc-common/ModuleIPCBase.h
-    LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
-)
+add_subdirectory(ipc-common)
 
 facelift_add_library(FaceliftIPCLib
-    SOURCES facelift-ipc.cpp
-    HEADERS facelift-ipc.h
-    LINK_LIBRARIES FaceliftIPCLibLocal
+    SOURCES
+        facelift-ipc.cpp
+    HEADERS
+        facelift-ipc.h
+    LINK_LIBRARIES FaceliftIPCCommonLib
 )
 
 if(FACELIFT_DBUS_IPC_ENABLED)

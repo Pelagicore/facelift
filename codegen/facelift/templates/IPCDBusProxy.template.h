@@ -39,7 +39,7 @@
 
 #include "DBusIPCProxy.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interface}}IPCDBus.h"
+#include "{{module.fullyQualifiedPath}}/{{interface}}IPCCommon.h"
 
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusProxy.h"
@@ -61,15 +61,15 @@ public:
 
     using ThisType = {{className}};
     using BaseType = ::facelift::dbus::DBusIPCProxy<{{interfaceName}}>;
-    using SignalID = {{interface}}IPCDBus::SignalID;
-    using MethodID = {{interface}}IPCDBus::MethodID;
+    using SignalID = {{interface}}IPCCommon::SignalID;
+    using MethodID = {{interface}}IPCCommon::MethodID;
 
     // override the default QMLFrontend type to add the IPC related properties
     using QMLFrontendType = {{className}}QMLFrontendType;
 
     {{className}}(QObject *parent = nullptr);
 
-    void deserializePropertyValues(::facelift::dbus::DBusIPCMessage &msg, bool isCompleteSnapshot) override;
+    void deserializePropertyValues(InputIPCMessage &msg, bool isCompleteSnapshot) override;
 
     {% if interface.hasModelProperty %}
     void setServiceRegistered(bool isRegistered) override
@@ -86,7 +86,7 @@ public:
 
     {% endif %}
 
-    void deserializeSignal(::facelift::dbus::DBusIPCMessage &msg) override;
+    void deserializeSignal(InputIPCMessage &msg) override;
 
     {% for operation in interface.operations %}
 

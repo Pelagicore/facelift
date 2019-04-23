@@ -32,17 +32,17 @@
 
 #include "ipc-common.h"
 
-#if defined(FaceliftIPCLibLocal_LIBRARY)
-#  define FaceliftIPCLibLocal_EXPORT Q_DECL_EXPORT
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
 #else
-#  define FaceliftIPCLibLocal_EXPORT Q_DECL_IMPORT
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
 #endif
 
 namespace facelift {
 
 
 
-class FaceliftIPCLibLocal_EXPORT NewIPCServiceAdapterBase : public QObject
+class FaceliftIPCCommonLib_EXPORT NewIPCServiceAdapterBase : public QObject
 {
     Q_OBJECT
 

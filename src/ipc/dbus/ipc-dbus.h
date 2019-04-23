@@ -47,7 +47,7 @@
 #include "FaceliftUtils.h"
 #include "FaceliftProperty.h"
 
-#include "ipc-common/ipc-common.h"
+#include "ipc-common.h"
 
 namespace facelift {
 
@@ -59,9 +59,6 @@ class ObjectRegistryAsync;
 namespace dbus {
 
 using namespace facelift;
-
-class OutputPayLoad;
-class InputPayLoad;
 
 
 class FaceliftIPCLibDBus_EXPORT DBusIPCMessage
@@ -147,81 +144,8 @@ private:
 };
 
 
-class FaceliftIPCLibDBus_EXPORT OutputPayLoad
-{
-
-public:
-    OutputPayLoad() : m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
-    {
-    }
-
-    template<typename Type>
-    void writeSimple(const Type &v)
-    {
-        //        qCDebug(LogIpc) << "Writing to message : " << v;
-        m_dataStream << v;
-    }
-
-    const QByteArray &getContent() const
-    {
-        return m_payloadArray;
-    }
-
-private:
-    QByteArray m_payloadArray;
-    QDataStream m_dataStream;
-};
-
-class FaceliftIPCLibDBus_EXPORT InputPayLoad
-{
-
-public:
-    InputPayLoad(const QByteArray &payloadArray) : m_payloadArray(payloadArray), m_dataStream(m_payloadArray)
-    {
-    }
-
-    ~InputPayLoad()
-    {
-        Q_ASSERT(m_dataStream.atEnd());
-    }
-
-    template<typename Type>
-    void readNextParameter(Type &v)
-    {
-        m_dataStream >> v;
-        //        qCDebug(LogIpc) << "Read from message : " << v;
-    }
-
-private:
-    QByteArray m_payloadArray;
-    QDataStream m_dataStream;
-};
-
-
-
 
 class DBusIPCServiceAdapterBase;
-
-template<typename Type, typename Enable = void>
-struct IPCTypeHandler
-{
-    static void writeDBUSSignature(QTextStream &s)
-    {
-        s << "i";
-    }
-
-    static void write(OutputPayLoad &msg, const Type &v)
-    {
-        msg.writeSimple(v);
-    }
-
-    static void read(InputPayLoad &msg, Type &v)
-    {
-        msg.readNextParameter(v);
-    }
-
-};
-
 
 
 class DBusObjectRegistry;

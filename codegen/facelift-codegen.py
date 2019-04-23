@@ -390,7 +390,7 @@ def run_generation(input, output, dependency, libraryName, all):
 
                 if isIPCEnabled(interface):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "ipc")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBus.h', 'IPCDBus.template.h', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCCommon.h', 'IPCCommon.template.h', ctx, libraryName, "ipc_dbus")
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusAdapter.template.h', ctx, libraryName, "ipc_dbus")
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusAdapter.template.cpp', ctx, libraryName, "ipc_dbus")
 

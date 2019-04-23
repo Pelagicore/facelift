@@ -33,7 +33,7 @@
 #include <QDBusVirtualObject>
 
 #include "ipc-dbus.h"
-#include "ipc-common/IPCServiceAdapterBase.h"
+#include "IPCServiceAdapterBase.h"
 
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
@@ -151,6 +151,8 @@ class DBusIPCServiceAdapter : public DBusIPCServiceAdapterBase
 
 public:
     typedef ServiceType TheServiceType;
+    using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
+    using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
 
     DBusIPCServiceAdapter(QObject *parent) : DBusIPCServiceAdapterBase(parent)
     {
