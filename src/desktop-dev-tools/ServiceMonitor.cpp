@@ -35,6 +35,7 @@
 #include "ui_servicemonitormanagerwindow.h"
 
 #include <QRegExp>
+#include <QTimer>
 
 namespace facelift {
 
