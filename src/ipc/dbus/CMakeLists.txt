@@ -10,7 +10,7 @@ if(Qt5DBus_FOUND)
     endif()
 
     facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/interfaces OUTPUT_PATH ${GENERATED_FILE_PATH})
-    include_directories(${GENERATED_FILE_PATH}/ipc ${GENERATED_FILE_PATH}/ipc_dbus ${GENERATED_FILE_PATH}/types)
+    include_directories(${GENERATED_FILE_PATH}/ipc ${GENERATED_FILE_PATH}/ipc_dbus ${GENERATED_FILE_PATH}/types ${CMAKE_CURRENT_SOURCE_DIR}/..)
     facelift_add_library(FaceliftIPCLibDBus
         SOURCES
             ipc-dbus.cpp
@@ -29,7 +29,7 @@ if(Qt5DBus_FOUND)
             ${GENERATED_FILE_PATH}/ipc/*.h
             ${GENERATED_FILE_PATH}/ipc_dbus/*.h
             ${GENERATED_FILE_PATH}/types/*.h
-        LINK_LIBRARIES FaceliftIPCLibLocal Qt5::DBus
+        LINK_LIBRARIES FaceliftIPCCommonLib Qt5::DBus
         PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
     )
     target_compile_definitions(FaceliftIPCLibDBus PUBLIC DBUS_IPC_ENABLED)

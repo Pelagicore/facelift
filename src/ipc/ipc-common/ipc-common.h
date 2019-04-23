@@ -30,10 +30,10 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibLocal_LIBRARY)
-#  define FaceliftIPCLibLocal_EXPORT Q_DECL_EXPORT
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
 #else
-#  define FaceliftIPCLibLocal_EXPORT Q_DECL_IMPORT
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
 #endif
 
 #include "FaceliftModel.h"
@@ -42,7 +42,7 @@
 
 namespace facelift {
 
-FaceliftIPCLibLocal_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
+FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
 
 enum class CommonSignalID {
     readyChanged,
@@ -63,7 +63,7 @@ class NewIPCServiceAdapterBase;
 /**
  * This class maintains a registry of IPC services registered locally, which enables local proxies to get a direct reference to them
  */
-class FaceliftIPCLibLocal_EXPORT InterfaceManager : public QObject
+class FaceliftIPCCommonLib_EXPORT InterfaceManager : public QObject
 {
     Q_OBJECT
 
@@ -87,7 +87,7 @@ private:
 
 };
 
-class FaceliftIPCLibLocal_EXPORT IPCServiceAdapterBase : public QObject
+class FaceliftIPCCommonLib_EXPORT IPCServiceAdapterBase : public QObject
 {
     Q_OBJECT
 
@@ -173,7 +173,7 @@ private:
     QString m_interfaceName;
 };
 
-class FaceliftIPCLibLocal_EXPORT IPCProxyBinderBase : public QObject
+class FaceliftIPCCommonLib_EXPORT IPCProxyBinderBase : public QObject
 {
     Q_OBJECT
 
@@ -369,7 +369,7 @@ protected:
 };
 
 
-class FaceliftIPCLibLocal_EXPORT IPCAttachedPropertyFactoryBase : public QObject
+class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactoryBase : public QObject
 {
     Q_OBJECT
 
@@ -678,7 +678,7 @@ private:
 };
 
 
-class FaceliftIPCLibLocal_EXPORT IPCAdapterFactoryManager
+class FaceliftIPCCommonLib_EXPORT IPCAdapterFactoryManager
 {
 public:
     typedef NewIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
@@ -708,7 +708,7 @@ private:
     QMap<QString, IPCAdapterFactory> m_factories;
 };
 
-class FaceliftIPCLibLocal_EXPORT IPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
+class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
 {
 public:
     static NewIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
@@ -818,6 +818,80 @@ struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<In
     }
 
 };
+
+
+class FaceliftIPCCommonLib_EXPORT OutputPayLoad
+{
+
+public:
+    OutputPayLoad() : m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
+    {
+    }
+
+    template<typename Type>
+    void writeSimple(const Type &v)
+    {
+        //        qCDebug(LogIpc) << "Writing to message : " << v;
+        m_dataStream << v;
+    }
+
+    const QByteArray &getContent() const
+    {
+        return m_payloadArray;
+    }
+
+private:
+    QByteArray m_payloadArray;
+    QDataStream m_dataStream;
+};
+
+
+class FaceliftIPCCommonLib_EXPORT InputPayLoad
+{
+
+public:
+    InputPayLoad(const QByteArray &payloadArray) : m_payloadArray(payloadArray), m_dataStream(m_payloadArray)
+    {
+    }
+
+    ~InputPayLoad()
+    {
+        Q_ASSERT(m_dataStream.atEnd());
+    }
+
+    template<typename Type>
+    void readNextParameter(Type &v)
+    {
+        m_dataStream >> v;
+        //        qCDebug(LogIpc) << "Read from message : " << v;
+    }
+
+private:
+    QByteArray m_payloadArray;
+    QDataStream m_dataStream;
+};
+
+
+template<typename Type, typename Enable = void>
+struct IPCTypeHandler
+{
+    static void writeDBUSSignature(QTextStream &s)
+    {
+        s << "i";
+    }
+
+    static void write(OutputPayLoad &msg, const Type &v)
+    {
+        msg.writeSimple(v);
+    }
+
+    static void read(InputPayLoad &msg, Type &v)
+    {
+        msg.readNextParameter(v);
+    }
+
+};
+
 
 
 }

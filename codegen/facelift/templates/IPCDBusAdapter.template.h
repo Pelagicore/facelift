@@ -42,7 +42,7 @@
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBus.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCCommon.h"
 
 //// Sub interfaces
 {% for property in interface.referencedInterfaceTypes %}
@@ -62,8 +62,8 @@ public:
     using ServiceType = {{interfaceName}};
     using BaseType = ::facelift::dbus::DBusIPCServiceAdapter<{{interfaceName}}>;
     using ThisType = {{interfaceName}}IPCDBusAdapter;
-    using SignalID = {{interface}}IPCDBus::SignalID;
-    using MethodID = {{interface}}IPCDBus::MethodID;
+    using SignalID = {{interface}}IPCCommon::SignalID;
+    using MethodID = {{interface}}IPCCommon::MethodID;
 
     {{interfaceName}}IPCDBusAdapter(QObject* parent = nullptr) : BaseType(parent)
     {% for property in interface.properties %}
@@ -76,12 +76,12 @@ public:
 
     void appendDBUSIntrospectionData(QTextStream &s) const override;
 
-    ::facelift::IPCHandlingResult handleMethodCallMessage(::facelift::dbus::DBusIPCMessage &requestMessage,
+    ::facelift::IPCHandlingResult handleMethodCallMessage(InputIPCMessage &requestMessage,
             ::facelift::dbus::DBusIPCMessage &replyMessage) override;
 
     void connectSignals() override;
 
-    void serializePropertyValues(::facelift::dbus::DBusIPCMessage& msg, bool isCompleteSnapshot) override;
+    void serializePropertyValues(OutputIPCMessage& msg, bool isCompleteSnapshot) override;
 
     {% for event in interface.signals %}
     void {{event}}(

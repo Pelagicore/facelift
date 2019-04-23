@@ -34,8 +34,8 @@
 ****************************************************************************/
 
 #include "ModuleIPC.h"
-#include "ipc-common/ModuleIPCBase.h"
 #include "facelift-ipc.h"
+#include "ModuleIPCBase.h"
 
 {% for interface in module.interfaces %}
 

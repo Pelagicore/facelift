@@ -31,7 +31,7 @@
 #pragma once
 
 #include "ipc-dbus.h"
-#include "ipc-common/IPCProxyBase.h"
+#include "IPCProxyBase.h"
 #include <QDBusServiceWatcher>
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
@@ -160,6 +160,8 @@ class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusIPCProxyB
 
 public:
     typedef const char *MemberIDType;
+    using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
+    using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
 
     DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), DBusIPCProxyBase(m_ipcBinder), m_ipcBinder(*this)
     {
@@ -177,7 +179,6 @@ public:
         Q_UNUSED(member);
         return memberName;
     }
-
 
     template<typename Type>
     void serializeValue(DBusIPCMessage &msg, const Type &v)
