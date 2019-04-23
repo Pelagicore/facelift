@@ -75,21 +75,21 @@ public:
 
     void requestInteger(int intData, facelift::AsyncAnswer<int> answer) override
     {
-        QTimer::singleShot(0, [this, answer, intData]() mutable {
+        QTimer::singleShot(0, [answer, intData]() mutable {
             answer(intData);
         });
     }
 
     void requestString(QString someString, facelift::AsyncAnswer<QString> answer) override
     {
-        QTimer::singleShot(0, [this, answer, someString]() mutable {
+        QTimer::singleShot(0, [answer, someString]() mutable {
             answer(someString);
         });
     }
 
     void requestStructure(LargeStruct structData, facelift::AsyncAnswer<LargeStruct> answer) override
     {
-        QTimer::singleShot(0, [this, answer, structData]() mutable {
+        QTimer::singleShot(0, [answer, structData]() mutable {
             answer(structData);
         });
     }
