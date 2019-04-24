@@ -49,6 +49,8 @@ void CombinedTestsPlugin::registerTypes(const char *uri)
 
     tests::combined::other::Module::registerQmlTypes(uri);
 
+    facelift::registerUncreatableQmlComponent<CombinedInterface>(uri, "CombinedInterfaceUncreatable");
+
 #if defined(QML_IMPL_LOCATION)
     facelift::registerQmlComponent<CombinedInterfaceImplementationBaseQML>(uri, STRINGIFY(QML_IMPL_LOCATION)
             "/impl/qml/CombinedTestsQmlImplementation.qml", "CombinedInterfaceAPI");

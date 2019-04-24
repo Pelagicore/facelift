@@ -109,11 +109,13 @@ class QMLFrontendByReference : public ProviderImplementationType::QMLFrontendTyp
 {
 
 public:
-    QMLFrontendByReference(ProviderImplementationType& provider, QObject *parent = nullptr) : ProviderImplementationType::QMLFrontendType(parent), m_provider(provider)
+    QMLFrontendByReference(ProviderImplementationType& provider, QObject *parent = nullptr)
+        : ProviderImplementationType::QMLFrontendType(parent), m_provider(provider)
     {
     }
 
-    QMLFrontendByReference(ProviderImplementationType& provider, QQmlEngine *engine) : ProviderImplementationType::QMLFrontendType(engine), m_provider(provider)
+    QMLFrontendByReference(ProviderImplementationType& provider, QQmlEngine *engine)
+        : ProviderImplementationType::QMLFrontendType(engine), m_provider(provider)
     {
     }
 
@@ -184,7 +186,21 @@ QObject *singletonGetterByFunction(QQmlEngine *engine, QJSEngine *scriptEngine)
 
 
 /*!
- * Register the given interface QML implementation as a creatable QML component.
+ * Register the given interface C++ implementation as an ucreatable QML type.
+ * By default, the type is registered under the same name as defined in the QFace definition.
+ */
+template<typename ProviderType>
+int registerUncreatableQmlComponent(const char *uri, const char *name = ProviderType::INTERFACE_NAME,
+        int majorVersion = ProviderType::VERSION_MAJOR, int minorVersion = ProviderType::VERSION_MINOR,
+        typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
+{
+    return ::qmlRegisterUncreatableType<typename ProviderType::QMLFrontendType>(uri, majorVersion, minorVersion,
+                                                                                name, "");
+}
+
+
+/*!
+ * Register the given interface C++ implementation as a creatable QML component.
  * By default, the component is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>
@@ -203,7 +219,8 @@ int registerQmlComponent(const char *uri, const char *name = ProviderType::INTER
  * By default, the component is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>
-int registerSingletonQmlComponent(const char *uri, const char *name = ProviderType::INTERFACE_NAME,
+int registerSingletonQmlComponent(const char *uri,
+        const char *name = ProviderType::INTERFACE_NAME,
         int majorVersion = ProviderType::VERSION_MAJOR,
         int minorVersion = ProviderType::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
@@ -227,7 +244,8 @@ int registerSingletonQmlComponent(const char *uri,
 {
     ProviderType::registerTypes(uri);
     typedef QMLFrontendByReference<ProviderType> QMLType;
-    return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetterByFunction<ProviderType, singletonGetterFunction>);
+    return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name,
+                                               &singletonGetterByFunction<ProviderType, singletonGetterFunction>);
 }
 
 
