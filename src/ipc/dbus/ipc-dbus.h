@@ -95,12 +95,6 @@ public:
         m_message = QDBusMessage::createSignal(path, interface, signal);
     }
 
-    DBusIPCMessage call(const QDBusConnection &connection);
-
-    void asyncCall(const QDBusConnection &connection, const QObject *context, std::function<void(DBusIPCMessage &message)> callback);
-
-    void send(const QDBusConnection &connection);
-
     QString member() const
     {
         return m_message.member();
@@ -137,52 +131,18 @@ public:
 
     InputPayLoad &inputPayLoad();
 
+    QDBusMessage& outputMessage();
+
 private:
     QDBusMessage m_message;
+    QByteArray m_payload;
     std::unique_ptr<OutputPayLoad> m_outputPayload;
     std::unique_ptr<InputPayLoad> m_inputPayload;
 };
 
 
-
-class DBusIPCServiceAdapterBase;
-
-
+class IPCDBusServiceAdapterBase;
 class DBusObjectRegistry;
-
-class FaceliftIPCLibDBus_EXPORT DBusManager
-{
-
-public:
-    DBusManager();
-
-    static DBusManager &instance();
-
-    bool isDBusConnected() const
-    {
-        return m_dbusConnected;
-    }
-
-    bool registerServiceName(const QString &serviceName);
-
-    QDBusConnection &connection()
-    {
-        return m_busConnection;
-    }
-
-    QString serviceName() const
-    {
-        return m_busConnection.baseService();
-    }
-
-    DBusObjectRegistry &objectRegistry();
-
-private:
-    QDBusConnection m_busConnection;
-    DBusObjectRegistry *m_objectRegistry = nullptr;
-    bool m_dbusConnected;
-};
-
 
 
 class FaceliftIPCLibDBus_EXPORT DBusRequestHandler

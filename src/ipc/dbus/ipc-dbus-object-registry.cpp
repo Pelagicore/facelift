@@ -29,6 +29,7 @@
 **********************************************************************/
 
 #include "ipc-dbus-object-registry.h"
+#include "DBusManager.h"
 
 namespace facelift {
 namespace dbus {

@@ -1,4 +1,4 @@
-{#*********************************************************************
+/**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
 **
@@ -26,46 +26,56 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-*********************************************************************#}
-
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
+**********************************************************************/
 
 #pragma once
 
-{{classExportDefines}}
+#if defined(FaceliftIPCLibDBus_LIBRARY)
+#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
+#endif
 
-{{module.namespaceCppOpen}}
+namespace facelift {
 
-class  {{classExport}} {{interfaceName}}IPCCommon
+namespace dbus {
+
+using namespace facelift;
+
+class FaceliftIPCLibDBus_EXPORT DBusManager
 {
+
 public:
-    enum class MethodID {
-        {% for operation in interface.operations %}
-        {{operation.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {% if (not property.readonly) %}
-        set{{property.name}},
-        {% endif %}
-        {% if (property.type.is_model) %}
-        {{property.name}},  // model
-        {% endif %}
-        {% endfor %}
-    };
+    DBusManager();
 
-    enum class SignalID {
-        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
-        {% for signal in interface.signals %}
-        {{signal.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {{property.name}},
-        {% endfor %}
-    };
+    static DBusManager &instance();
 
+    bool isDBusConnected() const
+    {
+        return m_dbusConnected;
+    }
+
+    bool registerServiceName(const QString &serviceName);
+
+    QDBusConnection &connection()
+    {
+        return m_busConnection;
+    }
+
+    QString serviceName() const
+    {
+        return m_busConnection.baseService();
+    }
+
+    DBusObjectRegistry &objectRegistry();
+
+private:
+    QDBusConnection m_busConnection;
+    DBusObjectRegistry *m_objectRegistry = nullptr;
+    bool m_dbusConnected;
 };
 
-{{module.namespaceCppClose}}
+
+}
+
+}

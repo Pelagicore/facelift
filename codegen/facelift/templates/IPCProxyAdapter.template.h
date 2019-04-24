@@ -37,30 +37,27 @@
 
 #pragma once
 
-#include "DBusIPCProxy.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interface}}IPCCommon.h"
 
-{% for property in interface.referencedInterfaceTypes %}
-#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusProxy.h"
+{% for type in interface.referencedInterfaceTypes %}
+#include "{{type.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}{{proxyTypeNameSuffix}}.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}
 
-{% set className = interfaceName + "IPCDBusProxy" %}
+{% set className = interfaceName + proxyTypeNameSuffix %}
 
 class {{className}}QMLFrontendType;
 
-class {{classExport}} {{className}} : public ::facelift::dbus::DBusIPCProxy<{{interfaceName}}>
+class {{classExport}} {{className}} : public {{baseClass}}
 {
     Q_OBJECT
-
-    Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
 
     using ThisType = {{className}};
-    using BaseType = ::facelift::dbus::DBusIPCProxy<{{interfaceName}}>;
+    using BaseType = {{baseClass}};
     using SignalID = {{interface}}IPCCommon::SignalID;
     using MethodID = {{interface}}IPCCommon::MethodID;
 
@@ -156,7 +153,7 @@ public:
 private:
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
-    InterfacePropertyIPCProxyHandler<{{property.cppType}}IPCDBusProxy> m_{{property.name}}Proxy;
+    InterfacePropertyIPCProxyHandler<{{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}}Proxy;
     {% endif %}
     {% if property.type.is_model %}
     facelift::IPCProxyModelProperty<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}};

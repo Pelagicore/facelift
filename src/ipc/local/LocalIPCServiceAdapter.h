@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,67 +30,47 @@
 
 #pragma once
 
-#include <QDBusVirtualObject>
-
-#include "ipc-dbus.h"
+#include "LocalIPC.h"
 #include "IPCServiceAdapterBase.h"
 
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
+#if defined(FaceliftIPCLocalLib_LIBRARY)
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
 #else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
 #endif
 
 namespace facelift {
 
-namespace dbus {
+namespace local {
 
 using namespace facelift;
 
-class FaceliftIPCLibDBus_EXPORT DBusIPCServiceAdapterBase : public IPCServiceAdapterBase
+class LocalIPCManager;
+
+class FaceliftIPCLocalLib_EXPORT LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
 {
     Q_OBJECT
 
     typedef const char *MemberIDType;
 
 public:
+    template<typename Type>
+    using IPCAdapterType = typename Type::IPCLocalAdapterType;
 
-    class DBusVirtualObject : public QDBusVirtualObject
-    {
+    LocalIPCServiceAdapterBase(QObject *parent = nullptr);
 
-    public:
-        DBusVirtualObject(DBusIPCServiceAdapterBase &adapter) : QDBusVirtualObject(nullptr), m_adapter(adapter)
-        {
-        }
+    ~LocalIPCServiceAdapterBase();
 
-        QString introspect(const QString &path) const override
-        {
-            return m_adapter.introspect(path);
-        }
-
-        bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection) override
-        {
-            return m_adapter.handleMessage(message, connection);
-        }
-
-    private:
-        DBusIPCServiceAdapterBase &m_adapter;
-    };
-
-    DBusIPCServiceAdapterBase(QObject *parent = nullptr);
-
-    ~DBusIPCServiceAdapterBase();
-
-    bool handleMessage(const QDBusMessage &dbusMsg, const QDBusConnection &connection);
+    IPCHandlingResult handleMessage(LocalIPCMessage &message);
 
     void flush();
 
     template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v);
+    void serializeValue(LocalIPCMessage &msg, const Type &v);
 
     template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v);
+    void deserializeValue(LocalIPCMessage &msg, Type &v);
 
     void initOutgoingSignalMessage();
 
@@ -98,28 +78,38 @@ public:
     void sendSignal(MemberID signalID, const Args & ... args);
 
     template<typename ReturnType>
-    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue);
+    void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue);
 
-    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage);
+    void sendAsyncCallAnswer(LocalIPCMessage &replyMessage);
 
-    virtual IPCHandlingResult handleMethodCallMessage(DBusIPCMessage &requestMessage, DBusIPCMessage &replyMessage) = 0;
+    virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
 
-    virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot);
+    virtual void serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot);
 
     void registerService();
 
     void unregisterService();
 
-    DBusManager &dbusManager()
+    Q_SIGNAL void messageSent(LocalIPCMessage &message);
+
+    void send(LocalIPCMessage &message)
     {
-        return DBusManager::instance();
+        emit messageSent(message);
     }
 
-    template<typename Type>
-    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
+    void sendReply(LocalIPCMessage &message)
+    {
+        Q_UNUSED(message);
+        Q_ASSERT(false);
+    }
+
+    LocalIPCManager &manager();
 
     template<typename Type>
-    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
+    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
+
+    template<typename Type>
+    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
 
@@ -128,14 +118,13 @@ public:
     template<typename T>
     MemberIDType memberID(T member, MemberIDType memberName) const
     {
-        // DBus member IDs are strings
+        // Local member IDs are strings
         Q_UNUSED(member);
         return memberName;
     }
 
 protected:
-    std::unique_ptr<DBusIPCMessage> m_pendingOutgoingMessage;
-    DBusVirtualObject m_dbusVirtualObject;
+    std::unique_ptr<LocalIPCMessage> m_pendingOutgoingMessage;
 
     QString m_introspectionData;
     QString m_serviceName;
@@ -145,32 +134,35 @@ protected:
 
 
 template<typename ServiceType>
-class DBusIPCServiceAdapter : public DBusIPCServiceAdapterBase
+class LocalIPCServiceAdapter : public LocalIPCServiceAdapterBase
 {
-    using DBusIPCServiceAdapterBase::registerService;
+    using LocalIPCServiceAdapterBase::registerService;
 
 public:
     typedef ServiceType TheServiceType;
-    using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
-    using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
+    using InputIPCMessage = ::facelift::local::LocalIPCMessage;
+    using OutputIPCMessage = ::facelift::local::LocalIPCMessage;
 
-    DBusIPCServiceAdapter(QObject *parent) : DBusIPCServiceAdapterBase(parent)
+    LocalIPCServiceAdapter(QObject *parent) : LocalIPCServiceAdapterBase(parent)
     {
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }
 
-    ~DBusIPCServiceAdapter() {
+    ~LocalIPCServiceAdapter()
+    {
         unregisterService();
     }
 
-    void registerService(const QString& objectPath, ServiceType *service) {
+    void registerService(const QString &objectPath, ServiceType *service)
+    {
         setObjectPath(objectPath);
         m_service = service;
         this->registerService();
     }
 
-    void unregisterService() {
-        DBusIPCServiceAdapterBase::unregisterService();
+    void unregisterService()
+    {
+        LocalIPCServiceAdapterBase::unregisterService();
         setObjectPath("");
         m_service = nullptr;
     }
@@ -178,6 +170,12 @@ public:
     ServiceType *service() const override
     {
         return m_service;
+    }
+
+    void registerService(const QString &objectPath, InterfaceBase *serverObject) override
+    {
+        Q_ASSERT(qobject_cast<ServiceType *>(serverObject) != nullptr);
+        registerService(objectPath, static_cast<ServiceType *>(serverObject));  // TODO: get rid of that cast
     }
 
 protected:

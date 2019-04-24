@@ -54,8 +54,11 @@
 #include "ipc-dbus-object-registry.h"
 #include "ipc-dbus-serialization.h"
 
+#include "DBusManager.h"
+
 namespace facelift {
 namespace dbus {
+
 
 struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
     static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
@@ -67,44 +70,6 @@ struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
 };
 
 constexpr const char *DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME;
-
-void DBusIPCMessage::asyncCall(const QDBusConnection &connection, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
-{
-    if (m_outputPayload) {
-        m_message << m_outputPayload->getContent();
-    }
-    qCDebug(LogIpc) << "Sending async IPC message : " << toString();
-    auto reply = new QDBusPendingCallWatcher(connection.asyncCall(m_message));
-    QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
-        DBusIPCMessage msg(reply->reply());
-        if (msg.isReplyMessage()) {
-            callback(msg);
-        }
-        reply->deleteLater();
-    });
-}
-
-DBusIPCMessage DBusIPCMessage::call(const QDBusConnection &connection)
-{
-    if (m_outputPayload) {
-        m_message << m_outputPayload->getContent();
-    }
-    qCDebug(LogIpc) << "Sending blocking IPC message : " << toString();
-    auto replyDbusMessage = connection.call(m_message);
-    DBusIPCMessage reply(replyDbusMessage);
-    return reply;
-}
-
-
-void DBusIPCMessage::send(const QDBusConnection &connection)
-{
-    if (m_outputPayload) {
-        m_message << m_outputPayload->getContent();
-    }
-    qCDebug(LogIpc) << "Sending IPC message : " << toString();
-    bool successful = connection.send(m_message);
-    Q_ASSERT(successful);
-}
 
 DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
@@ -137,14 +102,14 @@ bool DBusManager::registerServiceName(const QString &serviceName)
     return success;
 }
 
-void DBusIPCServiceAdapterBase::initOutgoingSignalMessage() {
+void IPCDBusServiceAdapterBase::initOutgoingSignalMessage() {
     m_pendingOutgoingMessage = std::make_unique<DBusIPCMessage>(objectPath(), interfaceName(), DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
 
     // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
     this->serializePropertyValues(*m_pendingOutgoingMessage, false);
 }
 
-void DBusIPCServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
+void IPCDBusServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
 {
     Q_UNUSED(isCompleteSnapshot);
     Q_ASSERT(service());
@@ -152,15 +117,15 @@ void DBusIPCServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, boo
 }
 
 
-void DBusIPCServiceAdapterBase::flush()
+void IPCDBusServiceAdapterBase::flush()
 {
     if (m_pendingOutgoingMessage) {
-        m_pendingOutgoingMessage->send(dbusManager().connection());
+        this->send(*m_pendingOutgoingMessage);
         m_pendingOutgoingMessage.reset();
     }
 }
 
-bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const QDBusConnection &connection)
+bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
 {
     DBusIPCMessage requestMessage(dbusMsg);
 
@@ -185,7 +150,7 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
             }
         }
         if (sendReply) {
-            replyMessage.send(connection);
+            send(replyMessage);
         }
         return true;
     }
@@ -193,23 +158,30 @@ bool DBusIPCServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg, const
     return false;
 }
 
-DBusIPCServiceAdapterBase::DBusIPCServiceAdapterBase(QObject *parent) : IPCServiceAdapterBase(parent), m_dbusVirtualObject(*this)
+IPCDBusServiceAdapterBase::IPCDBusServiceAdapterBase(QObject *parent) : IPCServiceAdapterBase(parent), m_dbusVirtualObject(*this)
 {
 }
 
-void DBusIPCServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage)
+void IPCDBusServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage)
 {
-    replyMessage.send(dbusManager().connection());
+    send(replyMessage);
+}
+
+void IPCDBusServiceAdapterBase::send(DBusIPCMessage &message)
+{
+    qCDebug(LogIpc) << "Sending IPC message : " << message.toString();
+    bool successful = dbusManager().connection().send(message.outputMessage());
+    Q_ASSERT(successful);
 }
 
 
-DBusIPCServiceAdapterBase::~DBusIPCServiceAdapterBase()
+IPCDBusServiceAdapterBase::~IPCDBusServiceAdapterBase()
 {
     emit destroyed(this);
     unregisterService();
 }
 
-QString DBusIPCServiceAdapterBase::introspect(const QString &path) const
+QString IPCDBusServiceAdapterBase::introspect(const QString &path) const
 {
     QString introspectionData;
 
@@ -226,7 +198,12 @@ QString DBusIPCServiceAdapterBase::introspect(const QString &path) const
     return introspectionData;
 }
 
-void DBusIPCServiceAdapterBase::unregisterService()
+DBusManager &IPCDBusServiceAdapterBase::dbusManager()
+{
+    return DBusManager::instance();
+}
+
+void IPCDBusServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
         dbusManager().connection().unregisterObject(objectPath());
@@ -235,7 +212,7 @@ void DBusIPCServiceAdapterBase::unregisterService()
     }
 }
 
-void DBusIPCServiceAdapterBase::registerService()
+void IPCDBusServiceAdapterBase::registerService()
 {
     if (!m_alreadyInitialized) {
         if (dbusManager().isDBusConnected()) {
@@ -260,6 +237,13 @@ void DBusIPCServiceAdapterBase::registerService()
             }));
         }
     }
+}
+
+DBusIPCProxyBinder::DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent) :
+    IPCProxyBinderBase(owner, parent),
+    m_registry(DBusManager::instance().objectRegistry())
+{
+    m_busWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration);
 }
 
 void DBusIPCProxyBinder::setServiceAvailable(bool isRegistered)
@@ -304,6 +288,17 @@ void DBusIPCProxyBinder::onSignalTriggered(const QDBusMessage &dbusMessage)
     m_serviceObject->deserializeSignal(msg);
 }
 
+QDBusConnection &DBusIPCProxyBinder::connection() const
+{
+    return manager().connection();
+}
+
+DBusManager &DBusIPCProxyBinder::manager() const
+{
+    return DBusManager::instance();
+}
+
+
 void DBusIPCProxyBinder::requestPropertyValues()
 {
     DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME);
@@ -318,12 +313,13 @@ void DBusIPCProxyBinder::requestPropertyValues()
     };
 
     if (isSynchronous()) {
-        auto replyMessage = msg.call(connection());
+        auto replyMessage = call(msg);
         replyHandler(replyMessage);
     } else {
-        msg.asyncCall(connection(), this, replyHandler);
+        asyncCall(msg, this, replyHandler);
     }
 }
+
 
 void DBusIPCProxyBinder::onServiceNameKnown()
 {
@@ -378,6 +374,28 @@ void DBusIPCProxyBinder::checkRegistry()
     }
 }
 
+void DBusIPCProxyBinder::asyncCall(DBusIPCMessage &message, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
+{
+    qCDebug(LogIpc) << "Sending async IPC message : " << message.toString();
+    auto reply = new QDBusPendingCallWatcher(connection().asyncCall(message.outputMessage()));
+    QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
+        DBusIPCMessage msg(reply->reply());
+        if (msg.isReplyMessage()) {
+            callback(msg);
+        }
+        reply->deleteLater();
+    });
+}
+
+DBusIPCMessage DBusIPCProxyBinder::call(DBusIPCMessage &message) const
+{
+    qCDebug(LogIpc) << "Sending blocking IPC message : " << message.toString();
+    auto replyDbusMessage = connection().call(message.outputMessage());
+    DBusIPCMessage reply(replyDbusMessage);
+    return reply;
+}
+
+
 void DBusIPCProxyBinder::bindToIPC()
 {
     if (m_explicitServiceName) {
@@ -419,10 +437,18 @@ QString DBusIPCMessage::toString() const
     return str;
 }
 
+QDBusMessage& DBusIPCMessage::outputMessage() {
+    if (m_outputPayload) {
+        m_message << m_outputPayload->getContent();
+        m_outputPayload.reset();
+    }
+    return m_message;
+}
+
 OutputPayLoad &DBusIPCMessage::outputPayLoad()
 {
     if (m_outputPayload == nullptr) {
-        m_outputPayload = std::make_unique<OutputPayLoad>();
+        m_outputPayload = std::make_unique<OutputPayLoad>(m_payload);
     }
     return *m_outputPayload;
 }
@@ -430,8 +456,8 @@ OutputPayLoad &DBusIPCMessage::outputPayLoad()
 InputPayLoad &DBusIPCMessage::inputPayLoad()
 {
     if (m_inputPayload == nullptr) {
-        auto byteArray = m_message.arguments()[0].value<QByteArray>();
-        m_inputPayload = std::make_unique<InputPayLoad>(byteArray);
+        m_payload = m_message.arguments()[0].value<QByteArray>();
+        m_inputPayload = std::make_unique<InputPayLoad>(m_payload);
     }
     return *m_inputPayload;
 }

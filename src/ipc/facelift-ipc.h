@@ -58,18 +58,14 @@ public:
     void registerService() override
     {
         registerLocalService();
-#ifdef DBUS_IPC_ENABLED
-        m_ipcAdapter.reset(new IPCDBusAdapterType());
-        m_ipcAdapter->registerService(objectPath(), m_service);
-#endif
+        for (auto& ipcAdapter : m_ipcServiceAdapters) {
+            ipcAdapter->registerService(objectPath(), m_service);
+        }
     }
 
     void unregisterService() override
     {
         unregisterLocalService();
-#ifdef DBUS_IPC_ENABLED
-        m_ipcAdapter.reset();
-#endif
     }
 
     void setService(QObject *service) override
@@ -77,13 +73,13 @@ public:
         m_service = bindToProvider<InterfaceType>(service);
     }
 
+    void addServiceAdapter(IPCServiceAdapterBase &adapter) {
+        m_ipcServiceAdapters.append(&adapter);
+    }
+
 private:
     QPointer<InterfaceType> m_service;
-
-#ifdef DBUS_IPC_ENABLED
-    using IPCDBusAdapterType = typename InterfaceType::IPCDBusAdapterType;
-    std::unique_ptr<IPCDBusAdapterType> m_ipcAdapter;
-#endif
+    QList<IPCServiceAdapterBase*> m_ipcServiceAdapters;
 
 };
 
@@ -92,6 +88,11 @@ class IPCProxy : public WrapperType, public IPCProxyNewBase
 {
     using InterfaceType = typename NotAvailableImpl::InterfaceType;
 
+    struct ProxyAdapterEntry {
+        IPCProxyBinderBase* ipcBinder;
+        InterfaceType* proxy;
+    };
+
 public:
     IPCProxy(QObject *parent) : WrapperType(parent)
         , IPCProxyNewBase(*static_cast<InterfaceBase *>(this))
@@ -99,11 +100,13 @@ public:
     {
         QObject::connect(ipc(), &IPCProxyBinderBase::complete, this, [this] () {
                 m_localProviderBinder.init();
-#ifdef DBUS_IPC_ENABLED
-                m_ipcProxy.ipc()->setObjectPath(ipc()->objectPath());
-                m_ipcProxy.connectToServer();
-                QObject::connect(m_ipcProxy.ipc(), &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
-#endif
+
+                for (auto& proxy : m_ipcProxies) {
+                    auto proxyAdapterIPCBinder = proxy.ipcBinder;
+                    proxyAdapterIPCBinder->setObjectPath(ipc()->objectPath());
+                    proxyAdapterIPCBinder->connectToServer();
+                    QObject::connect(proxyAdapterIPCBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
+                }
                 this->refreshProvider();
             });
 
@@ -115,10 +118,13 @@ public:
         InterfaceType *provider = &m_notAvailableProvider;
         if (m_localProviderBinder.provider() != nullptr) {
             provider = m_localProviderBinder.provider();
-#ifdef DBUS_IPC_ENABLED
-        } else if (m_ipcProxy.ipc()->isServiceAvailable()) {
-            provider = &m_ipcProxy;
-#endif
+        } else {
+            for (auto& proxy : m_ipcProxies) {
+                auto proxyAdapterIPCBinder = proxy.ipcBinder;
+                if (proxyAdapterIPCBinder->isServiceAvailable()) {
+                    provider = proxy.proxy;
+                }
+            }
         }
 
         this->setWrapped(provider);
@@ -129,13 +135,18 @@ public:
         emit this->componentCompleted();
     }
 
+    template<typename ProxyType>
+    void addIPCAdapter(ProxyType &proxy) {
+        ProxyAdapterEntry entry;
+        entry.ipcBinder = proxy.ipc();
+        entry.proxy = &proxy;
+        m_ipcProxies.append(entry);
+    }
+
 private:
     NotAvailableImpl m_notAvailableProvider;
+    QList<ProxyAdapterEntry> m_ipcProxies;
     LocalProviderBinder<InterfaceType> m_localProviderBinder;
-#ifdef DBUS_IPC_ENABLED
-    using IPCProxyType = typename NotAvailableImpl::IPCDBusProxyType;
-    IPCProxyType m_ipcProxy;
-#endif
 };
 
 }

@@ -43,12 +43,22 @@
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
 
+{% if interface.isAsynchronousIPCEnabled %}
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCLocalServiceAdapter.h"
+{% endif %}
+
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
-{% for property in interface.referencedInterfaceTypes %}
-#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
-{% endfor %}
 #endif
+
+{% for property in interface.referencedInterfaceTypes %}
+#ifdef DBUS_IPC_ENABLED
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
+#endif
+{% if interface.isAsynchronousIPCEnabled %}
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCLocalServiceAdapter.h"
+{% endif %}
+{% endfor %}
 
 {{module.namespaceCppOpen}}
 
@@ -62,9 +72,15 @@ public:
 
     using BaseType = ::facelift::IPCServiceAdapter<{{interfaceName}}>;
 
-    {{interfaceName}}IPCAdapter(QObject* parent = nullptr) : BaseType(parent)
-    {
-    }
+    {{interfaceName}}IPCAdapter(QObject* parent = nullptr);
+
+#ifdef DBUS_IPC_ENABLED
+    {{interfaceName}}IPCDBusAdapter m_ipcDBusServiceAdapter;
+#endif
+
+{% if interface.isAsynchronousIPCEnabled %}
+    {{interfaceName}}IPCLocalServiceAdapter m_ipcLocalServiceAdapter;
+{% endif %}
 
 };
 

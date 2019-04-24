@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -104,7 +104,7 @@ struct IPCTypeHandler<QString>
 
 };
 
-struct AppendDBUSSignatureFunction
+struct FaceliftIPCCommonLib_EXPORT AppendDBUSSignatureFunction
 {
     AppendDBUSSignatureFunction(QTextStream &s) :
         s(s)
@@ -288,4 +288,103 @@ struct SerializeParameterFunction
                 IPCTypeRegisterHandler<Type>::convertToSerializedType(v, m_parent));
     }
 };
+
+
+class FaceliftIPCCommonLib_EXPORT DBusSignatureHelper {
+
+public:
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if<I == sizeof ... (Ts)>::type
+static appendDBUSMethodArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    Q_UNUSED(s);
+    Q_UNUSED(t);
+    Q_UNUSED(argNames);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if < I<sizeof ... (Ts)>::type
+static appendDBUSMethodArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    using Type = decltype(std::get<I>(t));
+    s << "<arg name=\"" << argNames[I] << "\" type=\"";
+    IPCTypeHandler<Type>::writeDBUSSignature(s);
+    s << "\" direction=\"in\"/>";
+    appendDBUSMethodArgumentsSignature<I + 1>(s, t, argNames);
+}
+
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if<I == sizeof ... (Ts)>::type
+static appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    Q_UNUSED(s);
+    Q_UNUSED(t);
+    Q_UNUSED(argNames);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if < I<sizeof ... (Ts)>::type
+static appendDBUSSignalArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
+        sizeof ... (Ts)> &argNames)
+{
+    using Type = decltype(std::get<I>(t));
+    s << "<arg name=\"" << argNames[I] << "\" type=\"";
+    IPCTypeHandler<Type>::writeDBUSSignature(s);
+    s << "\"/>";
+    appendDBUSSignalArgumentsSignature<I + 1>(s, t, argNames);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if<I == sizeof ... (Ts)>::type
+static appendDBUSTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
+{
+    Q_UNUSED(s);
+    Q_UNUSED(t);
+}
+
+template<size_t I = 0, typename ... Ts>
+typename std::enable_if < I<sizeof ... (Ts)>::type
+static appendDBUSTypeSignature(QTextStream &s, std::tuple<Ts ...> &t)
+{
+    using Type = decltype(std::get<I>(t));
+    IPCTypeHandler<Type>::writeDBUSSignature(s);
+    appendDBUSTypeSignature<I + 1>(s, t);
+}
+
+template<typename Type>
+static void addPropertySignature(QTextStream &s, const char *propertyName, bool isReadonly)
+{
+    s << "<property name=\"" << propertyName << "\" type=\"";
+    std::tuple<Type> dummyTuple;
+    appendDBUSTypeSignature(s, dummyTuple);
+    s << "\" access=\"" << (isReadonly ? "read" : "readwrite") << "\"/>";
+}
+
+template<typename ... Args>
+static void addMethodSignature(QTextStream &s, const char *methodName,
+        const std::array<const char *, sizeof ... (Args)> &argNames)
+{
+    s << "<method name=\"" << methodName << "\">";
+    std::tuple<Args ...> t;  // TODO : get rid of the tuple
+    appendDBUSMethodArgumentsSignature(s, t, argNames);
+    s << "</method>";
+}
+
+template<typename ... Args>
+static void addSignalSignature(QTextStream &s, const char *methodName,
+        const std::array<const char *, sizeof ... (Args)> &argNames)
+{
+    s << "<signal name=\"" << methodName << "\">";
+    std::tuple<Args ...> t;  // TODO : get rid of the tuple
+    appendDBUSSignalArgumentsSignature(s, t, argNames);
+    s << "</signal>";
+}
+
+};
+
 }
