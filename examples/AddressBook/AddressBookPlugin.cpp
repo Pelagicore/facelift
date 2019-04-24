@@ -43,11 +43,15 @@ void AddressBookPlugin::registerTypes(const char *uri)
 {
     // Register the generated types
     Module::registerQmlTypes(uri);
-    Module::registerUncreatableQmlTypes(uri);
+
+    // Register uncreatable type as "AddressBookType"
+    facelift::registerUncreatableQmlComponent<AddressBook>(uri, "AddressBookType");
 
     // We are registering the model types here, which can be used by the UI code.
+    // The default name "AddressBook" is used as no explicit name is provided.
     // The decision to register a dummy, QML, or C++ implementation should be taken here
-    facelift::registerQmlComponent<AddressBookCppWithProperties>(uri, "AddressBook");
-    // facelift::registerQmlComponent<AddressBookCpp>(uri, , "AddressBookImpl");
-    // facelift::registerQmlComponent<AddressBookImplementationBaseQML>(uri, STRINGIFY(QML_MODEL_LOCATION) "/models/qml/addressbook/AddressBook.qml");
+    facelift::registerQmlComponent<AddressBookCppWithProperties>(uri);
+    // facelift::registerQmlComponent<AddressBookCpp>(uri);
+    // facelift::registerQmlComponent<AddressBookImplementationBaseQML>(uri,
+    //       STRINGIFY(QML_MODEL_LOCATION) "/models/qml/addressbook/AddressBook.qml");
 }

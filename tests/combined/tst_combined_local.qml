@@ -81,4 +81,12 @@ TestCase {
     function test_signals() {
         Check.signals();
     }
+
+    property CombinedInterfaceUncreatable combi
+
+    function test_uncreatable() {
+        combi = api;
+        verify(combi);
+        verify(combi.readyFlags.readyProperty);
+    }
 }

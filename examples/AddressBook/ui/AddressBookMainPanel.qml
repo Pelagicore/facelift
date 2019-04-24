@@ -1,6 +1,4 @@
 import QtQuick 2.5
-import facelift.example.addressbook 1.0
-
 /**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
@@ -32,6 +30,7 @@ import facelift.example.addressbook 1.0
 **********************************************************************/
 
 import QtQuick.Controls 1.4
+import facelift.example.addressbook 1.0
 
 /**
  * AddressBook application UI
@@ -46,7 +45,7 @@ Item {
 
     property bool popupVisible: false
     property bool serverSide: true
-    property AddressBook viewModel
+    property AddressBookType viewModel
     property bool contactDirty: nameField.isDirty || numberField.isDirty
 
     Column {

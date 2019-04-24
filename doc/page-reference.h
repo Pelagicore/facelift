@@ -166,8 +166,16 @@ the QML type \c MyInterfaceImplementationBase):
 \code
 facelift::registerQmlComponent<MyInterfaceImplementationBaseQML>(uri, "path/to/MyInterfaceImplementation.qml", "MyInterface");
 \endcode
-Note again that both calls actually register a \c MyInterfaceQMLFrontend derived type to the QML
-engine. This is done implicitly without mentioning this type.
+
+If only the type itself is needed for instance to define a typed property or only enum values from
+the type are needed, the type can be registered as "uncreatable":
+\code
+facelift::registerUncreatableQmlComponent<MyInterface>(uri, "MyInterfaceType");
+\endcode
+
+Note again that all the above registration functions actually register a \c MyInterfaceQMLFrontend
+(derived) type to the QML engine internally. This type exactly reflects all the properties, methods
+and signals defined in the .qface file.
 
 There are equivalent functions to register a singleton type (in contrast to an instantiatable type
 above). The QML name also defaults to the interface name ("MyInterface" here). The following calls
