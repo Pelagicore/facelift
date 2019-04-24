@@ -46,6 +46,10 @@
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
 #endif
 
+{% if generateAsyncProxy %}
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCLocalProxyAdapter.h"
+{% endif %}
+
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCProxy.h"
 {% endfor %}
@@ -133,6 +137,15 @@ public:
     using QMLFrontendType = {{className}}QMLFrontendType;
 
     {{className}}(QObject *parent = nullptr);
+
+private:
+    {% if generateAsyncProxy %}
+    {{interfaceName}}IPCLocalProxyAdapter m_ipcLocalProxyAdapter;
+    {% endif %}
+
+#ifdef DBUS_IPC_ENABLED
+    {{interfaceName}}IPCDBusProxy m_ipcDBusProxyAdapter;
+#endif
 
 };
 

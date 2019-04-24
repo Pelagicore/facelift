@@ -32,40 +32,10 @@
 ** This is an auto-generated file.
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
+{% set baseClass = "::facelift::dbus::DBusIPCProxy<" + interfaceName + ">" %}
+{% set proxyTypeNameSuffix = "IPCDBusProxy" %}
 
-#include "{{interfaceName}}IPCProxy.h"
+#include "DBusIPCProxy.h"
 
-{% set className = interfaceName + "IPCProxy" %}
+{% include "IPCProxyAdapter.template.h" %}
 
-{{module.namespaceCppOpen}}
-
-{{className}}::{{className}}(QObject *parent) : BaseType(parent)
-{
-    ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
-
-    {% if generateAsyncProxy %}
-    ipc()->setSynchronous(false);
-    addIPCAdapter(m_ipcLocalProxyAdapter);
-    {% endif %}
-
-#ifdef DBUS_IPC_ENABLED
-    addIPCAdapter(m_ipcDBusProxyAdapter);
-#endif
-
-}
-
-facelift::IPCProxyBinderBase *{{className}}QMLFrontendType::ipc()
-{
-    auto p = static_cast<{{className}}*>(providerPrivate());
-    return p->ipc();
-}
-
-{{className}}QMLFrontendType::{{className}}QMLFrontendType(QObject *parent) : {{interfaceName}}QMLFrontend(parent)
-{
-}
-
-{{className}}QMLFrontendType::{{className}}QMLFrontendType(QQmlEngine *engine) : {{interfaceName}}QMLFrontend(engine)
-{
-}
-
-{{module.namespaceCppClose}}

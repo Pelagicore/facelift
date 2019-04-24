@@ -120,13 +120,14 @@ public:
         m_objectPath = objectPath;
     }
 
+    virtual void registerService(const QString &objectPath, InterfaceBase* serverObject) = 0;
+
     QString generateObjectPath(const QString &parentPath) const;
 
-    template<typename InterfaceType>
-    typename InterfaceType::IPCDBusAdapterType *getOrCreateAdapter(InterfaceType *service)
-    {
-        using InterfaceAdapterType = typename InterfaceType::IPCDBusAdapterType ;
 
+    template<typename InterfaceAdapterType>
+    InterfaceAdapterType *getOrCreateAdapter(typename InterfaceAdapterType::ServiceType *service)
+    {
         if (service == nullptr) {
             return nullptr;
         }
@@ -154,7 +155,7 @@ public:
         {
             if (m_service != service) {
                 m_service = service;
-                m_serviceAdapter = parent->getOrCreateAdapter<InterfaceType>(service);
+                m_serviceAdapter = parent->getOrCreateAdapter<InterfaceAdapterType>(service);
             }
         }
 
@@ -172,6 +173,7 @@ private:
     QString m_objectPath;
     QString m_interfaceName;
 };
+
 
 class FaceliftIPCCommonLib_EXPORT IPCProxyBinderBase : public QObject
 {
@@ -222,25 +224,28 @@ public:
 
     Q_SIGNAL void serviceAvailableChanged();
 
+    virtual bool isServiceAvailable() const {
+        Q_ASSERT(false); // TODO: remove
+        return true;
+    }
+
     InterfaceBase &owner()
     {
         return m_owner;
     }
 
-    template<typename SubInterfaceType>
-    typename SubInterfaceType::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
+    template<typename SubInterfaceProxyType>
+    SubInterfaceProxyType *getOrCreateSubProxy(const QString &objectPath)
     {
-        using InterfaceProxyType = typename SubInterfaceType::IPCDBusProxyType;
-
         if (objectPath.isEmpty()) {
             return nullptr;
         }
 
         if (m_subProxies.contains(objectPath)) {
-            return qobject_cast<InterfaceProxyType *>(&(m_subProxies[objectPath]->owner()));
+            return qobject_cast<SubInterfaceProxyType *>(&(m_subProxies[objectPath]->owner()));
         }
 
-        auto proxy = new InterfaceProxyType();
+        auto proxy = new SubInterfaceProxyType();
         proxy->ipc()->setObjectPath(objectPath);
         proxy->connectToServer();
 
@@ -277,7 +282,7 @@ inline void assignDefaultValue(Type &v)
 }
 
 template<typename AdapterType>
-class IPCProxyBase : public AdapterType
+class FaceliftIPCCommonLib_EXPORT IPCProxyBase : public AdapterType
 {
 
 public:
@@ -458,8 +463,7 @@ public:
         });
     }
 
-    template<typename IPCMessage>
-    void handleModelRequest(IPCMessage &requestMessage, IPCMessage &replyMessage)
+    void handleModelRequest(typename IPCAdapterType::InputIPCMessage &requestMessage, typename IPCAdapterType::OutputIPCMessage &replyMessage)
     {
         int first, last;
         m_adapter.deserializeValue(requestMessage, first);
@@ -504,8 +508,7 @@ public:
     {
     }
 
-    template<typename IPCMessage>
-    void handleSignal(IPCMessage &msg)
+    void handleSignal(typename IPCProxyType::InputIPCMessage &msg)
     {
         ModelUpdateEvent event;
         m_proxy.deserializeValue(msg, event);
@@ -799,22 +802,23 @@ struct IPCTypeRegisterHandler<QMap<QString, Type> >
 };
 
 
-
-
 template<typename Type>
 struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
     typedef QString SerializedType;
 
-    static SerializedType convertToSerializedType(Type *const &v, IPCServiceAdapterBase &adapter)
+    template<typename OwnerType>
+    static SerializedType convertToSerializedType(Type *const &v, OwnerType &adapter)
     {
-        return adapter.getOrCreateAdapter<Type>(v)->objectPath();
+        using IPCAdapterType = typename OwnerType::template IPCAdapterType<Type>;
+        return adapter.template getOrCreateAdapter< IPCAdapterType >(v)->objectPath();
     }
 
     template<typename OwnerType>
     static void convertToDeserializedType(Type * &v, const SerializedType &serializedValue, OwnerType &owner)
     {
-        v = owner.template getOrCreateSubProxy<Type>(serializedValue);
+        using IPCProxyType = typename OwnerType::template IPCProxyType<Type>;
+        v = owner.template getOrCreateSubProxy<IPCProxyType>(serializedValue);
     }
 
 };
@@ -824,7 +828,7 @@ class FaceliftIPCCommonLib_EXPORT OutputPayLoad
 {
 
 public:
-    OutputPayLoad() : m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
+    OutputPayLoad(QByteArray &payloadArray) : m_payloadArray(payloadArray), m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
     {
     }
 
@@ -841,7 +845,7 @@ public:
     }
 
 private:
-    QByteArray m_payloadArray;
+    QByteArray& m_payloadArray;
     QDataStream m_dataStream;
 };
 
@@ -850,13 +854,14 @@ class FaceliftIPCCommonLib_EXPORT InputPayLoad
 {
 
 public:
-    InputPayLoad(const QByteArray &payloadArray) : m_payloadArray(payloadArray), m_dataStream(m_payloadArray)
+    InputPayLoad(const QByteArray &payloadArray) :
+        m_payloadArray(payloadArray),
+        m_dataStream(m_payloadArray)
     {
     }
 
     ~InputPayLoad()
     {
-        Q_ASSERT(m_dataStream.atEnd());
     }
 
     template<typename Type>
@@ -866,8 +871,13 @@ public:
         //        qCDebug(LogIpc) << "Read from message : " << v;
     }
 
+    const QByteArray &getContent() const
+    {
+        return m_payloadArray;
+    }
+
 private:
-    QByteArray m_payloadArray;
+    const QByteArray& m_payloadArray;
     QDataStream m_dataStream;
 };
 
@@ -891,7 +901,6 @@ struct IPCTypeHandler
     }
 
 };
-
 
 
 }

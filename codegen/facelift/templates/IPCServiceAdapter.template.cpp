@@ -33,14 +33,15 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{interfaceName}}IPCDBusAdapter.h"
+{% set className = interfaceName + proxyTypeNameSuffix %}
 
-#include "ipc-dbus-serialization.h"
+#include "{{className}}.h"
+
 
 {{module.namespaceCppOpen}}
 
-facelift::IPCHandlingResult {{interfaceName}}IPCDBusAdapter::handleMethodCallMessage(::facelift::dbus::DBusIPCMessage &requestMessage,
-        ::facelift::dbus::DBusIPCMessage &replyMessage)
+facelift::IPCHandlingResult {{className}}::handleMethodCallMessage(InputIPCMessage &requestMessage,
+        OutputIPCMessage &replyMessage)
 {
     Q_UNUSED(replyMessage); // Since we do not always have return values
     Q_UNUSED(requestMessage);
@@ -104,11 +105,11 @@ facelift::IPCHandlingResult {{interfaceName}}IPCDBusAdapter::handleMethodCallMes
     return facelift::IPCHandlingResult::OK;
 }
 
-void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s) const
+void {{className}}::appendDBUSIntrospectionData(QTextStream &s) const
 {
     Q_UNUSED(s);   // For empty interfaces
     {% for property in interface.properties %}
-    ::facelift::dbus::addPropertySignature<ServiceType::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
+    ::facelift::DBusSignatureHelper::addPropertySignature<ServiceType::PropertyType_{{property.name}}>(s, "{{property.name}}", {{ property.readonly | cppBool }});
     {% endfor %}
     {% for operation in interface.operations %}
 
@@ -118,7 +119,7 @@ void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s
             "{{parameter}}",
             {%- endfor -%}
         } };
-        ::facelift::dbus::addMethodSignature<
+        ::facelift::DBusSignatureHelper::addMethodSignature<
         {%- set comma = joiner(", ") -%}
         {%- for parameter in operation.parameters -%}
             {{ comma() }}{{parameter.cppType}}
@@ -135,7 +136,7 @@ void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s
                 "{{parameter}}",
             {%- endfor -%}
         }};
-        ::facelift::dbus::addSignalSignature<
+        ::facelift::DBusSignatureHelper::addSignalSignature<
         {%- set comma = joiner(", ") -%}
         {%- for parameter in signal.parameters -%}
         {{ comma() }}{{parameter.interfaceCppType}}
@@ -146,7 +147,7 @@ void {{interfaceName}}IPCDBusAdapter::appendDBUSIntrospectionData(QTextStream &s
     {% endfor %}
 }
 
-void {{interfaceName}}IPCDBusAdapter::connectSignals()
+void {{className}}::connectSignals()
 {
     auto theService = service();
     Q_UNUSED(theService);
@@ -179,7 +180,7 @@ void {{interfaceName}}IPCDBusAdapter::connectSignals()
     {% endfor %}
 }
 
-void {{interfaceName}}IPCDBusAdapter::serializePropertyValues(::facelift::dbus::DBusIPCMessage& msg, bool isCompleteSnapshot)
+void {{className}}::serializePropertyValues(OutputIPCMessage& msg, bool isCompleteSnapshot)
 {
     auto theService = service();
     {#% if (not interface.properties) %#}

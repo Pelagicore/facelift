@@ -17,8 +17,9 @@ if(Qt5DBus_FOUND)
             ipc-dbus-object-registry.cpp
         HEADERS
             ipc-dbus.h
+            DBusManager.h
             DBusIPCProxy.h
-            DBusIPCServiceAdapter.h
+            IPCDBusServiceAdapter.h
             ipc-dbus-object-registry.h
             ipc-dbus-serialization.h
         SOURCES_GLOB_RECURSE
@@ -29,7 +30,7 @@ if(Qt5DBus_FOUND)
             ${GENERATED_FILE_PATH}/ipc/*.h
             ${GENERATED_FILE_PATH}/ipc_dbus/*.h
             ${GENERATED_FILE_PATH}/types/*.h
-        LINK_LIBRARIES FaceliftIPCCommonLib Qt5::DBus
+        LINK_LIBRARIES FaceliftIPCCommonLib Qt5::DBus FaceliftIPCLocalLib
         PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
     )
     target_compile_definitions(FaceliftIPCLibDBus PUBLIC DBUS_IPC_ENABLED)

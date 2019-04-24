@@ -41,7 +41,6 @@
 namespace facelift {
 
 
-
 class FaceliftIPCCommonLib_EXPORT NewIPCServiceAdapterBase : public QObject
 {
     Q_OBJECT

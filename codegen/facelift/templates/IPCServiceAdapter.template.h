@@ -35,9 +35,10 @@
 
 #pragma once
 
+{% set className = interfaceName + proxyTypeNameSuffix %}
+
 {{classExportDefines}}
 
-#include "DBusIPCServiceAdapter.h"
 #include "FaceliftUtils.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
@@ -46,26 +47,26 @@
 
 //// Sub interfaces
 {% for property in interface.referencedInterfaceTypes %}
-#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}{{proxyTypeNameSuffix}}.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}
 
 class {{interfaceName}}IPCQMLFrontendType;
 
-class {{classExport}} {{interfaceName}}IPCDBusAdapter: public ::facelift::dbus::DBusIPCServiceAdapter<{{interfaceName}}>
+class {{classExport}} {{className}}: public {{baseClass}}
 {
     Q_OBJECT
 
 public:
 
     using ServiceType = {{interfaceName}};
-    using BaseType = ::facelift::dbus::DBusIPCServiceAdapter<{{interfaceName}}>;
-    using ThisType = {{interfaceName}}IPCDBusAdapter;
+    using BaseType = {{baseClass}};
+    using ThisType = {{className}};
     using SignalID = {{interface}}IPCCommon::SignalID;
     using MethodID = {{interface}}IPCCommon::MethodID;
 
-    {{interfaceName}}IPCDBusAdapter(QObject* parent = nullptr) : BaseType(parent)
+    {{className}}(QObject* parent = nullptr) : BaseType(parent)
     {% for property in interface.properties %}
     {% if property.type.is_model %}
         , m_{{property.name}}Handler(*this)
@@ -77,7 +78,7 @@ public:
     void appendDBUSIntrospectionData(QTextStream &s) const override;
 
     ::facelift::IPCHandlingResult handleMethodCallMessage(InputIPCMessage &requestMessage,
-            ::facelift::dbus::DBusIPCMessage &replyMessage) override;
+            OutputIPCMessage &replyMessage) override;
 
     void connectSignals() override;
 
@@ -107,7 +108,7 @@ private:
     {{property.interfaceCppType}} m_previous{{property.name}};
     {% endif %}
     {% if property.type.is_interface %}
-    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}IPCDBusAdapter> m_{{property.name}};
+    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}};
     {% endif %}
     {% endfor %}
 };

@@ -33,39 +33,25 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-#include "{{interfaceName}}IPCProxy.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCAdapter.h"
 
-{% set className = interfaceName + "IPCProxy" %}
+#ifdef DBUS_IPC_ENABLED
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
+{% for property in interface.referencedInterfaceTypes %}
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
+{% endfor %}
+#endif
 
 {{module.namespaceCppOpen}}
 
-{{className}}::{{className}}(QObject *parent) : BaseType(parent)
-{
-    ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
-
-    {% if generateAsyncProxy %}
-    ipc()->setSynchronous(false);
-    addIPCAdapter(m_ipcLocalProxyAdapter);
-    {% endif %}
-
+{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) : BaseType(parent) {
+{% if interface.isAsynchronousIPCEnabled %}
+    addServiceAdapter(m_ipcLocalServiceAdapter);
+{% endif %}
 #ifdef DBUS_IPC_ENABLED
-    addIPCAdapter(m_ipcDBusProxyAdapter);
+    addServiceAdapter(m_ipcDBusServiceAdapter);
 #endif
 
-}
-
-facelift::IPCProxyBinderBase *{{className}}QMLFrontendType::ipc()
-{
-    auto p = static_cast<{{className}}*>(providerPrivate());
-    return p->ipc();
-}
-
-{{className}}QMLFrontendType::{{className}}QMLFrontendType(QObject *parent) : {{interfaceName}}QMLFrontend(parent)
-{
-}
-
-{{className}}QMLFrontendType::{{className}}QMLFrontendType(QQmlEngine *engine) : {{interfaceName}}QMLFrontend(engine)
-{
 }
 
 {{module.namespaceCppClose}}

@@ -33,11 +33,9 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-{% set className = interfaceName + "IPCDBusProxy" %}
+{% set className = interfaceName + proxyTypeNameSuffix %}
 
 #include "{{className}}.h"
-
-#include "ipc-dbus-serialization.h"
 
 {{module.namespaceCppOpen}}
 
@@ -57,7 +55,7 @@
     {% endif %}
 }
 
-void {{className}}::deserializePropertyValues(::facelift::dbus::DBusIPCMessage &msg, bool isCompleteSnapshot)
+void {{className}}::deserializePropertyValues(InputIPCMessage &msg, bool isCompleteSnapshot)
 {
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
@@ -89,7 +87,7 @@ void {{className}}::emitChangeSignals() {
     BaseType::emitChangeSignals();
 }
 
-void {{className}}::deserializeSignal(::facelift::dbus::DBusIPCMessage &msg)
+void {{className}}::deserializeSignal(InputIPCMessage &msg)
 {
     SignalID member;
     deserializeValue(msg, member);

@@ -39,14 +39,15 @@
 #include "ipc-dbus.h"
 #include "ipc-serialization.h"
 #include "DBusIPCProxy.h"
-#include "DBusIPCServiceAdapter.h"
+#include "IPCDBusServiceAdapter.h"
+#include "DBusManager.h"
 
 namespace facelift {
 
 namespace dbus {
 
 
-
+/*
 template<size_t I = 0, typename ... Ts>
 typename std::enable_if<I == sizeof ... (Ts)>::type
 appendDBUSMethodArgumentsSignature(QTextStream &s, std::tuple<Ts ...> &t, const std::array<const char *,
@@ -139,17 +140,17 @@ void addSignalSignature(QTextStream &s, const char *methodName,
     appendDBUSSignalArgumentsSignature(s, t, argNames);
     s << "</signal>";
 }
-
+*/
 
 template<typename Type>
-inline void DBusIPCServiceAdapterBase::serializeValue(DBusIPCMessage &msg, const Type &v)
+inline void IPCDBusServiceAdapterBase::serializeValue(DBusIPCMessage &msg, const Type &v)
 {
     typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
     IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
 }
 
 template<typename Type>
-inline void DBusIPCServiceAdapterBase::deserializeValue(DBusIPCMessage &msg, Type &v)
+inline void IPCDBusServiceAdapterBase::deserializeValue(DBusIPCMessage &msg, Type &v)
 {
     typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
     SerializedType serializedValue;
@@ -181,7 +182,7 @@ inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName,
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
     auto argTuple = std::make_tuple(args ...);
     for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCProxyBinder>(msg.outputPayLoad(), *this));
-    auto replyMessage = msg.call(connection());
+    auto replyMessage = this->call(msg);
     if (replyMessage.isErrorMessage()) {
         onServerNotAvailableError(methodName);
     }
@@ -194,7 +195,7 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
     auto argTuple = std::make_tuple(args ...);
     for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCProxyBinder>(msg.outputPayLoad(), *this));
-    msg.asyncCall(connection(), this, [this, answer](DBusIPCMessage &msg) {
+    asyncCall(msg, this, [this, answer](DBusIPCMessage &msg) {
         ReturnType returnValue;
         if (msg.isReplyMessage()) {
             deserializeValue(msg, returnValue);
@@ -211,7 +212,7 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
     auto argTuple = std::make_tuple(args ...);
     for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCProxyBinder>(msg.outputPayLoad(), *this));
-    msg.asyncCall(connection(), this, [answer](DBusIPCMessage &msg) {
+    asyncCall(msg, this, [answer](DBusIPCMessage &msg) {
         Q_UNUSED(msg);
         answer();
     });
@@ -235,12 +236,12 @@ inline void DBusIPCProxyBinder::sendSetterCall(const char *methodName, const Pro
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
     serializeValue(msg, value);
     if (isSynchronous()) {
-        auto replyMessage = msg.call(connection());
+        auto replyMessage = call(msg);
         if (replyMessage.isErrorMessage()) {
             onServerNotAvailableError(methodName);
         }
     } else {
-        msg.asyncCall(connection(), this, [this, methodName](const DBusIPCMessage &replyMessage) {
+        asyncCall(msg, this, [this, methodName](const DBusIPCMessage &replyMessage) {
             if (replyMessage.isErrorMessage()) {
                 onServerNotAvailableError(methodName);
             }
@@ -250,25 +251,25 @@ inline void DBusIPCProxyBinder::sendSetterCall(const char *methodName, const Pro
 
 
 template<typename MemberID, typename ... Args>
-inline void DBusIPCServiceAdapterBase::sendSignal(MemberID signalID, const Args & ... args)
+inline void IPCDBusServiceAdapterBase::sendSignal(MemberID signalID, const Args & ... args)
 {
     if (m_pendingOutgoingMessage == nullptr) {
         initOutgoingSignalMessage();
         auto argTuple = std::make_tuple(signalID, args ...);
-        for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCServiceAdapterBase>(m_pendingOutgoingMessage->outputPayLoad(), *this));
+        for_each_in_tuple(argTuple, SerializeParameterFunction<IPCDBusServiceAdapterBase>(m_pendingOutgoingMessage->outputPayLoad(), *this));
         flush();
     }
 }
 
 template<typename ReturnType>
-inline void DBusIPCServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
+inline void IPCDBusServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
 {
     serializeValue(replyMessage, returnValue);
-    replyMessage.send(dbusManager().connection());
+    send(replyMessage);
 }
 
 template<typename Type>
-inline void DBusIPCServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot)
+inline void IPCDBusServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot)
 {
     if (isCompleteSnapshot) {
         serializeValue(msg, currentValue);
@@ -284,7 +285,7 @@ inline void DBusIPCServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &ms
 }
 
 template<typename Type>
-inline void DBusIPCServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot)
+inline void IPCDBusServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot)
 {
     msg.outputPayLoad().writeSimple(isCompleteSnapshot);
     if (isCompleteSnapshot) {

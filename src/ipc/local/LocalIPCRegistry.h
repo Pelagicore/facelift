@@ -28,4 +28,43 @@
 **
 **********************************************************************/
 
-#include "ipc-serialization.h"
+#pragma once
+
+#include <QObject>
+#include <QMap>
+
+#include "LocalIPCServiceAdapter.h"
+
+
+namespace facelift {
+
+namespace local {
+
+
+class LocalIPCRegistry : public QObject
+{
+    Q_OBJECT
+
+public:
+    void registerAdapter(const QString &objectPath, LocalIPCServiceAdapterBase *adapter);
+
+    void unregisterAdapter(LocalIPCServiceAdapterBase *adapter);
+
+    LocalIPCServiceAdapterBase *getAdapter(const QString &objectPath);
+
+    Q_SIGNAL void adapterAvailable(LocalIPCServiceAdapterBase *adapter);
+
+    Q_SIGNAL void adapterUnavailable(const QString &objectPath, LocalIPCServiceAdapterBase *adapter);
+
+    static LocalIPCRegistry &instance();
+
+    static InterfaceBase *serviceMatches(const QString &objectPath, LocalIPCServiceAdapterBase *adapter);
+
+private:
+    QMap<QString, QPointer<LocalIPCServiceAdapterBase> > m_registry;
+
+};
+
+
+}
+}

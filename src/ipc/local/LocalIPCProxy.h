@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,34 +30,30 @@
 
 #pragma once
 
-#include "ipc-dbus.h"
+#include "LocalIPC.h"
 #include "IPCProxyBase.h"
-#include <QDBusServiceWatcher>
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
+#if defined(FaceliftIPCLocalLib_LIBRARY)
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
 #else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
 #endif
 
 namespace facelift {
 
-namespace dbus {
+namespace local {
 
 using namespace facelift;
 
-class DBusManager;
+class LocalIPCManager;
+class LocalIPCServiceAdapterBase;
 
-class FaceliftIPCLibDBus_EXPORT DBusIPCProxyBinder : public IPCProxyBinderBase
+class FaceliftIPCLocalLib_EXPORT LocalIPCProxyBinder : public IPCProxyBinderBase
 {
     Q_OBJECT
 
 public:
-
-    template<typename Type>
-    using IPCProxyType = typename Type::IPCDBusProxyType;
-
-    DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr);
+    LocalIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr);
 
     const QString &serviceName() const
     {
@@ -73,32 +69,32 @@ public:
 
     void setInterfaceName(const QString &name);
 
-    Q_SLOT void onPropertiesChanged(const QDBusMessage &dbusMessage);
+    void onPropertiesChanged(LocalIPCMessage &message);
 
-    Q_SLOT void onSignalTriggered(const QDBusMessage &dbusMessage);
+    void onSignalTriggered(LocalIPCMessage &message);
 
-    void bindToIPC() override;
-
-    void onServiceNameKnown();
+    void bindToIPC();
 
     void setServiceAvailable(bool isRegistered);
 
-    bool isServiceAvailable() const override
+    void onServiceAvailable(LocalIPCServiceAdapterBase *adapter);
+
+    void onServiceUnavailable();
+
+    void notifyServiceAvailable();
+
+    bool isServiceAvailable() const
     {
-        return m_serviceAvailable;
+        return !m_serviceAdapter.isNull();
     }
 
     void requestPropertyValues();
 
-    DBusIPCMessage call(DBusIPCMessage &message) const;
-
-    void asyncCall(DBusIPCMessage &message, const QObject *context, std::function<void(DBusIPCMessage &message)> callback);
+    template<typename Type>
+    void serializeValue(LocalIPCMessage &msg, const Type &v);
 
     template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v);
+    void deserializeValue(LocalIPCMessage &msg, Type &v);
 
     void onServerNotAvailableError(const char *methodName) const;
 
@@ -106,7 +102,7 @@ public:
     void sendSetterCall(const char *methodName, const PropertyType &value);
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
+    LocalIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
 
     template<typename ReturnType, typename ... Args>
     void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args);
@@ -117,80 +113,81 @@ public:
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
 
-    QDBusConnection &connection() const;
+    LocalIPCManager &manager() const;
 
-    DBusManager &manager() const;
+    LocalIPCMessage call(LocalIPCMessage &message) const;
 
-    void setHandler(DBusRequestHandler *handler)
+    void asyncCall(LocalIPCMessage &requestMessage, QObject *context, std::function<void(LocalIPCMessage &message)> callback);
+
+    void setHandler(LocalIPCRequestHandler *handler)
     {
         m_serviceObject = handler;
         checkInit();
     }
 
 private:
-    void checkRegistry();
-
     QString m_serviceName;
     QString m_interfaceName;
-    QDBusServiceWatcher m_busWatcher;
-    DBusRequestHandler *m_serviceObject = nullptr;
+    LocalIPCRequestHandler *m_serviceObject = nullptr;
+    QPointer<LocalIPCServiceAdapterBase> m_serviceAdapter;
+    QMetaObject::Connection m_signalConnection;
     bool m_explicitServiceName = false;
     bool m_serviceAvailable = false;
-    DBusObjectRegistry &m_registry;
 };
 
 
-class FaceliftIPCLibDBus_EXPORT DBusIPCProxyBase : protected DBusRequestHandler
+class FaceliftIPCLocalLib_EXPORT LocalIPCProxyBase : protected LocalIPCRequestHandler
 {
 public:
-    DBusIPCProxyBase(DBusIPCProxyBinder& ipcBinder) : m_ipcBinder(ipcBinder) {
+    LocalIPCProxyBase(LocalIPCProxyBinder &ipcBinder) : m_ipcBinder(ipcBinder)
+    {
     }
 
 protected:
-    DBusIPCProxyBinder& m_ipcBinder;
+    LocalIPCProxyBinder &m_ipcBinder;
     bool m_serviceRegistered = false;
 
 };
 
 
 template<typename InterfaceType>
-class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusIPCProxyBase
+class LocalIPCProxy : public IPCProxyBase<InterfaceType>, protected LocalIPCProxyBase
 {
 
 public:
-    using MemberIDType = const char *;
-    using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
-    using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
+    typedef const char *MemberIDType;
+    using InputIPCMessage = ::facelift::local::LocalIPCMessage;
+    using OutputIPCMessage = ::facelift::local::LocalIPCMessage;
 
     template<typename Type>
-    using IPCProxyType = typename Type::IPCDBusProxyType;
+    using IPCProxyType = typename Type::IPCLocalProxyType;
 
-    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), DBusIPCProxyBase(m_ipcBinder), m_ipcBinder(*this)
+    LocalIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), LocalIPCProxyBase(m_ipcBinder), m_ipcBinder(*this)
     {
         m_ipcBinder.setInterfaceName(InterfaceType::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
 
         this->initBinder(m_ipcBinder);
-        this->setImplementationID("DBus IPC Proxy");
+        this->setImplementationID("Local IPC Proxy");
     }
 
     template<typename T>
     MemberIDType memberID(T member, const char *memberName) const
     {
-        // DBus member IDs are strings
+        // Local member IDs are strings. TODO : change to integer
         Q_UNUSED(member);
         return memberName;
     }
 
     template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v)
+    void serializeValue(LocalIPCMessage &msg, const Type &v)
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
     }
 
     template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v)
+    void deserializeValue(LocalIPCMessage &msg, Type &v)
     {
         typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
         SerializedType serializedValue;
@@ -199,7 +196,7 @@ public:
     }
 
     template<typename Type>
-    bool deserializeOptionalValue(DBusIPCMessage &msg, Type &value, bool isCompleteSnapshot)
+    bool deserializeOptionalValue(LocalIPCMessage &msg, Type &value, bool isCompleteSnapshot)
     {
         bool b = true;
         if (!isCompleteSnapshot) {
@@ -211,7 +208,7 @@ public:
         return b;
     }
 
-    void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) override
+    void deserializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot) override
     {
         Q_UNUSED(isCompleteSnapshot);
         bool isReady = false;
@@ -231,13 +228,13 @@ public:
         m_ipcBinder.setServiceAvailable(isRegistered);
     }
 
-    DBusIPCProxyBinder *ipc()
+    LocalIPCProxyBinder *ipc()
     {
         return &m_ipcBinder;
     }
 
     template<typename SubInterfaceType>
-    typename SubInterfaceType::IPCDBusProxyType *getOrCreateSubProxy(const QString &objectPath)
+    typename SubInterfaceType::IPCLocalProxyType *getOrCreateSubProxy(const QString &objectPath)
     {
         return m_ipcBinder.getOrCreateSubProxy<SubInterfaceType>(objectPath);
     }
@@ -248,7 +245,7 @@ public:
     }
 
 private:
-    DBusIPCProxyBinder m_ipcBinder;
+    LocalIPCProxyBinder m_ipcBinder;
 
 };
 }
