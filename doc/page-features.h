@@ -151,4 +151,9 @@ foo.userData<Pod>().i;  // 42
 An interface implementation can expose a structure containing some user data. This user data is
 preserved when the structure is copied. Thus it can be made available in a different interface.
 
+\section IPCServerRegistrationFromCpp Registration of an IPC server from C++ code
+The following code snippet shows how to register an IPC Server in C++
+\subsection Server
+\snippet IPCServerRegistration.cpp indoc
+\endsection
 */

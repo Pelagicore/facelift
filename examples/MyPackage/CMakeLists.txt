@@ -12,6 +12,14 @@ facelift_add_qml_plugin(MyPackagePlugin
     LINK_LIBRARIES MyPackageInterface
 )
 
+#Note: this library addition is trivial, its meant to compile extra code
+#which depicts how to create a server in C++
+
+facelift_add_library(serverlib
+    SOURCES IPCServerRegistration.cpp
+    LINK_LIBRARIES MyPackageInterface
+)
+
 add_example_script(mypackage ui/MyApp.qml)
 add_example_script(mypackage-ipcclient-async ui/ipc/MyAppAsyncIPCClient.qml)
 add_example_script(mypackage-ipcclient ui/ipc/MyAppIPCClient.qml)
