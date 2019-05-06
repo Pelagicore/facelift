@@ -784,6 +784,7 @@ function(facelift_generateQRC OUTPUT_FILE)
                                 "${INPUT_PATH}/*.tesh"
                                 "${INPUT_PATH}/*.gsh"
                                 "${INPUT_PATH}/*.fsh"
+                                "${INPUT_PATH}/*.geojson"
         )
 
         foreach(FILE ${FILES})
