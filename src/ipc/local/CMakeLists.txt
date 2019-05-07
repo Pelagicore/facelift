@@ -2,8 +2,8 @@
 facelift_add_library(FaceliftIPCLocalLib
     SOURCES
         LocalIPC.cpp
-        LocalIPC.h
     HEADERS
+        LocalIPC.h
         LocalIPCProxy.h
         LocalIPCRegistry.h
         LocalIPC-serialization.h
