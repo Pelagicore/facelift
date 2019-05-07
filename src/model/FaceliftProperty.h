@@ -380,22 +380,6 @@ class ListProperty : public TProperty<QList<ElementType> >
 public:
     using TProperty<QList<ElementType> >::operator=;
 
-    void removeElementById(ModelElementID elementId)
-    {
-        bool bModified = false;
-        for (int i = 0; i < size(); i++) {
-            if (this->value()[i].id() == elementId) {
-                this->modifiableValue().removeAt(i);
-                bModified = true;
-                break;
-            }
-        }
-
-        if (bModified) {
-            this->triggerValueChangedSignal();
-        }
-    }
-
     void removeAt(int i)
     {
         this->modifiableValue().removeAt(i);
@@ -411,16 +395,6 @@ public:
     int size() const
     {
         return this->value().size();
-    }
-
-    const ElementType *elementPointerById(ModelElementID id) const
-    {
-        for (const auto &element : this->value()) {
-            if (element.id() == id) {
-                return &element;
-            }
-        }
-        return nullptr;
     }
 
 private:
@@ -449,22 +423,6 @@ class Property<QMap<QString, ElementType> > : public TProperty<QMap<QString, Ele
 public:
     using TProperty<QMap<QString, ElementType> >::operator=;
 
-    void removeElementById(ModelElementID elementId)
-    {
-        bool bModified = false;
-        for (int i = 0; i < size(); i++) {
-            if (this->value()[i].id() == elementId) {
-                this->modifiableValue().removeAt(i);
-                bModified = true;
-                break;
-            }
-        }
-
-        if (bModified) {
-            this->triggerValueChangedSignal();
-        }
-    }
-
     void removeAt(int i)
     {
         this->modifiableValue().removeAt(i);
@@ -480,16 +438,6 @@ public:
     int size() const
     {
         return this->value().size();
-    }
-
-    const ElementType *elementPointerById(ModelElementID id) const
-    {
-        for (const auto &element : this->value()) {
-            if (element.id() == id) {
-                return &element;
-            }
-        }
-        return nullptr;
     }
 
 private:

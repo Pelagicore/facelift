@@ -197,12 +197,13 @@ void LocalIPCProxyBinder::onServiceUnavailable()
 
 void LocalIPCProxyBinder::notifyServiceAvailable()
 {
-    qWarning() << "GGGG" << m_serviceAdapter;
     serviceAvailableChanged();
 }
 
 void LocalIPCProxyBinder::setServiceAvailable(bool isRegistered)
 {
+    Q_UNUSED(isRegistered)
+
     auto isAvailable = isServiceAvailable();
     if (m_serviceAvailable != isAvailable) {
         m_serviceAvailable = isAvailable;

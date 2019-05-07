@@ -60,7 +60,6 @@ void {{struct.name}}QObjectWrapper::init()
     {% for field in struct.fields %}
     s.set{{field.name}}(m_{{field.name}}.value());
     {% endfor %}
-    s.setId(id());
     return s;
 }
 
@@ -69,7 +68,6 @@ void {{struct.name}}QObjectWrapper::assignFromGadget(const {{struct.fullyQualifi
     {% for field in struct.fields %}
     m_{{field.name}} = gadget.{{field.name}}();
     {% endfor %}
-    m_id = gadget.id();
 }
 
 {% if struct.isSerializable %}

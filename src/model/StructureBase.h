@@ -61,16 +61,6 @@ public:
 
     virtual ~StructureBase();
 
-    ModelElementID id() const
-    {
-        return m_id;
-    }
-
-    void setId(ModelElementID id)
-    {
-        m_id = id;
-    }
-
     template<typename T = QVariant>
     T userData() const
     {
@@ -88,11 +78,7 @@ public:
     }
 
 protected:
-    ModelElementID m_id;
     QVariant m_userData;
-
-private:
-    static ModelElementID s_nextID;
 };
 
 
@@ -129,7 +115,6 @@ public:
     void copyFrom(const Structure &other)
     {
         setValue(other.m_values);
-        m_id = other.id();
         m_userData = other.m_userData;
     }
 
@@ -140,21 +125,20 @@ public:
 
 protected:
     template<std::size_t I = 0, typename ... Tp>
-    inline typename std::enable_if<I == sizeof ... (Tp), void>::type
-    toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
+    inline typename std::enable_if<I == (sizeof ... (Tp) - 1), void>::type
+    static toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream)
     {
-        Q_UNUSED(t);
-        Q_UNUSED(names);
-        Q_UNUSED(outStream);
+        using TupleElementType = typename std::tuple_element<I, std::tuple<Tp ...> >::type;
+        outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
     }
 
     template<std::size_t I = 0, typename ... Tp>
-    inline typename std::enable_if < I<sizeof ... (Tp), void>::type
-    toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream) const
+    inline typename std::enable_if<(I < (sizeof ... (Tp) - 1)), void>::type
+    static toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream)
     {
-        typedef typename std::tuple_element<I, std::tuple<Tp ...> >::type TupleElementType;
-        outStream << ", ";
+        using TupleElementType = typename std::tuple_element<I, std::tuple<Tp ...> >::type;
         outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
+        outStream << ", ";
         toStringWithFields<I + 1, Tp ...>(t, names, outStream);
     }
 
@@ -162,9 +146,10 @@ protected:
     {
         QString s;
         QTextStream outStream(&s);
-        outStream << structName << " { id=" << id();
+        outStream << structName << " { ";
+
         toStringWithFields(m_values, names, outStream);
-        outStream << "}";
+        outStream << " }";
 
         return s;
     }
