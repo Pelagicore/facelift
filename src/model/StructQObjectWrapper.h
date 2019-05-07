@@ -49,31 +49,12 @@ class FaceliftModelLib_EXPORT StructQObjectWrapperBase : public QObject
 public:
     StructQObjectWrapperBase(QObject *parent = nullptr) : QObject(parent)
     {
-        m_id.init(this, &StructQObjectWrapperBase::idChanged, "id");
-    }
-
-    Q_PROPERTY(int uid READ id WRITE setId NOTIFY idChanged)
-
-    Q_SIGNAL void idChanged();
-
-    ModelElementID id() const
-    {
-        return m_id.value();
-    }
-
-    void setId(int id)
-    {
-        m_id = id;
     }
 
     /**
      * This signal is triggered when one of the fields has changed
      */
     Q_SIGNAL void anyFieldChanged();
-
-protected:
-    Property<int> m_id;
-
 };
 
 

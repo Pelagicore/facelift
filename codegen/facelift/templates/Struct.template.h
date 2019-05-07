@@ -77,9 +77,6 @@ public:
 
     static const QString CLASS_ID;
 
-    // This seems to be necessary even if the base class already contains an "id" property. TODO: clarify
-    Q_PROPERTY(int id READ id WRITE setId)
-
     {{struct.name}}();
 
     {{struct.name}}(const {{struct.name}} &other);

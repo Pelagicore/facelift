@@ -32,12 +32,10 @@
 
 namespace facelift {
 
-ModelElementID StructureBase::s_nextID = 0;
 constexpr int StructureBase::ROLE_ID;
 
 StructureBase::StructureBase()
 {
-    m_id = s_nextID++;
 }
 
 StructureBase::~StructureBase()

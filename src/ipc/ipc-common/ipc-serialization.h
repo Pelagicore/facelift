@@ -138,8 +138,6 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBas
     static void write(OutputPayLoad &msg, const Type &param)
     {
         for_each_in_tuple_const(param.asTuple(), StreamWriteFunction<OutputPayLoad>(msg));
-        param.id();
-        msg << param.id();
     }
 
     static void read(InputPayLoad &msg, Type &param)
@@ -147,9 +145,6 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBas
         typename Type::FieldTupleTypes tuple;
         for_each_in_tuple(tuple, StreamReadFunction<InputPayLoad>(msg));
         param.setValue(tuple);
-        ModelElementID id;
-        msg.readNextParameter(id);
-        param.setId(id);
     }
 
 };

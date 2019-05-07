@@ -230,8 +230,6 @@ struct StructTypeHandler
     {
         auto tupleCopy = param.asTuple();
         for_each_in_tuple(tupleCopy, StreamWriteFunction<BinarySeralizer>(msg));
-        param.id();
-        msg << param.id();
     }
 
     static void read(BinarySeralizer &msg, Type &param)
@@ -239,9 +237,6 @@ struct StructTypeHandler
         typename Type::FieldTupleTypes tuple;
         for_each_in_tuple(tuple, StreamReadFunction<BinarySeralizer>(msg));
         param.setValue(tuple);
-        ModelElementID id;
-        msg >> id;
-        param.setId(id);
     }
 
     static QString toString(const Type &v)
