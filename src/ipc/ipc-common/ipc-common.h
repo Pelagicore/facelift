@@ -282,7 +282,7 @@ inline void assignDefaultValue(Type &v)
 }
 
 template<typename AdapterType>
-class FaceliftIPCCommonLib_EXPORT IPCProxyBase : public AdapterType
+class IPCProxyBase : public AdapterType
 {
 
 public:
