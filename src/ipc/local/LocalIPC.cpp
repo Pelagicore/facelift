@@ -284,13 +284,13 @@ void LocalIPCProxyBinder::requestPropertyValues()
 
 void LocalIPCProxyBinder::bindToIPC()
 {
-    QObject::connect(&LocalIPCRegistry::instance(), &LocalIPCRegistry::adapterAvailable, [this](LocalIPCServiceAdapterBase *adapter) {
+    QObject::connect(&LocalIPCRegistry::instance(), &LocalIPCRegistry::adapterAvailable, this, [this](LocalIPCServiceAdapterBase *adapter) {
                 if (adapter->objectPath() == this->objectPath()) {
                     onServiceAvailable(adapter);
                 }
             });
 
-    QObject::connect(&LocalIPCRegistry::instance(), &LocalIPCRegistry::adapterUnavailable,
+    QObject::connect(&LocalIPCRegistry::instance(), &LocalIPCRegistry::adapterUnavailable, this,
             [this](const QString &objectPath, LocalIPCServiceAdapterBase *adapter) {
                 Q_UNUSED(adapter);
                 if (objectPath == this->objectPath()) {
