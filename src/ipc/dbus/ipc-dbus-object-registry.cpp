@@ -116,10 +116,15 @@ bool DBusObjectRegistry::MasterImpl::registerObject(const QString &objectPath, c
 bool DBusObjectRegistry::MasterImpl::unregisterObject(const QString &objectPath, const QString &serviceName)
 {
     auto objects = m_objects.value();
-    Q_ASSERT(objects[objectPath] == serviceName);
-    auto r = (objects.remove(objectPath) != 0);
-    m_objects = objects;
-    return r;
+    if (objects[objectPath] == serviceName) {
+        objects.remove(objectPath);
+        m_objects = objects;
+        return true;
+    } else {
+        qCCritical(LogIpc, "Could not unregister service at object path '%s' serviceName:'%s'", qPrintable(objectPath), qPrintable(serviceName));
+        return false;
+    }
+
 }
 
 

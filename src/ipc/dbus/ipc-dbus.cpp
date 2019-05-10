@@ -91,8 +91,8 @@ DBusObjectRegistry &DBusManager::objectRegistry()
 
 DBusManager &DBusManager::instance()
 {
-    static DBusManager i;
-    return i;
+    static auto i = new DBusManager(); // TODO solve memory leak
+    return *i;
 }
 
 bool DBusManager::registerServiceName(const QString &serviceName)
@@ -115,7 +115,6 @@ void IPCDBusServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, boo
     Q_ASSERT(service());
     serializeValue(msg, service()->ready());
 }
-
 
 void IPCDBusServiceAdapterBase::flush()
 {

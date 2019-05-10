@@ -94,8 +94,8 @@ NewIPCServiceAdapterBase *InterfaceManager::getAdapter(const QString &objectPath
 
 InterfaceManager &InterfaceManager::instance()
 {
-    static InterfaceManager registry;
-    return registry;
+    static auto manager = new InterfaceManager(); // TODO : fix memory leak
+    return *manager;
 }
 
 void IPCProxyBinderBase::connectToServer()

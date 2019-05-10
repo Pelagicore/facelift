@@ -30,6 +30,9 @@
 
 #pragma once
 
+#include <QObject>
+#include <QDBusConnection>
+
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
 #else
@@ -72,7 +75,7 @@ public:
 private:
     QDBusConnection m_busConnection;
     DBusObjectRegistry *m_objectRegistry = nullptr;
-    bool m_dbusConnected;
+    bool m_dbusConnected = false;
 };
 
 
