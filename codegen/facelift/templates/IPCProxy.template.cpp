@@ -54,17 +54,17 @@
 
 }
 
-facelift::IPCProxyBinderBase *{{className}}QMLFrontendType::ipc()
+facelift::IPCProxyBinderBase *{{className}}QMLAdapterType::ipc()
 {
     auto p = static_cast<{{className}}*>(providerPrivate());
     return p->ipc();
 }
 
-{{className}}QMLFrontendType::{{className}}QMLFrontendType(QObject *parent) : {{interfaceName}}QMLFrontend(parent)
+{{className}}QMLAdapterType::{{className}}QMLAdapterType(QObject *parent) : {{interfaceName}}QMLAdapter(parent)
 {
 }
 
-{{className}}QMLFrontendType::{{className}}QMLFrontendType(QQmlEngine *engine) : {{interfaceName}}QMLFrontend(engine)
+{{className}}QMLAdapterType::{{className}}QMLAdapterType(QQmlEngine *engine) : {{interfaceName}}QMLAdapter(engine)
 {
 }
 

@@ -65,7 +65,7 @@ class FaceliftModelLib_EXPORT InterfaceBase : public QObject
     Q_OBJECT
 
 public:
-    typedef void QMLFrontendType;
+    typedef void QMLAdapterType;
 
     InterfaceBase(QObject *parent = nullptr) :
         QObject(parent)

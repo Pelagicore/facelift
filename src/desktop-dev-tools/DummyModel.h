@@ -47,7 +47,7 @@
 #include <QFileSystemWatcher>
 #include "ControlWidgets.h"
 
-#include "QMLFrontend.h"
+#include "QMLAdapter.h"
 
 class Ui_DummyModelPanel;
 

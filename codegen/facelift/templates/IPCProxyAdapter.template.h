@@ -48,7 +48,7 @@
 
 {% set className = interfaceName + proxyTypeNameSuffix %}
 
-class {{className}}QMLFrontendType;
+class {{className}}QMLAdapterType;
 
 class {{classExport}} {{className}} : public {{baseClass}}
 {
@@ -61,8 +61,8 @@ public:
     using SignalID = {{interface}}IPCCommon::SignalID;
     using MethodID = {{interface}}IPCCommon::MethodID;
 
-    // override the default QMLFrontend type to add the IPC related properties
-    using QMLFrontendType = {{className}}QMLFrontendType;
+    // override the default QMLAdapter type to add the IPC related properties
+    using QMLAdapterType = {{className}}QMLAdapterType;
 
     {{className}}(QObject *parent = nullptr);
 

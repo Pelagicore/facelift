@@ -28,61 +28,61 @@
 **
 **********************************************************************/
 
-#include "QMLFrontend.h"
+#include "QMLAdapter.h"
 
 namespace facelift {
 
-const QJSValue QMLFrontendBase::NO_OPERATION_JS_CALLBACK = QJSValue(QJSValue::SpecialValue::UndefinedValue);
+const QJSValue QMLAdapterBase::NO_OPERATION_JS_CALLBACK = QJSValue(QJSValue::SpecialValue::UndefinedValue);
 
-QMLFrontendBase::QMLFrontendBase(QObject *parent) : QObject(parent)
+QMLAdapterBase::QMLAdapterBase(QObject *parent) : QObject(parent)
 {
 }
 
 /**
  *  This constructor is used when instantiating a singleton
  */
-QMLFrontendBase::QMLFrontendBase(QQmlEngine *engine) : QMLFrontendBase(static_cast<QObject*>(engine))
+QMLAdapterBase::QMLAdapterBase(QQmlEngine *engine) : QMLAdapterBase(static_cast<QObject*>(engine))
 {
     // store the reference to the engine since we can not get it from the "qmlEngine()" global function
     m_qmlEngine = engine;
 }
 
-InterfaceBase *QMLFrontendBase::provider() {
+InterfaceBase *QMLAdapterBase::provider() {
     Q_ASSERT(m_provider != nullptr);
     qCWarning(LogModel) << "Accessing private provider implementation object";
     return m_provider;
 }
 
-bool QMLFrontendBase::ready() const
+bool QMLAdapterBase::ready() const
 {
     return m_provider->ready();
 }
 
-const QString &QMLFrontendBase::implementationID()
+const QString &QMLAdapterBase::implementationID()
 {
    static QString id;
    return id;
 }
 
-void QMLFrontendBase::classBegin()
+void QMLAdapterBase::classBegin()
 {
 }
 
-void QMLFrontendBase::componentComplete()
+void QMLAdapterBase::componentComplete()
 {
    m_provider->setComponentCompleted();
 }
 
-QQmlEngine* QMLFrontendBase::qmlEngine() const
+QQmlEngine* QMLAdapterBase::qmlEngine() const
 {
     return (m_qmlEngine ? m_qmlEngine : ::qmlEngine(this));
 }
 
 
-void QMLFrontendBase::connectProvider(InterfaceBase &provider)
+void QMLAdapterBase::connectProvider(InterfaceBase &provider)
 {
     m_provider = &provider;
-    connect(m_provider, &InterfaceBase::readyChanged, this, &QMLFrontendBase::readyChanged);
+    connect(m_provider, &InterfaceBase::readyChanged, this, &QMLAdapterBase::readyChanged);
 }
 
 

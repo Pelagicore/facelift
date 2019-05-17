@@ -55,7 +55,7 @@
 {% if interface.isQMLImplementationEnabled %}
 #include "{{interface.fullyQualifiedPath}}ImplementationBaseQML.h"
 {% endif %}
-#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}QMLAdapter.h"
 {% endfor %}
 
 #ifdef ENABLE_IPC
@@ -105,7 +105,7 @@ void Module::registerUncreatableQmlTypes(const char* uri, int majorVersion, int 
 
     // register an uncreatable type for every interface, so that this type can be used in QML
     {% for interface in module.interfaces %}
-    qmlRegisterUncreatableType<{{interface}}QMLFrontend>(uri, majorVersion, minorVersion, "{{interface}}", "");
+    qmlRegisterUncreatableType<{{interface}}QMLAdapter>(uri, majorVersion, minorVersion, "{{interface}}", "");
     {% endfor %}
 }
 

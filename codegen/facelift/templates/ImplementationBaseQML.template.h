@@ -40,7 +40,7 @@
 #include "QMLModel.h"
 
 #include "{{interface}}ImplementationBase.h"
-#include "{{interface}}QMLFrontend.h"
+#include "{{interface}}QMLAdapter.h"
 {% for operation in interface.operations %}
 {% if operation.type.is_interface %}
 #include "{{operation.type}}ImplementationBaseQML.h"

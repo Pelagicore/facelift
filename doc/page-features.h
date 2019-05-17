@@ -89,7 +89,7 @@ above).
 
 \subsection sub4 UI Usage
 
-The API that is exposed to your QML UI (derived from IReadyQmlFrontend) will include an additional
+The API that is exposed to your QML UI (derived from IReadyQMLAdapter) will include an additional
 \c readyFlags property with elements of type bool that have the same name as the annotated property
 itself. Each element indicates, whether the property has been set already and is valid. The
 \c readyFlags property and its elements are read-only, of course. The following code snippet shows

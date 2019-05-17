@@ -48,7 +48,7 @@
 
 {{module.namespaceCppOpen}}
 
-class {{interfaceName}}QMLFrontend;
+class {{interfaceName}}QMLAdapter;
 class {{interface}}IPCDBusAdapter;
 class {{interfaceName}}IPCDBusProxy;
 class {{interface}}IPCLocalServiceAdapter;
@@ -88,7 +88,7 @@ public:
     static constexpr const int VERSION_MAJOR = {{module.majorVersion}};
     static constexpr const int VERSION_MINOR = {{module.minorVersion}};
 
-    using QMLFrontendType = {{interfaceName}}QMLFrontend;
+    using QMLAdapterType = {{interfaceName}}QMLAdapter;
     using IPCDBusAdapterType = {{interface}}IPCDBusAdapter;
     using IPCDBusProxyType = {{interfaceName}}IPCDBusProxy;
     using IPCLocalAdapterType = {{interface}}IPCLocalServiceAdapter;
@@ -97,7 +97,7 @@ public:
     using ImplementationBaseQMLType = {{interfaceName}}ImplementationBaseQML;
     using InterfaceType = {{interfaceName}};
 
-    friend QMLFrontendType;
+    friend QMLAdapterType;
 
     {{interfaceName}}(QObject* parent = nullptr);
 
@@ -171,7 +171,7 @@ public:
 
     {% endif %}
     //private:  TODO : make this field private
-    mutable QMLFrontendType* m_qmlFrontend = nullptr;
+    mutable QMLAdapterType* m_qmlAdapter = nullptr;
     {% if hasReadyFlags %}
 
 protected:

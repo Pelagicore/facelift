@@ -28,7 +28,7 @@
 **
 *********************************************************************#}
 
-{% set className = interfaceName + "QMLFrontend" %}
+{% set className = interfaceName + "QMLAdapter" %}
 {% set hasReadyFlags = interface.hasPropertyWithReadyFlag %}
 {%- macro printif(name) -%}
 {%- if name -%}{{name}}
@@ -45,7 +45,7 @@
 
 #include "FaceliftConversion.h"
 
-#include "{{interfaceName}}QMLFrontend.h"
+#include "{{interfaceName}}QMLAdapter.h"
 
 {{module.namespaceCppOpen}}
 
@@ -56,17 +56,17 @@
 * \inqmlmodule {{interface.module.name}}
 */
 
-{{className}}::{{className}}(QObject* parent) : facelift::QMLFrontendBase(parent)
+{{className}}::{{className}}(QObject* parent) : facelift::QMLAdapterBase(parent)
 {
 }
 
-{{className}}::{{className}}(QQmlEngine* engine) : facelift::QMLFrontendBase(engine)
+{{className}}::{{className}}(QQmlEngine* engine) : facelift::QMLAdapterBase(engine)
 {
 }
 
 void {{className}}::connectProvider({{interfaceName}}& provider)
 {
-    facelift::QMLFrontendBase::connectProvider(provider);
+    facelift::QMLAdapterBase::connectProvider(provider);
     m_provider = &provider;
     {% for property in interface.properties %}
     {% if property.type.is_model %}
@@ -121,9 +121,9 @@ void {{className}}::set{{property}}(const {{property.type.qmlCompatibleType}}& n
 }
     {% endif %}
 {%- elif property.type.is_interface %}
-{{property.cppType}}QMLFrontend* {{className}}::{{property}}()
+{{property.cppType}}QMLAdapter* {{className}}::{{property}}()
 {
-    return facelift::getQMLFrontend(m_provider->{{property}}());
+    return facelift::getQMLAdapter(m_provider->{{property}}());
 }
 {% else %}
     {% if property.readonly %}

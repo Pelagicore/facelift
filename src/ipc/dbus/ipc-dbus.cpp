@@ -47,7 +47,7 @@
 #include "FaceliftUtils.h"
 #include "FaceliftProperty.h"
 
-#include "QMLFrontend.h"
+#include "QMLAdapter.h"
 #include "QMLModel.h"
 
 #include "DBusIPCProxy.h"

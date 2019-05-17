@@ -40,7 +40,7 @@
 #include "facelift-ipc.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}ServiceWrapper.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
@@ -123,7 +123,7 @@ public:
 
 };
 
-class {{className}}QMLFrontendType;
+class {{className}}QMLAdapterType;
 
 class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}Wrapper, {{interfaceName}}NotAvailableImpl>
 {
@@ -133,8 +133,8 @@ public:
     using ThisType = {{className}};
     using BaseType = facelift::IPCProxy<{{interfaceName}}Wrapper, {{interfaceName}}NotAvailableImpl>;
 
-    // override the default QMLFrontend type to add the IPC related properties
-    using QMLFrontendType = {{className}}QMLFrontendType;
+    // override the default QMLAdapter type to add the IPC related properties
+    using QMLAdapterType = {{className}}QMLAdapterType;
 
     {{className}}(QObject *parent = nullptr);
 
@@ -150,16 +150,16 @@ private:
 };
 
 
-class {{classExport}} {{className}}QMLFrontendType : public {{interfaceName}}QMLFrontend
+class {{classExport}} {{className}}QMLAdapterType : public {{interfaceName}}QMLAdapter
 {
     Q_OBJECT
 
     Q_PROPERTY(facelift::IPCProxyBinderBase *ipc READ ipc CONSTANT)
 
 public:
-    {{className}}QMLFrontendType(QObject *parent = nullptr);
+    {{className}}QMLAdapterType(QObject *parent = nullptr);
 
-    {{className}}QMLFrontendType(QQmlEngine *engine);
+    {{className}}QMLAdapterType(QQmlEngine *engine);
 
     facelift::IPCProxyBinderBase *ipc();
 
