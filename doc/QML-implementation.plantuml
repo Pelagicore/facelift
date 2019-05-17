@@ -7,7 +7,7 @@ package Facelift {
         Base C++ class for all generated interfaces
     }
 
-    class QMLFrontendBase {
+    class QMLAdapterBase {
         Base C++ class for all generated QML frontends
     }
 
@@ -41,7 +41,7 @@ class InterfaceIPCProxy #88CCDD {
 }
 
 
-class InterfaceQMLFrontend #88CCDD {
+class InterfaceQMLAdapter #88CCDD {
     Implements the interface exposed to the QML engine, to be used by the UI code
     Turns data from the interface implementation into QML-compatible types
 ...
@@ -60,12 +60,12 @@ InterfaceImplementationBase <|-- InterfaceDummy
 InterfaceImplementationBase <|-- InterfaceIPCProxy
 IPCServiceAdapterBase <|-- InterfaceIPCProxy
 
-InterfaceQMLFrontend  "provider" --> Interface
+InterfaceQMLAdapter  "provider" --> Interface
 
 
 InterfaceBase <|-- Interface
 
-QMLFrontendBase <|-- InterfaceQMLFrontend
+QMLAdapterBase <|-- InterfaceQMLAdapter
 
 @enduml
 

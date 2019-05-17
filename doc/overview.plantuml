@@ -10,7 +10,7 @@ abstract class Interface #88CCDD {
 
 
 
-class InterfaceQMLFrontend #88CCDD {
+class InterfaceQMLAdapter #88CCDD {
     Implements the interface exposed to the QML engine, to be used by the UI code
     Turns data from the interface implementation into QML-friendly types
 ...
@@ -34,7 +34,7 @@ class InterfaceImplementationBaseQML {
 
 Interface <|-- InterfaceImplementation
 
-InterfaceQMLFrontend --> "provider" Interface
+InterfaceQMLAdapter --> "provider" Interface
 
 InterfaceImplementationBaseQML --> "provider" Interface
 

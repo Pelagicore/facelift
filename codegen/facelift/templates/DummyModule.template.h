@@ -37,12 +37,12 @@
 
 {{classExportDefines}}
 
-#include "QMLFrontend.h"
+#include "QMLAdapter.h"
 #include "DummyModel.h"
 
 {% for interface in module.interfaces %}
 #include "{{interface}}Dummy.h"
-#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}QMLAdapter.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}

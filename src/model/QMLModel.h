@@ -32,7 +32,7 @@
 
 
 #include "FaceliftModel.h"
-#include "QMLFrontend.h"
+#include "QMLAdapter.h"
 #include "FaceliftProperty.h"
 
 #include "StructQObjectWrapper.h"
@@ -350,7 +350,7 @@ private:
  */
 template<typename ImplementationBaseQMLType>
 int registerQmlComponent(const char *uri, const char *qmlFilePath,
-        const char *componentName = ImplementationBaseQMLType::Provider::QMLFrontendType::INTERFACE_NAME,
+        const char *componentName = ImplementationBaseQMLType::Provider::QMLAdapterType::INTERFACE_NAME,
         int majorVersion = ImplementationBaseQMLType::Provider::VERSION_MAJOR,
         int minorVersion = ImplementationBaseQMLType::Provider::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, ImplementationBaseQMLType>::value>::type * = nullptr)
@@ -358,7 +358,7 @@ int registerQmlComponent(const char *uri, const char *qmlFilePath,
     //    qCDebug(LogModel) << "Registering QML implementation \"" << qmlFilePath << "\" for component \"" << componentName << "\"";
     ImplementationBaseQMLType::Provider::registerTypes(uri);
     ImplementationBaseQMLType::setModelImplementationFilePath(qmlFilePath);
-    return ::qmlRegisterType<TQMLFrontend<typename ImplementationBaseQMLType::Provider> >(uri, majorVersion, minorVersion, componentName);
+    return ::qmlRegisterType<TQMLAdapter<typename ImplementationBaseQMLType::Provider> >(uri, majorVersion, minorVersion, componentName);
 }
 
 /*!
@@ -368,14 +368,14 @@ int registerQmlComponent(const char *uri, const char *qmlFilePath,
  */
 template<typename ImplementationBaseQMLType>
 int registerSingletonQmlComponent(const char *uri, const char *qmlFilePath,
-        const char *name = ImplementationBaseQMLType::Provider::QMLFrontendType::INTERFACE_NAME,
+        const char *name = ImplementationBaseQMLType::Provider::QMLAdapterType::INTERFACE_NAME,
         int majorVersion = ImplementationBaseQMLType::Provider::VERSION_MAJOR,
         int minorVersion = ImplementationBaseQMLType::Provider::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, ImplementationBaseQMLType>::value>::type * = nullptr)
 {
     ImplementationBaseQMLType::Provider::registerTypes(uri);
     ImplementationBaseQMLType::setModelImplementationFilePath(qmlFilePath);
-    typedef TQMLFrontend<typename ImplementationBaseQMLType::Provider> QMLType;
+    typedef TQMLAdapter<typename ImplementationBaseQMLType::Provider> QMLType;
     return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
 

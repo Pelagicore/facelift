@@ -42,7 +42,7 @@
 #include "FaceliftUtils.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLFrontend.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCCommon.h"
 
 //// Sub interfaces
@@ -52,7 +52,7 @@
 
 {{module.namespaceCppOpen}}
 
-class {{interfaceName}}IPCQMLFrontendType;
+class {{interfaceName}}IPCQMLAdapterType;
 
 class {{classExport}} {{className}}: public {{baseClass}}
 {

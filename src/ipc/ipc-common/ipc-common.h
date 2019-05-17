@@ -37,7 +37,7 @@
 #endif
 
 #include "FaceliftModel.h"
-#include "QMLFrontend.h"
+#include "QMLAdapter.h"
 #include "QMLModel.h"
 
 namespace facelift {

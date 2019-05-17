@@ -32,8 +32,7 @@
 
 #include "FaceliftProperty.h"
 
-
-class QMLFrontendBase :
+class QMLAdapterBase :
     public QObject
 {
     Q_OBJECT
@@ -47,8 +46,8 @@ class InterfaceImplementation :
 };
 
 
-class AddressBookQMLFrontend :
-    public QMLFrontendBase
+class AddressBookQMLAdapter :
+    public QMLAdapterBase
 {
 
     Q_OBJECT
@@ -62,8 +61,8 @@ public:
 };
 
 
-class AddressBookExtendedQMLFrontend :
-    public AddressBookQMLFrontend
+class AddressBookExtendedQMLAdapter :
+    public AddressBookQMLAdapter
 {
 
     Q_OBJECT

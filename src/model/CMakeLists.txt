@@ -2,7 +2,7 @@
 facelift_add_library(FaceliftModelLib
     SOURCES
         FaceliftModel.cpp
-        QMLFrontend.cpp
+        QMLAdapter.cpp
         ServiceWrapper.cpp
         StructureBase.cpp
         ModuleBase.cpp
@@ -11,7 +11,7 @@ facelift_add_library(FaceliftModelLib
         FaceliftImplementationBase.cpp
     HEADERS
         FaceliftModel.h
-        QMLFrontend.h
+        QMLAdapter.h
         ServiceWrapper.h
         StructureBase.h
         ModuleBase.h

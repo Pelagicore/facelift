@@ -174,7 +174,7 @@ InterfaceBase *IPCAttachedPropertyFactoryBase::getProvider(QObject *object)
 {
     InterfaceBase *provider = nullptr;
 
-    auto o = qobject_cast<facelift::QMLFrontendBase *>(object);
+    auto o = qobject_cast<facelift::QMLAdapterBase *>(object);
     if (o == nullptr) {
         auto qmlImpl = qobject_cast<facelift::ModelQMLImplementationBase *>(object);
         if (qmlImpl != nullptr) {

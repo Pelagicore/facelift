@@ -70,7 +70,7 @@ Example ("MyPackage.qface"):
 
 Let's have a second look at the \ref MyAppExample and see how this simple interface can be used
 over IPC. The object that is replicated is the one exposed to the frontend (UI) QML code, the one
-derived from MyInterfaceQmlFrontend. In our example it is exposed as \c MyInterfaceImplementation.
+derived from MyInterfaceQMLAdapter. In our example it is exposed as \c MyInterfaceImplementation.
 In the server side UI code it is basically used as before:
 
 \snippet MyAppIPCServer.qml indoc

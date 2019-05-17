@@ -48,7 +48,7 @@ class IPCServiceAdapterBase;
 /*!
  * This is the base class which all QML frontends extend
  */
-class FaceliftModelLib_EXPORT QMLFrontendBase : public QObject, public QQmlParserStatus
+class FaceliftModelLib_EXPORT QMLAdapterBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
@@ -57,12 +57,12 @@ public:
 
     static const QJSValue NO_OPERATION_JS_CALLBACK;
 
-    QMLFrontendBase(QObject *parent);
+    QMLAdapterBase(QObject *parent);
 
     /**
      *  This constructor is used when instantiating a singleton
      */
-    QMLFrontendBase(QQmlEngine *engine);
+    QMLAdapterBase(QQmlEngine *engine);
 
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
     virtual InterfaceBase *provider();
@@ -102,20 +102,20 @@ private:
 
 /*!
  * This is the class which is registered when calling registerQmlComponent()
- * It is an actual instance of the QMLFrontendType and wraps an instance of the provider
+ * It is an actual instance of the QMLAdapterType and wraps an instance of the provider
  */
 template<typename ProviderImplementationType>
-class QMLFrontendByReference : public ProviderImplementationType::QMLFrontendType
+class QMLAdapterByReference : public ProviderImplementationType::QMLAdapterType
 {
 
 public:
-    QMLFrontendByReference(ProviderImplementationType& provider, QObject *parent = nullptr)
-        : ProviderImplementationType::QMLFrontendType(parent), m_provider(provider)
+    QMLAdapterByReference(ProviderImplementationType& provider, QObject *parent = nullptr)
+        : ProviderImplementationType::QMLAdapterType(parent), m_provider(provider)
     {
     }
 
-    QMLFrontendByReference(ProviderImplementationType& provider, QQmlEngine *engine)
-        : ProviderImplementationType::QMLFrontendType(engine), m_provider(provider)
+    QMLAdapterByReference(ProviderImplementationType& provider, QQmlEngine *engine)
+        : ProviderImplementationType::QMLAdapterType(engine), m_provider(provider)
     {
     }
 
@@ -131,7 +131,7 @@ public:
     }
 
     void connectProvider() {
-        ProviderImplementationType::QMLFrontendType::connectProvider(m_provider);
+        ProviderImplementationType::QMLAdapterType::connectProvider(m_provider);
     }
 
 private:
@@ -140,16 +140,16 @@ private:
 };
 
 template<typename ProviderImplementationType>
-class TQMLFrontend : public QMLFrontendByReference<ProviderImplementationType> {
+class TQMLAdapter : public QMLAdapterByReference<ProviderImplementationType> {
 
 public:
 
-    TQMLFrontend(QObject *parent = nullptr) : QMLFrontendByReference<ProviderImplementationType>(m_provider, parent)
+    TQMLAdapter(QObject *parent = nullptr) : QMLAdapterByReference<ProviderImplementationType>(m_provider, parent)
     {
         this->connectProvider();
     }
 
-    TQMLFrontend(QQmlEngine *engine) : QMLFrontendByReference<ProviderImplementationType>(m_provider, engine)
+    TQMLAdapter(QQmlEngine *engine) : QMLAdapterByReference<ProviderImplementationType>(m_provider, engine)
     {
         this->connectProvider();
     }
@@ -177,7 +177,7 @@ QObject *singletonGetterByFunction(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(scriptEngine);
     Q_UNUSED(engine);
-    auto obj = new QMLFrontendByReference<ProviderType>(getter());
+    auto obj = new QMLAdapterByReference<ProviderType>(getter());
     obj->connectProvider();
     obj->componentComplete();
     qCDebug(LogModel) << "Singleton created" << obj;
@@ -194,7 +194,7 @@ int registerUncreatableQmlComponent(const char *uri, const char *name = Provider
         int majorVersion = ProviderType::VERSION_MAJOR, int minorVersion = ProviderType::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
 {
-    return ::qmlRegisterUncreatableType<typename ProviderType::QMLFrontendType>(uri, majorVersion, minorVersion,
+    return ::qmlRegisterUncreatableType<typename ProviderType::QMLAdapterType>(uri, majorVersion, minorVersion,
                                                                                 name, "");
 }
 
@@ -210,7 +210,7 @@ int registerQmlComponent(const char *uri, const char *name = ProviderType::INTER
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
 {
     ProviderType::registerTypes(uri);
-    return ::qmlRegisterType<TQMLFrontend<ProviderType> >(uri, majorVersion, minorVersion, name);
+    return ::qmlRegisterType<TQMLAdapter<ProviderType> >(uri, majorVersion, minorVersion, name);
 }
 
 
@@ -226,7 +226,7 @@ int registerSingletonQmlComponent(const char *uri,
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
 {
     ProviderType::registerTypes(uri);
-    typedef TQMLFrontend<ProviderType> QMLType;
+    typedef TQMLAdapter<ProviderType> QMLType;
     return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name, &singletonGetter<QMLType>);
 }
 
@@ -243,24 +243,32 @@ int registerSingletonQmlComponent(const char *uri,
         typename std::enable_if<std::is_base_of<facelift::InterfaceBase, ProviderType>::value>::type * = nullptr)
 {
     ProviderType::registerTypes(uri);
-    typedef QMLFrontendByReference<ProviderType> QMLType;
+    typedef QMLAdapterByReference<ProviderType> QMLType;
     return ::qmlRegisterSingletonType<QMLType>(uri, majorVersion, minorVersion, name,
                                                &singletonGetterByFunction<ProviderType, singletonGetterFunction>);
 }
 
 
+
 template<typename ProviderType>
-typename ProviderType::QMLFrontendType *getQMLFrontend(ProviderType *provider)
+[[deprecated("use getQMLAdapter instead")]]
+typename ProviderType::QMLAdapterType *getQMLFrontend(ProviderType *provider)
+{
+    return getQMLAdapter(provider);
+}
+
+template<typename ProviderType>
+typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
 {
     if (provider == nullptr) {
         return nullptr;
     } else {
-        if (provider->m_qmlFrontend == nullptr) {
+        if (provider->m_qmlAdapter == nullptr) {
             // No QML frontend instantiated yet => create one
-            provider->m_qmlFrontend = new typename ProviderType::QMLFrontendType(provider);
-            provider->m_qmlFrontend->connectProvider(*provider);
+            provider->m_qmlAdapter = new typename ProviderType::QMLAdapterType(provider);
+            provider->m_qmlAdapter->connectProvider(*provider);
         }
-        return provider->m_qmlFrontend;
+        return provider->m_qmlAdapter;
     }
 }
 

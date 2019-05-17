@@ -49,7 +49,7 @@
 
 {% if interface.isAsynchronousIPCEnabled %}
 #include "{{interface.fullyQualifiedPath}}AsyncIPCProxy.h"
-#include "{{interface.fullyQualifiedPath}}AsyncQMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}AsyncQMLAdapter.h"
 {% endif %}
 
 {% endfor %}

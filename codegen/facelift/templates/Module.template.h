@@ -40,7 +40,7 @@
 #include "ModuleBase.h"
 
 {% for interface in module.interfaces %}
-#include "{{interface.fullyQualifiedPath}}QMLFrontend.h"
+#include "{{interface.fullyQualifiedPath}}QMLAdapter.h"
 {% endfor %}
 
 {{module.namespaceCppOpen}}

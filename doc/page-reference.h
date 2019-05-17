@@ -34,7 +34,7 @@ The following table describes the C++ classes which are generated from the QFace
 |----------------------------------- |:-----------:|---------------------|
 |MyInterface                         | This C++ abstract class (or interface) is the direct translation of the QFace interface definition into C++. Any concrete implementation of "MyInterface" should extend somehow this class (not necessarily directly) | none |
 |MyInterfaceImplementationBase       | This C++ abstract class extends "MyInterface" and provides a more convenient base class to write an implementation of "MyInterface". | none |
-|MyInterfaceQMLFrontend              | This class wraps an instance of "MyInterface" into an object which can be exposed directly to QML. Note that the "MyInterface" class is intentionally not QML-friendly. | none |
+|MyInterfaceQMLAdapter               | This class wraps an instance of "MyInterface" into an object which can be exposed directly to QML. Note that the "MyInterface" class is intentionally not QML-friendly. | none |
 |MyInterfaceImplementationBaseQML    | This class is used to enable the implementation of "MyInterface" using the QML language. | none |
 |MyInterfaceIPCAdapter               | This class is used to make an implementation of "MyInterface" accessible through an IPC. | \@ipc-sync: true or \@ipc-async: true |
 |MyInterfaceIPCProxy                 | This class is an IPC proxy for the "MyInterface" type. A proxy object implements the same interface as the actual implementation object, which typically lives in another process. | \@ipc-sync: true |
@@ -52,10 +52,10 @@ abstract class MyInterface #88CCDD {
 }
 
 
-class MyInterfaceQMLFrontend #88CCDD {
+class MyInterfaceQMLAdapter #88CCDD {
     This class wraps an instance of "MyInterface" into an object which can be exposed directly to QML
 }
-MyInterfaceQMLFrontend --> "provider" MyInterface
+MyInterfaceQMLAdapter --> "provider" MyInterface
 
 
 class MyInterfaceImplementationBase {
@@ -90,8 +90,8 @@ The following table describes the QML types:
 QML component name               | Corresponding C++ class           | Description
 -------------------------------- | --------------------------------- | -----------------------
 MyInterfaceImplementationBase    | MyInterfaceImplementationBaseQML  | This type is used to enable the implementation (backend) of "MyInterface" using the QML language.
-MyInterface <i>(you name it)</i> | MyInterfaceQMLFrontend            | This class exposes the interface defined in the IDL to QML (frontend UI)
-MyInterfaceIPCProxy              | MyInterfaceIPCQMLFrontendType     | This type is an IPC proxy for the "MyInterface" type. A proxy object implements the same interface as the actual implementation object, which typically lives in another process.
+MyInterface <i>(you name it)</i> | MyInterfaceQMLAdapter             | This class exposes the interface defined in the IDL to QML (frontend UI)
+MyInterfaceIPCProxy              | MyInterfaceIPCQMLAdapterType      | This type is an IPC proxy for the "MyInterface" type. A proxy object implements the same interface as the actual implementation object, which typically lives in another process.
 
 \subsection reference-registration QML Type Registration
 
@@ -125,16 +125,16 @@ There is another type registration method that can be called from the QML plugin
 Module::registerUncreatableQmlTypes(uri);
 \endcode
 This will register all interfaces defined in the QFace document as uncreatable types to the QML
-engine. In our example it will register the \c MyInterfaceQMLFrontend type as an uncreatable type
+engine. In our example it will register the \c MyInterfaceQMLAdapter type as an uncreatable type
 to the QML engine. The QML name will simply be the interface name, in our case: \c MyInterface.
 
 \subsubsection reference-registration-ui UI (Frontend) Type Registration
 
-The \c MyInterfaceQMLFrontend has to be registered manually since we need to define whether the C++
+The \c MyInterfaceQMLAdapter has to be registered manually since we need to define whether the C++
 or QML backend implementation should be used. Hence, this class can be exposed to QML with an
 arbitrary name. The name defaults to the interface name ("MyInterface" here). The following
 registration function should be used when providing a C++ implementation (defined in
-QMLFrontend.h):
+QMLAdapter.h):
 \code
 template<typename ProviderType>
 int facelift::registerQmlComponent(const char *uri,
@@ -148,7 +148,7 @@ QMLModel.h):
 template<typename ImplementationBaseQMLType>
 int facelift::registerQmlComponent(const char *uri,
                                    const char *qmlFilePath,
-                                   const char *componentName = ImplementationBaseQMLType::Provider::QMLFrontendType::INTERFACE_NAME,
+                                   const char *componentName = ImplementationBaseQMLType::Provider::QMLAdapterType::INTERFACE_NAME,
                                    int majorVersion = ImplementationBaseQMLType::Provider::VERSION_MAJOR,
                                    int minorVersion = ImplementationBaseQMLType::Provider::VERSION_MINOR);
 \endcode
@@ -173,7 +173,7 @@ the type are needed, the type can be registered as "uncreatable":
 facelift::registerUncreatableQmlComponent<MyInterface>(uri, "MyInterfaceType");
 \endcode
 
-Note again that all the above registration functions actually register a \c MyInterfaceQMLFrontend
+Note again that all the above registration functions actually register a \c MyInterfaceQMLAdapter
 (derived) type to the QML engine internally. This type exactly reflects all the properties, methods
 and signals defined in the .qface file.
 
@@ -210,13 +210,13 @@ In the QML UI code the following types can be used:
 
 QML type                            | Corresponding C++ type        | Usage
 ----------------------------------- | ----------------------------- | ----------------------------
-\b MyInterface <i>(you name it)</i> | MyInterfaceQMLFrontend        | Exposed interface defined in the IDL, derived from \c MyInterfaceQMLFrontend (see above for how it is registered)
-\b MyInterfaceIPCProxy              | MyInterfaceIPCQMLFrontendType | This type is exposed to clients, it provides the same API as MyInterface above
+\b MyInterface <i>(you name it)</i> | MyInterfaceQMLAdapter         | Exposed interface defined in the IDL, derived from \c MyInterfaceQMLAdapter (see above for how it is registered)
+\b MyInterfaceIPCProxy              | MyInterfaceIPCQMLAdapterType  | This type is exposed to clients, it provides the same API as MyInterface above
 \b IPC                              | IPCServiceAdapterBase         | This attached property can be used on the server side to enable IPC
 
 \subsection reference-difference Differences between QML Types
 
-Note how \c MyInterface (derived from \c MyInterfaceQMLFrontend) and
+Note how \c MyInterface (derived from \c MyInterfaceQMLAdapter) and
 \c MyInterfaceImplementationBaseQML differ: the latter is used when writing an implementation of an
 interface using the QML language, which means all the properties defined in the IDL are writable,
 and the signals can be triggered, whereas the properties exposed by \c MyInterface are read-only,

@@ -63,9 +63,9 @@ public:
     {
         auto service = qobject_cast<ServiceType *>(s);
         if (service == nullptr) {
-            auto *qmlFrontend = qobject_cast<QMLFrontendBase *>(s);
-            if (qmlFrontend != nullptr) {
-                service = qobject_cast<ServiceType *>(qmlFrontend->providerPrivate());
+            auto *qmlAdapter = qobject_cast<QMLAdapterBase *>(s);
+            if (qmlAdapter != nullptr) {
+                service = qobject_cast<ServiceType *>(qmlAdapter->providerPrivate());
             }
         }
         if (service != nullptr) {

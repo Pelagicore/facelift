@@ -61,9 +61,9 @@ public:
             if (m_target != nullptr) {
                 auto targetInterface = qobject_cast<InterfaceBase *>(m_target);
                 if (targetInterface == nullptr) {
-                    auto qmlFrontend = qobject_cast<QMLFrontendBase *>(m_target);
-                    if (qmlFrontend != nullptr) {
-                        targetInterface = qmlFrontend->provider();
+                    auto qmlAdapter = qobject_cast<QMLAdapterBase *>(m_target);
+                    if (qmlAdapter != nullptr) {
+                        targetInterface = qmlAdapter->provider();
                     } else {
                         auto qmlImpl = qobject_cast<ModelQMLImplementationBase *>(m_target);
                         if (qmlImpl != nullptr) {

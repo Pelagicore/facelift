@@ -91,7 +91,7 @@ struct FaceliftModelLib_EXPORT BinarySeralizer
 template<typename Type>
 struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
-    typedef typename Type::QMLFrontendType* QMLType;
+    typedef typename Type::QMLAdapterType* QMLType;
 
     static void write(BinarySeralizer &msg, const Type* param)
     {
@@ -133,7 +133,7 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
 
     static QMLType toQMLCompatibleType(Type *v)
     {
-        return getQMLFrontend(v);
+        return getQMLAdapter(v);
     }
 
     static QVariant toQmlContainerElement(Type *v)
