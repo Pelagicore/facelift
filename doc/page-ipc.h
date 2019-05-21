@@ -20,58 +20,68 @@
 
 \section ipc-sec1 Introduction
 
-Facelift provides an interprocess communication (IPC) layer which enables objects to interact with each-other across
-process boundaries. A typical scenario involves a process which registers a server object, and another process acting
-as a client of that server.
-The communication over process boundaries currently relies on DBus.
+Facelift provides an interprocess communication (IPC) layer which enables objects to interact with
+each-other across process boundaries. A typical scenario involves a process which registers a
+server object, and another process acting as a client of that server. The communication over
+process boundaries currently relies on DBus.
 
 \section ipc-objectregistry Server object registry
-Server objects are identified by an object path, which needs to be a valid DBus object path (https://dbus.freedesktop.org/doc/dbus-tutorial.html#objects),
-since there is a direct mapping to DBus. Facelift uses a central system-wide registry, which contains entries for all Facelift
-server objects registered in the system. The process maintaining the object registry is the first process which either registers
-a server object, or creates a proxy object. Given an object path, the object registry can be used by clients to identify the process which
-has registered a server under that object path, in order to establish a connection.
+Server objects are identified by an object path, which needs to be a valid DBus object path
+(https://dbus.freedesktop.org/doc/dbus-tutorial.html#objects), since there is a direct mapping to
+DBus. Facelift uses a central system-wide registry, which contains entries for all Facelift server
+objects registered in the system. The process maintaining the object registry is the first process
+which either registers a server object, or creates a proxy object. Given an object path, the object
+registry can be used by clients to identify the process which has registered a server under that
+object path, in order to establish a connection.
 
 \section ipc-secsas Synchronous vs Asynchronous communication
 
-Facelift provides 2 different ways for a client to interact with a server: using synchronous communication (blocking calls) and
-using asynchronous communication (non-blocking calls).
-The benefit of using synchronous communication is that the client interacts with the server in the same way as if the server was a local
-object (registered in the same process as the client). The main drawback of that approach is that the client may be blocked for a long time
-in case the server process is not responsive and it can even lead to deadlocks if the server process is also performing a blocking call to
-the client process. If the server process is guaranteed to never perform any blocking call and to be responsive, using blocking calls might
-be acceptable.
-Using asynchronous communication is a way to avoid deadlocks and responsiveness issues, but it is likely to produce a more complex code on the
-client side.
+Facelift provides 2 different ways for a client to interact with a server: using synchronous
+communication (blocking calls) and using asynchronous communication (non-blocking calls). The
+benefit of using synchronous communication is that the client interacts with the server in the same
+way as if the server was a local object (registered in the same process as the client). The main
+drawback of that approach is that the client may be blocked for a long time in case the server
+process is not responsive and it can even lead to deadlocks if the server process is also
+performing a blocking call to the client process. If the server process is guaranteed to never
+perform any blocking call and to be responsive, using blocking calls might be acceptable. Using
+asynchronous communication is a way to avoid deadlocks and responsiveness issues, but it is likely
+to produce a more complex code on the client side.
 
 \subsection ipc-sync-diff Differences between synchronous and asynchronous IPC proxy classes
 
-The API and behavior of synchronous and asynchronous proxies are similar, but they differ in the following way:
- - Once a synchronous proxy is requested to connect to the server, it immediately tries to establish the connection to the server and, if successful, it
- fetches the property values and can be used immediately. On the other hand, an asynchronous proxy fetches the values of the server in an asynchronous
- way, which means its initial state is always "not ready" and will switch to "ready" only later, once the property values have been fetched successfully.
- - Methods (as defined in the QFace definition) of asynchronous proxies always return "void" but they take an additional "callback function" argument. This
- function is called with the method's return value when the method execution is completed on the server. Note that a QFace method marked with "@async" will
- produce the same method signature in both the synchronous and the asynchronous proxies. In other words, an asynchronous proxy is similar to a synchronous
- proxy where all QFace methods are marked "@async".
+The API and behavior of synchronous and asynchronous proxies are similar, but they differ in the
+following way:
+- Once a synchronous proxy is requested to connect to the server, it immediately tries to establish
+  the connection to the server and, if successful, it fetches the property values and can be used
+  immediately. On the other hand, an asynchronous proxy fetches the values of the server in an
+  asynchronous way, which means its initial state is always "not ready" and will switch to "ready"
+  only later, once the property values have been fetched successfully.
+- Methods (as defined in the QFace definition) of asynchronous proxies always return "void" but
+  they take an additional "callback function" argument. This function is called with the method's
+  return value when the method execution is completed on the server. Note that a QFace method
+  marked with "@async" will produce the same method signature in both the synchronous and the
+  asynchronous proxies. In other words, an asynchronous proxy is similar to a synchronous proxy
+  where all QFace methods are marked "@async".
 
 \section ipc-annotations IPC interface annotations
 
-An interface can be used over IPC only if it is properly annotated. Two distinct annotations are available:
-  - "@ipc-sync: true" : is used to enable the creation of a synchronous IPC proxy.
-  - "@ipc-async: true" : is used to enable the creation of a asynchronous IPC proxy.
+An interface can be used over IPC only if it is properly annotated. Two distinct annotations are
+available:
+- "@ipc-sync: true" : is used to enable the creation of a synchronous IPC proxy.
+- "@ipc-async: true" : is used to enable the creation of a asynchronous IPC proxy.
 
-Note that the server-side IPC code will be generated if at least one of those annotations has been specified.
+Note that the server-side IPC code will be generated if at least one of those annotations has been
+specified.
 
 Example ("MyPackage.qface"):
-\snippet "MyPackage.qface" indoc
+\snippet "mypackage.qface" indoc
 
 \section ipc-sec2 Server Side
 
 Let's have a second look at the \ref MyAppExample and see how this simple interface can be used
 over IPC. The object that is replicated is the one exposed to the frontend (UI) QML code, the one
-derived from MyInterfaceQmlFrontend. In our example it is exposed as \c MyInterfaceImplementation.
-In the server side UI code it is basically used as before:
+derived from MyInterfaceQmlFrontend. In our example it is exposed as \c MyInterface. In the server
+side UI code it is basically used as before:
 
 \snippet MyAppIPCServer.qml indoc
 
@@ -82,8 +92,9 @@ an attached property called \c IPC:
         IPC.objectPath: "/my/object/path"
 \endcode
 Obviously, \c IPC.enabled: \c true will register this object on the IPC. The \c IPC.objectPath is
-optional and in case there is only a single object of this type registered on the system, the default value
-should be enough. Otherwise, it can be used to differentiate between several objects of the same type.
+optional and in case there is only a single object of this type registered on the system, the
+default value should be enough. Otherwise, it can be used to differentiate between several objects
+of the same type.
 
 \section ipc-client-sync Client side using synchronous proxy
 
@@ -99,9 +110,9 @@ default value is sufficient if the service is a singleton.
 
 \section ipc-client-async Client side using asynchronous proxy
 
-Asynchronous proxy objects provide a similar interface compared to the synchronous proxies, but the methods
-take an additional callback function argument. This function is called when the method execution has been reported by the
-server.
+Asynchronous proxy objects provide a similar interface compared to the synchronous proxies, but the
+methods take an additional callback function argument. This function is called when the method
+execution has been reported by the server.
 
 \snippet MyAppAsyncIPCClient.qml indoc
 
