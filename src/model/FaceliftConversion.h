@@ -417,18 +417,18 @@ struct TypeHandler<int> : public TypeHandlerBase
 
 
 template<>
-struct TypeHandler<float> : public TypeHandlerBase
+struct TypeHandler<double> : public TypeHandlerBase
 {
-    typedef float QMLType;
+    typedef double QMLType;
 
-    static QString toString(const float &v)
+    static QString toString(const double &v)
     {
         return QString::number(v);
     }
 
-    static float fromVariant(const QVariant &variant)
+    static double fromVariant(const QVariant &variant)
     {
-        return variant.toFloat();
+        return variant.toDouble();
     }
 };
 
