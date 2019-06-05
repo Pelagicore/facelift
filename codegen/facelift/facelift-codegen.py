@@ -64,7 +64,7 @@ def getPrimitiveCppType(symbol):
     if symbol.name == 'string':
         return 'QString'
     if symbol.name == 'real':
-        return 'float'
+        return 'double'
     return symbol
 
 def qmlCompatibleType(self):
@@ -108,7 +108,7 @@ def cppTypeFromSymbol(type, isInterfaceType):
         if type.name == 'string':
             return 'QString'
         if type.name == 'real':
-            return 'float'
+            return 'double'
         return type
     elif type.is_list:
         return 'QList<{0}>'.format(cppTypeFromSymbol(type.nested, isInterfaceType))

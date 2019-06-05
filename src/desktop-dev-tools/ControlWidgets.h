@@ -264,11 +264,11 @@ private:
     QSpinBox *widget = nullptr;
 };
 
-class FloatPropertyWidget : public PropertyWidget<float>
+class DoublePropertyWidget : public PropertyWidget<double>
 {
 
 public:
-    FloatPropertyWidget(float &value, const QString &propertyName, QWidget *parent = nullptr) :
+    DoublePropertyWidget(double &value, const QString &propertyName, QWidget *parent = nullptr) :
         PropertyWidget(value, propertyName, parent)
     {
         widget = new QDoubleSpinBox();
@@ -463,9 +463,9 @@ struct TypeToWidget<int> : public TypeToWidgetBase
 };
 
 template<>
-struct TypeToWidget<float> : public TypeToWidgetBase
+struct TypeToWidget<double> : public TypeToWidgetBase
 {
-    typedef FloatPropertyWidget PanelType;
+    typedef DoublePropertyWidget PanelType;
 };
 
 template<>

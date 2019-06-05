@@ -92,7 +92,7 @@ inline void readJSONSimple<bool>(const QJsonValue &json, bool &value)
 }
 
 template<>
-inline void readJSONSimple<float>(const QJsonValue &json, float &value)
+inline void readJSONSimple<double>(const QJsonValue &json, double &value)
 {
     if (json.isDouble()) {
         value = json.toDouble();

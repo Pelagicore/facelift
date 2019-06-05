@@ -41,19 +41,19 @@
 namespace facelift {
 
 template<>
-struct IPCTypeHandler<float>
+struct IPCTypeHandler<double>
 {
     static void writeDBUSSignature(QTextStream &s)
     {
         s << "d";
     }
 
-    static void write(OutputPayLoad &msg, const float &v)
+    static void write(OutputPayLoad &msg, const double &v)
     {
-        msg.writeSimple((double)v);
+        msg.writeSimple(v);
     }
 
-    static void read(InputPayLoad &msg, float &v)
+    static void read(InputPayLoad &msg, double &v)
     {
         double d;
         msg.readNextParameter(d);
