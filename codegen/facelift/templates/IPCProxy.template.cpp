@@ -39,19 +39,28 @@
 
 {{module.namespaceCppOpen}}
 
-{{className}}::{{className}}(QObject *parent) : BaseType(parent)
+{{className}}::{{className}}(QObject *parent) : BaseType(parent),
+    m_proxies {
+    {% if generateAsyncProxy %}
+    createIPCAdapter(m_ipcLocalProxyAdapter),
+    {% endif %}
+#ifdef DBUS_IPC_ENABLED
+    createIPCAdapter(m_ipcDBusProxyAdapter),
+#endif
+    }
 {
     ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
 
     {% if generateAsyncProxy %}
     ipc()->setSynchronous(false);
-    addIPCAdapter(m_ipcLocalProxyAdapter);
     {% endif %}
 
-#ifdef DBUS_IPC_ENABLED
-    addIPCAdapter(m_ipcDBusProxyAdapter);
-#endif
+    setIPCProxies(m_proxies);
+}
 
+{{className}}::~{{className}}()
+{
+    resetIPCProxies();
 }
 
 facelift::IPCProxyBinderBase *{{className}}QMLAdapterType::ipc()

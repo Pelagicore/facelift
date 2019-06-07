@@ -73,8 +73,8 @@ protected:
 
     WrappedType *wrapped() const
     {
-        Q_ASSERT(!m_wrapped.isNull());
-        return m_wrapped.data();
+        Q_ASSERT(m_wrapped);
+        return m_wrapped;
     }
 
     void setWrapped(WrappedType *wrapped)
@@ -102,7 +102,7 @@ private:
             clearConnections();
     }
 
-    QPointer<WrappedType> m_wrapped;
+    WrappedType* m_wrapped = nullptr;
 
 };
 

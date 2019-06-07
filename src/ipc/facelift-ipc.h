@@ -83,17 +83,57 @@ private:
 
 };
 
+
+template<typename Type>
+class StaticArrayReference
+{
+public:
+
+    StaticArrayReference()
+    {
+    }
+
+    template<size_t SIZE>
+    StaticArrayReference(const std::array<Type, SIZE>& array)
+    {
+        m_data = array.data();
+        m_size = SIZE;
+    }
+
+    const Type* begin() const
+    {
+        return m_data;
+    }
+
+    const Type* end() const
+    {
+        return m_data + m_size;
+    }
+
+    void reset()
+    {
+        m_size = 0;
+    }
+
+private:
+    const Type* m_data = nullptr;
+    size_t m_size = 0;
+};
+
+
+
 template<typename WrapperType, typename NotAvailableImpl>
 class IPCProxy : public WrapperType, public IPCProxyNewBase
 {
     using InterfaceType = typename NotAvailableImpl::InterfaceType;
 
+public:
+
     struct ProxyAdapterEntry {
-        IPCProxyBinderBase* ipcBinder;
-        InterfaceType* proxy;
+        IPCProxyBinderBase* ipcBinder = nullptr;
+        InterfaceType* proxy = nullptr;
     };
 
-public:
     IPCProxy(QObject *parent) : WrapperType(parent)
         , IPCProxyNewBase(*static_cast<InterfaceBase *>(this))
         , m_localProviderBinder(*this)
@@ -103,9 +143,11 @@ public:
 
                 for (auto& proxy : m_ipcProxies) {
                     auto proxyAdapterIPCBinder = proxy.ipcBinder;
-                    proxyAdapterIPCBinder->setObjectPath(ipc()->objectPath());
-                    proxyAdapterIPCBinder->connectToServer();
-                    QObject::connect(proxyAdapterIPCBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
+                    if (proxyAdapterIPCBinder != nullptr) {
+                        proxyAdapterIPCBinder->setObjectPath(ipc()->objectPath());
+                        proxyAdapterIPCBinder->connectToServer();
+                        QObject::connect(proxyAdapterIPCBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
+                    }
                 }
                 this->refreshProvider();
             });
@@ -113,7 +155,7 @@ public:
         refreshProvider();
     }
 
-    void refreshProvider()
+    void refreshProvider() override
     {
         InterfaceType *provider = &m_notAvailableProvider;
         if (m_localProviderBinder.provider() != nullptr) {
@@ -121,7 +163,7 @@ public:
         } else {
             for (auto& proxy : m_ipcProxies) {
                 auto proxyAdapterIPCBinder = proxy.ipcBinder;
-                if (proxyAdapterIPCBinder->isServiceAvailable()) {
+                if ((proxyAdapterIPCBinder != nullptr) && proxyAdapterIPCBinder->isServiceAvailable()) {
                     provider = proxy.proxy;
                 }
             }
@@ -136,17 +178,29 @@ public:
     }
 
     template<typename ProxyType>
-    void addIPCAdapter(ProxyType &proxy) {
+    ProxyAdapterEntry createIPCAdapter(ProxyType &proxy)
+    {
         ProxyAdapterEntry entry;
         entry.ipcBinder = proxy.ipc();
         entry.proxy = &proxy;
-        m_ipcProxies.append(entry);
+        return entry;
+    }
+
+    template<size_t N>
+    void setIPCProxies(std::array<ProxyAdapterEntry, N>& proxies)
+    {
+        m_ipcProxies = proxies;
+    }
+
+    void resetIPCProxies()
+    {
+        m_ipcProxies.reset();
     }
 
 private:
     NotAvailableImpl m_notAvailableProvider;
-    QList<ProxyAdapterEntry> m_ipcProxies;
     LocalProviderBinder<InterfaceType> m_localProviderBinder;
+    StaticArrayReference<ProxyAdapterEntry> m_ipcProxies;
 };
 
 }

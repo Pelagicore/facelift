@@ -49,13 +49,13 @@ void mainClient(int &argc, char * *argv)
     TestInterfaceIPCProxy proxy;
 
     QTimer timer;
-    QObject::connect(&timer, &QTimer::timeout, [&] () {
+    QObject::connect(&timer, &QTimer::timeout, &proxy, [&] () {
         qWarning() << "boolProperty" << proxy.boolProperty();
         proxy.method1();
     });
     timer.start(1000);
 
-    QObject::connect(&proxy, &TestInterface::boolPropertyChanged, [&] () {
+    QObject::connect(&proxy, &TestInterface::boolPropertyChanged, &proxy, [&] () {
         qWarning() << "boolProperty changed " << proxy.boolProperty();
     });
 
@@ -84,9 +84,9 @@ void mainServer(int &argc, char * *argv)
 
     QTimer timer;
     timer.setInterval(1000);
-    QObject::connect(&timer, &QTimer::timeout, [&] () {
+//    QObject::connect(&timer, &QTimer::timeout, [&] () {
         //      svc.onPropertyValueChanged();
-    });
+//    });
     timer.start();
 
     qDebug() << "Server running";

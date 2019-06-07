@@ -137,6 +137,7 @@ public:
     using QMLAdapterType = {{className}}QMLAdapterType;
 
     {{className}}(QObject *parent = nullptr);
+    ~{{className}}();
 
 private:
     {% if generateAsyncProxy %}
@@ -146,6 +147,14 @@ private:
 #ifdef DBUS_IPC_ENABLED
     {{interfaceName}}IPCDBusProxy m_ipcDBusProxyAdapter;
 #endif
+
+    std::array<ProxyAdapterEntry, 0
+    {% if generateAsyncProxy %} + 1
+    {% endif %}
+#ifdef DBUS_IPC_ENABLED
+    + 1
+#endif
+    > m_proxies = {};
 
 };
 
