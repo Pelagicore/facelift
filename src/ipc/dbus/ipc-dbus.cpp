@@ -137,21 +137,25 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
     } else if (dbusMsg.interface() == DBusIPCCommon::PROPERTIES_INTERFACE_NAME) {
         // TODO
     } else {
-        bool sendReply = true;
-        if (requestMessage.member() == DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
-            serializePropertyValues(replyMessage, true);
-        } else {
-            auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
-            if (handlingResult == IPCHandlingResult::INVALID) {
-                replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
-            } else if (handlingResult == IPCHandlingResult::OK_ASYNC) {
-                sendReply = false;
+        if (service()) {
+            bool sendReply = true;
+            if (requestMessage.member() == DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
+                serializePropertyValues(replyMessage, true);
+            } else {
+                auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
+                if (handlingResult == IPCHandlingResult::INVALID) {
+                    replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
+                } else if (handlingResult == IPCHandlingResult::OK_ASYNC) {
+                    sendReply = false;
+                }
             }
+            if (sendReply) {
+                send(replyMessage);
+            }
+            return true;
+        } else {
+            qWarning() << "DBus request received for object which has been destroyed" << this;
         }
-        if (sendReply) {
-            send(replyMessage);
-        }
-        return true;
     }
 
     return false;
