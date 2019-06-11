@@ -45,7 +45,9 @@ if(NOT MSVC AND NOT ANDROID)
     string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments -Wall -pedantic -Wextra")
 endif()
 
-set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/codegen)
+if(FACELIFT_ENABLE_CODEGEN)
+    add_subdirectory(codegen)
+endif()
 
 include("cmake/faceliftMacros.cmake")
 
@@ -64,9 +66,6 @@ function(add_example_script NAME MAIN_QML_FILE)
     endif()
 endfunction()
 
-if(FACELIFT_ENABLE_CODEGEN)
-    add_subdirectory(codegen)
-endif()
 
 add_subdirectory(src)
 
@@ -85,12 +84,20 @@ file(GLOB_RECURSE FILES_TO_SHOW_IN_QTCREATOR *.qml *.js *.cmake qmldir)
 add_custom_target(FACELIFT_SHOW_IN_QTCREATOR SOURCES ${FILES_TO_SHOW_IN_QTCREATOR})
 
 get_property(REQUIRED_QT_MODULES GLOBAL PROPERTY FACELIFT_REQUIRED_QT_MODULES)
-get_property(FACELIFT_CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
+
 set(FACELIFT_IMPORT_DIRS ${CMAKE_BINARY_DIR}/imports)
 configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake @ONLY)
 
-set(FACELIFT_CODEGEN_LOCATION \${CMAKE_CURRENT_LIST_DIR}/../../../bin/host-tools)   # relative path of the installed code generator
 set(FACELIFT_IMPORT_DIRS \${CMAKE_CURRENT_LIST_DIR}/../../../imports)
 configure_file(variables.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed @ONLY)
 
-facelift_export_project(BUILD_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake INSTALLED_FILES cmake/faceliftMacros.cmake ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed)
+facelift_export_project(
+    BUILD_FILES
+        cmake/faceliftMacros.cmake
+        ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake
+        ${CMAKE_BINARY_DIR}/faceliftConfig-codegen.cmake
+    INSTALLED_FILES
+        cmake/faceliftMacros.cmake
+        ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed
+        ${CMAKE_BINARY_DIR}/faceliftConfig-codegen.installed.cmake
+)

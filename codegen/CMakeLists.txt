@@ -1,20 +1,20 @@
-project(facelift)
+#project(facelift_codegen VERSION 1.0.0)
 
-cmake_minimum_required(VERSION 3.1)
+#cmake_minimum_required(VERSION 3.1)
 
 include(GNUInstallDirs)    # for standard installation locations
 
-set(INSTALLATION_PATH ${CMAKE_INSTALL_BINDIR}/host-tools)
+add_executable(facelift-codegen IMPORTED GLOBAL)
+set_target_properties(facelift-codegen PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/facelift/facelift-codegen.py)
 
-install(DIRECTORY facelift DESTINATION ${INSTALLATION_PATH}  USE_SOURCE_PERMISSIONS)
+set(INSTALLATION_PATH ${CMAKE_INSTALL_BINDIR}/host-tools/facelift)
 
-install(FILES facelift-codegen.py DESTINATION ${INSTALLATION_PATH}
-    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
-)
+install(DIRECTORY facelift/ DESTINATION ${INSTALLATION_PATH} USE_SOURCE_PERMISSIONS)
 
-file(RELATIVE_PATH CODEGEN_RELATIVE_PATH /${CMAKE_CONFIG_INSTALLATION_PATH} /${INSTALLATION_PATH} )
+get_target_property(FACELIFT_CODEGEN_LOCATION facelift-codegen LOCATION)
 
-configure_file(faceliftConfig-codegen.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/faceliftConfig-codegen.cmake @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/faceliftConfig-codegen.cmake DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH})
+file(RELATIVE_PATH FACELIFT_CODEGEN_RELATIVE_LOCATION /${CMAKE_BINARY_DIR} /${FACELIFT_CODEGEN_LOCATION})
+configure_file(faceliftConfig-codegen.cmake.in ${CMAKE_BINARY_DIR}/faceliftConfig-codegen.cmake @ONLY)
 
-set_property(GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION ${CMAKE_CURRENT_LIST_DIR})
+file(RELATIVE_PATH FACELIFT_CODEGEN_RELATIVE_LOCATION /lib/cmake/${PROJECT_NAME} /${INSTALLATION_PATH}/facelift-codegen.py)
+configure_file(faceliftConfig-codegen.cmake.in ${CMAKE_BINARY_DIR}/faceliftConfig-codegen.installed.cmake @ONLY)

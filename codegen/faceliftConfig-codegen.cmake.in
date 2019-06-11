@@ -1,1 +1,4 @@
-set(CODEGEN_RELATIVE_PATH @CODEGEN_RELATIVE_PATH@)
+if (NOT TARGET facelift-codegen)
+    add_executable(facelift-codegen IMPORTED GLOBAL)
+    set_target_properties(facelift-codegen PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/@FACELIFT_CODEGEN_RELATIVE_LOCATION@)
+endif()
