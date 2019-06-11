@@ -165,9 +165,9 @@ function(facelift_generate_code )
     set(multiValueArgs IMPORT_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    get_property(CODEGEN_LOCATION GLOBAL PROPERTY FACELIFT_CODEGEN_LOCATION)
-    set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/facelift/qface)
-    set(CODEGEN_EXECUTABLE_LOCATION ${CODEGEN_LOCATION}/facelift-codegen.py)
+    get_target_property(CODEGEN_EXECUTABLE_LOCATION facelift-codegen LOCATION)
+    get_filename_component(CODEGEN_LOCATION ${CODEGEN_EXECUTABLE_LOCATION} DIRECTORY)
+    set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/qface)
 
     file(TO_NATIVE_PATH "${QFACE_BASE_LOCATION}" QFACE_BASE_LOCATION_NATIVE_PATH)
     set(ENV{PYTHONPATH} "${QFACE_BASE_LOCATION_NATIVE_PATH}")
@@ -431,7 +431,7 @@ macro(_facelift_add_target_finish)
 
         target_compile_definitions(${TARGET_NAME} ${__INTERFACE} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
 
-        # create a valid preprocessor macro base on the target name
+        # create a valid preprocessor macro based on the target name
         string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${TARGET_NAME}_LIBRARY")
         target_compile_definitions(${TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION})
 

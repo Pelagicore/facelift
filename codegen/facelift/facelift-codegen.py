@@ -39,7 +39,7 @@ import qface
 
 here = Path(__file__).dirname()
 
-logging.config.dictConfig(yaml.load(open(here / 'facelift' / 'facelift-log.yaml')))
+logging.config.dictConfig(yaml.load(open(here / 'facelift-log.yaml')))
 log = logging.getLogger(__name__)
 
 generateAsyncProxy = False
@@ -345,7 +345,7 @@ def run_generation(input, output, dependency, libraryName, all):
     modulesToGenerate = [module.name for module in system.modules]
 
     system = FileSystem.parse(list(input) + list(dependency))
-    generator = Generator(search_path=Path(here / 'facelift' / 'templates'))
+    generator = Generator(search_path=Path(here / 'templates'))
     generator.register_filter('cppBool',
                               lambda var: "true" if var else "false")
     generator.register_filter('toValidId',
