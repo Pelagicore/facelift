@@ -40,14 +40,14 @@
 {{module.namespaceCppOpen}}
 
 {{className}}::{{className}}(QObject *parent) : BaseType(parent),
-    m_proxies {
+    m_proxies { {
     {% if generateAsyncProxy %}
     createIPCAdapter(m_ipcLocalProxyAdapter),
     {% endif %}
 #ifdef DBUS_IPC_ENABLED
     createIPCAdapter(m_ipcDBusProxyAdapter),
 #endif
-    }
+    } }
 {
     ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
 
