@@ -81,6 +81,8 @@ public:
 
     QQmlEngine* qmlEngine() const;
 
+    void setParentQMLAdapter(QMLAdapterBase * parentQMLAdapter);
+
 protected:
 
     void connectProvider(InterfaceBase &provider);
@@ -96,8 +98,8 @@ protected:
 
 private:
     InterfaceBase *m_provider = nullptr;
-    QQmlEngine* m_qmlEngine = nullptr;
-
+    mutable QQmlEngine* m_qmlEngine = nullptr;
+    QMLAdapterBase* m_parentQMLAdapter = nullptr;
 };
 
 /*!

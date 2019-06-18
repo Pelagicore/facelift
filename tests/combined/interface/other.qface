@@ -36,6 +36,9 @@ interface OtherInterface {
     int otherInt
     string otherMethod(OtherEnum oe);
     signal otherEvent(OtherStruct os);
+
+    @async: true
+    int asyncFunction();
 }
 
 struct OtherStruct {

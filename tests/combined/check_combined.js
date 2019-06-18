@@ -122,6 +122,12 @@ function methods() {
     if (!api.qmlImplementationUsed) {
         api.interfaceProperty.doSomething();
         compare(api.otherInterfaceProperty.otherMethod(OtherEnum.O3), "O3");
+
+        var asyncResult = { answer: 0 };
+        api.otherInterfaceProperty.asyncFunction(function(result) {
+            asyncResult.answer = result;
+        });
+        tryCompare(asyncResult, "answer", 42);
     }
 }
 
