@@ -33,6 +33,7 @@
 #include "tests/combined/CombinedInterfaceImplementationBase.h"
 #include "tests/combined/CombinedInterface2ImplementationBase.h"
 #include "tests/combined/other/OtherInterfaceImplementationBase.h"
+#include <QTimer>
 
 using namespace tests::combined;
 using namespace tests::combined::other;
@@ -48,6 +49,12 @@ public:
         if (oe == OtherEnum::O3)
             return QStringLiteral("O3");
         return QString();
+    }
+
+    void asyncFunction(facelift::AsyncAnswer<int> answer = facelift::AsyncAnswer<int>()) override {
+        QTimer::singleShot(200, this, [answer]() {
+            answer(42);
+        });
     }
 };
 

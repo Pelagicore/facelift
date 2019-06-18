@@ -258,7 +258,7 @@ typename ProviderType::QMLAdapterType *getQMLFrontend(ProviderType *provider)
 }
 
 template<typename ProviderType>
-typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
+typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider, QQmlEngine* engine = nullptr)
 {
     if (provider == nullptr) {
         return nullptr;
@@ -267,6 +267,10 @@ typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
             // No QML frontend instantiated yet => create one
             provider->m_qmlAdapter = new typename ProviderType::QMLAdapterType(provider);
             provider->m_qmlAdapter->connectProvider(*provider);
+
+            if (engine) {
+                QQmlEngine::setContextForObject(provider->m_qmlAdapter, engine->rootContext());
+            }
         }
         return provider->m_qmlAdapter;
     }
