@@ -60,7 +60,7 @@ public:
         m_subService = &m_subInterface;
     }
 
-    // This property is not defined as part of the public interface (IDL), but it can be accessed via the "provider" property
+    // This property is not defined as part of the public interface (QFace file), but it can be accessed via the "provider" property
     Q_PROPERTY(QString privateProperty READ privateProperty CONSTANT)
     QString privateProperty() const
     {

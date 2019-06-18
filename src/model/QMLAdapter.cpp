@@ -73,9 +73,25 @@ void QMLAdapterBase::componentComplete()
    m_provider->setComponentCompleted();
 }
 
+
+void QMLAdapterBase::setParentQMLAdapter(QMLAdapterBase * parentQMLAdapter)
+{
+    // One would expect that this method is not called multiple times with different parentQMLAdapter,
+    // but it actually is, in in-process IPC scenarios. TODO: clarify and fix
+    if (m_parentQMLAdapter == nullptr) {
+        m_parentQMLAdapter = parentQMLAdapter;
+        Q_ASSERT(m_parentQMLAdapter);
+        m_qmlEngine = m_parentQMLAdapter->qmlEngine();
+    }
+}
+
+
 QQmlEngine* QMLAdapterBase::qmlEngine() const
 {
-    return (m_qmlEngine ? m_qmlEngine : ::qmlEngine(this));
+    if (m_qmlEngine == nullptr) {
+        m_qmlEngine = ::qmlEngine(this);
+    }
+    return m_qmlEngine;
 }
 
 
