@@ -47,6 +47,11 @@ QMLAdapterBase::QMLAdapterBase(QQmlEngine *engine) : QMLAdapterBase(static_cast<
     m_qmlEngine = engine;
 }
 
+QMLAdapterBase::QMLAdapterBase(QObject *parent, QQmlEngine *engine) : QObject(parent)
+    , m_qmlEngine(engine)
+{
+}
+
 InterfaceBase *QMLAdapterBase::provider() {
     Q_ASSERT(m_provider != nullptr);
     qCWarning(LogModel) << "Accessing private provider implementation object";

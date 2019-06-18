@@ -64,6 +64,12 @@ public:
      */
     QMLAdapterBase(QQmlEngine *engine);
 
+    /**
+     *  This constructor is used to create a nested QML adapters
+     *  with valid QQmlEngine reference.
+     */
+    QMLAdapterBase(QObject *parent, QQmlEngine *engine);
+
     Q_PROPERTY(QObject * provider READ provider CONSTANT)
     virtual InterfaceBase *provider();
 
@@ -258,20 +264,19 @@ typename ProviderType::QMLAdapterType *getQMLFrontend(ProviderType *provider)
 }
 
 template<typename ProviderType>
-typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
+typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider, QQmlEngine *engine = nullptr)
 {
     if (provider == nullptr) {
         return nullptr;
     } else {
         if (provider->m_qmlAdapter == nullptr) {
             // No QML frontend instantiated yet => create one
-            provider->m_qmlAdapter = new typename ProviderType::QMLAdapterType(provider);
+            provider->m_qmlAdapter = new typename ProviderType::QMLAdapterType(provider, engine);
             provider->m_qmlAdapter->connectProvider(*provider);
         }
         return provider->m_qmlAdapter;
     }
 }
-
 
 class FaceliftModelLib_EXPORT ModelListModelBase : public QAbstractListModel
 {

@@ -81,6 +81,8 @@ public:
 
     {{className}}(QQmlEngine* engine);
 
+    {{className}}(QObject* parent, QQmlEngine* engine);
+
     void connectProvider({{interfaceName}}& provider);
 
     {% if hasReadyFlags %}

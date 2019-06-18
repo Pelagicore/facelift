@@ -64,6 +64,10 @@
 {
 }
 
+{{className}}::{{className}}(QObject* parent, QQmlEngine* engine) : facelift::QMLAdapterBase(parent, engine)
+{
+}
+
 void {{className}}::connectProvider({{interfaceName}}& provider)
 {
     facelift::QMLAdapterBase::connectProvider(provider);
@@ -123,7 +127,7 @@ void {{className}}::set{{property}}(const {{property.type.qmlCompatibleType}}& n
 {%- elif property.type.is_interface %}
 {{property.cppType}}QMLAdapter* {{className}}::{{property}}()
 {
-    return facelift::getQMLAdapter(m_provider->{{property}}());
+    return facelift::getQMLAdapter(m_provider->{{property}}(), qmlEngine());
 }
 {% else %}
     {% if property.readonly %}
