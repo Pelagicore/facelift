@@ -336,7 +336,7 @@ endfunction()
 
 macro(_facelift_add_target_start)
 
-    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC SHARED USE_QML_COMPILER)
+    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC SHARED)
     set(oneValueArgs )
     set(multiValueArgs PRIVATE_DEFINITIONS
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
@@ -379,18 +379,6 @@ macro(_facelift_add_target_start)
         list(APPEND HEADERS_NO_INSTALL ${GLOB_FILES})
     endforeach()
 
-    if(ARGUMENT_RESOURCE_FOLDERS)
-        set(GENERATED_QRC_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources.qrc")
-        facelift_generateQRC("${GENERATED_QRC_PATH}" INPUT_FOLDERS ${ARGUMENT_RESOURCE_FOLDERS})
-        list(APPEND RESOURCE_FILES "${GENERATED_QRC_PATH}")
-    endif()
-
-    if(ARGUMENT_USE_QML_COMPILER)
-        qtquick_compiler_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
-    else()
-        qt5_add_resources(RESOURCES_BIN ${RESOURCE_FILES})
-    endif()
-
     set(HEADERS_TO_BE_MOCCED ${HEADERS} ${HEADERS_NO_INSTALL})
     unset(HEADERS_MOCS)
 
@@ -403,7 +391,7 @@ macro(_facelift_add_target_start)
         qt5_wrap_ui(UI_FILES ${ARGUMENT_UI_FILES})
     endif()
 
-    set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES} ${RESOURCES_BIN})
+    set(ALL_SOURCES ${SOURCES} ${HEADERS_MOCS} ${UI_FILES})
 
     if(NOT DISABLE_UNITY_BUILD)
         if("${AUTO_UNITY_BUILD}" AND NOT "${IGNORE_AUTO_UNITY_BUILD}")
@@ -413,9 +401,7 @@ macro(_facelift_add_target_start)
         endif()
     endif()
 
-    if(ARGUMENT_USE_QML_COMPILER OR CMAKE_AUTOMOC)
-        #qml compiler adds private definitions of V4 to RESOURCES BIN
-        #combining set of resources in one file leads to redefinition error message
+    if(CMAKE_AUTOMOC)
         set(UNITY_BUILD OFF)
     endif()
 
@@ -751,62 +737,6 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
         )
         add_custom_target("generate_qmltypes_${PLUGIN_NAME}" ALL DEPENDS ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes)
         install(FILES ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes DESTINATION ${INSTALL_PATH})
-    endif()
-
-endfunction()
-
-
-function(facelift_generateQRC OUTPUT_FILE)
-
-    set(options )
-    set(oneValueArgs )
-    set(multiValueArgs INPUT_FOLDERS)
-    cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    set(QRC "<RCC>\n")
-
-    foreach(INPUT_PATH ${ARGUMENT_INPUT_FOLDERS})
-
-        string(APPEND QRC "\t<qresource prefix=\"/\">\n")
-        file(GLOB_RECURSE FILES "${INPUT_PATH}/*.qml"
-                                "${INPUT_PATH}/*.js"
-                                "${INPUT_PATH}/*.ttf"
-        )
-        foreach(FILE ${FILES})
-            file(RELATIVE_PATH RELATIVE_PATH ${INPUT_PATH} ${FILE})
-            string(APPEND QRC "\t\t<file alias=\"${RELATIVE_PATH}\">${FILE}</file>\n")
-        endforeach()
-        string(APPEND QRC "\t</qresource>\n")
-
-        string(APPEND QRC "\t<qresource prefix=\"/images\">\n")
-        file(GLOB_RECURSE FILES "${INPUT_PATH}/*.png"
-                                "${INPUT_PATH}/*.sci"
-                                "${INPUT_PATH}/*.json"
-                                "${INPUT_PATH}/*.astcz"
-                                "${INPUT_PATH}/*.tcsh"
-                                "${INPUT_PATH}/*.tesh"
-                                "${INPUT_PATH}/*.gsh"
-                                "${INPUT_PATH}/*.fsh"
-                                "${INPUT_PATH}/*.geojson"
-        )
-
-        foreach(FILE ${FILES})
-            file(RELATIVE_PATH RELATIVE_PATH ${INPUT_PATH} ${FILE})
-            string(APPEND QRC "\t\t<file alias=\"${RELATIVE_PATH}\">${FILE}</file>\n")
-        endforeach()
-        string(APPEND QRC "\t</qresource>\n")
-
-    endforeach()
-
-    string(APPEND QRC "</RCC>")
-
-    # Write content to file if not already
-    unset(OLD_FILE_CONTENT)
-    if(EXISTS ${OUTPUT_FILE})
-        file(READ ${OUTPUT_FILE} OLD_FILE_CONTENT)
-    endif()
-    if(NOT "${OLD_FILE_CONTENT}" STREQUAL "${QRC}")
-        file(WRITE "${OUTPUT_FILE}" "${QRC}")
     endif()
 
 endfunction()
