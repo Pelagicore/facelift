@@ -8,14 +8,14 @@ facelift_add_qml_plugin(PropertyBindingCpp
     OUTPUT_BASE_DIRECTORY imports/cpp
     SOURCES plugin/PropertyBindingPlugin.cpp
             impl/cpp/PropertyBindingInterfaceCppImplementation.h
-    LINK_LIBRARIES PropertyBindingInterface)
+    LINK_LIBRARIES PropertyBindingInterface
+)
 
 facelift_add_qml_plugin(PropertyBindingQml
     URI tests.propertybinding
     OUTPUT_BASE_DIRECTORY imports/qml
     SOURCES plugin/PropertyBindingPlugin.cpp
             impl/cpp/PropertyBindingInterfaceCppImplementation.h
-    LINK_LIBRARIES PropertyBindingInterface)
-
-target_compile_definitions(PropertyBindingQml PRIVATE -DQML_IMPL_LOCATION=${CMAKE_CURRENT_SOURCE_DIR})
-
+    LINK_LIBRARIES PropertyBindingInterface
+    PRIVATE_DEFINITIONS -DQML_IMPL_LOCATION=${CMAKE_CURRENT_SOURCE_DIR}
+)
