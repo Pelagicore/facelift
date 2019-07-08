@@ -380,7 +380,6 @@ def run_generation(input, output, dependency, libraryName, all):
                 generateFile(generator, 'types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.h', 'ImplementationBase.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.cpp', 'ImplementationBase.template.cpp', ctx, libraryName, "types")
-                generateFile(generator, 'types/{{path}}/{{interface}}QMLFrontend.h', 'QMLFrontend.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLAdapter.h', 'QMLAdapter.template.h', ctx, libraryName, "types")
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLAdapter.cpp', 'QMLAdapter.template.cpp', ctx, libraryName, "types")
                 generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "desktop_dev_tools")

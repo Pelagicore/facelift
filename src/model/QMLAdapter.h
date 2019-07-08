@@ -249,14 +249,6 @@ int registerSingletonQmlComponent(const char *uri,
 }
 
 
-
-template<typename ProviderType>
-[[deprecated("use getQMLAdapter instead")]]
-typename ProviderType::QMLAdapterType *getQMLFrontend(ProviderType *provider)
-{
-    return getQMLAdapter(provider);
-}
-
 template<typename ProviderType>
 typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
 {
@@ -264,7 +256,7 @@ typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
         return nullptr;
     } else {
         if (provider->m_qmlAdapter == nullptr) {
-            // No QML frontend instantiated yet => create one
+            // No QML adapter instantiated yet => create one
             provider->m_qmlAdapter = new typename ProviderType::QMLAdapterType(provider);
             provider->m_qmlAdapter->connectProvider(*provider);
         }
