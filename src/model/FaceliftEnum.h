@@ -39,3 +39,9 @@
 #include "FaceliftCommon.h"
 #include <QObject>
 #include <QTextStream>
+
+namespace facelift {
+
+void onAssignFromStringError(const QString &s);
+
+}
