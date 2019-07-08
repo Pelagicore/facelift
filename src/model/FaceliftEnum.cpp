@@ -28,72 +28,14 @@
 **
 **********************************************************************/
 
-#pragma once
-
-#include <type_traits>
-#include <initializer_list>
-#include <QString>
-#include <QLoggingCategory>
-
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
-#define STRINGIFY_(x) # x
-#define STRINGIFY(x) STRINGIFY_(x)
-
-/**
- *  Avoid "unused parameter" warnings, with multiple arguments
- */
-template<typename ... Args>
-void M_UNUSED(const Args & ... args)
-{
-    (void)(sizeof ... (args));
-}
+#include "FaceliftEnum.h"
+#include <QDebug>
 
 namespace facelift {
 
-FaceliftModelLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogGeneral)
-FaceliftModelLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogModel)
-
-typedef int ModelElementID;
-
-template<typename Type, typename Enable = void>
-struct TypeHandler
+void onAssignFromStringError(const QString &s)
 {
-    typedef Type QMLType;
-
-    static QString toString(const Type &v)
-    {
-        Q_UNUSED(v);
-        return "Unknown";
-    }
-
-};
-
-template<typename Type>
-inline const std::initializer_list<Type> &validValues()
-{
-    static const std::initializer_list<Type> l;
-    return l;
+    qFatal("No enum value matching string %s", qPrintable(s));
 }
-
-
-template<typename Type>
-inline QString toString(const Type &v)
-{
-    return TypeHandler<Type>::toString(v);
-}
-
-template<typename Type>
-QString enumToString(const Type &v)
-{
-    Q_UNUSED(v);
-    static_assert(!std::is_enum<Type>::value, "Missing specialization of enumToString() template");
-    return "";
-}
-
 
 }

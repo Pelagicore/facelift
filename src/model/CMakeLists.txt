@@ -9,6 +9,7 @@ facelift_add_library(FaceliftModelLib
         QMLModel.cpp
         FaceliftProperty.cpp
         FaceliftImplementationBase.cpp
+        FaceliftEnum.cpp
     HEADERS
         FaceliftModel.h
         QMLAdapter.h

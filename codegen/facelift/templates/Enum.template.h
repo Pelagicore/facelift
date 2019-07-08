@@ -66,9 +66,9 @@ Q_DECLARE_METATYPE({{enum.fullyQualifiedCppType}}Gadget::Type)
 
 namespace facelift {
 
-template<> inline const QList<{{enum.fullyQualifiedCppType}}>& validValues<{{enum.fullyQualifiedCppType}}>()
+template<> inline const std::initializer_list<{{enum.fullyQualifiedCppType}}>& validValues<{{enum.fullyQualifiedCppType}}>()
 {
-    static QList<{{enum.fullyQualifiedCppType}}> values = {
+    static const std::initializer_list<{{enum.fullyQualifiedCppType}}> values = {
     {% for member in enum.members %}
         {{enum.fullyQualifiedCppType}}::{{member}},
     {% endfor %}
@@ -101,7 +101,7 @@ inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v
         v = {{enum.fullyQualifiedCppType}}::{{member}};
     else
     {% endfor %}
-        qFatal("No enum value matching string");
+        ::facelift::onAssignFromStringError(s);
 }
 
 
