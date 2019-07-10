@@ -114,12 +114,6 @@ struct TypeHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase
         return nullptr;
     }
 
-    static QString toString(const Type *v)
-    {
-        auto s = (size_t)(v);
-        return QString::number(s, 16);
-    }
-
     template<typename ReceiverType, typename Function>
     static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
             QList<QMetaObject::Connection> &connections)
@@ -163,13 +157,6 @@ struct FaceliftModelLib_EXPORT TypeHandlerBase
     static void read(BinarySeralizer &msg, Type &v)
     {
         msg.stream >> v;
-    }
-
-    template<typename Type>
-    static QString toString(const Type &v)
-    {
-        NOT_IMPLEMENTED();
-        return v;
     }
 
     template<typename ReceiverType, typename Function>
@@ -237,11 +224,6 @@ struct StructTypeHandler
         typename Type::FieldTupleTypes tuple;
         for_each_in_tuple(tuple, StreamReadFunction<BinarySeralizer>(msg));
         param.setValue(tuple);
-    }
-
-    static QString toString(const Type &v)
-    {
-        return v.toString();
     }
 
     static const Type &toQMLCompatibleType(const Type &v)
@@ -340,11 +322,6 @@ struct TypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::typ
         param = static_cast<Type>(i);
     }
 
-    static QString toString(const Type &v)
-    {
-        return facelift::enumToString(v);
-    }
-
     static Type fromVariant(const QVariant &variant)
     {
         return static_cast<Type>(variant.toInt());
@@ -385,11 +362,6 @@ struct TypeHandler<bool> : public TypeHandlerBase
 {
     typedef bool QMLType;
 
-    static QString toString(const bool &v)
-    {
-        return v ? "true" : "false";
-    }
-
     static bool fromVariant(const QVariant &variant)
     {
         return variant.toBool();
@@ -402,11 +374,6 @@ template<>
 struct TypeHandler<int> : public TypeHandlerBase
 {
     typedef int QMLType;
-
-    static QString toString(const int &v)
-    {
-        return QString::number(v);
-    }
 
     static int fromVariant(const QVariant &variant)
     {
@@ -421,11 +388,6 @@ struct TypeHandler<double> : public TypeHandlerBase
 {
     typedef double QMLType;
 
-    static QString toString(const double &v)
-    {
-        return QString::number(v);
-    }
-
     static double fromVariant(const QVariant &variant)
     {
         return variant.toDouble();
@@ -437,14 +399,6 @@ template<>
 struct TypeHandler<QString> : public TypeHandlerBase
 {
     typedef QString QMLType;
-
-    static QString toString(const QString &v)
-    {
-        QString s("\"");
-        s += v;
-        s += "\"";
-        return s;
-    }
 
     static QString fromVariant(const QVariant &variant)
     {
@@ -478,19 +432,6 @@ struct TypeHandler<QList<ElementType> >
             TypeHandler<ElementType>::read(msg, e);
             list.append(e);
         }
-    }
-
-    static QString toString(const QList<ElementType> &v)
-    {
-        QString s;
-        QTextStream str(&s);
-        str << "[ ";
-        for (const auto &element : v) {
-            str << TypeHandler<ElementType>::toString(element);
-            str << ", ";
-        }
-        str << "]";
-        return s;
     }
 
     static QVariantList toQMLCompatibleType(const QList<ElementType> &list)
@@ -556,21 +497,6 @@ struct TypeHandler<QMap<QString, ElementType> >
             TypeHandler<ElementType>::read(msg, value);
             map.insert(key, value);
         }
-    }
-
-    static QString toString(const QMap<QString, ElementType> &map)
-    {
-        QString s;
-        QTextStream str(&s);
-        str << "[ ";
-        for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
-            str << TypeHandler<QString>::toString(i.key());
-            str << ":";
-            str << TypeHandler<ElementType>::toString(i.value());
-            str << ", ";
-        }
-        str << "]";
-        return s;
     }
 
     static QVariantMap toQMLCompatibleType(const QMap<QString, ElementType> &map)
@@ -715,7 +641,6 @@ void deserializeStructure(Type& o, const QByteArray &array)
     BinarySeralizer ds(array);
     ds >> o;
 }
-
 
 
 }

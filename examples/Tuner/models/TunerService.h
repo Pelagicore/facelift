@@ -34,6 +34,32 @@
 
 #include "FaceliftProperty.h"
 
+struct TunerServiceStation
+{
+public:
+    int stationId = 0;
+    QString name;
+    int frequency = 0;
+    bool isInfo = false;
+
+    bool operator==(const TunerServiceStation &s) const
+    {
+        if (stationId != s.stationId) {
+            return false;
+        }
+        if (name != s.name) {
+            return false;
+        }
+        if (frequency != s.frequency) {
+            return false;
+        }
+        if (isInfo != s.isInfo) {
+            return false;
+        }
+        return true;
+    }
+};
+
 class TunerService :
     public QObject
 {
@@ -41,30 +67,6 @@ class TunerService :
     Q_OBJECT
 
 public:
-    struct Station
-    {
-        int stationId = 0;
-        QString name;
-        int frequency = 0;
-        bool isInfo = false;
-
-        bool operator==(const Station &s) const
-        {
-            if (stationId != s.stationId) {
-                return false;
-            }
-            if (name != s.name) {
-                return false;
-            }
-            if (frequency != s.frequency) {
-                return false;
-            }
-            if (isInfo != s.isInfo) {
-                return false;
-            }
-            return true;
-        }
-    };
 
     struct RDSSettings
     {
@@ -86,21 +88,20 @@ public:
 
     Q_SIGNAL void onCurrentStationChanged();
 
-    Station currentStation() const
+    TunerServiceStation currentStation() const
     {
         return m_currentStation;
     }
 
     Q_SIGNAL void onStationListChanged();
 
-    const QVector<Station> &stationList()
+    const QVector<TunerServiceStation> &stationList()
     {
         return m_stationList;
     }
 
     TunerService()
     {
-        m_currentStation.init(this, &TunerService::onCurrentStationChanged, "CurrentStation");
         addStation("TSF Jazz", false);
         addStation("France Info", true);
         addStation("Big FM", false);
@@ -109,10 +110,10 @@ public:
 
     void setCurrentStationByFrequency(int frequency)
     {
-        m_currentStation = Station();
+        setCurrentStation(TunerServiceStation());
         for (const auto &station : m_stationList) {
             if (station.frequency == frequency) {
-                m_currentStation = station;
+                setCurrentStation(station);
             }
         }
     }
@@ -131,7 +132,7 @@ private:
     {
         static int nextID = 0;
 
-        Station s;
+        TunerServiceStation s;
         s.name = stationName;
         s.stationId = nextID++;
         s.isInfo = isInfo;
@@ -139,8 +140,17 @@ private:
         m_stationList.push_back(s);
     }
 
-    facelift::Property<Station> m_currentStation;
-    QVector<Station> m_stationList;
+    void setCurrentStation(const TunerServiceStation &s)
+    {
+        if (!(m_currentStation == s))
+        {
+            m_currentStation = s;
+            onCurrentStationChanged();
+        }
+    }
+
+    TunerServiceStation m_currentStation;
+    QVector<TunerServiceStation> m_stationList;
     RDSSettings m_rdsSettings;
 
 };

@@ -37,6 +37,8 @@
 #include "FaceliftCommon.h"
 #include "FaceliftModel.h"
 
+#include "FaceliftStringConversion.h"
+
 namespace facelift {
 
 class FaceliftModelLib_EXPORT PropertyBase
