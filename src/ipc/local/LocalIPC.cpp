@@ -341,7 +341,7 @@ void LocalIPCRegistry::registerAdapter(const QString &objectPath, LocalIPCServic
         emit adapterAvailable(adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(objectPath),
-                qPrintable(facelift::toString(*m_registry[objectPath]->service())));
+                qPrintable(facelift::toString(m_registry[objectPath]->service())));
     }
 }
 

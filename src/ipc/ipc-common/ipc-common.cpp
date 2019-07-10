@@ -31,6 +31,7 @@
 #include "ipc-common.h"
 #include "IPCServiceAdapterBase.h"
 #include "IPCProxyBase.h"
+#include "FaceliftStringConversion.h"
 
 namespace facelift {
 
@@ -60,7 +61,7 @@ void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceA
         emit adapterAvailable(adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(objectPath),
-                qPrintable(facelift::toString(*m_registry[objectPath]->service())));
+                qPrintable(facelift::toString(m_registry[objectPath]->service())));
     }
 }
 

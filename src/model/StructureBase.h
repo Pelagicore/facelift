@@ -38,6 +38,8 @@
 #include <array>
 
 #include "FaceliftCommon.h"
+#include "FaceliftStringConversion.h"
+
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -129,7 +131,7 @@ protected:
     static toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream)
     {
         using TupleElementType = typename std::tuple_element<I, std::tuple<Tp ...> >::type;
-        outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
+        outStream << names[I] << "=" << StringConversionHandler<TupleElementType>::toString(std::get<I>(t));
     }
 
     template<std::size_t I = 0, typename ... Tp>
@@ -137,7 +139,7 @@ protected:
     static toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream)
     {
         using TupleElementType = typename std::tuple_element<I, std::tuple<Tp ...> >::type;
-        outStream << names[I] << "=" << TypeHandler<TupleElementType>::toString(std::get<I>(t));
+        outStream << names[I] << "=" << StringConversionHandler<TupleElementType>::toString(std::get<I>(t));
         outStream << ", ";
         toStringWithFields<I + 1, Tp ...>(t, names, outStream);
     }

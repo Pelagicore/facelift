@@ -45,7 +45,7 @@
 #define STRINGIFY(x) STRINGIFY_(x)
 
 /**
- *  Avoid "unused parameter" warnings, with multiple arguments
+ * Avoid "unused parameter" warnings, with multiple arguments
  */
 template<typename ... Args>
 void M_UNUSED(const Args & ... args)
@@ -64,13 +64,6 @@ template<typename Type, typename Enable = void>
 struct TypeHandler
 {
     typedef Type QMLType;
-
-    static QString toString(const Type &v)
-    {
-        Q_UNUSED(v);
-        return "Unknown";
-    }
-
 };
 
 template<typename Type>
@@ -80,12 +73,6 @@ inline const std::initializer_list<Type> &validValues()
     return l;
 }
 
-
-template<typename Type>
-inline QString toString(const Type &v)
-{
-    return TypeHandler<Type>::toString(v);
-}
 
 template<typename Type>
 QString enumToString(const Type &v)

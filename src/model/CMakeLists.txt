@@ -20,6 +20,7 @@ facelift_add_library(FaceliftModelLib
         StructQObjectWrapper.h
         QMLModel.h
         FaceliftProperty.h
+        FaceliftStringConversion.h
         FaceliftConversion.h
         FaceliftCommon.h
         FaceliftEnum.h
