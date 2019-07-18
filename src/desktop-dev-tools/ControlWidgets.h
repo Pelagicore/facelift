@@ -175,11 +175,12 @@ public:
 
     void refreshWidgetFromValue() override
     {
-        auto values = validValues<EnumType>();
-        for (int i = 0; i < values.size(); i++) {
-            if (this->value() == values[i]) {
+        int i = 0;
+        for (auto e : validValues<EnumType>()) {
+            if (this->value() == e) {
                 widget->setCurrentIndex(i);
             }
+            i++;
         }
     }
 
@@ -187,7 +188,7 @@ public:
     {
         QObject::connect(widget, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this](int) {
                 int index = widget->currentIndex();
-                this->updateValue(validValues<EnumType>()[index]);
+                this->updateValue(*(validValues<EnumType>().begin() + index));
             });
     }
 
