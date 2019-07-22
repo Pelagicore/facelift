@@ -126,22 +126,13 @@ public:
     }
 
 protected:
-    template<std::size_t I = 0, typename ... Tp>
-    inline typename std::enable_if<I == (sizeof ... (Tp) - 1), void>::type
-    static toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream)
+    template<class Tuple, std::size_t... Is>
+    static void toStringWithFields(const Tuple &t, std::index_sequence<Is...>, const FieldNames &names,
+                                   QTextStream &outStream)
     {
-        using TupleElementType = typename std::tuple_element<I, std::tuple<Tp ...> >::type;
-        outStream << names[I] << "=" << StringConversionHandler<TupleElementType>::toString(std::get<I>(t));
-    }
-
-    template<std::size_t I = 0, typename ... Tp>
-    inline typename std::enable_if<(I < (sizeof ... (Tp) - 1)), void>::type
-    static toStringWithFields(const std::tuple<Tp ...> &t, const FieldNames &names, QTextStream &outStream)
-    {
-        using TupleElementType = typename std::tuple_element<I, std::tuple<Tp ...> >::type;
-        outStream << names[I] << "=" << StringConversionHandler<TupleElementType>::toString(std::get<I>(t));
-        outStream << ", ";
-        toStringWithFields<I + 1, Tp ...>(t, names, outStream);
+        using expander = int[]; // workaround because fold expression is only available in C++17
+        (void)expander{0, (void(outStream << (Is == 0 ? "" : ", ") << names[Is] << "="
+                                          << StringConversionHandler<typename std::tuple_element<Is, Tuple>::type>::toString(std::get< Is >(t))), 0)...};
     }
 
     QString toStringWithFields(const QString &structName, const FieldNames &names) const
@@ -150,7 +141,7 @@ protected:
         QTextStream outStream(&s);
         outStream << structName << " { ";
 
-        toStringWithFields(m_values, names, outStream);
+        toStringWithFields(m_values, std::make_index_sequence<FieldCount>{}, names, outStream);
         outStream << " }";
 
         return s;

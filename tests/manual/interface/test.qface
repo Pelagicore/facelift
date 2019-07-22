@@ -94,6 +94,9 @@ struct TestStruct {
     int anInt
 }
 
+struct EmptyStruct {
+}
+
 enum TestEnum {
     E1,
     E2,
