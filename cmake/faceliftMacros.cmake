@@ -48,69 +48,32 @@ function(facelift_add_unity_files TARGET_NAME VAR_NAME)
         list(SORT FILE_LIST)
     endif()
 
-    set(AGGREGATED_FILE_LIST "")
+    set(INTERNAL_SEPARATOR "#")
+    set(AGGREGATED_UNIT_FILE_LIST "")
+    set(COMPLETE_FILE_LIST "")
+    if(NOT "${FACELIFT_CACHED_LIST_${TARGET_NAME}}" STREQUAL "${FILE_LIST}")
+        execute_process(COMMAND /home/rbuczkowski/daimler/external/facelift/cmake/unity_generator.py --output ${CMAKE_CURRENT_BINARY_DIR} --target_name ${TARGET_NAME} ${FILE_LIST} OUTPUT_VARIABLE COMPLETE_FILE_LIST)
+        set(FACELIFT_CACHED_COMPLETE_FILE_LIST_${TARGET_NAME} "${COMPLETE_FILE_LIST}" CACHE INTERNAL "Store some shit")
+    else()
+        set(COMPLETE_FILE_LIST ${FACELIFT_CACHED_COMPLETE_FILE_LIST_${TARGET_NAME}})
+    endif()
 
-    list(LENGTH FILE_LIST REMAINING_FILE_COUNT)
+    foreach(SOURCES_IN_UNIT_LIST ${COMPLETE_FILE_LIST})
+            string(REPLACE ${INTERNAL_SEPARATOR} ";" SOURCES_IN_UNIT_LIST ${SOURCES_IN_UNIT_LIST})
 
-    while(${REMAINING_FILE_COUNT} GREATER 0)
+            # first file is unit file path
+            list(GET SOURCES_IN_UNIT_LIST 0 UNIT_PATH)
+            list(REMOVE_AT SOURCES_IN_UNIT_LIST 0)
 
-        list(LENGTH FILE_LIST LIST_LENGTH)
+            set_source_files_properties(${UNIT_PATH} PROPERTIES OBJECT_DEPENDS "${SOURCES_IN_UNIT_LIST}")
+            list(APPEND AGGREGATED_UNIT_FILE_LIST ${UNIT_PATH})
+    endforeach()
 
-        if(NOT LIST_LENGTH)
-            break()
-        endif()
+    set(FACELIFT_CACHED_LIST_${TARGET_NAME} "${FILE_LIST}" CACHE INTERNAL "stored file list for the target")
 
-        math(EXPR FILE_INDEX "${FILE_INDEX}+1")
-
-        set(REMAINING_FILE_COUNT_PER_UNIT ${UNITY_BUILD_MAX_FILE_COUNT})
-
-        unset(FILES)
-        set(UNITY_FILE_SIZE 0)
-        while((${UNITY_BUILD_MAX_FILE_SIZE} GREATER ${UNITY_FILE_SIZE}) AND (${REMAINING_FILE_COUNT} GREATER 0) AND (${REMAINING_FILE_COUNT_PER_UNIT} GREATER 0))
-            list(GET FILE_LIST 0 FILE)
-            list(REMOVE_AT FILE_LIST 0)
-            list(APPEND FILES ${FILE})
-
-            if(EXISTS ${FILE})
-                file(READ "${FILE}" TMP_FILE_CONTENT)
-            else()
-                unset(TMP_FILE_CONTENT)
-            endif()
-            string(LENGTH "${TMP_FILE_CONTENT}" FILE_SIZE)
-
-            math(EXPR UNITY_FILE_SIZE "${UNITY_FILE_SIZE}+${FILE_SIZE}")
-            math(EXPR REMAINING_FILE_COUNT "${REMAINING_FILE_COUNT}-1")
-            math(EXPR REMAINING_FILE_COUNT_PER_UNIT "${REMAINING_FILE_COUNT_PER_UNIT}-1")
-        endwhile()
-
-        # Generate an aggregator unit content
-        set(FILE_CONTENT "")
-        set(FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_unity_${FILE_INDEX}.cpp)
-        foreach(SRC_FILE ${FILES})
-            set(FILE_CONTENT "${FILE_CONTENT}#include \"${SRC_FILE}\"\n")
-        endforeach()
-
-        # To avoid unnecessary recompiles, check if it is really necessary to rewrite the unity file
-        if(EXISTS ${FILE_NAME})
-            file(READ ${FILE_NAME} OLD_FILE_CONTENT)
-        else()
-            unset(OLD_FILE_CONTENT)
-        endif()
-
-        if(NOT "${OLD_FILE_CONTENT}" STREQUAL "${FILE_CONTENT}")
-            file(WRITE ${FILE_NAME} ${FILE_CONTENT})
-        endif()
-
-        set_source_files_properties(${FILE_NAME} PROPERTIES OBJECT_DEPENDS "${FILES}")
-
-        list(APPEND AGGREGATED_FILE_LIST ${FILE_NAME})
-
-    endwhile()
-
-    set(${VAR_NAME} ${AGGREGATED_FILE_LIST} ${NON_UNITY_FILE_LIST} PARENT_SCOPE)
+    set(${VAR_NAME} ${AGGREGATED_UNIT_FILE_LIST} ${NON_UNITY_FILE_LIST} PARENT_SCOPE)
 
 endfunction()
-
 
 # Copy the content of FOLDER_SOURCE into FOLDER_DESTINATION, without overwriting files which already have the same content
 function(facelift_synchronize_folders FOLDER_SOURCE FOLDER_DESTINATION)
