@@ -49,6 +49,7 @@ if(FACELIFT_ENABLE_CODEGEN)
     add_subdirectory(codegen)
 endif()
 
+add_subdirectory(cmake)
 include("cmake/faceliftMacros.cmake")
 
 set(AUTO_UNITY_BUILD ON)
@@ -96,8 +97,10 @@ facelift_export_project(
         cmake/faceliftMacros.cmake
         ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake
         ${CMAKE_BINARY_DIR}/faceliftConfig-codegen.cmake
+        ${CMAKE_BINARY_DIR}/faceliftUnityConfig.cmake
     INSTALLED_FILES
         cmake/faceliftMacros.cmake
         ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Variables.cmake.installed
         ${CMAKE_BINARY_DIR}/faceliftConfig-codegen.installed.cmake
+        ${CMAKE_BINARY_DIR}/faceliftUnityConfig.installed.cmake
 )
