@@ -1,0 +1,4 @@
+if (NOT TARGET unity_generator)
+    add_executable(unity_generator IMPORTED GLOBAL)
+    set_target_properties(unity_generator PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/@UNITY_GEN_RELATIVE_LOCATION@)
+endif()
