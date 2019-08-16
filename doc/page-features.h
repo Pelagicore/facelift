@@ -52,6 +52,10 @@ lambda function:
     }
 \endcode
 
+\subsection async-sub4 Async with synchronous IPC proxy
+"@ipc-sync: true" generates a proxy which has exactly the same API as the interface on the server side. \n
+"@ipc-async: true" generates a proxy whose API is like if all methods were marked @async.
+
 \section property-ready-flag Ready Flag
 
 \subsection sub1 QFace Syntax
@@ -103,7 +107,6 @@ IReadyFrontend {    // or whatever name the frontend is registered with
 Just to be clear: if you have several properties annotated with hasReadyFlag in your interface,
 you will not get indivdual signals for the ready flag of each of the properties, but get a
 \c readyFlagsChanged signal whenever the ready flag of a single property changes.
-
 
 \section userData User Data in Structures
 
