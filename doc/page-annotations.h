@@ -26,39 +26,39 @@ definition files. An annotation can be used to enable a feature that is disabled
 
 The following annotations can be used in interface definitions:
 
-|Annotation                     |              Description                                    |
-|------------------------------ |-------------------------------------------------------------|
-|\@ipc-sync: true               | Enables the creation of a synchronous/blocking IPC proxy |
-|\@ipc-async: true              | Enables the creation of a asynchronous/non-blocking IPC proxy |
-|\@qml-implementation: true     | Enables the creation and registration of a QML component which can be used to write an implementation of the interface using QML/JS languages |
+|Annotation                     |              Description                                    | Supported over IPC |
+|------------------------------ |-------------------------------------------------------------|--------------------|
+|\@ipc-sync: true               | Enables the creation of a synchronous/blocking IPC proxy    | Yes                |
+|\@ipc-async: true              | Enables the creation of a asynchronous/non-blocking IPC proxy | Yes              |
+|\@qml-implementation: true     | Enables the creation and registration of a QML component which can be used to write an implementation of the interface using QML/JS languages | Yes |
 
 
 \section Structure_annotations Structure
 
 The following annotations can be used in structure definitions:
 
-|Annotation                     |              Description                                    |
-|-------------------------------|-------------------------------------------------------------|
-|\@serializable: true           | Adds serialization/deserialization capability to the structure |
-|\@qml-component: true          | Enables the creation and registration of a creatable QML component for the corresponding structure |
+|Annotation                     |              Description                                    | Supported over IPC |
+|-------------------------------|-------------------------------------------------------------|--------------------|
+|\@serializable: true           | Adds serialization/deserialization capability to the structure | Yes             |
+|\@qml-component: true          | Enables the creation and registration of a creatable QML component for the corresponding structure | Yes |
 
 
 \section Property_annotations Property
 
 The following annotations can be used in property definitions:
 
-|Annotation                     |              Description                                    |
-|-------------------------------|-------------------------------------------------------------|
-|\@hasReadyFlag: true           | See \ref property-ready-flag                                |
+|Annotation                     |              Description                                    | Supported over IPC |
+|-------------------------------|-------------------------------------------------------------|--------------------|
+|\@hasReadyFlag: true           | See \ref property-ready-flag                                | No                 |
 
 
 \section Method_annotations Method
 
 The following annotations can be used in method definitions:
 
-|Annotation                     |              Description                                    |
-|-------------------------------|-------------------------------------------------------------|
-|\@async: true                  | See \ref async-methods                                      |
+|Annotation                     |              Description                                    | Supported over IPC |
+|-------------------------------|-------------------------------------------------------------|--------------------|
+|\@async: true                  | See \ref async-methods                                      | Yes                |
 
 
 \section Example_annotations Example
@@ -84,5 +84,8 @@ struct MyStruct
     string s;
 }
 \endcode
+
+\section Annotations_interactions Interactions
+There are no interactions between annotations.
 
 */
