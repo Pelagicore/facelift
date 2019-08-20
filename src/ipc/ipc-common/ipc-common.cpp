@@ -30,7 +30,7 @@
 
 #include "ipc-common.h"
 #include "IPCServiceAdapterBase.h"
-#include "IPCProxyBase.h"
+#include "IPCProxyNewBase.h"
 #include "FaceliftStringConversion.h"
 
 namespace facelift {

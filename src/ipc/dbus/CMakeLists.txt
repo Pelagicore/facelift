@@ -22,6 +22,7 @@ if(Qt5DBus_FOUND)
             IPCDBusServiceAdapter.h
             ipc-dbus-object-registry.h
             ipc-dbus-serialization.h
+            IPCProxyBase.h
         SOURCES_GLOB_RECURSE
             ${GENERATED_FILE_PATH}/ipc/*.cpp
             ${GENERATED_FILE_PATH}/ipc_dbus/*.cpp
