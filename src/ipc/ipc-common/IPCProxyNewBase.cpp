@@ -28,7 +28,7 @@
 **
 **********************************************************************/
 
-#include "IPCProxyBase.h"
+#include "IPCProxyNewBase.h"
 
 namespace facelift {
 

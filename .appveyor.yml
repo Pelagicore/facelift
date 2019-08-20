@@ -50,11 +50,11 @@ before_build:
   - cmd: cd %APPVEYOR_BUILD_FOLDER%
   - cmd: set PATH=C:\Python37-x64;%PATH%
   - cmd: python -m pip install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog path.py
-  - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.12.2\msvc2017_64\bin;%PATH%
+  - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.12.3\msvc2017_64\bin;%PATH%
   - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MSVC_15" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=x64 -host_arch=x64
-  - IF "%ARCHITECTURE%" == "x86" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.12.2\msvc2017\bin;%PATH%
+  - IF "%ARCHITECTURE%" == "x86" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.12.3\msvc2017\bin;%PATH%
   - IF "%ARCHITECTURE%" == "x86" IF "%COMPILER%" == "MSVC_15" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=x86 -host_arch=x64
-  - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MINGW_73" set PATH=C:\Qt\Tools\mingw730_64\bin;C:\Qt\5.12.2\mingw73_64\bin;%PATH%
+  - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MINGW_73" set PATH=C:\Qt\Tools\mingw730_64\bin;C:\Qt\5.12.3\mingw73_64\bin;%PATH%
   - IF "%ARCHITECTURE%" == "x86" IF "%COMPILER%" == "MINGW_532" set PATH=C:\Qt\Tools\mingw530_32\bin;C:\Qt\5.11.3\mingw53_32\bin;%PATH%
 
 build_script:

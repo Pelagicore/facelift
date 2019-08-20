@@ -31,6 +31,7 @@
 #pragma once
 
 #include "ipc-dbus.h"
+#include "IPCProxyNewBase.h"
 #include "IPCProxyBase.h"
 #include <QDBusServiceWatcher>
 

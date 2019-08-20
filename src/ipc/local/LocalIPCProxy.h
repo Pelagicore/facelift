@@ -31,6 +31,7 @@
 #pragma once
 
 #include "LocalIPC.h"
+#include "IPCProxyNewBase.h"
 #include "IPCProxyBase.h"
 
 #if defined(FaceliftIPCLocalLib_LIBRARY)
