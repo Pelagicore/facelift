@@ -350,7 +350,7 @@ private:
  */
 template<typename ImplementationBaseQMLType>
 int registerQmlComponent(const char *uri, const char *qmlFilePath,
-        const char *componentName = ImplementationBaseQMLType::Provider::QMLAdapterType::INTERFACE_NAME,
+        const char *componentName = ImplementationBaseQMLType::Provider::INTERFACE_NAME,
         int majorVersion = ImplementationBaseQMLType::Provider::VERSION_MAJOR,
         int minorVersion = ImplementationBaseQMLType::Provider::VERSION_MINOR,
         typename std::enable_if<std::is_base_of<facelift::ModelQMLImplementationBase, ImplementationBaseQMLType>::value>::type * = nullptr)
