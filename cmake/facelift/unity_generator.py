@@ -31,6 +31,7 @@
 #######################################################################
 
 import os.path
+import os
 import sys
 import json
 import click
@@ -175,7 +176,14 @@ def run_generation(files, target_folder, target_name):
         cache.add_files(to_add)
 
     generated_units = UnityGenerator.generate(cache, target_folder, target_name)
-    cmake_string = cmake_separator.join(generated_units)
+
+    cmake_string = ""
+    if os.name == 'nt':
+        # needed for cmake compatibility
+        cmake_string = cmake_separator.join(generated_units).replace("\\", "/")
+    else:
+        cmake_string = cmake_separator.join(generated_units)
+
     sys.stdout.write(cmake_string)
 
     with open(cache_path, 'w') as file:
