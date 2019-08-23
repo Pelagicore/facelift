@@ -7,6 +7,12 @@ option(DISABLE_DEVELOPMENT_FILE_INSTALLATION "Disable development file installat
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
 
+# find_package(PythonInterp) causes some issues if another version has been searched before, and it is not needed anyway on non-Win32 platforms
+if(WIN32)
+    find_package(PythonInterp 3.0 REQUIRED)
+    set(FACELIFT_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+endif()
+
 if(ENABLE_LTO)
     cmake_minimum_required(VERSION 3.9.0)
     include(CheckIPOSupported)
@@ -53,7 +59,7 @@ function(facelift_add_unity_files TARGET_NAME VAR_NAME)
     set(COMPLETE_FILE_LIST "")
     if(NOT "${FACELIFT_CACHED_LIST_${TARGET_NAME}}" STREQUAL "${FILE_LIST}")
         get_target_property(UNITY_LOCATION unity_generator LOCATION)
-        execute_process(COMMAND ${UNITY_LOCATION} --output ${CMAKE_CURRENT_BINARY_DIR} --target_name ${TARGET_NAME} ${FILE_LIST}
+        execute_process(COMMAND ${FACELIFT_PYTHON_EXECUTABLE} ${UNITY_LOCATION} --output ${CMAKE_CURRENT_BINARY_DIR} --target_name ${TARGET_NAME} ${FILE_LIST}
                         OUTPUT_VARIABLE COMPLETE_FILE_LIST)
         set(FACELIFT_CACHED_COMPLETE_FILE_LIST_${TARGET_NAME} "${COMPLETE_FILE_LIST}" CACHE INTERNAL "Store files")
     else()
@@ -154,13 +160,8 @@ function(facelift_generate_code )
         list(APPEND BASE_CODEGEN_COMMAND "--all")
     endif()
 
-    # find_package(PythonInterp) causes some issues if the another version has been searched before, and it is not needed anyway on non-Win32 platforms
-    if(WIN32)
-        find_package(PythonInterp 3.0 REQUIRED)
-    endif()
-
     string(REPLACE ";" " " BASE_CODEGEN_COMMAND_WITH_SPACES "${BASE_CODEGEN_COMMAND}")
-    message("Calling facelift code generator. Command:\n PYTHONPATH=$ENV{PYTHONPATH} ${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
+    message("Calling facelift code generator. Command:\n PYTHONPATH=$ENV{PYTHONPATH} ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
 
     if(NOT DEFINED ENV{LANG}) # e.g. Qt Creator was started from the Apple Dock
         set(ENV{LANG} "en_US.UTF-8")
@@ -171,7 +172,7 @@ function(facelift_generate_code )
         set(LANG_SET_BY_FACELIFT false)
     endif()
 
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND}
+    execute_process(COMMAND ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND}
         RESULT_VARIABLE CODEGEN_RETURN_CODE
         WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
         OUTPUT_VARIABLE CODEGEN_OUTPUT
