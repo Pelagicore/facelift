@@ -73,3 +73,7 @@ add_test(NAME benchmarking-inprocess.cpp COMMAND test-driver.sh benchmarking/tst
 #if (FACELIFT_DBUS_IPC_ENABLED)
 #add_test(NAME benchmarking-ipc-cpp COMMAND test-driver.sh benchmarking/tst_benchmarking_ipc.qml cpp)
 #endif()
+
+if(NOT ${FACELIFT_DISABLE_GTEST})
+    add_subdirectory(unittest)
+endif()

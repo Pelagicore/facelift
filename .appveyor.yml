@@ -60,6 +60,6 @@ before_build:
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DFACELIFT_BUILD_TESTS=%BUILD_TESTS%
+  - cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DFACELIFT_BUILD_TESTS=%BUILD_TESTS% -DFACELIFT_DISABLE_GTEST=ON
   - ninja
  # - if "%BUILD_TESTS%" == "true" (ctest) # when you want to run the tests, use this uncomment this line
