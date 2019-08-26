@@ -48,10 +48,10 @@ before_script:
 - source /opt/qt${QT}/bin/qt${QT}-env.sh
 - cd ${TRAVIS_BUILD_DIR}
 - mkdir build
+- source setup_gtest.sh
 
 script:
 - cd build
 - >
-  cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=Release -DFACELIFT_DISABLE_DBUS_IPC=${DISABLE_IPC}
-  -DFACELIFT_BUILD_TESTS=ON ..
+  cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=Release -DFACELIFT_DISABLE_DBUS_IPC=${DISABLE_IPC} -DFACELIFT_BUILD_TESTS=ON -DCMAKE_SYSTEM_PREFIX_PATH=$CMAKE_SYSTEM_PREFIX_PATH ..
 - make -j2 && dbus-launch make check && cat ./tests/results.csv
