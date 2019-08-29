@@ -136,66 +136,95 @@ function(facelift_generate_code )
     set(multiValueArgs IMPORT_FOLDERS)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+    # Call the code generator if either the interface or the code generator has changed
     get_target_property(CODEGEN_EXECUTABLE_LOCATION facelift-codegen LOCATION)
     get_filename_component(CODEGEN_LOCATION ${CODEGEN_EXECUTABLE_LOCATION} DIRECTORY)
     set(QFACE_BASE_LOCATION ${CODEGEN_LOCATION}/qface)
-
-    file(TO_NATIVE_PATH "${QFACE_BASE_LOCATION}" QFACE_BASE_LOCATION_NATIVE_PATH)
-    set(ENV{PYTHONPATH} "${QFACE_BASE_LOCATION_NATIVE_PATH}")
-
-    set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
-    file(MAKE_DIRECTORY ${WORK_PATH})
-
-    set(BASE_CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} --input "${ARGUMENT_INTERFACE_DEFINITION_FOLDER}" --output "${WORK_PATH}")
-
-    foreach(IMPORT_FOLDER ${ARGUMENT_IMPORT_FOLDERS})
-        list(APPEND BASE_CODEGEN_COMMAND "--dependency" "${IMPORT_FOLDER}")
-    endforeach()
-
-    if(ARGUMENT_LIBRARY_NAME)
-        list(APPEND BASE_CODEGEN_COMMAND "--library" "${ARGUMENT_LIBRARY_NAME}")
-    endif()
-
-    if(ARGUMENT_GENERATE_ALL)
-        list(APPEND BASE_CODEGEN_COMMAND "--all")
-    endif()
-
-    string(REPLACE ";" " " BASE_CODEGEN_COMMAND_WITH_SPACES "${BASE_CODEGEN_COMMAND}")
-    message("Calling facelift code generator. Command:\n PYTHONPATH=$ENV{PYTHONPATH} ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
-
-    if(NOT DEFINED ENV{LANG}) # e.g. Qt Creator was started from the Apple Dock
-        set(ENV{LANG} "en_US.UTF-8")
-        # --> http://click.pocoo.org/5/python3/#python-3-surrogate-handling
-        # --> https://apple.stackexchange.com/questions/54765/how-can-i-have-qt-creator-to-recognize-my-environment-variables
-        set(LANG_SET_BY_FACELIFT true)
-    else()
-        set(LANG_SET_BY_FACELIFT false)
-    endif()
-
-    execute_process(COMMAND ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND}
-        RESULT_VARIABLE CODEGEN_RETURN_CODE
-        WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
-        OUTPUT_VARIABLE CODEGEN_OUTPUT
-        ERROR_VARIABLE CODEGEN_ERROR
-    )
-
-    if(LANG_SET_BY_FACELIFT)
-        unset(ENV{LANG})
-    endif()
-
-    if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
-        message(FATAL_ERROR "Facelift code generation failed!\nCommand: ${BASE_CODEGEN_COMMAND_WITH_SPACES} with PYTHONPATH=$ENV{PYTHONPATH}\nReturn code: ${CODEGEN_RETURN_CODE}\nOutput: ${CODEGEN_OUTPUT}\nError: ${CODEGEN_ERROR}\n")
-    endif()
-
-    facelift_synchronize_folders(${WORK_PATH} ${ARGUMENT_OUTPUT_PATH})
-
-    # Delete work folder
-    file(REMOVE_RECURSE ${WORK_PATH})
-
-    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
     file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*.qface)
     file(GLOB_RECURSE CODEGEN_FILES ${CODEGEN_LOCATION}/*)
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_FILES};${QFACE_FILES}")
+
+    unset(MODIFIED_FILES)
+    foreach(FILE ${QFACE_FILES} ${CODEGEN_FILES})
+        file(TIMESTAMP ${FILE} MOD_TIME "%s")
+        if(MOD_TIME GREATER FACELIFT_LAST_BUILD_TIMESTAMP_${LIBRARY_NAME})
+            list(APPEND MODIFIED_FILES ${FILE})
+        endif()
+    endforeach()
+
+    # needed if qface file is removed
+    set(FORCE_GENERATION NO)
+    list(LENGTH QFACE_FILES NUM_QFACE_FILES)
+    if(NOT NUM_QFACE_FILES_${LIBRARY_NAME} EQUAL NUM_QFACE_FILES)
+        set(FORCE_GENERATION YES)
+    endif()
+
+    # force generation if not run previously
+    if(NOT FACELIFT_LAST_BUILD_TIMESTAMP_${LIBRARY_NAME})
+        set(FORCE_GENERATION YES)
+    endif()
+
+    set(NUM_QFACE_FILES_${LIBRARY_NAME} ${NUM_QFACE_FILES} CACHE INTERNAL "Number of qface files for library")
+
+    list(LENGTH MODIFIED_FILES NUM_MODIFIED_FILES)
+    if(NUM_MODIFIED_FILES OR FORCE_GENERATION)
+        file(TO_NATIVE_PATH "${QFACE_BASE_LOCATION}" QFACE_BASE_LOCATION_NATIVE_PATH)
+        set(ENV{PYTHONPATH} "${QFACE_BASE_LOCATION_NATIVE_PATH}")
+
+        set(WORK_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated_tmp)
+        file(MAKE_DIRECTORY ${WORK_PATH})
+
+        set(BASE_CODEGEN_COMMAND ${CODEGEN_EXECUTABLE_LOCATION} --input "${ARGUMENT_INTERFACE_DEFINITION_FOLDER}" --output "${WORK_PATH}")
+
+        foreach(IMPORT_FOLDER ${ARGUMENT_IMPORT_FOLDERS})
+            list(APPEND BASE_CODEGEN_COMMAND "--dependency" "${IMPORT_FOLDER}")
+        endforeach()
+
+        if(ARGUMENT_LIBRARY_NAME)
+            list(APPEND BASE_CODEGEN_COMMAND "--library" "${ARGUMENT_LIBRARY_NAME}")
+        endif()
+
+        if(ARGUMENT_GENERATE_ALL)
+            list(APPEND BASE_CODEGEN_COMMAND "--all")
+        endif()
+
+        string(REPLACE ";" " " BASE_CODEGEN_COMMAND_WITH_SPACES "${BASE_CODEGEN_COMMAND}")
+        message("Calling facelift code generator. Command:\n PYTHONPATH=$ENV{PYTHONPATH} ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
+
+        if(NOT DEFINED ENV{LANG}) # e.g. Qt Creator was started from the Apple Dock
+            set(ENV{LANG} "en_US.UTF-8")
+            # --> http://click.pocoo.org/5/python3/#python-3-surrogate-handling
+            # --> https://apple.stackexchange.com/questions/54765/how-can-i-have-qt-creator-to-recognize-my-environment-variables
+            set(LANG_SET_BY_FACELIFT true)
+        else()
+            set(LANG_SET_BY_FACELIFT false)
+        endif()
+
+        execute_process(COMMAND ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND}
+            RESULT_VARIABLE CODEGEN_RETURN_CODE
+            WORKING_DIRECTORY ${QFACE_BASE_LOCATION}/qface
+            OUTPUT_VARIABLE CODEGEN_OUTPUT
+            ERROR_VARIABLE CODEGEN_ERROR
+        )
+
+        if(LANG_SET_BY_FACELIFT)
+            unset(ENV{LANG})
+        endif()
+
+        if(NOT "${CODEGEN_RETURN_CODE}" STREQUAL "0")
+            message(FATAL_ERROR "Facelift code generation failed!\nCommand: ${BASE_CODEGEN_COMMAND_WITH_SPACES} with PYTHONPATH=$ENV{PYTHONPATH}\nReturn code: ${CODEGEN_RETURN_CODE}\nOutput: ${CODEGEN_OUTPUT}\nError: ${CODEGEN_ERROR}\n")
+        endif()
+
+        facelift_synchronize_folders(${WORK_PATH} ${ARGUMENT_OUTPUT_PATH})
+
+        # Delete work folder
+        file(REMOVE_RECURSE ${WORK_PATH})
+    endif()
+
+    # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_FILES};${QFACE_FILES};${ARGUMENT_INTERFACE_DEFINITION_FOLDER}")
+
+    string(TIMESTAMP FACELIFT_BUILD_TIMESTAMP "%s")
+    set(FACELIFT_LAST_BUILD_TIMESTAMP_${LIBRARY_NAME} ${FACELIFT_BUILD_TIMESTAMP} CACHE INTERNAL "timestamp of last build")
 
 endfunction()
 
