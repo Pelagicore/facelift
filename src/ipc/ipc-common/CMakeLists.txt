@@ -5,11 +5,29 @@ facelift_add_library(FaceliftIPCCommonLib
         IPCProxyBase.cpp
         ModuleIPCBase.cpp
         ipc-serialization.cpp
+        IPCServiceAdapterBase.cpp
+        NotAvailableImpl.cpp
+        IPCAdapterFactoryManager.cpp
+        IPCProxyBinderBase.cpp
+        InterfaceManager.cpp
+        IPCProxyNewBase.cpp
     HEADERS
         ipc-common.h
+        NotAvailableImpl.h
+        IPCProxyNewBase.h
+        LocalProviderBinder.h
+        StaticArrayReference.h
         IPCProxyBase.h
+        IPCProxy.h
+        InterfaceManager.h
+        IPCProxyModelProperty.h
+        IPCProxyBinderBase.h
+        IPCAdapterModelPropertyHandler.h
         IPCServiceAdapterBase.h
+        NewIPCServiceAdapterBase.h
         ModuleIPCBase.h
         ipc-serialization.h
+        IPCAdapterFactoryManager.h
+        IPCServiceAdapter.h
     LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
 )

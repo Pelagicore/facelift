@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include "IPCProxyModelProperty.h"
+
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interface}}IPCCommon.h"
 

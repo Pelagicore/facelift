@@ -134,11 +134,6 @@ QString LocalIPCServiceAdapterBase::introspect(const QString &path) const
     return QString();
 }
 
-//LocalIPCManager &LocalIPCServiceAdapterBase::manager()
-//{
-//    return LocalIPCManager::instance();
-//}
-
 void LocalIPCServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {

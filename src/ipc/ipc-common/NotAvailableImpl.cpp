@@ -27,49 +27,26 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+#include "NotAvailableImpl.h"
+#include "ipc-common.h"
 
-#include "facelift-test.h"
+namespace facelift {
 
-#include <QCoreApplication>
-
-#include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceIPCProxy.h"
-#include "facelift/test/TestInterfaceIPCAdapter.h"
-
-using namespace facelift::test;
-
-
-void checkInterface(TestInterface &i)
+void NotAvailableImplBase::logMethodCall(const InterfaceBase &i, const char *methodName)
 {
-    EXPECT_TRUE(i.ready());
-
-    EXPECT_TRUE(i.interfaceProperty() != nullptr);
-
-    SignalSpy signalSpy(&i, &TestInterface::aSignal);
-    i.interfaceProperty()->triggerMainInterfaceSignal(100);
-    EXPECT_TRUE(signalSpy.wasTriggered());
-
+    qCCritical(LogIpc).nospace().noquote() << "Can not call method \"" << methodName << "(...)\" on IPC proxy for interface \"" << i.interfaceID()
+                                           << "\". Make sure that the corresponding server is registered";
 }
 
-
-int main(int argc, char * *argv)
+void NotAvailableImplBase::logSetterCall(const InterfaceBase &i, const char *propertyName)
 {
-    QCoreApplication app(argc, argv);
+    qCCritical(LogIpc).nospace().noquote() << "Can not call setter of property \"" << propertyName << "\" on IPC proxy for interface \"" << i.interfaceID()
+                                           << "\". Make sure that the corresponding server is registered";
+}
 
-    TestInterfaceImplementation i;
-
-    checkInterface(i);
-
-    TestInterfaceIPCAdapter ipcAdapter;
-    ipcAdapter.setService(&i);
-    ipcAdapter.registerService();
-
-    TestInterfaceIPCProxy proxy;
-    proxy.connectToServer();
-    checkInterface(proxy);
-
-    //    TestInterfaceIPCProxyNew proxy2;
-    //    proxy2.connectToServer();
-    //    checkInterface(proxy2);
+void NotAvailableImplBase::logGetterCall(const InterfaceBase &i, const char *propertyName)
+{
+    qCDebug(LogIpc) << "Getter of property" << propertyName << "is called" << i.interfaceID() << &i << i.interfaceID();
+}
 
 }

@@ -30,18 +30,22 @@
 
 #pragma once
 
+#if defined(FaceliftIPCLocalLib_LIBRARY)
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
+#endif
+
 #include <QObject>
 #include <QMap>
 
 #include "LocalIPCServiceAdapter.h"
 
-
 namespace facelift {
 
 namespace local {
 
-
-class LocalIPCRegistry : public QObject
+class FaceliftIPCLocalLib_EXPORT LocalIPCRegistry : public QObject
 {
     Q_OBJECT
 

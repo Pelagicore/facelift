@@ -29,12 +29,19 @@
 **********************************************************************/
 
 #include "IPCProxyBase.h"
+#include "FaceliftModel.h"
 
 namespace facelift {
 
-IPCProxyNewBase::IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
+void IPCProxyBaseBase::deserializeCommonSignal(facelift::CommonSignalID signalID, InterfaceBase* i)
 {
-    QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
+    switch (signalID) {
+    case facelift::CommonSignalID::readyChanged:
+        emit i->readyChanged();
+        break;
+    default:
+        qFatal("Unknown signal ID");
+    }
 }
 
 }

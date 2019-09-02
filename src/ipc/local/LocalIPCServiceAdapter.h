@@ -33,7 +33,6 @@
 #include "LocalIPC.h"
 #include "IPCServiceAdapterBase.h"
 
-
 #if defined(FaceliftIPCLocalLib_LIBRARY)
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
 #else
@@ -45,8 +44,6 @@ namespace facelift {
 namespace local {
 
 using namespace facelift;
-
-class LocalIPCManager;
 
 class FaceliftIPCLocalLib_EXPORT LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
 {
@@ -102,8 +99,6 @@ public:
         Q_UNUSED(message);
         Q_ASSERT(false);
     }
-
-    LocalIPCManager &manager();
 
     template<typename Type>
     void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);

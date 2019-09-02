@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -27,10 +27,11 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 #pragma once
 
-#include "ipc-common.h"
+#include <QObject>
+#include "FaceliftModel.h"
+
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -41,73 +42,28 @@
 namespace facelift {
 
 
-class FaceliftIPCCommonLib_EXPORT NewIPCServiceAdapterBase : public QObject
+class FaceliftIPCCommonLib_EXPORT IPCServiceAdapterBase : public QObject
 {
     Q_OBJECT
 
 public:
-    Q_PROPERTY(QObject * service READ service WRITE checkedSetService)
-    Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
-    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
+    IPCServiceAdapterBase(QObject *parent = nullptr);
 
-    NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
+    const QString &interfaceName() const
     {
+        return m_interfaceName;
+    }
+
+    void setInterfaceName(const QString &name)
+    {
+        m_interfaceName = name;
     }
 
     virtual void registerService() = 0;
 
-    virtual void unregisterService() = 0;
+    virtual void connectSignals() = 0;
 
-    template<typename ServiceType>
-    ServiceType *bindToProvider(QObject *s)
-    {
-        auto service = qobject_cast<ServiceType *>(s);
-        if (service == nullptr) {
-            auto *qmlAdapter = qobject_cast<QMLAdapterBase *>(s);
-            if (qmlAdapter != nullptr) {
-                service = qobject_cast<ServiceType *>(qmlAdapter->providerPrivate());
-            }
-        }
-        if (service != nullptr) {
-            if (service->isComponentCompleted()) {
-                onProviderCompleted();
-            } else {
-                QObject::connect(service, &InterfaceBase::componentCompleted, this, &NewIPCServiceAdapterBase::onProviderCompleted);
-            }
-        } else {
-            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s)));
-        }
-        return service;
-    }
-
-    bool enabled() const
-    {
-        return m_enabled;
-    }
-
-    void setEnabled(bool enabled)
-    {
-        m_enabled = enabled;
-        onValueChanged();
-    }
-
-    void registerLocalService()
-    {
-        InterfaceManager::instance().registerAdapter(objectPath(), this);
-    }
-
-    void unregisterLocalService()
-    {
-        InterfaceManager::instance().unregisterAdapter(this);
-    }
-
-    virtual void setService(QObject *service) = 0;
-
-    void checkedSetService(QObject *service)
-    {
-        setService(service);
-        onValueChanged();
-    }
+    virtual InterfaceBase *service() const = 0;
 
     const QString &objectPath() const
     {
@@ -117,44 +73,60 @@ public:
     void setObjectPath(const QString &objectPath)
     {
         m_objectPath = objectPath;
-        onValueChanged();
     }
 
-    virtual InterfaceBase *service() const = 0;
+    virtual void registerService(const QString &objectPath, InterfaceBase* serverObject) = 0;
 
-    bool isReady() const
-    {
-        return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
-    }
+    QString generateObjectPath(const QString &parentPath) const;
 
-    void onValueChanged()
+
+    template<typename InterfaceAdapterType>
+    InterfaceAdapterType *getOrCreateAdapter(typename InterfaceAdapterType::ServiceType *service)
     {
-        if (isReady()) {
-            if (!m_registered) {
-                registerService();
-                m_registered = true;
-            }
-        } else {
-            if (m_registered) {
-                unregisterService();
-                m_registered = false;
+        if (service == nullptr) {
+            return nullptr;
+        }
+
+        // Look for an existing adapter
+        for (auto &adapter : m_subAdapters) {
+            if (adapter->service() == service) {
+                return qobject_cast<InterfaceAdapterType *>(adapter.data());
             }
         }
+
+        auto serviceAdapter = new InterfaceAdapterType(service); // This object will be deleted together with the service itself
+        serviceAdapter->registerService(this->generateObjectPath(this->objectPath()), service);
+        m_subAdapters.append(serviceAdapter);
+
+        return serviceAdapter;
     }
 
-    void onProviderCompleted()
+    template<typename InterfaceType, typename InterfaceAdapterType>
+    class InterfacePropertyIPCAdapterHandler
     {
-        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
-        m_providerReady = true;
-        onValueChanged();
-    }
+
+    public:
+        void update(IPCServiceAdapterBase *parent, InterfaceType *service)
+        {
+            if (m_service != service) {
+                m_service = service;
+                m_serviceAdapter = parent->getOrCreateAdapter<InterfaceAdapterType>(service);
+            }
+        }
+
+        QString objectPath() const
+        {
+            return (m_serviceAdapter ? m_serviceAdapter->objectPath() :  "");
+        }
+
+        QPointer<InterfaceType> m_service;
+        QPointer<InterfaceAdapterType> m_serviceAdapter;
+    };
 
 private:
+    QList<QPointer<IPCServiceAdapterBase> > m_subAdapters;
     QString m_objectPath;
-    bool m_enabled = true;
-    bool m_providerReady = false;
-    bool m_registered = false;
+    QString m_interfaceName;
 };
-
 
 }

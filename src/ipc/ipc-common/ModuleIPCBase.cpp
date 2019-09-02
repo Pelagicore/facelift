@@ -31,7 +31,10 @@
 #include "ModuleIPCBase.h"
 #include "ipc-common.h"
 #include <QtQml>
-#include "IPCServiceAdapterBase.h"
+#include "NewIPCServiceAdapterBase.h"
+#include "IPCAdapterFactoryManager.h"
+#include "IPCProxyBinderBase.h"
+
 
 namespace facelift {
 

@@ -27,49 +27,65 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+#pragma once
 
-#include "facelift-test.h"
+#include "IPCServiceAdapterBase.h"
+#include "NewIPCServiceAdapterBase.h"
 
-#include <QCoreApplication>
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
+#endif
 
-#include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceIPCProxy.h"
-#include "facelift/test/TestInterfaceIPCAdapter.h"
+namespace facelift {
 
-using namespace facelift::test;
-
-
-void checkInterface(TestInterface &i)
+template<typename InterfaceType>
+class IPCServiceAdapter : public NewIPCServiceAdapterBase
 {
-    EXPECT_TRUE(i.ready());
+public:
+    using TheServiceType = InterfaceType;
 
-    EXPECT_TRUE(i.interfaceProperty() != nullptr);
+    IPCServiceAdapter(QObject *parent) : NewIPCServiceAdapterBase(parent)
+    {
+        setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
+    }
 
-    SignalSpy signalSpy(&i, &TestInterface::aSignal);
-    i.interfaceProperty()->triggerMainInterfaceSignal(100);
-    EXPECT_TRUE(signalSpy.wasTriggered());
+    ~IPCServiceAdapter() {
+        unregisterLocalService();
+    }
 
-}
+    InterfaceBase *service() const override
+    {
+        return m_service;
+    }
 
+    void registerService() override
+    {
+        registerLocalService();
+        for (auto& ipcAdapter : m_ipcServiceAdapters) {
+            ipcAdapter->registerService(objectPath(), m_service);
+        }
+    }
 
-int main(int argc, char * *argv)
-{
-    QCoreApplication app(argc, argv);
+    void unregisterService() override
+    {
+        unregisterLocalService();
+    }
 
-    TestInterfaceImplementation i;
+    void setService(QObject *service) override
+    {
+        m_service = bindToProvider<InterfaceType>(service);
+    }
 
-    checkInterface(i);
+    void addServiceAdapter(IPCServiceAdapterBase &adapter) {
+        m_ipcServiceAdapters.append(&adapter);
+    }
 
-    TestInterfaceIPCAdapter ipcAdapter;
-    ipcAdapter.setService(&i);
-    ipcAdapter.registerService();
+private:
+    QPointer<InterfaceType> m_service;
+    QList<IPCServiceAdapterBase*> m_ipcServiceAdapters;
 
-    TestInterfaceIPCProxy proxy;
-    proxy.connectToServer();
-    checkInterface(proxy);
-
-    //    TestInterfaceIPCProxyNew proxy2;
-    //    proxy2.connectToServer();
-    //    checkInterface(proxy2);
+};
 
 }

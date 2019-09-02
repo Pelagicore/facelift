@@ -37,8 +37,9 @@
 
 {{classExportDefines}}
 
-#include "facelift-ipc.h"
+#include "IPCServiceAdapter.h"
 #include "FaceliftUtils.h"
+#include "IPCServiceAdapter.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"

@@ -40,6 +40,7 @@
 {{classExportDefines}}
 
 #include "FaceliftUtils.h"
+#include "IPCAdapterModelPropertyHandler.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"

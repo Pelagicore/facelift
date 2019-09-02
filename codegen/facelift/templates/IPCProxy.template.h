@@ -37,7 +37,10 @@
 
 #pragma once
 
-#include "facelift-ipc.h"
+#include "IPCProxy.h"
+#include "NotAvailableImpl.h"
+#include "NewIPCServiceAdapterBase.h"
+
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}ServiceWrapper.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"

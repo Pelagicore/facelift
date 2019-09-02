@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,48 +28,20 @@
 **
 **********************************************************************/
 
-#include "facelift-test.h"
+#include "IPCServiceAdapterBase.h"
 
-#include <QCoreApplication>
+namespace facelift {
 
-#include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceIPCProxy.h"
-#include "facelift/test/TestInterfaceIPCAdapter.h"
-
-using namespace facelift::test;
-
-
-void checkInterface(TestInterface &i)
+IPCServiceAdapterBase::IPCServiceAdapterBase(QObject *parent) : QObject(parent)
 {
-    EXPECT_TRUE(i.ready());
-
-    EXPECT_TRUE(i.interfaceProperty() != nullptr);
-
-    SignalSpy signalSpy(&i, &TestInterface::aSignal);
-    i.interfaceProperty()->triggerMainInterfaceSignal(100);
-    EXPECT_TRUE(signalSpy.wasTriggered());
-
 }
 
-
-int main(int argc, char * *argv)
+QString IPCServiceAdapterBase::generateObjectPath(const QString &parentPath) const
 {
-    QCoreApplication app(argc, argv);
-
-    TestInterfaceImplementation i;
-
-    checkInterface(i);
-
-    TestInterfaceIPCAdapter ipcAdapter;
-    ipcAdapter.setService(&i);
-    ipcAdapter.registerService();
-
-    TestInterfaceIPCProxy proxy;
-    proxy.connectToServer();
-    checkInterface(proxy);
-
-    //    TestInterfaceIPCProxyNew proxy2;
-    //    proxy2.connectToServer();
-    //    checkInterface(proxy2);
+    static int s_nextInstanceID = 0;
+    QString path = parentPath + "/dynamic";
+    path += QString::number(s_nextInstanceID++);
+    return path;
+}
 
 }

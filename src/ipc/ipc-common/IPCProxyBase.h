@@ -31,6 +31,8 @@
 #pragma once
 
 #include "ipc-common.h"
+#include "InterfaceManager.h"
+#include "IPCProxyBinderBase.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -40,167 +42,95 @@
 
 namespace facelift {
 
+class FaceliftIPCCommonLib_EXPORT IPCProxyBaseBase {
 
-class FaceliftIPCCommonLib_EXPORT IPCProxyNewBase
-{
 public:
-    IPCProxyNewBase(InterfaceBase &owner);
 
-    virtual void refreshProvider() = 0;
-
-    const QString &objectPath() const
-    {
-        return m_ipc.objectPath();
-    }
-
-    IPCProxyBinderBase *ipc()
-    {
-        return &m_ipc;
-    }
-
-private:
-    facelift::IPCProxyBinderBase m_ipc;
+    void deserializeCommonSignal(facelift::CommonSignalID signalID, InterfaceBase* i);
 
 };
 
-
-template<typename InterfaceType>
-class LocalProviderBinder : public QObject
+template<typename AdapterType>
+class IPCProxyBase : public AdapterType, protected IPCProxyBaseBase
 {
 
 public:
-    LocalProviderBinder(IPCProxyNewBase &proxy) : m_proxy(proxy)
+    using InterfaceType = AdapterType;
+
+public:
+    IPCProxyBase(QObject *parent) : AdapterType(parent)
     {
-        QObject::connect(&m_interfaceManager, &InterfaceManager::adapterAvailable, this,
-                &LocalProviderBinder::onLocalAdapterAvailable);
-        QObject::connect(&m_interfaceManager, &InterfaceManager::adapterUnavailable, this,
-                &LocalProviderBinder::onLocalAdapterUnavailable);
     }
 
-    void init()
+    template<typename BinderType>
+    void initBinder(BinderType &binder)
     {
-        auto localAdapter = m_interfaceManager.getAdapter(m_proxy.objectPath());
-        if (localAdapter) {
-            onLocalAdapterAvailable(localAdapter);
+        m_ipcBinder = &binder;
+        QObject::connect(this, &InterfaceBase::componentCompleted, &binder, &BinderType::onComponentCompleted);
+    }
+
+    bool isSynchronous() const
+    {
+        return m_ipcBinder->isSynchronous();
+    }
+
+    bool ready() const override final
+    {
+        auto r = m_serviceReady;
+        return r;
+    }
+
+    void setServiceReady(bool isServiceReady)
+    {
+        if (ready() != isServiceReady) {
+            m_serviceReady = isServiceReady;
+            emit this->readyChanged();
         }
     }
 
-    void onLocalAdapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter)
+    virtual void emitChangeSignals()
     {
-        Q_UNUSED(objectPath);
-        auto service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
-        if (service) {
-            m_provider = nullptr;
-            m_proxy.refreshProvider();
-        }
+        emit this->readyChanged();
     }
 
-    void onLocalAdapterAvailable(NewIPCServiceAdapterBase *adapter)
+
+    template<typename ProxyType>
+    class InterfacePropertyIPCProxyHandler
     {
-        auto service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
-        if (service) {
-            auto provider = qobject_cast<InterfaceType *>(service);
-            m_provider = provider;
-            if (m_provider) {
-                qCDebug(LogIpc) << "Local server found for " << m_proxy.objectPath();
-                m_proxy.refreshProvider();
+
+    public:
+        InterfacePropertyIPCProxyHandler(IPCProxyBase &owner) : m_owner(owner)
+        {
+        }
+
+        void update(const QString &objectPath)
+        {
+            if (m_proxy && (m_proxy->ipc()->objectPath() != objectPath)) {
+                m_proxy = nullptr;
+            }
+            if (!m_proxy) {
+                m_proxy = m_owner.m_ipcBinder->template getOrCreateSubProxy<ProxyType>(objectPath);
             }
         }
-    }
 
-    InterfaceType *provider()
-    {
-        return m_provider;
-    }
+        ProxyType *getValue() const
+        {
+            return m_proxy;
+        }
+
+    private:
+        QPointer<ProxyType> m_proxy;
+        IPCProxyBase &m_owner;
+    };
+
 
 private:
-    QPointer<InterfaceType> m_provider;
-    IPCProxyNewBase &m_proxy;
-    InterfaceManager &m_interfaceManager = InterfaceManager::instance();
-};
-
-
-class FaceliftIPCCommonLib_EXPORT NotAvailableImplBase
-{
+    bool m_serviceReady = false;
 
 protected:
-    static void logMethodCall(const InterfaceBase &i, const char *methodName);
-    static void logSetterCall(const InterfaceBase &i, const char *propertyName);
-    static void logGetterCall(const InterfaceBase &i, const char *propertyName);
-};
-
-template<typename InterfaceType>
-class NotAvailableImpl : public InterfaceType, protected NotAvailableImplBase
-{
-public:
-    template<typename ElementType>
-    struct NotAvailableModel
-    {
-        static Model<ElementType> &value()
-        {
-            static TheModel instance;
-            return instance;
-        }
-
-        class TheModel : public Model<ElementType>
-        {
-        public:
-            ElementType elementAt(int index) const override
-            {
-                Q_UNUSED(index);
-                Q_ASSERT(false);
-                return ElementType {};
-            }
-        };
-
-    };
-
-    template<typename Type>
-    struct NotAvailableValue
-    {
-        static const Type &value()
-        {
-            static Type instance = {};
-            return instance;
-        }
-    };
-
-    template<typename Type>
-    struct NotAvailableList
-    {
-        static const QList<Type> &value()
-        {
-            static QList<Type> instance;
-            return instance;
-        }
-    };
-
-    template<typename Type>
-    void logSetterCall(const char *propertyName, const Type &value) const
-    {
-        Q_UNUSED(value);
-        NotAvailableImplBase::logSetterCall(*this, propertyName);
-    }
-
-    void logGetterCall(const char *propertyName) const
-    {
-        NotAvailableImplBase::logGetterCall(*this, propertyName);
-    }
-
-    template<typename ... Args>
-    void logMethodCall(const char *methodName, const Args & ... args) const
-    {
-        M_UNUSED(args ...);
-        NotAvailableImplBase::logMethodCall(*this, methodName);
-    }
-
-    bool ready() const override
-    {
-        return false;
-    }
+    IPCProxyBinderBase *m_ipcBinder = nullptr;
 
 };
-
 
 
 }
