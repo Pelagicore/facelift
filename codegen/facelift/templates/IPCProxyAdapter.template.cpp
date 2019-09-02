@@ -115,7 +115,7 @@ void {{className}}::deserializeSignal(InputIPCMessage &msg)
     {% endif %}
     } else
     {% endfor %}
-        BaseType::deserializeCommonSignal(static_cast<facelift::CommonSignalID>(member));
+        BaseType::deserializeCommonSignal(static_cast<facelift::CommonSignalID>(member), this);
 }
 
 {% for property in interface.properties %}

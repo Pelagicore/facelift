@@ -45,7 +45,6 @@ namespace local {
 
 using namespace facelift;
 
-class LocalIPCManager;
 class LocalIPCServiceAdapterBase;
 
 class FaceliftIPCLocalLib_EXPORT LocalIPCProxyBinder : public IPCProxyBinderBase
@@ -112,8 +111,6 @@ public:
 
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
-
-    LocalIPCManager &manager() const;
 
     LocalIPCMessage call(LocalIPCMessage &message) const;
 

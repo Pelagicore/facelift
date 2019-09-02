@@ -27,49 +27,51 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+#pragma once
 
-#include "facelift-test.h"
+#include <QObject>
 
-#include <QCoreApplication>
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
+#endif
 
-#include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceIPCProxy.h"
-#include "facelift/test/TestInterfaceIPCAdapter.h"
+namespace facelift {
 
-using namespace facelift::test;
-
-
-void checkInterface(TestInterface &i)
+template<typename Type>
+class StaticArrayReference
 {
-    EXPECT_TRUE(i.ready());
+public:
 
-    EXPECT_TRUE(i.interfaceProperty() != nullptr);
+    StaticArrayReference()
+    {
+    }
 
-    SignalSpy signalSpy(&i, &TestInterface::aSignal);
-    i.interfaceProperty()->triggerMainInterfaceSignal(100);
-    EXPECT_TRUE(signalSpy.wasTriggered());
+    template<size_t SIZE>
+    StaticArrayReference(const std::array<Type, SIZE>& array)
+    {
+        m_data = array.data();
+        m_size = SIZE;
+    }
 
-}
+    const Type* begin() const
+    {
+        return m_data;
+    }
 
+    const Type* end() const
+    {
+        return m_data + m_size;
+    }
 
-int main(int argc, char * *argv)
-{
-    QCoreApplication app(argc, argv);
+    void reset()
+    {
+        m_size = 0;
+    }
 
-    TestInterfaceImplementation i;
-
-    checkInterface(i);
-
-    TestInterfaceIPCAdapter ipcAdapter;
-    ipcAdapter.setService(&i);
-    ipcAdapter.registerService();
-
-    TestInterfaceIPCProxy proxy;
-    proxy.connectToServer();
-    checkInterface(proxy);
-
-    //    TestInterfaceIPCProxyNew proxy2;
-    //    proxy2.connectToServer();
-    //    checkInterface(proxy2);
-
+private:
+    const Type* m_data = nullptr;
+    size_t m_size = 0;
+};
 }

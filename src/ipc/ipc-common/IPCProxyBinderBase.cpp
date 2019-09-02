@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,48 +28,34 @@
 **
 **********************************************************************/
 
-#include "facelift-test.h"
+#include "IPCProxyBinderBase.h"
 
-#include <QCoreApplication>
+namespace facelift {
 
-#include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceIPCProxy.h"
-#include "facelift/test/TestInterfaceIPCAdapter.h"
-
-using namespace facelift::test;
-
-
-void checkInterface(TestInterface &i)
+IPCProxyBinderBase::IPCProxyBinderBase(InterfaceBase &owner, QObject *parent) : QObject(parent), m_owner(owner)
 {
-    EXPECT_TRUE(i.ready());
-
-    EXPECT_TRUE(i.interfaceProperty() != nullptr);
-
-    SignalSpy signalSpy(&i, &TestInterface::aSignal);
-    i.interfaceProperty()->triggerMainInterfaceSignal(100);
-    EXPECT_TRUE(signalSpy.wasTriggered());
-
 }
 
 
-int main(int argc, char * *argv)
+void IPCProxyBinderBase::connectToServer()
 {
-    QCoreApplication app(argc, argv);
+    if (!m_alreadyInitialized) {
+        m_alreadyInitialized = true;
+        bindToIPC();
+    }
+}
 
-    TestInterfaceImplementation i;
+void IPCProxyBinderBase::checkInit()
+{
+    if (m_componentCompleted && enabled() && !objectPath().isEmpty()) {
+        this->connectToServer();
+        emit complete();
+    }
+}
 
-    checkInterface(i);
-
-    TestInterfaceIPCAdapter ipcAdapter;
-    ipcAdapter.setService(&i);
-    ipcAdapter.registerService();
-
-    TestInterfaceIPCProxy proxy;
-    proxy.connectToServer();
-    checkInterface(proxy);
-
-    //    TestInterfaceIPCProxyNew proxy2;
-    //    proxy2.connectToServer();
-    //    checkInterface(proxy2);
-
+void IPCProxyBinderBase::onComponentCompleted()
+{
+    m_componentCompleted = true;
+    checkInit();
+}
 }

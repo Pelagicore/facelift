@@ -27,100 +27,20 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
-
 #pragma once
 
-#include "IPCServiceAdapterBase.h"
-#include "IPCProxyBase.h"
+#include <QObject>
+#include "StaticArrayReference.h"
+#include "IPCProxyBinderBase.h"
+#include "LocalProviderBinder.h"
+
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
+#endif
 
 namespace facelift {
-
-template<typename InterfaceType>
-class IPCServiceAdapter : public NewIPCServiceAdapterBase
-{
-public:
-    using TheServiceType = InterfaceType;
-
-    IPCServiceAdapter(QObject *parent) : NewIPCServiceAdapterBase(parent)
-    {
-        setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
-    }
-
-    ~IPCServiceAdapter() {
-        unregisterLocalService();
-    }
-
-    InterfaceBase *service() const override
-    {
-        return m_service;
-    }
-
-    void registerService() override
-    {
-        registerLocalService();
-        for (auto& ipcAdapter : m_ipcServiceAdapters) {
-            ipcAdapter->registerService(objectPath(), m_service);
-        }
-    }
-
-    void unregisterService() override
-    {
-        unregisterLocalService();
-    }
-
-    void setService(QObject *service) override
-    {
-        m_service = bindToProvider<InterfaceType>(service);
-    }
-
-    void addServiceAdapter(IPCServiceAdapterBase &adapter) {
-        m_ipcServiceAdapters.append(&adapter);
-    }
-
-private:
-    QPointer<InterfaceType> m_service;
-    QList<IPCServiceAdapterBase*> m_ipcServiceAdapters;
-
-};
-
-
-template<typename Type>
-class StaticArrayReference
-{
-public:
-
-    StaticArrayReference()
-    {
-    }
-
-    template<size_t SIZE>
-    StaticArrayReference(const std::array<Type, SIZE>& array)
-    {
-        m_data = array.data();
-        m_size = SIZE;
-    }
-
-    const Type* begin() const
-    {
-        return m_data;
-    }
-
-    const Type* end() const
-    {
-        return m_data + m_size;
-    }
-
-    void reset()
-    {
-        m_size = 0;
-    }
-
-private:
-    const Type* m_data = nullptr;
-    size_t m_size = 0;
-};
-
-
 
 template<typename WrapperType, typename NotAvailableImpl>
 class IPCProxy : public WrapperType, public IPCProxyNewBase

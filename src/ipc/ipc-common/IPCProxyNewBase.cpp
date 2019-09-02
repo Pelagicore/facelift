@@ -28,48 +28,13 @@
 **
 **********************************************************************/
 
-#include "facelift-test.h"
+#include "IPCProxyNewBase.h"
 
-#include <QCoreApplication>
+namespace facelift {
 
-#include "TestInterfaceCppImplementation.h"
-#include "facelift/test/TestInterfaceIPCProxy.h"
-#include "facelift/test/TestInterfaceIPCAdapter.h"
-
-using namespace facelift::test;
-
-
-void checkInterface(TestInterface &i)
+IPCProxyNewBase::IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
 {
-    EXPECT_TRUE(i.ready());
-
-    EXPECT_TRUE(i.interfaceProperty() != nullptr);
-
-    SignalSpy signalSpy(&i, &TestInterface::aSignal);
-    i.interfaceProperty()->triggerMainInterfaceSignal(100);
-    EXPECT_TRUE(signalSpy.wasTriggered());
-
+    QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
 }
-
-
-int main(int argc, char * *argv)
-{
-    QCoreApplication app(argc, argv);
-
-    TestInterfaceImplementation i;
-
-    checkInterface(i);
-
-    TestInterfaceIPCAdapter ipcAdapter;
-    ipcAdapter.setService(&i);
-    ipcAdapter.registerService();
-
-    TestInterfaceIPCProxy proxy;
-    proxy.connectToServer();
-    checkInterface(proxy);
-
-    //    TestInterfaceIPCProxyNew proxy2;
-    //    proxy2.connectToServer();
-    //    checkInterface(proxy2);
 
 }

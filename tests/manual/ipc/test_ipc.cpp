@@ -28,7 +28,6 @@
 **
 **********************************************************************/
 
-#include "facelift-ipc.h"
 #include <QDebug>
 #include <QCoreApplication>
 

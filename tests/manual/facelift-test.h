@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include <QObject>
 
 #define EXPECT_TRUE(cond) if (!(cond)) {qFatal("Expectation wrong at %s:%i / " #cond " / function: %s ", qPrintable(__FILE__), __LINE__, \
                                                 qPrintable(Q_FUNC_INFO));};

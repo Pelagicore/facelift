@@ -27,19 +27,39 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+#pragma once
 
-#include "facelift-ipc.h"
+#include <QObject>
+#include "IPCProxyBinderBase.h"
+
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
+#endif
 
 namespace facelift {
 
-#if defined(FaceliftIPCLib_LIBRARY)
-#  define FaceliftIPCLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLib_EXPORT Q_DECL_IMPORT
-#endif
+class FaceliftIPCCommonLib_EXPORT IPCProxyNewBase
+{
+public:
+    IPCProxyNewBase(InterfaceBase &owner);
 
-// this dummy export is necessary for creating a *.lib file with MSVC based compiler
-// otherwise no lib file will be created
-FaceliftIPCLib_EXPORT int dummy_value_2;
+    virtual void refreshProvider() = 0;
+
+    const QString &objectPath() const
+    {
+        return m_ipc.objectPath();
+    }
+
+    IPCProxyBinderBase *ipc()
+    {
+        return &m_ipc;
+    }
+
+private:
+    facelift::IPCProxyBinderBase m_ipc;
+
+};
 
 }
