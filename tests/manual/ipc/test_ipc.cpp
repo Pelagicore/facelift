@@ -41,7 +41,6 @@ using namespace facelift::test;
 void mainClient(int &argc, char * *argv)
 {
     QCoreApplication app(argc, argv);
-    auto sessionBus = QDBusConnection::sessionBus();
 
     qDebug() << "Client running";
 

@@ -44,14 +44,28 @@
 
 {{module.namespaceCppOpen}}
 
-{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) : BaseType(parent) {
+struct {{interfaceName}}IPCAdapter::Impl {
+
+#ifdef DBUS_IPC_ENABLED
+    {{interfaceName}}IPCDBusAdapter m_ipcDBusServiceAdapter;
+#endif
+
+};
+
+
+{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) : BaseType(parent),
+    m_impl(std::make_unique<Impl>())
+{
 {% if interface.isAsynchronousIPCEnabled %}
     addServiceAdapter(m_ipcLocalServiceAdapter);
 {% endif %}
 #ifdef DBUS_IPC_ENABLED
-    addServiceAdapter(m_ipcDBusServiceAdapter);
+    addServiceAdapter(m_impl->m_ipcDBusServiceAdapter);
 #endif
 
+}
+
+{{interfaceName}}IPCAdapter::~{{interfaceName}}IPCAdapter() {
 }
 
 {{module.namespaceCppClose}}

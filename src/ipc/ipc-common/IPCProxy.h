@@ -29,6 +29,7 @@
 **********************************************************************/
 #pragma once
 
+#include <array>
 #include <QObject>
 #include "StaticArrayReference.h"
 #include "IPCProxyBinderBase.h"
@@ -98,7 +99,7 @@ public:
     }
 
     template<typename ProxyType>
-    ProxyAdapterEntry createIPCAdapter(ProxyType &proxy)
+    static ProxyAdapterEntry createIPCAdapter(ProxyType &proxy)
     {
         ProxyAdapterEntry entry;
         entry.ipcBinder = proxy.ipc();

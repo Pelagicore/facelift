@@ -37,6 +37,8 @@
 
 {{classExportDefines}}
 
+#include <memory>
+
 #include "IPCServiceAdapter.h"
 #include "FaceliftUtils.h"
 #include "IPCServiceAdapter.h"
@@ -48,14 +50,8 @@
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCLocalServiceAdapter.h"
 {% endif %}
 
-#ifdef DBUS_IPC_ENABLED
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
-#endif
 
 {% for property in interface.referencedInterfaceTypes %}
-#ifdef DBUS_IPC_ENABLED
-#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
-#endif
 {% if interface.isAsynchronousIPCEnabled %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCLocalServiceAdapter.h"
 {% endif %}
@@ -74,10 +70,10 @@ public:
     using BaseType = ::facelift::IPCServiceAdapter<{{interfaceName}}>;
 
     {{interfaceName}}IPCAdapter(QObject* parent = nullptr);
+    ~{{interfaceName}}IPCAdapter();
 
-#ifdef DBUS_IPC_ENABLED
-    {{interfaceName}}IPCDBusAdapter m_ipcDBusServiceAdapter;
-#endif
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
 
 {% if interface.isAsynchronousIPCEnabled %}
     {{interfaceName}}IPCLocalServiceAdapter m_ipcLocalServiceAdapter;
