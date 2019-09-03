@@ -25,5 +25,6 @@ facelift_add_library(FaceliftModelLib
         FaceliftCommon.h
         FaceliftEnum.h
         FaceliftImplementationBase.h
+        FaceliftQMLUtils.h
     LINK_LIBRARIES FaceliftCommonLib Qt5::Qml Qt5::Quick
 )

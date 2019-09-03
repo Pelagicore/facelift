@@ -43,7 +43,7 @@
 #include <QtCore>
 #include <QQmlEngine>
 
-#include "FaceliftConversion.h"
+#include "FaceliftQMLUtils.h"
 
 #include "{{interfaceName}}QMLAdapter.h"
 

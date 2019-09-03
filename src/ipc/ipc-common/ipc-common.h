@@ -39,8 +39,6 @@
 #include <QDataStream>
 
 #include "FaceliftModel.h"
-//#include "QMLAdapter.h"
-//#include "QMLModel.h"
 
 namespace facelift {
 
