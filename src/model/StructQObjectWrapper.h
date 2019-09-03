@@ -32,6 +32,7 @@
 
 #include "FaceliftProperty.h"
 #include "FaceliftConversion.h"
+#include "FaceliftQMLUtils.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT

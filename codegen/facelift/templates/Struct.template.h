@@ -40,6 +40,7 @@
 {{classExportDefines}}
 
 #include "StructureBase.h"
+#include "FaceliftQMLUtils.h"
 
 // Dependencies
 {% for field in struct.fields %}
