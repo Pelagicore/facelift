@@ -392,8 +392,8 @@ def run_generation(input, output, dependency, libraryName, all):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.cpp', 'IPCAdapter.template.cpp', ctx, libraryName, "ipc")
                     generateFile(generator, 'types/{{path}}/{{interface}}IPCCommon.h', 'IPCCommon.template.h', ctx, libraryName, "types")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusServiceAdapter.template.h', ctx, libraryName, "ipc_dbus")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusServiceAdapter.template.cpp', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusServiceAdapter.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusServiceAdapter.template.cpp', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.h', 'IPCLocalServiceAdapter.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.cpp', 'IPCLocalServiceAdapter.template.cpp', ctx, libraryName, "ipc")
 
@@ -402,8 +402,8 @@ def run_generation(input, output, dependency, libraryName, all):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "ipc_dbus")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "ipc")
 
                 if isAsynchronousIPCEnabled(interface):
                     generateAsyncProxy = True
@@ -417,8 +417,8 @@ def run_generation(input, output, dependency, libraryName, all):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "ipc")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "ipc_dbus")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "ipc_dbus")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "ipc")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.h', 'IPCLocalProxyAdapter.template.h', ctx, libraryName, "ipc")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.cpp', 'IPCLocalProxyAdapter.template.cpp', ctx, libraryName, "ipc")
 

@@ -45,10 +45,6 @@
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"
 
-#ifdef DBUS_IPC_ENABLED
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
-#endif
-
 {% if generateAsyncProxy %}
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCLocalProxyAdapter.h"
 {% endif %}
@@ -143,22 +139,9 @@ public:
     ~{{className}}();
 
 private:
-    {% if generateAsyncProxy %}
-    {{interfaceName}}IPCLocalProxyAdapter m_ipcLocalProxyAdapter;
-    {% endif %}
+    struct Impl;
 
-#ifdef DBUS_IPC_ENABLED
-    {{interfaceName}}IPCDBusProxy m_ipcDBusProxyAdapter;
-#endif
-
-    std::array<ProxyAdapterEntry, 0
-    {% if generateAsyncProxy %} + 1
-    {% endif %}
-#ifdef DBUS_IPC_ENABLED
-    + 1
-#endif
-    > m_proxies = {};
-
+    std::unique_ptr<Impl> m_impl;
 };
 
 

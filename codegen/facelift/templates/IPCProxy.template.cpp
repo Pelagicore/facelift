@@ -35,19 +35,47 @@
 
 #include "{{interfaceName}}IPCProxy.h"
 
+#ifdef DBUS_IPC_ENABLED
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
+#endif
+
 {% set className = interfaceName + "IPCProxy" %}
 
 {{module.namespaceCppOpen}}
 
-{{className}}::{{className}}(QObject *parent) : BaseType(parent),
-    m_proxies { {
-    {% if generateAsyncProxy %}
-    createIPCAdapter(m_ipcLocalProxyAdapter),
+
+struct {{className}}::Impl {
+
+    Impl() : m_proxies {
+        {% if generateAsyncProxy %}
+        createIPCAdapter(m_ipcLocalProxyAdapter),
+        {% endif %}
+    #ifdef DBUS_IPC_ENABLED
+        createIPCAdapter(m_ipcDBusProxyAdapter),
+    #endif
+        }
+    {
+    }
+
+{% if generateAsyncProxy %}
+    {{interfaceName}}IPCLocalProxyAdapter m_ipcLocalProxyAdapter;
+{% endif %}
+
+#ifdef DBUS_IPC_ENABLED
+    {{interfaceName}}IPCDBusProxy m_ipcDBusProxyAdapter;
+#endif
+
+    std::array<ProxyAdapterEntry, 0
+    {% if generateAsyncProxy %} + 1
     {% endif %}
 #ifdef DBUS_IPC_ENABLED
-    createIPCAdapter(m_ipcDBusProxyAdapter),
+    + 1
 #endif
-    } }
+    > m_proxies = {};
+};
+
+{{className}}::{{className}}(QObject *parent) : BaseType(parent),
+    m_impl(std::make_unique<Impl>())
 {
     ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
 
@@ -55,7 +83,7 @@
     ipc()->setSynchronous(false);
     {% endif %}
 
-    setIPCProxies(m_proxies);
+    setIPCProxies(m_impl->m_proxies);
 }
 
 {{className}}::~{{className}}()

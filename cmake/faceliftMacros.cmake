@@ -290,26 +290,33 @@ function(facelift_add_interface TARGET_NAME)
     endif()
 
     if(TARGET FaceliftIPCLib)
+
+        if(TARGET FaceliftIPCLibDBus)
+            set(ADDITIONAL_ARGS
+                SOURCES_GLOB_RECURSE ${IPC_DBUS_OUTPUT_PATH}/*.cpp
+                HEADERS_GLOB_RECURSE_NO_INSTALL ${IPC_DBUS_OUTPUT_PATH}/*.h
+                LINK_LIBRARIES FaceliftIPCLibDBus
+            )
+        endif()
+
         facelift_add_library(${LIBRARY_NAME}_ipc
             SOURCES_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.h
             LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib ${ARGUMENT_LINK_LIBRARIES}
             PUBLIC_HEADER_BASE_PATH ${IPC_OUTPUT_PATH}
             UNITY_BUILD
+            ${ADDITIONAL_ARGS}
         )
         target_link_libraries(${LIBRARY_NAME} ${LIBRARY_NAME}_ipc)
         list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_IPC)
 
         if(TARGET FaceliftIPCLibDBus)
-            facelift_add_library(${LIBRARY_NAME}_ipc_dbus
-                SOURCES_GLOB_RECURSE ${IPC_DBUS_OUTPUT_PATH}/*.cpp
-                HEADERS_GLOB_RECURSE ${IPC_DBUS_OUTPUT_PATH}/*.h
-                LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib ${ARGUMENT_LINK_LIBRARIES}
-                PUBLIC_HEADER_BASE_PATH ${IPC_DBUS_OUTPUT_PATH}
-                UNITY_BUILD
+            target_include_directories(${LIBRARY_NAME}_ipc
+                PRIVATE
+                    $<BUILD_INTERFACE:${IPC_DBUS_OUTPUT_PATH}>
             )
-            target_link_libraries(${LIBRARY_NAME}_ipc ${LIBRARY_NAME}_ipc_dbus)
         endif()
+
     endif()
 
     target_compile_definitions(${LIBRARY_NAME} PRIVATE "${MODULE_COMPILE_DEFINITIONS}")
@@ -331,7 +338,7 @@ endfunction()
 
 macro(_facelift_add_target_start)
 
-    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC SHARED)
+    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC SHARED OBJECT)
     set(oneValueArgs )
     set(multiValueArgs PRIVATE_DEFINITIONS
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
@@ -441,6 +448,9 @@ function(facelift_add_library TARGET_NAME)
        endif()
         if(${ARGUMENT_STATIC})
             set(LIBRARY_TYPE STATIC)
+        endif()
+        if(${ARGUMENT_OBJECT})
+            set(LIBRARY_TYPE OBJECT)
         endif()
         if(${ARGUMENT_SHARED})
             set(LIBRARY_TYPE SHARED)
