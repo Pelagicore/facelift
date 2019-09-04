@@ -260,63 +260,59 @@ function(facelift_add_interface TARGET_NAME)
 
     facelift_generate_code(INTERFACE_DEFINITION_FOLDER ${ARGUMENT_INTERFACE_DEFINITION_FOLDER} IMPORT_FOLDERS ${ARGUMENT_IMPORT_FOLDERS} OUTPUT_PATH ${OUTPUT_PATH} LIBRARY_NAME ${TARGET_NAME} ${ADDITIONAL_ARGUMENTS})
 
+    unset(ARGS)
+
     # Get the list of generated files
-    facelift_add_library(${LIBRARY_NAME}_types
+    list(APPEND ARGS
         SOURCES_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${TYPES_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES FaceliftModelLib ${ARGUMENT_LINK_LIBRARIES}
         PUBLIC_HEADER_BASE_PATH ${TYPES_OUTPUT_PATH}
-        UNITY_BUILD
-    )
-
-    facelift_add_library(${LIBRARY_NAME}
-        SOURCES_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.cpp
-        HEADERS_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.h
-        LINK_LIBRARIES ${LIBRARY_NAME}_types ${ARGUMENT_LINK_LIBRARIES}
-        PUBLIC_HEADER_BASE_PATH ${MODULE_OUTPUT_PATH}
-        UNITY_BUILD
     )
 
     if(TARGET FaceliftDesktopDevTools)
-        facelift_add_library(${LIBRARY_NAME}_desktop_dev_tools
+        list(APPEND ARGS
             SOURCES_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftDesktopDevTools ${ARGUMENT_LINK_LIBRARIES}
+            LINK_LIBRARIES FaceliftDesktopDevTools
             PUBLIC_HEADER_BASE_PATH ${DEVTOOLS_OUTPUT_PATH}
-            UNITY_BUILD
         )
-        target_link_libraries(${LIBRARY_NAME} ${LIBRARY_NAME}_desktop_dev_tools)
         list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_DESKTOP_TOOLS)
     endif()
 
     if(TARGET FaceliftIPCLib)
 
         if(TARGET FaceliftIPCLibDBus)
-            set(ADDITIONAL_ARGS
+            list(APPEND ARGS
                 SOURCES_GLOB_RECURSE ${IPC_DBUS_OUTPUT_PATH}/*.cpp
                 HEADERS_GLOB_RECURSE_NO_INSTALL ${IPC_DBUS_OUTPUT_PATH}/*.h
                 LINK_LIBRARIES FaceliftIPCLibDBus
             )
         endif()
 
-        facelift_add_library(${LIBRARY_NAME}_ipc
+        list(APPEND ARGS
             SOURCES_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.cpp
             HEADERS_GLOB_RECURSE ${IPC_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES ${LIBRARY_NAME}_types FaceliftIPCLib ${ARGUMENT_LINK_LIBRARIES}
+            LINK_LIBRARIES FaceliftIPCLib
             PUBLIC_HEADER_BASE_PATH ${IPC_OUTPUT_PATH}
-            UNITY_BUILD
-            ${ADDITIONAL_ARGS}
         )
-        target_link_libraries(${LIBRARY_NAME} ${LIBRARY_NAME}_ipc)
         list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_IPC)
 
-        if(TARGET FaceliftIPCLibDBus)
-            target_include_directories(${LIBRARY_NAME}_ipc
-                PRIVATE
-                    $<BUILD_INTERFACE:${IPC_DBUS_OUTPUT_PATH}>
-            )
-        endif()
+    endif()
 
+    facelift_add_library(${LIBRARY_NAME}
+        SOURCES_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.cpp
+        HEADERS_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.h
+        LINK_LIBRARIES FaceliftModelLib ${ARGUMENT_LINK_LIBRARIES}
+        PUBLIC_HEADER_BASE_PATH ${MODULE_OUTPUT_PATH}
+        ${ARGS}
+        UNITY_BUILD
+    )
+
+    if(TARGET FaceliftIPCLibDBus)
+        target_include_directories(${LIBRARY_NAME}
+            PRIVATE
+                $<BUILD_INTERFACE:${IPC_DBUS_OUTPUT_PATH}>
+        )
     endif()
 
     target_compile_definitions(${LIBRARY_NAME} PRIVATE "${MODULE_COMPILE_DEFINITIONS}")
