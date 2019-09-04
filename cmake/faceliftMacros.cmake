@@ -470,12 +470,10 @@ function(facelift_add_library TARGET_NAME)
     endif()
 
     if(NOT ARGUMENT_PUBLIC_HEADER_BASE_PATH)
-        set(PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+        set(PUBLIC_HEADER_BASE_PATHS ${CMAKE_CURRENT_SOURCE_DIR})
     else()
-        set(PUBLIC_HEADER_BASE_PATH ${ARGUMENT_PUBLIC_HEADER_BASE_PATH})
+        set(PUBLIC_HEADER_BASE_PATHS ${ARGUMENT_PUBLIC_HEADER_BASE_PATH})
     endif()
-
-    get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
 
     if (EXPORT_LIB)
 
@@ -487,10 +485,24 @@ function(facelift_add_library TARGET_NAME)
 
             # Install headers
             foreach(HEADER ${HEADERS})
-                get_filename_component(ABSOLUTE_HEADER_PATH ${HEADER} ABSOLUTE)
-                file(RELATIVE_PATH relativePath "${PUBLIC_HEADER_BASE_PATH}" ${ABSOLUTE_HEADER_PATH})
-                get_filename_component(ABSOLUTE_HEADER_INSTALLATION_DIR ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}/${relativePath} DIRECTORY)
-                install(FILES ${HEADER} DESTINATION ${ABSOLUTE_HEADER_INSTALLATION_DIR})
+
+                set(isHeaderInstalled OFF)
+
+                foreach(PUBLIC_HEADER_BASE_PATH ${PUBLIC_HEADER_BASE_PATHS})
+                    get_filename_component(ABSOLUTE_HEADER_PATH ${HEADER} ABSOLUTE)
+                    file(RELATIVE_PATH relativePath "${PUBLIC_HEADER_BASE_PATH}" ${ABSOLUTE_HEADER_PATH})
+                    string(SUBSTRING "${relativePath}" 0 1 relativePathStart)
+                    if(NOT "${relativePathStart}" STREQUAL ".")
+                        get_filename_component(ABSOLUTE_HEADER_INSTALLATION_DIR ${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}/${relativePath} DIRECTORY)
+                        install(FILES ${HEADER} DESTINATION ${ABSOLUTE_HEADER_INSTALLATION_DIR})
+                        set(isHeaderInstalled ON)
+                    endif()
+                endforeach()
+
+                if (NOT isHeaderInstalled)
+                    message(FATAL_ERROR "Header '${HEADER}' ('${ABSOLUTE_HEADER_PATH}') is outside of public header paths:('${PUBLIC_HEADER_BASE_PATHS}')")
+                endif()
+
             endforeach()
         endif()
 
@@ -498,11 +510,16 @@ function(facelift_add_library TARGET_NAME)
         else()
             # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
             if(HEADERS)
-                # Set the installed headers location
-                target_include_directories(${TARGET_NAME}
-                    PUBLIC
-                        $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
-                )
+
+                foreach(PUBLIC_HEADER_BASE_PATH ${PUBLIC_HEADER_BASE_PATHS})
+                    get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
+
+                    # Set the installed header location
+                    target_include_directories(${TARGET_NAME}
+                        PUBLIC
+                            $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
+                    )
+                endforeach()
             endif()
         endif()
 
