@@ -221,7 +221,7 @@ function(facelift_generate_code )
     endif()
 
     # Add a dependency so that CMake will reconfigure whenever one of the interface files is changed, which will refresh our generated files
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_FILES};${QFACE_FILES};${ARGUMENT_INTERFACE_DEFINITION_FOLDER}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CODEGEN_FILES};${QFACE_FILES};${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/")
 
     string(TIMESTAMP FACELIFT_BUILD_TIMESTAMP "%s")
     set(FACELIFT_LAST_BUILD_TIMESTAMP_${LIBRARY_NAME} ${FACELIFT_BUILD_TIMESTAMP} CACHE INTERNAL "timestamp of last build")
