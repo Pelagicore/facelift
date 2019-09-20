@@ -418,54 +418,6 @@ void DBusIPCProxyBinder::bindToIPC()
 
 }
 
-QString DBusIPCMessage::toString() const
-{
-    QString str;
-    QTextStream s(&str);
-
-    s << "DBus message ";
-    s << " service:" << m_message.service();
-    s << " interface:" << m_message.interface();
-    s << " path:" << m_message.path();
-    s << " member:" << m_message.member();
-
-    s << " / Arguments : [ ";
-    for (auto &arg : m_message.arguments()) {
-        s << arg.toString() << ", ";
-    }
-    s << " ]";
-
-    s << " signature:" << m_message.signature();
-
-    return str;
-}
-
-QDBusMessage& DBusIPCMessage::outputMessage() {
-    if (m_outputPayload) {
-        m_message << m_outputPayload->getContent();
-        m_outputPayload.reset();
-    }
-    return m_message;
-}
-
-OutputPayLoad &DBusIPCMessage::outputPayLoad()
-{
-    if (m_outputPayload == nullptr) {
-        m_outputPayload = std::make_unique<OutputPayLoad>(m_payload);
-    }
-    return *m_outputPayload;
-}
-
-InputPayLoad &DBusIPCMessage::inputPayLoad()
-{
-    if (m_inputPayload == nullptr) {
-        m_payload = m_message.arguments()[0].value<QByteArray>();
-        m_inputPayload = std::make_unique<InputPayLoad>(m_payload);
-    }
-    return *m_inputPayload;
-}
-
-
 }
 
 }

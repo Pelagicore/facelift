@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -37,45 +37,44 @@
 #endif
 
 #include <memory>
-
-#include <QDebug>
-
-#include <QDBusConnection>
 #include <QDBusMessage>
-
-#include "FaceliftModel.h"
-#include "FaceliftUtils.h"
-#include "FaceliftProperty.h"
-#include "DBusIPCMessage.h"
-#include "ipc-common.h"
+#include <QByteArray>
 
 namespace facelift {
 
-namespace ipc { namespace dbus {
-class ObjectRegistry;
-class ObjectRegistryAsync;
-} }
+class OutputPayLoad;
+class InputPayLoad;
 
 namespace dbus {
 
-using namespace facelift;
-
-class IPCDBusServiceAdapterBase;
-class DBusObjectRegistry;
-
-
-class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
+class FaceliftIPCLibDBus_EXPORT DBusIPCMessage
 {
 
 public:
+    DBusIPCMessage();
+    DBusIPCMessage(const DBusIPCMessage &other);
+    DBusIPCMessage &operator=(const DBusIPCMessage &other);
+    DBusIPCMessage(const QDBusMessage &msg);
+    DBusIPCMessage(const QString &service, const QString &path, const QString &interface, const QString &method);
+    DBusIPCMessage(const QString &path, const QString &interface, const QString &signal);
 
-    virtual void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) = 0;
-    virtual void deserializeSignal(DBusIPCMessage &msg) = 0;
-    virtual void setServiceRegistered(bool isRegistered) = 0;
+    QString member() const;
+    QString toString() const;
+    DBusIPCMessage createReply();
+    DBusIPCMessage createErrorReply(const QString &msg, const QString &member);
+    QString signature() const;
+    bool isReplyMessage() const;
+    bool isErrorMessage() const;
+    OutputPayLoad &outputPayLoad();
+    InputPayLoad &inputPayLoad();
+    QDBusMessage& outputMessage();
 
+private:
+    QDBusMessage m_message;
+    QByteArray m_payload;
+    std::unique_ptr<OutputPayLoad> m_outputPayload;
+    std::unique_ptr<InputPayLoad> m_inputPayload;
 };
 
-
-}
-
-}
+} // end namespace dbus
+} // end namespace facelift
