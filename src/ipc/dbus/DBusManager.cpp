@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,55 +28,49 @@
 **
 **********************************************************************/
 
-#pragma once
-
-#include <QObject>
-#include <QDBusConnection>
-
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
+#include "DBusManager.h"
+#include "ipc-dbus-object-registry.h"
 
 namespace facelift {
 namespace dbus {
 
-class DBusObjectRegistry;
-
-using namespace facelift;
-
-class FaceliftIPCLibDBus_EXPORT DBusManager
+DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
-
-public:
-    DBusManager();
-
-    static DBusManager &instance();
-
-    bool isDBusConnected() const
-    {
-        return m_dbusConnected;
+    m_dbusConnected = m_busConnection.isConnected();
+    if (!m_dbusConnected) {
+        qCCritical(LogIpc) << "NOT connected to DBUS";
     }
-
-    bool registerServiceName(const QString &serviceName);
-
-    QDBusConnection &connection()
-    {
-        return m_busConnection;
-    }
-
-    QString serviceName() const;
-
-    DBusObjectRegistry &objectRegistry();
-
-private:
-    QDBusConnection m_busConnection;
-    DBusObjectRegistry *m_objectRegistry = nullptr;
-    bool m_dbusConnected = false;
-};
-
-
 }
 
+DBusManager &DBusManager::instance()
+{
+    static auto i = new DBusManager(); // TODO solve memory leak
+    return *i;
 }
+
+DBusObjectRegistry &DBusManager::objectRegistry()
+{
+    if (m_objectRegistry == nullptr) {
+        m_objectRegistry = new DBusObjectRegistry(*this);
+        m_objectRegistry->init();
+    }
+
+    return *m_objectRegistry;
+}
+
+bool DBusManager::registerServiceName(const QString &serviceName)
+{
+    qCDebug(LogIpc) << "Registering serviceName " << serviceName;
+    auto success = m_busConnection.registerService(serviceName);
+    return success;
+}
+
+
+
+QString DBusManager::serviceName() const
+{
+    return m_busConnection.baseService();
+}
+
+} // end namespace dbus
+} // end namespace facelift

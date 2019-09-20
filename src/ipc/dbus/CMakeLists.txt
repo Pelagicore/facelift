@@ -17,6 +17,7 @@ if(Qt5DBus_FOUND)
             ipc-dbus-object-registry.cpp
             DBusIPCMessage.cpp
             DBusIPCProxyBinder.cpp
+            DBusManager.cpp
         HEADERS
             ipc-dbus.h
             DBusManager.h

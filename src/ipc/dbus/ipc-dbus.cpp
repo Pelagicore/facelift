@@ -61,37 +61,6 @@ namespace dbus {
 
 constexpr const char *DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME;
 
-DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
-{
-    m_dbusConnected = m_busConnection.isConnected();
-    if (!m_dbusConnected) {
-        qCCritical(LogIpc) << "NOT connected to DBUS";
-    }
-}
-
-DBusObjectRegistry &DBusManager::objectRegistry()
-{
-    if (m_objectRegistry == nullptr) {
-        m_objectRegistry = new DBusObjectRegistry(*this);
-        m_objectRegistry->init();
-    }
-
-    return *m_objectRegistry;
-}
-
-DBusManager &DBusManager::instance()
-{
-    static auto i = new DBusManager(); // TODO solve memory leak
-    return *i;
-}
-
-bool DBusManager::registerServiceName(const QString &serviceName)
-{
-    qCDebug(LogIpc) << "Registering serviceName " << serviceName;
-    auto success = m_busConnection.registerService(serviceName);
-    return success;
-}
-
 void IPCDBusServiceAdapterBase::initOutgoingSignalMessage() {
     m_pendingOutgoingMessage = std::make_unique<DBusIPCMessage>(objectPath(), interfaceName(), DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
 
