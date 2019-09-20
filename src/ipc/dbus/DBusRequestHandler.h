@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2019 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -36,30 +36,17 @@
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <memory>
-
-#include <QDebug>
-
-#include <QDBusConnection>
-#include <QDBusMessage>
-
-#include "FaceliftModel.h"
-#include "FaceliftUtils.h"
-#include "FaceliftProperty.h"
-#include "DBusIPCMessage.h"
-#include "ipc-common.h"
-
 namespace facelift {
-
-namespace ipc { namespace dbus {
-class ObjectRegistry;
-class ObjectRegistryAsync;
-} }
-
 namespace dbus {
-using namespace facelift;
-class IPCDBusServiceAdapterBase;
-class DBusObjectRegistry;
-}
 
-}
+class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
+{
+public:
+
+    virtual void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) = 0;
+    virtual void deserializeSignal(DBusIPCMessage &msg) = 0;
+    virtual void setServiceRegistered(bool isRegistered) = 0;
+};
+
+} // end namespace dbus
+} // end namespace facelift

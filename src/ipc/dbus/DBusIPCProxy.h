@@ -32,6 +32,7 @@
 
 #include "ipc-dbus.h"
 #include "IPCProxyBase.h"
+#include "DBusRequestHandler.h"
 #include <QDBusServiceWatcher>
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
