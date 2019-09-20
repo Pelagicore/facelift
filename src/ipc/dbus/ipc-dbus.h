@@ -58,6 +58,16 @@ class ObjectRegistryAsync;
 
 namespace dbus {
 using namespace facelift;
+
+struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
+    static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
+    static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
+    static constexpr const char *SIGNAL_TRIGGERED_SIGNAL_NAME = "SignalTriggered";
+    static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "SetProperty";
+    static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
+    static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
+};
+
 class IPCDBusServiceAdapterBase;
 class DBusObjectRegistry;
 }
