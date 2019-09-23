@@ -82,5 +82,11 @@ QString enumToString(const Type &v)
     return "";
 }
 
+#ifdef QT_DEBUG
+#define faceliftSeriousError qFatal
+#else
+#define faceliftSeriousError qCritical
+#endif
+
 
 }
