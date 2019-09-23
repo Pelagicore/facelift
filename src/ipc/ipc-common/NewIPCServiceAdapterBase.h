@@ -61,28 +61,6 @@ public:
 
     virtual void unregisterService() = 0;
 
-    template<typename ServiceType>
-    ServiceType *bindToProvider(QObject *s)
-    {
-        auto service = qobject_cast<ServiceType *>(s);
-        if (service == nullptr) {
-            auto *qmlAdapter = qobject_cast<QMLAdapterBase *>(s);
-            if (qmlAdapter != nullptr) {
-                service = qobject_cast<ServiceType *>(qmlAdapter->providerPrivate());
-            }
-        }
-        if (service != nullptr) {
-            if (service->isComponentCompleted()) {
-                onProviderCompleted();
-            } else {
-                QObject::connect(service, &InterfaceBase::componentCompleted, this, &NewIPCServiceAdapterBase::onProviderCompleted);
-            }
-        } else {
-            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s->objectName())));
-        }
-        return service;
-    }
-
     bool enabled() const
     {
         return m_enabled;
@@ -93,18 +71,6 @@ public:
         m_enabled = enabled;
         onValueChanged();
     }
-
-    void registerLocalService()
-    {
-        InterfaceManager::instance().registerAdapter(objectPath(), this);
-    }
-
-    void unregisterLocalService()
-    {
-        InterfaceManager::instance().unregisterAdapter(this);
-    }
-
-    virtual void setService(QObject *service) = 0;
 
     void checkedSetService(QObject *service)
     {
@@ -130,6 +96,57 @@ public:
         return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
     }
 
+    void onProviderCompleted()
+    {
+        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
+        m_providerReady = true;
+        onValueChanged();
+    }
+
+protected:
+
+    template<typename ServiceType>
+    ServiceType *bindToProvider(QObject *s)
+    {
+        auto service = qobject_cast<ServiceType *>(s);
+        if (service == nullptr) {
+            auto *qmlAdapter = qobject_cast<QMLAdapterBase *>(s);
+            if (qmlAdapter != nullptr) {
+                service = qobject_cast<ServiceType *>(qmlAdapter->providerPrivate());
+            }
+        }
+        if (service != nullptr) {
+            bindToProvider(service);
+        } else {
+            qFatal("Bad service type : '%s'", qPrintable(facelift::toString(s->objectName())));
+        }
+        return service;
+    }
+
+    template<typename ServiceType>
+    void bindToProvider(ServiceType *service)
+    {
+        if (service->isComponentCompleted()) {
+            onProviderCompleted();
+        } else {
+            QObject::connect(service, &InterfaceBase::componentCompleted, this, &NewIPCServiceAdapterBase::onProviderCompleted);
+        }
+    }
+
+    void registerLocalService()
+    {
+        InterfaceManager::instance().registerAdapter(objectPath(), this);
+    }
+
+    void unregisterLocalService()
+    {
+        InterfaceManager::instance().unregisterAdapter(this);
+    }
+
+    virtual void setService(QObject *service) = 0;
+
+private:
+
     void onValueChanged()
     {
         if (isReady()) {
@@ -145,14 +162,6 @@ public:
         }
     }
 
-    void onProviderCompleted()
-    {
-        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
-        m_providerReady = true;
-        onValueChanged();
-    }
-
-private:
     QString m_objectPath;
     bool m_enabled = true;
     bool m_providerReady = false;

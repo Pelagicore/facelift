@@ -40,6 +40,8 @@
 
 namespace facelift {
 
+class IPCAdapterFactoryManager;
+
 template<typename InterfaceType>
 class IPCServiceAdapter : public NewIPCServiceAdapterBase
 {
@@ -55,7 +57,7 @@ public:
         unregisterLocalService();
     }
 
-    InterfaceBase *service() const override
+    InterfaceType *service() const override
     {
         return m_service;
     }
@@ -73,14 +75,28 @@ public:
         unregisterLocalService();
     }
 
+    void setService(TheServiceType *service)
+    {
+        m_service = service;
+    }
+
+    void registerService(TheServiceType *service)
+    {
+        setService(service);
+        registerService();
+    }
+
+protected:
+    void addServiceAdapter(IPCServiceAdapterBase &adapter) {
+        m_ipcServiceAdapters.append(&adapter);
+    }
+
     void setService(QObject *service) override
     {
         m_service = bindToProvider<InterfaceType>(service);
     }
 
-    void addServiceAdapter(IPCServiceAdapterBase &adapter) {
-        m_ipcServiceAdapters.append(&adapter);
-    }
+    friend class IPCAdapterFactoryManager;
 
 private:
     QPointer<InterfaceType> m_service;
