@@ -41,10 +41,8 @@
 
 #include "IPCServiceAdapter.h"
 #include "FaceliftUtils.h"
-#include "IPCServiceAdapter.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
-#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"
 
 {% if interface.isAsynchronousIPCEnabled %}
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCLocalServiceAdapter.h"
@@ -59,7 +57,6 @@
 
 {{module.namespaceCppOpen}}
 
-class {{interfaceName}}IPCQMLAdapterType;
 
 class {{classExport}} {{interfaceName}}IPCAdapter: public ::facelift::IPCServiceAdapter<{{interfaceName}}>
 {
