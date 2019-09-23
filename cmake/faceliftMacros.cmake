@@ -332,18 +332,17 @@ endfunction()
 #endfunction()
 
 
-macro(_facelift_add_target_start)
+macro(_facelift_add_target_start additionalOptions additionalOneValueArgs additionalMultiValueArgs)
 
-    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE STATIC SHARED OBJECT)
-    set(oneValueArgs )
+    set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE ${additionalOptions})
+    set(oneValueArgs ${additionalOneValueArgs})
     set(multiValueArgs PRIVATE_DEFINITIONS
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
         SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE
-        HEADERS_NO_INSTALL HEADERS_GLOB_NO_INSTALL HEADERS_GLOB_RECURSE_NO_INSTALL
-        PUBLIC_HEADER_BASE_PATH
         LINK_LIBRARIES
         UI_FILES
         RESOURCE_FOLDERS
+        ${additionalMultiValueArgs}
     )
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -428,7 +427,7 @@ endmacro()
 
 function(facelift_add_library TARGET_NAME)
 
-    _facelift_add_target_start(${ARGN})
+    _facelift_add_target_start("STATIC;SHARED;OBJECT" "" "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH" ${ARGN})
 
     unset(__INTERFACE)
     if(ARGUMENT_INTERFACE)
@@ -546,7 +545,7 @@ endfunction()
 
 
 function(facelift_add_executable TARGET_NAME)
-    _facelift_add_target_start(${ARGN})
+    _facelift_add_target_start("" "" "" ${ARGN})
     add_executable(${TARGET_NAME} ${ALL_SOURCES})
 
     if (NOT ${ARGUMENT_NO_INSTALL})
