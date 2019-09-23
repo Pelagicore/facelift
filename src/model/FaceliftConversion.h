@@ -255,7 +255,7 @@ struct TypeHandler<Type, typename std::enable_if<Type::IsStructWithQObjectWrappe
 {
     static Type fromVariant(const QVariant &variant)
     {
-        Type v;
+        Type v {};
         typedef typename Type::QObjectWrapperType QObjectWrapperType;
 
         if (variant.canConvert<QObjectWrapperType *>()) {
@@ -264,7 +264,7 @@ struct TypeHandler<Type, typename std::enable_if<Type::IsStructWithQObjectWrappe
         } else if (variant.canConvert<Type>()) {
             v = variant.value<Type>();
         } else {
-            qFatal("Bad argument: %s / type: %s / expected type: %s", qPrintable(variant.toString()), variant.typeName(), qPrintable(typeName<Type>()));
+            faceliftSeriousError("Bad argument: %s / type: %s / expected type: %s", qPrintable(variant.toString()), variant.typeName(), qPrintable(typeName<Type>()));
         }
 
         return v;
@@ -293,7 +293,7 @@ struct TypeHandler<Type, typename std::enable_if<Type::IsStructWithoutQObjectWra
         if (variant.canConvert<Type>()) {
             v = variant.value<Type>();
         } else {
-            qFatal("Bad argument: %s / type: %s / expected type: %s", qPrintable(variant.toString()), variant.typeName(), qPrintable(typeName<Type>()));
+            faceliftSeriousError("Bad argument: %s / type: %s / expected type: %s", qPrintable(variant.toString()), variant.typeName(), qPrintable(typeName<Type>()));
         }
 
         return v;
@@ -456,7 +456,7 @@ struct TypeHandler<QList<ElementType> >
                 ElementType element = v.value<ElementType>();
                 field.append(element);
             } else {
-                qFatal("Bad array item: %s / type: %s / expected type: %s", qPrintable(v.toString()), qPrintable(v.typeName()), qPrintable(typeName<ElementType>()));
+                faceliftSeriousError("Bad array item: %s / type: %s / expected type: %s", qPrintable(v.toString()), qPrintable(v.typeName()), qPrintable(typeName<ElementType>()));
             }
         }
     }
@@ -522,7 +522,7 @@ struct TypeHandler<QMap<QString, ElementType> >
             if (value.canConvert<ElementType>()) {
                 field.insert(i.key(), value.value<ElementType>());
             } else {
-                qFatal("Bad map item value: %s / type: %s / expected type: %s", qPrintable(value.toString()), qPrintable(value.typeName()), qPrintable(typeName<ElementType>()));
+                faceliftSeriousError("Bad map item value: %s / type: %s / expected type: %s", qPrintable(value.toString()), qPrintable(value.typeName()), qPrintable(typeName<ElementType>()));
             }
         }
     }
