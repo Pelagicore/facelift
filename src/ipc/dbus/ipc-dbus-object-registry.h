@@ -44,9 +44,10 @@ namespace dbus {
 class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
 {
     Q_OBJECT
-
+    static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.registry";
 public:
-    static constexpr const char *SERVICE_NAME = "facelift.registry";
+
+    QString m_serviceName;
 
     using Content = QMap<QString, QString>;
 
@@ -69,10 +70,7 @@ public:
 
     };
 
-    DBusObjectRegistry(DBusManager &dbusManager) :
-        m_dbusManager(dbusManager)
-    {
-    }
+    DBusObjectRegistry(DBusManager &dbusManager);
 
     void init();
 
