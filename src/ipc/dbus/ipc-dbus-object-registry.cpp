@@ -36,17 +36,25 @@
 namespace facelift {
 namespace dbus {
 
+DBusObjectRegistry::DBusObjectRegistry(DBusManager &dbusManager) :
+    m_dbusManager(dbusManager)
+{
+    const constexpr char* ENV_VAR_NAME = "FACELIFT_DBUS_SERVICE_NAME";
+    QByteArray serviceName = qgetenv(ENV_VAR_NAME);
+    m_serviceName = serviceName.isEmpty() ? DEFAULT_SERVICE_NAME : QString(serviceName);
+}
+
 void DBusObjectRegistry::init()
 {
     if (!m_initialized) {
         m_initialized = true;
-        if (m_dbusManager.registerServiceName(SERVICE_NAME)) {
+        if (m_dbusManager.registerServiceName(m_serviceName)) {
             m_master = std::make_unique<MasterImpl>(*this);
             m_master->init();
             QObject::connect(m_master.get(), &MasterImpl::objectsChanged, this, &DBusObjectRegistry::objectsChanged);
         } else {
             m_objectRegistryAsyncProxy = new facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy();
-            m_objectRegistryAsyncProxy->ipc()->setServiceName(SERVICE_NAME);
+            m_objectRegistryAsyncProxy->ipc()->setServiceName(m_serviceName);
             m_objectRegistryAsyncProxy->connectToServer();
             QObject::connect(m_objectRegistryAsyncProxy, &facelift::ipc::dbus::ObjectRegistryAsync::objectsChanged, this,
                     &DBusObjectRegistry::objectsChanged);
@@ -86,7 +94,7 @@ const QMap<QString, QString> &DBusObjectRegistry::objects(bool blocking)
         if (blocking) {
             if (m_objectRegistryProxy == nullptr) {
                 m_objectRegistryProxy = new facelift::ipc::dbus::ObjectRegistryIPCDBusProxy();
-                m_objectRegistryProxy->ipc()->setServiceName(SERVICE_NAME);
+                m_objectRegistryProxy->ipc()->setServiceName(m_serviceName);
                 m_objectRegistryProxy->connectToServer();
             }
             return m_objectRegistryProxy->objects();
