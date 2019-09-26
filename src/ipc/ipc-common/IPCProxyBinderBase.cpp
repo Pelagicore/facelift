@@ -36,7 +36,6 @@ IPCProxyBinderBase::IPCProxyBinderBase(InterfaceBase &owner, QObject *parent) : 
 {
 }
 
-
 void IPCProxyBinderBase::connectToServer()
 {
     if (!m_alreadyInitialized) {
@@ -58,4 +57,12 @@ void IPCProxyBinderBase::onComponentCompleted()
     m_componentCompleted = true;
     checkInit();
 }
+
+void IPCProxyBinderBase::setServiceName(const QString &name)
+{
+    m_serviceName = name;
+    m_explicitServiceName = true;
+    checkInit();
 }
+
+} // end namespace facelift

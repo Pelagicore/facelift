@@ -47,8 +47,16 @@ class FaceliftIPCCommonLib_EXPORT IPCProxyBinderBase : public QObject
 public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
+    Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
 
     IPCProxyBinderBase(InterfaceBase &owner, QObject *parent);
+
+    inline const QString &serviceName() const
+    {
+        return m_serviceName;
+    }
+
+    void setServiceName(const QString &name);
 
     bool enabled() const
     {
@@ -128,7 +136,9 @@ public:
     {
         return m_isSynchronous;
     }
-
+protected:
+    bool m_explicitServiceName = false;
+    QString m_serviceName;
 private:
     QMap<QString, IPCProxyBinderBase *> m_subProxies;
     QString m_objectPath;
@@ -137,7 +147,6 @@ private:
     bool m_enabled = true;
     bool m_componentCompleted = false;
     bool m_isSynchronous = true;
-
 };
 
 }

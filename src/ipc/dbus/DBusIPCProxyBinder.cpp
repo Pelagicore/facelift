@@ -53,13 +53,6 @@ void DBusIPCProxyBinder::setServiceAvailable(bool isRegistered)
     }
 }
 
-void DBusIPCProxyBinder::setServiceName(const QString &name)
-{
-    m_serviceName = name;
-    m_explicitServiceName = true;
-    checkInit();
-}
-
 void DBusIPCProxyBinder::setInterfaceName(const QString &name)
 {
     m_interfaceName = name;
