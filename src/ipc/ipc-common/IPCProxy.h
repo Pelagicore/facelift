@@ -61,11 +61,15 @@ public:
     {
         QObject::connect(ipc(), &IPCProxyBinderBase::complete, this, [this] () {
                 m_localProviderBinder.init();
-
+                auto serviceName = ipc()->serviceName();
+                auto objPath = ipc()->objectPath();
                 for (auto& proxy : m_ipcProxies) {
                     auto proxyAdapterIPCBinder = proxy.ipcBinder;
                     if (proxyAdapterIPCBinder != nullptr) {
-                        proxyAdapterIPCBinder->setObjectPath(ipc()->objectPath());
+                        proxyAdapterIPCBinder->setObjectPath(objPath);
+                        if(!serviceName.isEmpty()) {
+                            proxyAdapterIPCBinder->setServiceName(serviceName);
+                        }
                         proxyAdapterIPCBinder->connectToServer();
                         QObject::connect(proxyAdapterIPCBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
                     }

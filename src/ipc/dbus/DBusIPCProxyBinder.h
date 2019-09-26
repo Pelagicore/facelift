@@ -61,13 +61,6 @@ public:
 
     DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr);
 
-    const QString &serviceName() const
-    {
-        return m_serviceName;
-    }
-
-    void setServiceName(const QString &name);
-
     const QString &interfaceName() const
     {
         return m_interfaceName;
@@ -128,11 +121,9 @@ public:
 private:
     void checkRegistry();
 
-    QString m_serviceName;
     QString m_interfaceName;
     QDBusServiceWatcher m_busWatcher;
     DBusRequestHandler *m_serviceObject = nullptr;
-    bool m_explicitServiceName = false;
     bool m_serviceAvailable = false;
     DBusObjectRegistry &m_registry;
 };
