@@ -91,7 +91,7 @@ struct FaceliftModelLib_EXPORT BinarySeralizer
     QDataStream stream;
 };
 
-#define NOT_IMPLEMENTED() qFatal("Not implemented yet")
+#define NOT_IMPLEMENTED() qFatal("Not implemented")
 
 
 template<typename Type>
@@ -470,6 +470,7 @@ struct TypeHandler<QList<ElementType> >
         Q_UNUSED(receiver);
         Q_UNUSED(function);
         Q_UNUSED(connections);
+        static_assert(sizeof(ElementType) >= 0, "Missing specialization");
         Q_ASSERT(false);
     }
 
