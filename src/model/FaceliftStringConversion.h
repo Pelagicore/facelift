@@ -58,13 +58,14 @@ struct StringConversionHandler<QVariant>
     }
 };
 
+FaceliftModelLib_EXPORT QString qObjectToString(const QObject *o);
+
 template<typename Type>
 struct StringConversionHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
 {
-    static QString toString(const Type *v)
+    static QString toString(const Type *o)
     {
-        auto s = (size_t)(v);
-        return QString::number(s, 16);
+        return qObjectToString(o);
     }
 };
 
