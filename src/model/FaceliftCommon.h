@@ -48,9 +48,8 @@
  * Avoid "unused parameter" warnings, with multiple arguments
  */
 template<typename ... Args>
-void M_UNUSED(const Args & ... args)
+void M_UNUSED(const Args & ...)
 {
-    (void)(sizeof ... (args));
 }
 
 namespace facelift {
