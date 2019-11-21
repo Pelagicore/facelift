@@ -32,8 +32,8 @@
 #include "DBusIPCProxyBinder.h"
 #include "DBusManager.h"
 #include "DBusRequestHandler.h"
-#include "ipc-dbus.h"
-#include "ipc-dbus-object-registry.h"
+#include "DBusIPCCommon.h"
+#include "DBusObjectRegistry.h"
 
 namespace facelift {
 namespace dbus {

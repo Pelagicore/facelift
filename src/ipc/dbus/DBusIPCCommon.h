@@ -36,26 +36,7 @@
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <memory>
-
-#include <QDebug>
-
-#include <QDBusConnection>
-#include <QDBusMessage>
-
-#include "FaceliftModel.h"
-#include "FaceliftUtils.h"
-#include "FaceliftProperty.h"
-#include "DBusIPCMessage.h"
-#include "ipc-common.h"
-
 namespace facelift {
-
-namespace ipc { namespace dbus {
-class ObjectRegistry;
-class ObjectRegistryAsync;
-} }
-
 namespace dbus {
 using namespace facelift;
 
@@ -68,8 +49,5 @@ struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
     static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
 };
 
-class IPCDBusServiceAdapterBase;
-class DBusObjectRegistry;
 }
-
 }

@@ -28,8 +28,6 @@
 **
 **********************************************************************/
 
-#include "ipc-dbus.h"
-
 #include <QObject>
 #include <QDebug>
 #include <QTextStream>
@@ -51,10 +49,10 @@
 #include "QMLModel.h"
 
 #include "DBusIPCProxy.h"
-#include "ipc-dbus-object-registry.h"
-#include "ipc-dbus-serialization.h"
+#include "DBusObjectRegistry.h"
 
 #include "DBusManager.h"
+#include "DBusIPCCommon.h"
 
 namespace facelift {
 namespace dbus {

@@ -34,7 +34,4 @@
 ****************************************************************************/
 {% set baseClass = "::facelift::dbus::DBusIPCProxy<" + interfaceName + ">" %}
 {% set proxyTypeNameSuffix = "IPCDBusProxy" %}
-
-#include "ipc-dbus-serialization.h"
-
 {% include "IPCProxyAdapter.template.cpp" %}

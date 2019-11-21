@@ -36,15 +36,115 @@
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
 #endif
 
-#include "ipc-dbus.h"
+#include <QDBusVirtualObject>
+#include "IPCServiceAdapterBase.h"
+#include "DBusIPCMessage.h"
+#include "ipc-common.h"
 #include "ipc-serialization.h"
-#include "DBusIPCProxy.h"
-#include "IPCDBusServiceAdapter.h"
-#include "DBusManager.h"
 
 namespace facelift {
 
 namespace dbus {
+
+class DBusManager;
+
+class FaceliftIPCLibDBus_EXPORT IPCDBusServiceAdapterBase : public IPCServiceAdapterBase
+{
+    Q_OBJECT
+
+    typedef const char *MemberIDType;
+
+public:
+
+    template<typename Type>
+    using IPCAdapterType = typename Type::IPCDBusAdapterType;
+
+    class DBusVirtualObject : public QDBusVirtualObject
+    {
+
+    public:
+        DBusVirtualObject(IPCDBusServiceAdapterBase &adapter) : QDBusVirtualObject(nullptr), m_adapter(adapter)
+        {
+        }
+
+        QString introspect(const QString &path) const override
+        {
+            return m_adapter.introspect(path);
+        }
+
+        bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection) override
+        {
+            Q_UNUSED(connection);
+            return m_adapter.handleMessage(message);
+        }
+
+    private:
+        IPCDBusServiceAdapterBase &m_adapter;
+    };
+
+    IPCDBusServiceAdapterBase(QObject *parent = nullptr);
+
+    ~IPCDBusServiceAdapterBase();
+
+    bool handleMessage(const QDBusMessage &dbusMsg);
+
+    void flush();
+
+    template<typename Type>
+    void serializeValue(DBusIPCMessage &msg, const Type &v);
+
+    template<typename Type>
+    void deserializeValue(DBusIPCMessage &msg, Type &v);
+
+    void initOutgoingSignalMessage();
+
+    template<typename MemberID, typename ... Args>
+    void sendSignal(MemberID signalID, const Args & ... args);
+
+    template<typename ReturnType>
+    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue);
+
+    void sendAsyncCallAnswer(DBusIPCMessage &replyMessage);
+
+    void send(DBusIPCMessage &message);
+
+    virtual IPCHandlingResult handleMethodCallMessage(DBusIPCMessage &requestMessage, DBusIPCMessage &replyMessage) = 0;
+
+    virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot);
+
+    void registerService();
+
+    void unregisterService();
+
+    DBusManager &dbusManager();
+
+    template<typename Type>
+    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
+
+    template<typename Type>
+    void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
+
+    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
+
+    QString introspect(const QString &path) const;
+
+    template<typename T>
+    MemberIDType memberID(T member, MemberIDType memberName) const
+    {
+        // DBus member IDs are strings
+        Q_UNUSED(member);
+        return memberName;
+    }
+
+protected:
+    std::unique_ptr<DBusIPCMessage> m_pendingOutgoingMessage;
+    DBusVirtualObject m_dbusVirtualObject;
+
+    QString m_introspectionData;
+    QString m_serviceName;
+
+    bool m_alreadyInitialized = false;
+};
 
 template<typename Type>
 inline void IPCDBusServiceAdapterBase::serializeValue(DBusIPCMessage &msg, const Type &v)
@@ -61,10 +161,6 @@ inline void IPCDBusServiceAdapterBase::deserializeValue(DBusIPCMessage &msg, Typ
     IPCTypeHandler<Type>::read(msg.inputPayLoad(), serializedValue);
     IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
 }
-
-
-
-
 
 template<typename MemberID, typename ... Args>
 inline void IPCDBusServiceAdapterBase::sendSignal(MemberID signalID, const Args & ... args)
@@ -108,6 +204,6 @@ inline void IPCDBusServiceAdapterBase::serializeOptionalValue(DBusIPCMessage &ms
         serializeValue(msg, currentValue);
     }
 }
-}
 
-}
+} // end namespace dbus
+} // end namespace facelift
