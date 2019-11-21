@@ -48,10 +48,10 @@ struct {{className}}::Impl {
 
     Impl() : m_proxies {
         {% if generateAsyncProxy %}
-        createIPCAdapter(m_ipcLocalProxyAdapter),
+        createIPCProxy(m_ipcLocalProxyAdapter),
         {% endif %}
     #ifdef DBUS_IPC_ENABLED
-        createIPCAdapter(m_ipcDBusProxyAdapter),
+        createIPCProxy(m_ipcDBusProxyAdapter),
     #endif
         }
     {

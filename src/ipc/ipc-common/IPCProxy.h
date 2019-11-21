@@ -103,7 +103,7 @@ public:
     }
 
     template<typename ProxyType>
-    static ProxyAdapterEntry createIPCAdapter(ProxyType &proxy)
+    static ProxyAdapterEntry createIPCProxy(ProxyType &proxy)
     {
         ProxyAdapterEntry entry;
         entry.ipcBinder = proxy.ipc();
