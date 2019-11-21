@@ -30,11 +30,9 @@
 
 #pragma once
 
-#include "ipc-dbus.h"
 #include "IPCProxyBase.h"
 #include "DBusRequestHandler.h"
 #include "DBusIPCProxyBinder.h"
-#include <QDBusServiceWatcher>
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
@@ -50,21 +48,8 @@ using namespace facelift;
 
 class DBusManager;
 
-class FaceliftIPCLibDBus_EXPORT DBusIPCProxyBase : protected DBusRequestHandler
-{
-public:
-    DBusIPCProxyBase(DBusIPCProxyBinder& ipcBinder) : m_ipcBinder(ipcBinder) {
-    }
-
-protected:
-    DBusIPCProxyBinder& m_ipcBinder;
-    bool m_serviceRegistered = false;
-
-};
-
-
 template<typename InterfaceType>
-class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusIPCProxyBase
+class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusRequestHandler
 {
 
 public:
@@ -75,7 +60,7 @@ public:
     template<typename Type>
     using IPCProxyType = typename Type::IPCDBusProxyType;
 
-    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), DBusIPCProxyBase(m_ipcBinder), m_ipcBinder(*this)
+    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), m_ipcBinder(*this)
     {
         m_ipcBinder.setInterfaceName(InterfaceType::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
@@ -157,10 +142,12 @@ public:
         m_ipcBinder.connectToServer();
     }
 
+protected:
+    bool m_serviceRegistered = false;
 private:
     DBusIPCProxyBinder m_ipcBinder;
 
 };
-}
 
-}
+} // end namespace dbus
+} // end namespace facelift

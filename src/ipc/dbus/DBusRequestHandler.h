@@ -39,6 +39,8 @@
 namespace facelift {
 namespace dbus {
 
+class DBusIPCMessage;
+
 class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
 {
 public:

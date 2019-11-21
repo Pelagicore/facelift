@@ -30,8 +30,6 @@
 
 #pragma once
 
-#include "ipc-dbus.h"
-
 #include "facelift/ipc/dbus/ObjectRegistryImplementationBase.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPCProxy.h"
