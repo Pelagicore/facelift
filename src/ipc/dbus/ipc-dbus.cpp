@@ -169,6 +169,7 @@ void IPCDBusServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
         dbusManager().connection().unregisterObject(objectPath());
+        qCDebug(LogIpc) << "Unregistered IPC DBUS object at " << objectPath();
         dbusManager().objectRegistry().unregisterObject(objectPath());
         m_alreadyInitialized = false;
     }

@@ -77,6 +77,8 @@ public:
 
     virtual void registerService(const QString &objectPath, InterfaceBase* serverObject) = 0;
 
+    virtual void unregisterService() = 0;
+
     QString generateObjectPath(const QString &parentPath) const;
 
 
@@ -94,7 +96,9 @@ public:
             }
         }
 
-        auto serviceAdapter = new InterfaceAdapterType(service); // This object will be deleted together with the service itself
+        auto serviceAdapter = new InterfaceAdapterType(this);  // Destroy the adapter when either the parent adapter is destroyed or when the service is destroyed
+        QObject::connect(service, &QObject::destroyed, serviceAdapter, &QObject::deleteLater);
+
         serviceAdapter->registerService(this->generateObjectPath(this->objectPath()), service);
         m_subAdapters.append(serviceAdapter);
 

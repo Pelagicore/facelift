@@ -72,9 +72,8 @@ public:
     struct Impl;
     std::unique_ptr<Impl> m_impl;
 
-{% if interface.isAsynchronousIPCEnabled %}
-    {{interfaceName}}IPCLocalServiceAdapter m_ipcLocalServiceAdapter;
-{% endif %}
+    void createAdapters() override;
+    void destroyAdapters() override;
 
 };
 

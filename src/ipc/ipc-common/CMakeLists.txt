@@ -11,6 +11,7 @@ facelift_add_library(FaceliftIPCCommonLib
         IPCProxyBinderBase.cpp
         InterfaceManager.cpp
         IPCProxyNewBase.cpp
+        NewIPCServiceAdapterBase.cpp
     HEADERS
         ipc-common.h
         NotAvailableImpl.h

@@ -34,6 +34,7 @@
 #include "InterfaceManager.h"
 #include "QMLAdapter.h"
 #include "FaceliftStringConversion.h"
+#include "span.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -53,13 +54,9 @@ public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
-    NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
-    {
-    }
+    NewIPCServiceAdapterBase(QObject *parent);
 
-    virtual void registerService() = 0;
-
-    virtual void unregisterService() = 0;
+    ~NewIPCServiceAdapterBase();
 
     bool enabled() const
     {
@@ -103,7 +100,16 @@ public:
         onValueChanged();
     }
 
+    void registerService();
+
+    void unregisterService();
+
+    virtual void createAdapters() = 0;
+    virtual void destroyAdapters() = 0;
+
 protected:
+
+    void setServiceAdapters(facelift::span<IPCServiceAdapterBase*> adapters);
 
     template<typename ServiceType>
     ServiceType *bindToProvider(QObject *s)
@@ -147,20 +153,9 @@ protected:
 
 private:
 
-    void onValueChanged()
-    {
-        if (isReady()) {
-            if (!m_registered) {
-                registerService();
-                m_registered = true;
-            }
-        } else {
-            if (m_registered) {
-                unregisterService();
-                m_registered = false;
-            }
-        }
-    }
+    void onValueChanged();
+
+    facelift::span<IPCServiceAdapterBase*> m_ipcServiceAdapters;
 
     QString m_objectPath;
     bool m_enabled = true;

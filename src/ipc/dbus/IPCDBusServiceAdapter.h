@@ -174,7 +174,7 @@ public:
         this->registerService();
     }
 
-    void unregisterService() {
+    void unregisterService() override {
         IPCDBusServiceAdapterBase::unregisterService();
         setObjectPath("");
         m_service = nullptr;

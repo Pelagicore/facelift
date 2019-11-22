@@ -460,20 +460,6 @@ struct TypeHandler<QList<ElementType> >
             }
         }
     }
-
-    template<typename ReceiverType, typename Function>
-    static void connectChangeSignals(const QVariant &variant, ReceiverType *receiver, Function function,
-            QList<QMetaObject::Connection> &connections)
-    {
-        // nothing to connect for most of the types
-        Q_UNUSED(variant);
-        Q_UNUSED(receiver);
-        Q_UNUSED(function);
-        Q_UNUSED(connections);
-        static_assert(sizeof(ElementType) >= 0, "Missing specialization");
-        Q_ASSERT(false);
-    }
-
 };
 
 template<typename ElementType>

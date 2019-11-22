@@ -333,6 +333,7 @@ void LocalIPCRegistry::registerAdapter(const QString &objectPath, LocalIPCServic
     Q_ASSERT(adapter);
     if ((!m_registry.contains(objectPath)) || (m_registry[objectPath] == nullptr)) {
         m_registry.insert(objectPath, adapter);
+        qCDebug(LogIpc) << "IPC service registered" << adapter;
         emit adapterAvailable(adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(objectPath),
