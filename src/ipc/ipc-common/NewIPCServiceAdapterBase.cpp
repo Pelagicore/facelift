@@ -27,61 +27,56 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+
 #pragma once
 
-#include "IPCServiceAdapterBase.h"
 #include "NewIPCServiceAdapterBase.h"
-
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
+#include "IPCServiceAdapterBase.h"
 
 namespace facelift {
 
-class IPCAdapterFactoryManager;
-
-template<typename InterfaceType>
-class IPCServiceAdapter : public NewIPCServiceAdapterBase
+NewIPCServiceAdapterBase::NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
 {
-public:
-    using TheServiceType = InterfaceType;
-    using NewIPCServiceAdapterBase::registerService;
+}
 
-    IPCServiceAdapter(QObject *parent) : NewIPCServiceAdapterBase(parent)
-    {
-        setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
+NewIPCServiceAdapterBase::~NewIPCServiceAdapterBase() {
+    unregisterLocalService();
+}
+
+void NewIPCServiceAdapterBase::registerService()
+{
+    registerLocalService();
+    createAdapters();
+    for (auto& ipcAdapter : m_ipcServiceAdapters) {
+        qWarning() << "PPP" << ipcAdapter;
+        ipcAdapter->registerService(objectPath(), service());
     }
+}
 
-    InterfaceType *service() const override
-    {
-        return m_service;
+void NewIPCServiceAdapterBase::unregisterService()
+{
+    unregisterLocalService();
+    destroyAdapters();
+    m_ipcServiceAdapters.clear();
+}
+
+void NewIPCServiceAdapterBase::setServiceAdapters(facelift::span<IPCServiceAdapterBase*> adapters) {
+    m_ipcServiceAdapters = adapters;
+}
+
+void NewIPCServiceAdapterBase::onValueChanged()
+{
+    if (isReady()) {
+        if (!m_registered) {
+            registerService();
+            m_registered = true;
+        }
+    } else {
+        if (m_registered) {
+            unregisterService();
+            m_registered = false;
+        }
     }
-
-    void setService(TheServiceType *service)
-    {
-        m_service = service;
-    }
-
-    void registerService(TheServiceType *service)
-    {
-        setService(service);
-        registerService();
-    }
-
-protected:
-
-    void setService(QObject *service) override
-    {
-        m_service = bindToProvider<InterfaceType>(service);
-    }
-
-    friend class IPCAdapterFactoryManager;
-
-private:
-    QPointer<InterfaceType> m_service;
-
-};
+}
 
 }

@@ -66,19 +66,20 @@ public:
     void onLocalAdapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter)
     {
         Q_UNUSED(objectPath);
-        auto service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
-        if (service) {
+        if (m_adapter == adapter) {  // We reset if the unregistered instance is the one we were bound to
             m_provider = nullptr;
+            m_adapter = nullptr;
             m_proxy.refreshProvider();
         }
     }
 
     void onLocalAdapterAvailable(NewIPCServiceAdapterBase *adapter)
     {
-        auto service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
+        auto* service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
         if (service) {
             auto provider = qobject_cast<InterfaceType *>(service);
             m_provider = provider;
+            m_adapter = adapter;
             if (m_provider) {
                 qCDebug(LogIpc) << "Local server found for " << m_proxy.objectPath();
                 m_proxy.refreshProvider();
@@ -93,6 +94,7 @@ public:
 
 private:
     QPointer<InterfaceType> m_provider;
+    QPointer<NewIPCServiceAdapterBase> m_adapter;
     IPCProxyNewBase &m_proxy;
     InterfaceManager &m_interfaceManager = InterfaceManager::instance();
 };

@@ -57,11 +57,11 @@ IPCAdapterFactoryManager &IPCAdapterFactoryManager::instance()
 }
 
 
-IPCAttachedPropertyFactoryBase::IPCAttachedPropertyFactoryBase(QObject *parent) : QObject(parent)
+IPCAttachedPropertyFactory::IPCAttachedPropertyFactory(QObject *parent) : QObject(parent)
 {
 }
 
-InterfaceBase *IPCAttachedPropertyFactoryBase::getProvider(QObject *object)
+InterfaceBase *IPCAttachedPropertyFactory::getProvider(QObject *object)
 {
     InterfaceBase *provider = nullptr;
 

@@ -74,27 +74,18 @@ private:
 };
 
 
-class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactoryBase : public QObject
+class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public QObject
 {
     Q_OBJECT
 
 public:
-    IPCAttachedPropertyFactoryBase(QObject *parent);
-
-    static IPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
+    IPCAttachedPropertyFactory(QObject *parent);
 
     static InterfaceBase *getProvider(QObject *object);
 
-};
-
-
-class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public IPCAttachedPropertyFactoryBase
-{
-public:
     static NewIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
 
 };
-
 
 }
 

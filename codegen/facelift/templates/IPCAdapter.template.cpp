@@ -34,6 +34,7 @@
 ****************************************************************************/
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCAdapter.h"
+#include "IPCServiceAdapterBase.h"
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
@@ -46,26 +47,48 @@
 
 struct {{interfaceName}}IPCAdapter::Impl {
 
+{% if interface.isAsynchronousIPCEnabled %}
+    {{interfaceName}}IPCLocalServiceAdapter m_ipcLocalServiceAdapter;
+{% endif %}
+
 #ifdef DBUS_IPC_ENABLED
     {{interfaceName}}IPCDBusAdapter m_ipcDBusServiceAdapter;
 #endif
 
+    std::array<facelift::IPCServiceAdapterBase*,
+
+    {% if interface.isAsynchronousIPCEnabled %}
+    1
+    {% endif %}
+
+#ifdef DBUS_IPC_ENABLED
+    +1
+#endif
+    > m_adapters { {
+            {% if interface.isAsynchronousIPCEnabled %}
+            &m_ipcLocalServiceAdapter,
+            {% endif %}
+    #ifdef DBUS_IPC_ENABLED
+            &m_ipcDBusServiceAdapter,
+    #endif
+    } };
 };
 
 
-{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) : BaseType(parent),
-    m_impl(std::make_unique<Impl>())
+{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) : BaseType(parent)
 {
-{% if interface.isAsynchronousIPCEnabled %}
-    addServiceAdapter(m_ipcLocalServiceAdapter);
-{% endif %}
-#ifdef DBUS_IPC_ENABLED
-    addServiceAdapter(m_impl->m_ipcDBusServiceAdapter);
-#endif
-
 }
 
 {{interfaceName}}IPCAdapter::~{{interfaceName}}IPCAdapter() {
+}
+
+void {{interfaceName}}IPCAdapter::createAdapters() {
+    m_impl = std::make_unique<Impl>();
+    setServiceAdapters(m_impl->m_adapters);
+}
+
+void {{interfaceName}}IPCAdapter::destroyAdapters() {
+    m_impl.reset();
 }
 
 {{module.namespaceCppClose}}

@@ -41,7 +41,7 @@
 
 namespace facelift {
 
-class IPCAttachedPropertyFactoryBase;
+class IPCAttachedPropertyFactory;
 class IPCServiceAdapterBase;
 
 
@@ -92,7 +92,7 @@ protected:
         return m_provider;
     }
 
-    friend class IPCAttachedPropertyFactoryBase;
+    friend class IPCAttachedPropertyFactory;
     friend class IPCServiceAdapterBase;
     friend class NewIPCServiceAdapterBase;
 
