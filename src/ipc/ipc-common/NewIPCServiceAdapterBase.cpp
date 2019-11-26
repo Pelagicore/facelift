@@ -48,7 +48,6 @@ void NewIPCServiceAdapterBase::registerService()
     registerLocalService();
     createAdapters();
     for (auto& ipcAdapter : m_ipcServiceAdapters) {
-        qWarning() << "PPP" << ipcAdapter;
         ipcAdapter->registerService(objectPath(), service());
     }
 }
