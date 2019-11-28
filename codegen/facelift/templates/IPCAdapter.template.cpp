@@ -35,6 +35,7 @@
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCAdapter.h"
 #include "IPCServiceAdapterBase.h"
+#include <array>
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
