@@ -56,10 +56,10 @@ struct {{interfaceName}}IPCAdapter::Impl {
     {{interfaceName}}IPCDBusAdapter m_ipcDBusServiceAdapter;
 #endif
 
-    std::array<facelift::IPCServiceAdapterBase*,
+    std::array<facelift::IPCServiceAdapterBase*, 0
 
     {% if interface.isAsynchronousIPCEnabled %}
-    1
+    +1
     {% endif %}
 
 #ifdef DBUS_IPC_ENABLED
