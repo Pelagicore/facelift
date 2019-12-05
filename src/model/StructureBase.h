@@ -40,7 +40,6 @@
 #include "FaceliftCommon.h"
 #include "FaceliftStringConversion.h"
 
-
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
 #else

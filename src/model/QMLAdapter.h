@@ -149,11 +149,13 @@ public:
     TQMLAdapter(QObject *parent = nullptr) : QMLAdapterByReference<ProviderImplementationType>(m_provider, parent)
     {
         this->connectProvider();
+        registerInterfaceImplementationInstance(m_provider);
     }
 
     TQMLAdapter(QQmlEngine *engine) : QMLAdapterByReference<ProviderImplementationType>(m_provider, engine)
     {
         this->connectProvider();
+        registerInterfaceImplementationInstance(m_provider);
     }
 
 private:
@@ -188,7 +190,7 @@ QObject *singletonGetterByFunction(QQmlEngine *engine, QJSEngine *scriptEngine)
 
 
 /*!
- * Register the given interface C++ implementation as an ucreatable QML type.
+ * Register the given C++ interface implementation as an uncreatable QML type.
  * By default, the type is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>
@@ -202,7 +204,7 @@ int registerUncreatableQmlComponent(const char *uri, const char *name = Provider
 
 
 /*!
- * Register the given interface C++ implementation as a creatable QML component.
+ * Register the given C++ interface implementation as a creatable QML component.
  * By default, the component is registered under the same name as defined in the QFace definition.
  */
 template<typename ProviderType>

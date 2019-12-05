@@ -42,11 +42,7 @@ ServiceRegistry::~ServiceRegistry()
 void ServiceRegistry::registerObject(InterfaceBase *i)
 {
     m_objects.append(i);
-
-    // Notify later since our object is not yet fully constructed at this point in time
-    QTimer::singleShot(0, [this, i] () {
-        emit objectRegistered(i);
-    });
+    emit objectRegistered(i);
 }
 
 ServiceRegistry &ServiceRegistry::instance()
@@ -112,7 +108,11 @@ void ModelBase::onModelChanged()
 void InterfaceBase::init(const QString &interfaceName)
 {
     m_interfaceName = interfaceName;
-    facelift::ServiceRegistry::instance().registerObject(this);
+}
+
+void registerInterfaceImplementationInstance(InterfaceBase & i)
+{
+    facelift::ServiceRegistry::instance().registerObject(&i);
 }
 
 }
