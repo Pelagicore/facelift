@@ -44,7 +44,7 @@ namespace facelift {
 
 
 /**
- * Base class for
+ * Base class for QML-based interface implementations
  */
 class FaceliftModelLib_EXPORT ModelQMLImplementationBase : public QObject, public QQmlParserStatus
 {

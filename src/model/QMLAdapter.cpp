@@ -29,6 +29,7 @@
 **********************************************************************/
 
 #include "QMLAdapter.h"
+#include "ServiceRegistry.h"
 
 namespace facelift {
 
@@ -183,7 +184,6 @@ QHash<int, QByteArray> ModelListModelBase::roleNames() const
     roles[Qt::UserRole] = "modelData";
     return roles;
 }
-
 
 ModelListModelBase::ModelListModelBase() {
     QObject::connect(this, &QAbstractItemModel::rowsInserted, this, &ModelListModelBase::countChanged);

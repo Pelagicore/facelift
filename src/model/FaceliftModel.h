@@ -428,6 +428,8 @@ private:
     std::shared_ptr<Master> m_master;
 };
 
+FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase & i);
+
 }
 
 template<typename ElementType>

@@ -30,10 +30,16 @@
 
 #pragma once
 
-#include "FaceliftModel.h"
+#include <QString>
+#include <QMap>
+#include <QTextStream>
+#include <QVariant>
+#include <QList>
+#include <type_traits>
 
 namespace facelift {
 
+class InterfaceBase;
 class StructureBase;
 
 template<typename Type, typename Enable = void>
