@@ -167,7 +167,6 @@ LocalIPCProxyBinder::LocalIPCProxyBinder(InterfaceBase &owner, QObject *parent) 
 
 void LocalIPCProxyBinder::onServiceAvailable(LocalIPCServiceAdapterBase *adapter)
 {
-
     Q_ASSERT(adapter != nullptr);
     if (m_serviceAdapter) {
         QObject::disconnect(m_signalConnection);
@@ -240,17 +239,15 @@ void LocalIPCProxyBinder::onSignalTriggered(LocalIPCMessage &msg)
 
 LocalIPCMessage LocalIPCProxyBinder::call(LocalIPCMessage &message) const
 {
-    //    return M_UNIMPLEMENTED<LocalIPCMessage>(message);
     Q_UNUSED(message);
     qFatal("Local IPC only used with Async proxies for now");
     return LocalIPCMessage();
 }
 
-
 void LocalIPCProxyBinder::asyncCall(LocalIPCMessage &requestMessage, QObject *context, std::function<void(LocalIPCMessage &message)> callback)
 {
     requestMessage.addListener(context, callback);
-    QTimer::singleShot(0, context, [this, requestMessage, callback]() mutable {
+    QTimer::singleShot(0, m_serviceAdapter, [this, requestMessage]() mutable {
                 auto r = m_serviceAdapter->handleMessage(requestMessage);
                 Q_ASSERT(r != facelift::IPCHandlingResult::INVALID);
             });
