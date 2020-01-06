@@ -1,0 +1,62 @@
+
+{% extends "documentation/Default.template.html" %}
+
+{% block title %}
+Facelift Generated Documentation - All Modules
+{% endblock %}
+
+{% block content %}
+    <h5>Module</h5>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">
+                    <span class="badge badge-secondary">
+                        {{ module.name }}
+                    </span>
+            </h5>
+
+            {% include "documentation/ModuleContents.template.html" %}
+
+        </div>
+    </div>
+
+    <div class="mt-5"></div>
+
+    <h6>QFace Reference Files</h6>
+
+    <div id="accordion">
+        {% if qface_file_references|length == 0 %}
+        <div class="text-muted">No reference files found</div>
+        {% endif %}
+        {% for qface_file_reference in qface_file_references %}
+
+        <div class="card">
+            <div class="card-header" id="heading{{loop.index}}">
+              <h5 class="mb-0">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseQfaceDocument{{loop.index}}" aria-expanded="false" aria-controls="collapseQfaceDocument{{loop.index}}">
+                  {{ qface_file_reference | get_basename }}
+                </button>
+              </h5>
+            </div>
+
+            <div id="collapseQfaceDocument{{loop.index}}" class="collapse" aria-labelledby="heading{{loop.index}}" data-parent="#accordion">
+              <div class="card-body">
+                <ul>
+                    <li>
+                        Displaying contents of <a href="file://{{ qface_file_reference }}">{{ qface_file_reference }}</a>
+                    </li>
+                </ul>
+                <div class="mt-1"></div>
+                <pre>
+                    <code>
+{{ qface_file_reference | get_file_contents }}
+                    </code>
+                </pre>
+              </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+
+{% endblock %}

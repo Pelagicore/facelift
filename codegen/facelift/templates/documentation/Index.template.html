@@ -1,0 +1,55 @@
+{% extends "documentation/Default.template.html" %}
+
+{% block title %}
+Facelift Generated Documentation - All Modules
+{% endblock %}
+
+{% block content %}
+    <h5>Modules</h5>
+    {% for module in sorted_system_modules %}
+    {% set module_path = ".".join(module.name_parts) %}
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-title">
+                <a id="anchor_{{module.name}}"></a>
+                <a href="#anchor_{{module.name}}"><span class="badge badge-light">&#x2666;</span></a>
+                <a href="{{ module_path }}.Module.html">
+                    {{ module.name }}
+                </a>
+            </h6>
+
+            {% include "documentation/ModuleContents.template.html" %}
+
+        </div>
+    </div>
+
+    {% endfor %}
+
+    <div class="mt-5"></div>
+
+    <h6>QFace Input Files</h6>
+    <ul>
+        {% if qface_input_list|length == 0 %}
+            <div class="text-muted">No input files found</div>
+        {% endif %}
+        {% for input in qface_input_list %}
+            <li>
+                <a href="file://{{ input }}">{{ input }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="mt-5"></div>
+
+    <h6>QFace Dependency Files</h6>
+    <ul>
+        {% if qface_dependency_list|length == 0 %}
+            <div class="text-muted">No dependency files found</div>
+        {% endif %}
+        {% for dependency in qface_dependency_list %}
+            <li>
+                <a href="file://{{ dependency }}">{{ dependency }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

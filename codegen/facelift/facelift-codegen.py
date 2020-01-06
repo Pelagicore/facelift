@@ -37,6 +37,8 @@ import logging.config
 import yaml
 import qface
 
+import docgen
+
 here = Path(__file__).dirname()
 
 logging.config.dictConfig(yaml.load(open(here / 'facelift-log.yaml')))
@@ -447,6 +449,8 @@ def generate(input, output, dependency, library, all):
     in the given output directory."""
     run_generation(input, output, dependency, library, all)
 
+    # Generate documentation purely from an interface definition
+    docgen.run_documentation_generation(input, output, dependency)
 
 if __name__ == '__main__':
     generate()

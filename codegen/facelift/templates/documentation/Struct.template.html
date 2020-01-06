@@ -1,0 +1,59 @@
+{% extends "documentation/Default.template.html" %}
+
+{% block title %}
+Facelift Generated Documentation - {{ struct.name }}
+{% endblock %}
+
+{% block content %}
+        <h5>
+            <span class="badge badge-secondary">{{ module.name }}</span>
+            {{ struct.name }}
+        </h5>
+
+        <div class="mt-3"></div>
+
+        {# Clear doc as it may be polluted by global scope #}
+        {% set doc = None %}
+        {% set doc = struct.comment|parse_doc %}
+        {% if doc != None %}
+        {{ doc.brief | join(' ') }}
+        {% else %}
+        <div class="text-muted">No documentation found</div>
+        {% endif %}
+
+        <div class="mt-3"></div>
+
+        <ul class="list-group">
+        {% for element in struct.fields %}
+
+            {% set readonly_suffix = "" %}
+            {% if element.readonly %}
+                {% set readonly_suffix = "<div class=\"text-muted\">readonly</div>" %}
+            {% endif %}
+
+            <li class="list-group-item">
+            {{ readonly_suffix }}
+            {% if element.type.is_list or element.type.is_model %}
+                {{ '%s&lt;<a href="{{ module_path }}.{{ element.type.nested.name }}.Struct.html"><b>%s</b></a>&gt;' % (element.type, element.type.nested.name) }} {{ element.name }}
+            {% elif element.type.is_primitive %}
+                {{ element.type }} {{ element.name }}
+            {% elif element.type.is_enum %}
+                <a href="{{ module_path }}.{{ element.type.name }}.Enum.html"><b>{{ element.type }}</b></a>
+                {{ element.name }}
+            {% else %}
+                <a href="{{ module_path }}.{{ element.type.name }}.Struct.html"><b>{{ element.type }}</b></a>
+                {{ element.name }}
+            {% endif %}
+                <div class="mt-1"></div>
+            {# Clear doc as it may be polluted by global scope #}
+            {% set doc = None %}
+            {% set doc = element.comment|parse_doc %}
+            {% if doc != None %}
+            {{ doc.brief | join(' ') }}
+            {% else %}
+                <div class="text-muted">No documentation found</div>
+            {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+{% endblock %}
