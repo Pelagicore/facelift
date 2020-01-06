@@ -35,6 +35,9 @@ interface SubInterface {
     void doSomething();
 }
 
+/**
+@brief A representation of an address book that stores a list of contacts
+*/
 @ipc-sync: true
 @qml-implementation: true
 interface AddressBook {
@@ -56,6 +59,9 @@ interface AddressBook {
 
 }
 
+/**
+@brief A collection of details of a known person or contact
+*/
 @qml-component: true
 struct Contact {
     int idx
@@ -64,6 +70,9 @@ struct Contact {
     ContactType type
 }
 
+/**
+@brief The type of relationship binding the user and the contact
+*/
 enum ContactType {
     Friend,
     Family,

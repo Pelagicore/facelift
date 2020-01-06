@@ -1,0 +1,99 @@
+{% extends "documentation/Default.template.html" %}
+
+{% block title %}
+Facelift Generated Documentation - All Modules
+{% endblock %}
+
+{% block content %}
+    <h5>Modules</h5>
+    {% for module in system.modules %}
+    {% set module_path = ".".join(module.name_parts) %}
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-title">
+                <a href="{{ module_path }}.Module.html">
+                    {{ module.name }}
+                </a>
+            </h6>
+
+            <h7>
+                Interfaces 
+                <span class="badge badge-secondary">
+                    {{ module.interfaces | length }}
+                </span>
+            </h7>
+
+            <ul>
+            {% for interface in module.interfaces %}
+                <li>
+                    <a href="{{ module_path }}.{{interface.name}}.Interface.html">
+                        {{ interface.name }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+
+            <h7>Structs <span class="badge badge-secondary">{{ module.structs | length }}</span></h7>
+
+            <ul>
+            {% if module.structs|length == 0 %}
+                <div class="text-muted">No structs found</div>
+            {% endif %}
+            {% for struct in module.structs %}
+                <li>
+                    <a href="{{ module_path }}.{{struct.name}}.Struct.html">
+                        {{ struct.name }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+
+            <h7>Enums <span class="badge badge-secondary">{{ module.enums | length }}</span></h7>
+
+            <ul>
+                {% if module.enums|length == 0 %}
+                    <div class="text-muted">No enums found</div>
+                {% endif %}
+                {% for enum in module.enums %}
+                    <li>
+                        <a href="{{ module_path }}.{{enum.name}}.Enum.html">
+                            {{ enum.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    {% endfor %}
+
+    <div class="mt-5"></div>
+
+    <h6>QFace Input Files</h6>
+    <ul>
+        {% if qface_input_list|length == 0 %}
+            <div class="text-muted">No input files found</div>
+        {% endif %}
+        {% for input in qface_input_list %}
+            <li>
+                <a href="file://{{ input }}">{{ input }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <div class="mt-5"></div>
+
+    <h6>QFace Dependency Files</h6>
+    <ul>
+        {% if qface_dependency_list|length == 0 %}
+            <div class="text-muted">No dependency files found</div>
+        {% endif %}
+        {% for dependency in qface_dependency_list %}
+            <li>
+                <a href="file://{{ dependency }}">{{ dependency }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <div class="mt-5"></div>
+{% endblock %}

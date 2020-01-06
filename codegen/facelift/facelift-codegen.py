@@ -36,6 +36,7 @@ from path import Path
 import logging.config
 import yaml
 import qface
+import os
 
 here = Path(__file__).dirname()
 
@@ -333,6 +334,18 @@ def generateFile(generator, outputPath, templatePath, context, libraryName, libr
         context.update({'classExport': ""})
     generator.write(outputPath, templatePath, context)
 
+def collect_qface_files(path):
+    """
+    Collect all *.qface files inside a given path
+    Returns a list of absolute qface file paths
+    """
+    qface_file_list = list()
+    if path is not None and path != "":
+        for file in os.listdir(path):
+            if file.endswith(".qface"):
+                qface_file_list.append(os.path.join(path, file))
+    return qface_file_list
+
 def run_generation(input, output, dependency, libraryName, all):
     global generateAsyncProxy
     global generateAll
@@ -435,6 +448,54 @@ def run_generation(input, output, dependency, libraryName, all):
                     generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.h', 'StructQObjectWrapper.template.h', ctx, libraryName, "")
                     generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.cpp', 'StructQObjectWrapper.template.cpp', ctx, libraryName, "")
 
+def run_documentation_generation(input, output, dependency):
+    FileSystem.strict = True
+    Generator.strict = True
+
+    # Build the list of modules to be generated
+    system = FileSystem.parse(list(input))
+    modulesToGenerate = [module.name for module in system.modules]
+
+    system = FileSystem.parse(list(input) + list(dependency))
+
+    qface_input_list = list()
+    for input_dir in list(input):
+        qface_input_list.extend(collect_qface_files(input_dir))
+
+    qface_dependency_list = list()
+    for dependency_dir in list(dependency):
+        qface_dependency_list.extend(collect_qface_files(dependency_dir))
+
+    generator = Generator(search_path=Path(here / 'templates'))
+    generator.destination = output
+
+    ctx = { 'output': output}
+    ctx.update({ 'system': system })
+    ctx.update({ 'qface_input_list': qface_input_list })
+    ctx.update({ 'qface_dependency_list': qface_dependency_list })
+
+    generator.write('documentation/index.html', 'documentation/Index.template.html', ctx)
+    for module in system.modules:
+        if module.name in modulesToGenerate:
+            ctx.update({'module': module})
+            module_path = '.'.join(module.name_parts)
+            ctx.update({'module_path': module_path})
+            log.debug('process module documentation %s' % module.module_name)
+            ctx.update({'path': module_path})
+            generator.write('documentation/{{path}}.Module.html', 'documentation/Module.template.html', ctx)
+            for interface in module.interfaces:
+                log.debug('process interface documentation %s' % interface)
+                ctx.update({'interface': interface})
+                ctx.update({'interfaceName': interface.name})
+                generator.write('documentation/{{path}}.{{interfaceName}}.Interface.html', 'documentation/Interface.template.html', ctx)
+
+            for enum in module.enums:
+                ctx.update({'enum': enum})
+                generator.write('documentation/{{path}}.{{enum}}.Enum.html', 'documentation/Enum.template.html', ctx)
+
+            for struct in module.structs:
+                ctx.update({'struct': struct})
+                generator.write('documentation/{{path}}.{{struct}}.Struct.html', 'documentation/Struct.template.html', ctx)
 
 @click.command()
 @click.option('--library', default="")
@@ -447,6 +508,8 @@ def generate(input, output, dependency, library, all):
     in the given output directory."""
     run_generation(input, output, dependency, library, all)
 
+    # Generate documentation purely from an interface definition
+    run_documentation_generation(input, output, dependency)
 
 if __name__ == '__main__':
     generate()

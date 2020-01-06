@@ -1,0 +1,126 @@
+{% extends "documentation/Default.template.html" %}
+
+{% block title %}
+Facelift Generated Documentation - {{ interface.name }}
+{% endblock %}
+
+{% block content %}
+        {# Header of Interface #}
+        <h5>
+            <span class="badge badge-secondary">{{ module.name }}</span>
+            {{ interface.name }}
+        </h5>
+        <div class="mt-3"></div>
+        {# Clear doc as it may be polluted by global scope #}
+        {% set doc = None %}
+        {% set doc = interface.comment|parse_doc %}
+        {% if doc != None %}
+        {{ doc.brief | join(' ') }}
+        {% else %}
+        <div class="text-muted">No documentation found</div>
+        {% endif %}
+
+        {# Properties #}
+        <div class="mt-3"></div>
+        <h6>Properties</h6>
+        {% if interface.properties|length == 0 %}
+        <div class="text-muted">No operations found</div>
+        {% endif %}
+        <ul class="list-group">
+        {% for element in interface.properties %}
+        
+        {% set html_suffix = ".Struct.html" %}
+        {% if element.type.is_interface %}
+            {% set html_suffix = ".Interface.html" %}
+        {% elif element.type.is_enum %}
+            {% set html_suffix = ".Enum.html" %}
+        {% endif %}
+
+        {% set readonly_suffix = "" %}
+        {% if element.readonly %}
+            {% set readonly_suffix = "<div class=\"text-muted\">readonly</div>" %}
+        {% endif %}
+
+        <li class="list-group-item">
+        {{ readonly_suffix }}
+        {% if element.type.is_list or element.type.is_model %}
+            {{ element.type }}&lt;<a href='{{ element.type.nested.name }}{{html_suffix}}'><b>{{ element.type.nested.name }}</b></a>&gt; {{ element.name }}
+        {% elif element.type.is_primitive %}
+            {{ element.type }} {{ element.name }}
+        {% else %}
+            <a href="{{ element.type.name }}{{html_suffix}}"><b>{{ element.type }}</b></a>
+            {{ element.name }}
+        {% endif %}
+        <div class="mt-1"></div>
+        {# Clear doc as it may be polluted by global scope #}
+        {% set doc = None %}
+        {% set doc = element.comment|parse_doc %}
+        {% if doc != None %}
+        {{ doc.brief | join(' ') }}
+        {% else %}
+        <div class="text-muted">No documentation found</div>
+        {% endif %}
+        {% endfor %}
+        </li>
+        </ul>
+
+        {# Operations #}
+        <div class="mt-3"></div>
+        <h6>Operations</h6>
+        {% if interface.operations|length == 0 %}
+        <div class="text-muted">No operations found</div>
+        {% endif %}
+        <ul class="list-group">
+        {% for element in interface.operations %}
+            <li class="list-group-item">
+            {{ element.type }} {{ element.name }}(
+                {%- set comma = joiner(", ") -%}
+                {%- for parameter in element.parameters -%}
+                    {{ comma() }}
+                    {% if parameter.type.is_list or parameter.type.is_model %}
+                    {{ '%s&lt;<a href="{{ parameter.type.nested.name }}.Struct.html"><b>%s</b></a>&gt;' % (parameter.type, parameter.type.nested.name) }} {{ parameter.name }}
+                    {% elif parameter.type.is_primitive %}
+                        {{ parameter.type.name }} {{ parameter.name }}
+                    {% else %}
+                        <a href="{{ parameter.type.name }}.Struct.html"><b>{{ parameter.type }}</b></a>
+                        {{ parameter.name }}
+                    {% endif %}
+                {%- endfor -%}
+            )
+                <div class="mt-1"></div>
+            {# Clear doc as it may be polluted by global scope #}
+            {% set doc = None %}
+            {% set doc = element.comment|parse_doc %}
+            {% if doc != None %}
+            {{ doc.brief | join(' ') }}
+            {% else %}
+                <div class="text-muted">No documentation found</div>
+            {% endif %}
+            {% endfor %}
+            </li>
+        </ul>
+
+        {# Signals #}
+        <div class="mt-3"></div>
+        <h6>Signals</h6>
+        {% if interface.signals|length == 0 %}
+        <div class="text-muted">No signals found</div>
+        {% endif %}
+        <ul class="list-group">
+        {% for element in interface.signals %}
+            <li class="list-group-item">
+                void {{ element.name }}()
+                <div class="mt-1"></div>
+            {# Clear doc as it may be polluted by global scope #}
+            {% set doc = None %}
+            {% set doc = element.comment|parse_doc %}
+            {% if doc != None %}
+            {{ doc.brief | join(' ') }}
+            {% else %}
+                <div class="text-muted">No documentation found</div>
+            {% endif %}
+            {% endfor %}
+            </li>
+        </ul>
+        <div class="mt-5"></div>
+{% endblock %}
