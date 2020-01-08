@@ -35,10 +35,13 @@ if(Qt5DBus_FOUND)
             ${GENERATED_FILE_PATH}/ipc/*.h
             ${GENERATED_FILE_PATH}/ipc_dbus/*.h
             ${GENERATED_FILE_PATH}/types/*.h
-        LINK_LIBRARIES FaceliftIPCCommonLib Qt5::DBus FaceliftIPCLocalLib
+        LINK_LIBRARIES Qt5::DBus
+        MONOLITHIC_LINK_LIBRARIES FaceliftIPCCommonLib FaceliftIPCLocalLib
         PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
+        PUBLIC_DEFINITIONS
+            DBUS_IPC_ENABLED
+        MONOLITHIC_SUPPORTED
     )
-    target_compile_definitions(FaceliftIPCLibDBus PUBLIC DBUS_IPC_ENABLED)
 
     set_property(GLOBAL APPEND PROPERTY FACELIFT_REQUIRED_QT_MODULES DBus)
 

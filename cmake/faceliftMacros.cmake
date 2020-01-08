@@ -3,6 +3,7 @@ option(IGNORE_AUTO_UNITY_BUILD "Disable unity build even if AUTO_UNITY_BUILD opt
 option(DISABLE_UNITY_BUILD "Completely disable unity build" OFF)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(DISABLE_DEVELOPMENT_FILE_INSTALLATION "Disable development file installation" OFF)
+option(ENABLE_MONOLITHIC_BUILD "Enable monolithic build" OFF)
 
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
@@ -231,9 +232,9 @@ endfunction()
 
 function(facelift_add_interface TARGET_NAME)
 
-    set(options GENERATE_ALL)
-    set(oneValueArgs INTERFACE_DEFINITION_FOLDER)
-    set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES)
+    set(options GENERATE_ALL MONOLITHIC_SUPPORTED)
+    set(oneValueArgs INTERFACE_DEFINITION_FOLDER )
+    set(multiValueArgs IMPORT_FOLDERS LINK_LIBRARIES MONOLITHIC_LINK_LIBRARIES)
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     facelift_load_variables()
@@ -254,7 +255,7 @@ function(facelift_add_interface TARGET_NAME)
     set(MODULE_OUTPUT_PATH ${OUTPUT_PATH}/module)
 
     unset(ADDITIONAL_ARGUMENTS)
-    if (ARGUMENT_GENERATE_ALL)
+    if(ARGUMENT_GENERATE_ALL)
         set(ADDITIONAL_ARGUMENTS "GENERATE_ALL")
     endif()
 
@@ -299,27 +300,34 @@ function(facelift_add_interface TARGET_NAME)
 
     endif()
 
+    if(ARGUMENT_MONOLITHIC_SUPPORTED)
+        set(ARGUMENT_MONOLITHIC MONOLITHIC_SUPPORTED)
+    endif()
+
+    if(TARGET FaceliftIPCLibDBus)
+        set(PRIVATE_INCLUDE_DIRECTORIES ${IPC_DBUS_OUTPUT_PATH})
+    endif()
+
     facelift_add_library(${LIBRARY_NAME}
         SOURCES_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.cpp
         HEADERS_GLOB_RECURSE ${MODULE_OUTPUT_PATH}/*.h
         LINK_LIBRARIES FaceliftModelLib ${ARGUMENT_LINK_LIBRARIES}
+        MONOLITHIC_LINK_LIBRARIES ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES}
         PUBLIC_HEADER_BASE_PATH ${MODULE_OUTPUT_PATH}
         ${ARGS}
         UNITY_BUILD
+        PRIVATE_DEFINITIONS
+            ${MODULE_COMPILE_DEFINITIONS}
+        ${ARGUMENT_MONOLITHIC}
+        PRIVATE_INCLUDE_DIRECTORIES ${PRIVATE_INCLUDE_DIRECTORIES}
     )
 
-    if(TARGET FaceliftIPCLibDBus)
-        target_include_directories(${LIBRARY_NAME}
-            PRIVATE
-                $<BUILD_INTERFACE:${IPC_DBUS_OUTPUT_PATH}>
-        )
-    endif()
-
-    target_compile_definitions(${LIBRARY_NAME} PRIVATE "${MODULE_COMPILE_DEFINITIONS}")
-
-    # Get the list of files from the interface definition folder so that we can regenerate the code whenever there is a change there
+    # Get the list of files from the interface definition folder so that they are shown in QtCreator
     file(GLOB_RECURSE QFACE_FILES ${ARGUMENT_INTERFACE_DEFINITION_FOLDER}/*.qface)
-    target_sources(${LIBRARY_NAME} PRIVATE ${QFACE_FILES})
+    get_target_property(target_type ${LIBRARY_NAME} TYPE)
+    if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+        target_sources(${LIBRARY_NAME} PRIVATE ${QFACE_FILES})
+    endif()
 
 endfunction()
 
@@ -332,16 +340,17 @@ endfunction()
 #endfunction()
 
 
-macro(_facelift_add_target_start additionalOptions additionalOneValueArgs additionalMultiValueArgs)
+macro(_facelift_parse_target_arguments additionalOptions additionalOneValueArgs additionalMultiValueArgs)
 
     set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE ${additionalOptions})
     set(oneValueArgs ${additionalOneValueArgs})
-    set(multiValueArgs PRIVATE_DEFINITIONS
+    set(multiValueArgs PRIVATE_DEFINITIONS PUBLIC_DEFINITIONS PROPERTIES
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
         SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE
         LINK_LIBRARIES
         UI_FILES
         RESOURCE_FOLDERS
+        PRIVATE_INCLUDE_DIRECTORIES
         ${additionalMultiValueArgs}
     )
     cmake_parse_arguments(ARGUMENT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -376,11 +385,15 @@ macro(_facelift_add_target_start additionalOptions additionalOneValueArgs additi
         list(APPEND HEADERS_NO_INSTALL ${GLOB_FILES})
     endforeach()
 
+endmacro()
+
+macro(_facelift_add_target_start IMPLEMENTATION_TARGET_NAME)
+
     set(HEADERS_TO_BE_MOCCED ${HEADERS} ${HEADERS_NO_INSTALL})
     unset(HEADERS_MOCS)
 
     if(HEADERS_TO_BE_MOCCED)
-        qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} ${HEADERS_NO_INSTALL} TARGET ${TARGET_NAME})
+        qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} ${HEADERS_NO_INSTALL} TARGET ${IMPLEMENTATION_TARGET_NAME})
     endif()
 
     unset(UI_FILES)
@@ -403,57 +416,142 @@ macro(_facelift_add_target_start additionalOptions additionalOneValueArgs additi
     endif()
 
     if(UNITY_BUILD)
-        facelift_add_unity_files(${TARGET_NAME} ALL_SOURCES "${ALL_SOURCES}")
+        facelift_add_unity_files(${IMPLEMENTATION_TARGET_NAME} ALL_SOURCES "${ALL_SOURCES}")
     endif()
 
 endmacro()
 
-macro(_facelift_add_target_finish)
+macro(_facelift_add_target_finish INTERFACE_TARGET_NAME IMPLEMENTATION_TARGET_NAME)
 
-    if(NOT __INTERFACE)
-
-        target_compile_definitions(${TARGET_NAME} ${__INTERFACE} PRIVATE ${ARGUMENT_PRIVATE_DEFINITIONS})
+    get_target_property(target_type ${IMPLEMENTATION_TARGET_NAME} TYPE)
+    if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
 
         # create a valid preprocessor macro based on the target name
-        string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${TARGET_NAME}_LIBRARY")
-        target_compile_definitions(${TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION})
+        string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${INTERFACE_TARGET_NAME}_LIBRARY")
+        target_compile_definitions(${IMPLEMENTATION_TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION} ${ARGUMENT_PRIVATE_DEFINITIONS})
 
+        target_include_directories(${IMPLEMENTATION_TARGET_NAME} PRIVATE ${ARGUMENT_PRIVATE_INCLUDE_DIRECTORIES})
+
+    endif()
+
+    unset(INTERFACE_IF_INTERFACE_TARGET)
+    get_target_property(target_type ${INTERFACE_TARGET_NAME} TYPE)
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+        set(INTERFACE_TARGET_MODIFIER INTERFACE)
+        set(INTERFACE_IF_INTERFACE_TARGET INTERFACE)
+    else()
+        set(INTERFACE_TARGET_MODIFIER PUBLIC)
+    endif()
+
+    target_compile_definitions(${INTERFACE_TARGET_NAME} ${INTERFACE_TARGET_MODIFIER} ${ARGUMENT_PUBLIC_DEFINITIONS})
+
+    if(ARGUMENT_PROPERTIES)
+        set_target_properties(${IMPLEMENTATION_TARGET_NAME} PROPERTIES ${ARGUMENT_PROPERTIES})
     endif()
 
     # We assume every lib links against QtCore at least
-    target_link_libraries(${TARGET_NAME} ${__INTERFACE} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
+    target_link_libraries(${INTERFACE_TARGET_NAME} ${INTERFACE_IF_INTERFACE_TARGET} Qt5::Core ${ARGUMENT_LINK_LIBRARIES})
 
 endmacro()
 
+
+
 function(facelift_add_library TARGET_NAME)
 
-    _facelift_add_target_start("STATIC;SHARED;OBJECT" "" "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH" ${ARGN})
+    _facelift_parse_target_arguments("STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED" "" "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES" ${ARGN})
 
     unset(__INTERFACE)
     if(ARGUMENT_INTERFACE)
+        _facelift_add_target_start(${TARGET_NAME})
         add_library(${TARGET_NAME} INTERFACE)
         set(__INTERFACE INTERFACE)
+        _facelift_add_target_finish(${TARGET_NAME} ${TARGET_NAME})
     else()
-        if(NOT ALL_SOURCES)
-            # We create an INTERFACE library if the library contains no source file
-            set(__INTERFACE INTERFACE)
-            set(LIBRARY_TYPE INTERFACE)
-        endif()
         if(${ARGUMENT_STATIC})
             set(LIBRARY_TYPE STATIC)
         endif()
         if(${ARGUMENT_OBJECT})
             set(LIBRARY_TYPE OBJECT)
         endif()
+        if(${ARGUMENT_MODULE})
+            set(LIBRARY_TYPE MODULE)
+        endif()
         if(${ARGUMENT_SHARED})
             set(LIBRARY_TYPE SHARED)
         endif()
-        add_library(${TARGET_NAME} ${LIBRARY_TYPE} ${ALL_SOURCES})
-        if(ENABLE_LTO)
-           if(NOT "${LIBRARY_TYPE}" STREQUAL "INTERFACE")
-               set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-           endif()
+
+        if(${ARGUMENT_MONOLITHIC_SUPPORTED})
+
+            set(ALIAS_NAME ${TARGET_NAME})
+
+            if(ENABLE_MONOLITHIC_BUILD)
+
+                set(TARGET_NAME ${TARGET_NAME}_)
+
+                set(__INTERFACE INTERFACE)
+
+                add_library(${TARGET_NAME} INTERFACE)
+
+                set(IMPLEMENTATION_TARGET_NAME ${TARGET_NAME}_OBJECTS)
+
+                _facelift_add_target_start(${IMPLEMENTATION_TARGET_NAME})
+
+                if(NOT ALL_SOURCES)
+                    add_library(${IMPLEMENTATION_TARGET_NAME} INTERFACE)
+                else()
+                    add_library(${IMPLEMENTATION_TARGET_NAME} OBJECT ${ALL_SOURCES})
+                    target_link_libraries(${IMPLEMENTATION_TARGET_NAME} ${TARGET_NAME})
+                endif()
+
+                foreach(MONOLITHIC_LINK_LIBRARY ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
+                    list(APPEND ARGUMENT_LINK_LIBRARIES ${MONOLITHIC_LINK_LIBRARY}_)
+                endforeach()
+
+                list(APPEND ARGUMENT_LINK_LIBRARIES ${MONOLITHIC_LINK_LIBRARIES})
+                _facelift_add_target_finish(${TARGET_NAME} ${IMPLEMENTATION_TARGET_NAME})
+
+                # Append our object library to the list of libraries to be linked to the monolithic library
+                set_property(GLOBAL APPEND PROPERTY MONOLITHIC_LIBRARIES ${IMPLEMENTATION_TARGET_NAME})
+
+                # Create an interface library with the original target name, which links against the monolithic library
+                add_library(${ALIAS_NAME} INTERFACE)
+                target_link_libraries(${ALIAS_NAME} INTERFACE ${TARGET_NAME} ${PROJECT_NAME} ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
+
+                set(BUILD_MONOLITHIC ON)
+
+            else()
+
+                set(TARGET_NAME ${TARGET_NAME}_OBJECTS)
+                add_library(${ALIAS_NAME} INTERFACE)
+                target_link_libraries(${ALIAS_NAME} INTERFACE ${TARGET_NAME})
+
+                set(BUILD_MONOLITHIC OFF)
+
+            endif()
+
+            install(TARGETS ${ALIAS_NAME} EXPORT ${PROJECT_NAME}Targets)
+
         endif()
+
+        if (NOT BUILD_MONOLITHIC)
+
+            _facelift_add_target_start(${TARGET_NAME})
+            if(NOT ALL_SOURCES)
+                # We create an INTERFACE library if the library contains no source file
+                set(__INTERFACE INTERFACE)
+                set(LIBRARY_TYPE INTERFACE)
+            endif()
+            add_library(${TARGET_NAME} ${LIBRARY_TYPE} ${ALL_SOURCES})
+            target_link_libraries(${TARGET_NAME} ${__INTERFACE} ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
+            _facelift_add_target_finish(${TARGET_NAME} ${TARGET_NAME})
+
+            if(ENABLE_LTO)
+               if(NOT "${LIBRARY_TYPE}" STREQUAL "INTERFACE")
+                   set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+               endif()
+            endif()
+        endif()
+
     endif()
 
     if (NOT ${ARGUMENT_NO_INSTALL})
@@ -502,6 +600,15 @@ function(facelift_add_library TARGET_NAME)
         endif()
 
         if(__INTERFACE)
+            foreach(PUBLIC_HEADER_BASE_PATH ${PUBLIC_HEADER_BASE_PATHS})
+                get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
+
+                # Set the installed header location
+                target_include_directories(${TARGET_NAME}
+                    INTERFACE
+                        $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
+                )
+            endforeach()
         else()
             # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
             if(HEADERS)
@@ -525,34 +632,30 @@ function(facelift_add_library TARGET_NAME)
         # Install library
         install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-        if(__INTERFACE)
-        else()
-            # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
-            if(HEADERS)
-                # Set the installed headers location
-                target_include_directories(${TARGET_NAME}
-                    PUBLIC
-                        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
-                )
-            endif()
+        # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
+        if(HEADERS)
+            # Set the installed headers location
+            target_include_directories(${TARGET_NAME}
+                INTERFACE
+                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
+            )
         endif()
 
     endif()
-
-    _facelift_add_target_finish()
 
 endfunction()
 
 
 function(facelift_add_executable TARGET_NAME)
-    _facelift_add_target_start("" "" "" ${ARGN})
+    _facelift_parse_target_arguments("" "" "" ${ARGN})
+    _facelift_add_target_start(${TARGET_NAME})
     add_executable(${TARGET_NAME} ${ALL_SOURCES})
 
     if (NOT ${ARGUMENT_NO_INSTALL})
         install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
     endif()
 
-    _facelift_add_target_finish()
+    _facelift_add_target_finish(${TARGET_NAME} ${TARGET_NAME})
 endfunction()
 
 
@@ -615,6 +718,18 @@ function(facelift_export_project)
 
     install(FILES ${CONFIG_DESTINATION_PATH}/${PROJECT_NAME}Config.cmake.installed DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH} RENAME ${PROJECT_NAME}Config.cmake)
 
+    facelift_export_monolithic()
+endfunction()
+
+function(facelift_export_monolithic)
+    get_property(MONOLITHIC_LIBRARIES GLOBAL PROPERTY MONOLITHIC_LIBRARIES)
+    if(MONOLITHIC_LIBRARIES AND NOT TARGET ${PROJECT_NAME})
+        add_library(${PROJECT_NAME} SHARED)
+        foreach(LIB ${MONOLITHIC_LIBRARIES})
+            target_link_libraries(${PROJECT_NAME} PRIVATE ${LIB})
+        endforeach()
+        install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
 endfunction()
 
 
@@ -722,14 +837,25 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
 
     string(REPLACE "." "/" PLUGIN_PATH ${URI})
 
-    facelift_add_library(${PLUGIN_NAME} ${ARGUMENT_UNPARSED_ARGUMENTS} NO_INSTALL NO_EXPORT LINK_LIBRARIES Qt5::Qml)
+    facelift_add_library(${PLUGIN_NAME}
+        ${ARGUMENT_UNPARSED_ARGUMENTS}
+        NO_INSTALL
+        NO_EXPORT
+        MODULE
+        LINK_LIBRARIES
+            Qt5::Qml
+        PRIVATE_DEFINITIONS
+            -DPLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION}
+            -DPLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}
+        PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${INSTALL_PATH}
+    )
 
     get_target_property(TARGET_TYPE ${PLUGIN_NAME} TYPE)
-    if (TARGET_TYPE STREQUAL "STATIC_LIBRARY")
+    if(TARGET_TYPE STREQUAL "STATIC_LIBRARY")
         target_compile_definitions(${PLUGIN_NAME} PRIVATE QT_STATICPLUGIN)
-    endif ()
-
-    target_compile_definitions(${PLUGIN_NAME} PRIVATE "PLUGIN_MINOR_VERSION=${PLUGIN_MINOR_VERSION};PLUGIN_MAJOR_VERSION=${PLUGIN_MAJOR_VERSION}")
+    endif()
 
     set(INSTALL_PATH ${ARGUMENT_OUTPUT_BASE_DIRECTORY}/${PLUGIN_PATH})
 

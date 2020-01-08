@@ -43,37 +43,6 @@ namespace facelift {
 
 class NewIPCServiceAdapterBase;
 
-class FaceliftIPCCommonLib_EXPORT IPCAdapterFactoryManager
-{
-public:
-    typedef NewIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
-
-    static IPCAdapterFactoryManager &instance();
-
-    template<typename AdapterType>
-    static NewIPCServiceAdapterBase *createInstance(InterfaceBase *i)
-    {
-        auto adapter = new AdapterType(i);
-        adapter->setService(i);
-        qCDebug(LogIpc) << "Created adapter for interface " << i->interfaceID();
-        return adapter;
-    }
-
-    template<typename AdapterType>
-    static void registerType()
-    {
-        instance().registerType(AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME,  &IPCAdapterFactoryManager::createInstance<AdapterType>);
-    }
-
-    void registerType(const QString &typeID, IPCAdapterFactory f);
-
-    IPCAdapterFactory getFactory(const QString &typeID) const;
-
-private:
-    QMap<QString, IPCAdapterFactory> m_factories;
-};
-
-
 class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public QObject
 {
     Q_OBJECT
@@ -86,6 +55,39 @@ public:
     static NewIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
 
 };
+
+class FaceliftIPCCommonLib_EXPORT IPCAdapterFactoryManager
+{
+public:
+    typedef NewIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
+
+    static IPCAdapterFactoryManager &instance();
+
+    template<typename AdapterType>
+    static void registerType()
+    {
+        instance().registerType(AdapterType::TheServiceType::FULLY_QUALIFIED_INTERFACE_NAME,  &IPCAdapterFactoryManager::createInstance<AdapterType>);
+    }
+
+    void registerType(const QString &typeID, IPCAdapterFactory f);
+
+    IPCAdapterFactory getFactory(const QString &typeID) const;
+
+private:
+
+    template<typename AdapterType>
+    static NewIPCServiceAdapterBase *createInstance(InterfaceBase *i)
+    {
+        auto adapter = new AdapterType(i);
+        adapter->setService(i);
+        qCDebug(LogIpc) << "Created adapter for interface " << i->interfaceID();
+        return adapter;
+    }
+
+    QMap<QString, IPCAdapterFactory> m_factories;
+};
+
+
 
 }
 
