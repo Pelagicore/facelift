@@ -27,5 +27,7 @@ facelift_add_library(FaceliftModelLib
         FaceliftEnum.h
         FaceliftImplementationBase.h
         FaceliftQMLUtils.h
-    LINK_LIBRARIES FaceliftCommonLib Qt5::Qml Qt5::Quick
+    LINK_LIBRARIES Qt5::Qml Qt5::Quick
+    MONOLITHIC_LINK_LIBRARIES FaceliftCommonLib
+    MONOLITHIC_SUPPORTED
 )

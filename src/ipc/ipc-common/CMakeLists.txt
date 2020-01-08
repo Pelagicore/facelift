@@ -30,5 +30,6 @@ facelift_add_library(FaceliftIPCCommonLib
         ipc-serialization.h
         IPCAdapterFactoryManager.h
         IPCServiceAdapter.h
-    LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
+    MONOLITHIC_LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
+    MONOLITHIC_SUPPORTED
 )

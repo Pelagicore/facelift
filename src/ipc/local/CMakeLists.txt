@@ -8,6 +8,7 @@ facelift_add_library(FaceliftIPCLocalLib
         LocalIPCRegistry.h
         LocalIPC-serialization.h
         LocalIPCServiceAdapter.h
-    LINK_LIBRARIES FaceliftIPCCommonLib
+    MONOLITHIC_LINK_LIBRARIES FaceliftIPCCommonLib FaceliftModelLib
     PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
+    MONOLITHIC_SUPPORTED
 )

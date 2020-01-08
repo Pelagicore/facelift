@@ -4,4 +4,5 @@ facelift_add_library(FaceliftCommonLib
     HEADERS
         span.h
         FaceliftUtils.h
+    MONOLITHIC_SUPPORTED
 )
