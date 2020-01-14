@@ -39,7 +39,7 @@ import qface
 
 here = Path(__file__).dirname()
 
-logging.config.dictConfig(yaml.load(open(here / 'facelift-log.yaml')))
+logging.config.dictConfig(yaml.safe_load(open(here / 'facelift-log.yaml')))
 log = logging.getLogger(__name__)
 
 generateAsyncProxy = False
