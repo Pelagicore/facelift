@@ -91,13 +91,17 @@ public:
 
         // Look for an existing adapter
         for (auto &adapter : m_subAdapters) {
-            if (adapter->service() == service) {
+            if (adapter && (adapter->service() == service)) {
                 return qobject_cast<InterfaceAdapterType *>(adapter.data());
             }
         }
 
         auto serviceAdapter = new InterfaceAdapterType(this);  // Destroy the adapter when either the parent adapter is destroyed or when the service is destroyed
-        QObject::connect(service, &QObject::destroyed, serviceAdapter, &QObject::deleteLater);
+        // ensure that service adapter is removed from the list before getting deleted
+        QObject::connect(service, &QObject::destroyed, this, [this, serviceAdapter]() {
+            m_subAdapters.removeAll(serviceAdapter);
+            serviceAdapter->deleteLater();
+        });
 
         serviceAdapter->registerService(this->generateObjectPath(this->objectPath()), service);
         m_subAdapters.append(serviceAdapter);
