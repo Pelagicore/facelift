@@ -83,9 +83,9 @@ public:
 
     virtual void serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot);
 
-    void registerService();
+    void registerService() override;
 
-    void unregisterService();
+    void unregisterService() override;
 
     Q_SIGNAL void messageSent(LocalIPCMessage &message);
 
@@ -155,7 +155,7 @@ public:
         this->registerService();
     }
 
-    void unregisterService()
+    void unregisterService() override
     {
         LocalIPCServiceAdapterBase::unregisterService();
         setObjectPath("");
