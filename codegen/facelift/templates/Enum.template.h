@@ -97,7 +97,7 @@ template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v)
 inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v)
 {
     {% for member in enum.members %}
-    if (s == "{{member}}")
+    if (s.compare("{{member}}", Qt::CaseInsensitive) == 0)
         v = {{enum.fullyQualifiedCppType}}::{{member}};
     else
     {% endfor %}
