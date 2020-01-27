@@ -65,9 +65,16 @@ function(facelift_add_unity_files TARGET_NAME VAR_NAME)
     set(INTERNAL_SEPARATOR "#")
     set(AGGREGATED_UNIT_FILE_LIST "")
     set(COMPLETE_FILE_LIST "")
+
     if(NOT "${FACELIFT_CACHED_LIST_${TARGET_NAME}}" STREQUAL "${FILE_LIST}")
+        unset(UNITY_GENERATOR_INPUTS)
+        foreach(file_path ${FILE_LIST})
+            string(APPEND UNITY_GENERATOR_INPUTS "${file_path}\n")
+        endForeach()
+        set(UNITY_GENERATOR_FILE_LIST "${CMAKE_CURRENT_BINARY_DIR}/unityGeneratorFileNames_${TARGET_NAME}.txt")
+        file(WRITE ${UNITY_GENERATOR_FILE_LIST} ${UNITY_GENERATOR_INPUTS})
         get_target_property(UNITY_LOCATION unity_generator LOCATION)
-        execute_process(COMMAND ${FACELIFT_PYTHON_EXECUTABLE} ${UNITY_LOCATION} --output ${CMAKE_CURRENT_BINARY_DIR} --target_name ${TARGET_NAME} ${FILE_LIST}
+        execute_process(COMMAND ${FACELIFT_PYTHON_EXECUTABLE} ${UNITY_LOCATION} --output ${CMAKE_CURRENT_BINARY_DIR} --target_name ${TARGET_NAME} --file_list ${UNITY_GENERATOR_FILE_LIST}
                         OUTPUT_VARIABLE COMPLETE_FILE_LIST)
         set(FACELIFT_CACHED_COMPLETE_FILE_LIST_${TARGET_NAME} "${COMPLETE_FILE_LIST}" CACHE INTERNAL "Store files")
     else()

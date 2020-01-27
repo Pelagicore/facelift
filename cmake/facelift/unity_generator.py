@@ -193,10 +193,17 @@ def run_generation(files, target_folder, target_name):
 @click.command()
 @click.option('--output')
 @click.option('--target_name')
+@click.option('--file_list', type=str)
 @click.option('--size_limit', type=int)
 @click.option('--separator', type=str)
-@click.argument('files', nargs=-1)
-def generate_units(files, output, target_name, size_limit = None, separator = None):
+
+def generate_units(output, target_name, file_list, size_limit = None, separator = None):
+
+    files = []
+    with open(file_list) as file:
+        for line in file:
+            line = line.strip()
+            files.append(line)
 
     if size_limit is not None:
         global unit_size_limit
