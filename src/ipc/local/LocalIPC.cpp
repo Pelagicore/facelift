@@ -247,8 +247,11 @@ LocalIPCMessage LocalIPCProxyBinder::call(LocalIPCMessage &message) const
 void LocalIPCProxyBinder::asyncCall(LocalIPCMessage &requestMessage, QObject *context, std::function<void(LocalIPCMessage &message)> callback)
 {
     requestMessage.addListener(context, callback);
-    QTimer::singleShot(0, m_serviceAdapter, [this, requestMessage]() mutable {
-                auto r = m_serviceAdapter->handleMessage(requestMessage);
+
+    // capture the current value of m_serviceAdapter, since m_serviceAdapter might have changed by the time the timer is triggered
+    auto serviceAdapter = m_serviceAdapter;
+    QTimer::singleShot(0, serviceAdapter, [serviceAdapter, requestMessage]() mutable {
+                auto r = serviceAdapter->handleMessage(requestMessage);
                 Q_ASSERT(r != facelift::IPCHandlingResult::INVALID);
             });
 }
