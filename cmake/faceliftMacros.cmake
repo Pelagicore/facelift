@@ -5,6 +5,13 @@ option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(DISABLE_DEVELOPMENT_FILE_INSTALLATION "Disable development file installation" OFF)
 option(ENABLE_MONOLITHIC_BUILD "Enable monolithic build" OFF)
 
+if(ENABLE_MONOLITHIC_BUILD)
+    if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
+        message(WARNING "CMake > 3.12.0 is required to enable monolithic build, but your version is ${CMAKE_VERSION}. Forcing ENABLE_MONOLITHIC_BUILD to OFF")
+        set(ENABLE_MONOLITHIC_BUILD OFF)
+    endif()
+endif()
+
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
 
