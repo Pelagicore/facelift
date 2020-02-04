@@ -90,7 +90,6 @@ public:
                 auto proxyAdapterIPCBinder = proxy.ipcBinder;
                 if ((proxyAdapterIPCBinder != nullptr) && proxyAdapterIPCBinder->isServiceAvailable()) {
                     provider = proxy.proxy;
-                    break;
                 }
             }
         }
