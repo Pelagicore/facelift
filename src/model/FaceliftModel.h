@@ -40,6 +40,7 @@
 #include <QPointer>
 
 #include "FaceliftCommon.h"
+#include "AsyncAnswer.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -302,131 +303,6 @@ public:
 
 };
 
-
-
-
-
-template<typename CallBack>
-class TAsyncAnswerMaster
-{
-
-public:
-    TAsyncAnswerMaster(QObject* context, CallBack callback) : m_callback(callback)
-    {
-        m_context = context;
-    }
-
-    ~TAsyncAnswerMaster()
-    {
-        if (!m_isAlreadyAnswered) {
-            qCWarning(LogModel) << "No answer provided to asynchronous call";
-        }
-    }
-
-    template<typename ... Types>
-    void call(const Types & ... args)
-    {
-        setAnswered();
-        if (m_context)
-            m_callback(args ...);
-    }
-
-private:
-    void setAnswered()
-    {
-        Q_ASSERT(m_isAlreadyAnswered == false);
-        m_isAlreadyAnswered = true;
-    }
-
-protected:
-    CallBack m_callback;
-    bool m_isAlreadyAnswered = false;
-    QPointer<QObject> m_context;
-};
-
-
-template<typename ReturnType>
-class AsyncAnswer
-{
-    typedef std::function<void (const ReturnType &)> CallBack;
-
-public:
-    class Master : public TAsyncAnswerMaster<CallBack>
-    {
-    public:
-        using TAsyncAnswerMaster<CallBack>::m_callback;
-        Master(QObject* context, CallBack callback) : TAsyncAnswerMaster<CallBack>(context, callback)
-        {
-        }
-    };
-
-    AsyncAnswer()
-    {
-    }
-
-    AsyncAnswer(QObject* context, CallBack callback) : m_master(new Master(context, callback))
-    {
-    }
-
-    AsyncAnswer(const AsyncAnswer &other) : m_master(other.m_master)
-    {
-    }
-
-    AsyncAnswer &operator=(const AsyncAnswer &other)
-    {
-        m_master = other.m_master;
-        return *this;
-    }
-
-    void operator()(const ReturnType &returnValue) const
-    {
-        if (m_master) {
-            m_master->call(returnValue);
-        }
-    }
-
-private:
-    std::shared_ptr<Master> m_master;
-};
-
-template<>
-class AsyncAnswer<void>
-{
-    typedef std::function<void ()> CallBack;
-
-public:
-    class Master : public TAsyncAnswerMaster<CallBack>
-    {
-    public:
-        using TAsyncAnswerMaster<CallBack>::m_callback;
-
-        Master(QObject* context, CallBack callback) : TAsyncAnswerMaster<CallBack>(context, callback)
-        {
-        }
-    };
-
-    AsyncAnswer()
-    {
-    }
-
-    AsyncAnswer(QObject* context, CallBack callback) : m_master(new Master(context, callback))
-    {
-    }
-
-    AsyncAnswer(const AsyncAnswer &other) : m_master(other.m_master)
-    {
-    }
-
-    void operator()() const
-    {
-        if (m_master) {
-            m_master->call();
-        }
-    }
-
-private:
-    std::shared_ptr<Master> m_master;
-};
 
 FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase & i);
 

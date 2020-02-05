@@ -11,6 +11,7 @@ facelift_add_library(FaceliftModelLib
         FaceliftImplementationBase.cpp
         FaceliftEnum.cpp
         FaceliftStringConversion.cpp
+        AsyncAnswer.cpp
     HEADERS
         FaceliftModel.h
         QMLAdapter.h
@@ -27,6 +28,7 @@ facelift_add_library(FaceliftModelLib
         FaceliftEnum.h
         FaceliftImplementationBase.h
         FaceliftQMLUtils.h
+        AsyncAnswer.h
     LINK_LIBRARIES Qt5::Qml Qt5::Quick
     MONOLITHIC_LINK_LIBRARIES FaceliftCommonLib
     MONOLITHIC_SUPPORTED
