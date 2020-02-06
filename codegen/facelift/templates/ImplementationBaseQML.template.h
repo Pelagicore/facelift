@@ -170,29 +170,36 @@ public:
     {
         QJSValueList args;
         auto engine = this->qmlEngine();
-        Q_UNUSED(engine);
+        if (engine != nullptr) {
+            Q_UNUSED(engine);
 
-        {% if operation.parameters %}
-        {% for parameter in operation.parameters %}
-        args.append(facelift::toJSValue({{parameter.name}}, engine));
-        {% endfor %}
+            {% if operation.parameters %}
+            {% for parameter in operation.parameters %}
+            args.append(facelift::toJSValue({{parameter.name}}, engine));
+            {% endfor %}
 
-        {% endif %}
+            {% endif %}
+            {% if operation.hasReturnValue %}
+            {{operation.type.qmlCompatibleType}} returnValue;
+            auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
+            facelift::fromJSValue(returnValue, jsReturnValue, engine);
+            {% if operation.cppType == operation.type.qmlCompatibleType %}
+            return returnValue;
+            {% else %}
+            {% if operation.type.is_interface %}
+            return &((static_cast<{{operation.cppType}}::ImplementationBaseQMLType*>(returnValue))->interface());
+            {% else %}
+            return facelift::toProviderCompatibleType<{{operation.cppType}}, {{operation.type.qmlCompatibleType}}>(returnValue);
+            {% endif %}
+            {% endif %}
+            {% else %}
+            checkMethod(m_{{operation}}, "{{operation}}").call(args);
+            {% endif %}
+        } else {
+            onInvalidQMLEngine();
+        }
         {% if operation.hasReturnValue %}
-        {{operation.type.qmlCompatibleType}} returnValue;
-        auto jsReturnValue = checkMethod(m_{{operation}}, "{{operation}}").call(args);
-        facelift::fromJSValue(returnValue, jsReturnValue, engine);
-        {% if operation.cppType == operation.type.qmlCompatibleType %}
-        return returnValue;
-        {% else %}
-        {% if operation.type.is_interface %}
-        return &((static_cast<{{operation.cppType}}::ImplementationBaseQMLType*>(returnValue))->interface());
-        {% else %}
-        return facelift::toProviderCompatibleType<{{operation.cppType}}, {{operation.type.qmlCompatibleType}}>(returnValue);
-        {% endif %}
-        {% endif %}
-        {% else %}
-        checkMethod(m_{{operation}}, "{{operation}}").call(args);
+        return {};
         {% endif %}
     }
     {% endif %}
@@ -298,14 +305,18 @@ public:
             QJSValueList args;
 
             auto qmlEngine = this->qmlEngine();
-            {% if (not property.type.is_interface) %}
-            args.append(facelift::toJSValue(value, qmlEngine));
-            {% else %}
-            Q_ASSERT(false); // Writable interface properties are unsupported
-            {% endif %}
+            if (qmlEngine != nullptr) {
+                {% if (not property.type.is_interface) %}
+                args.append(facelift::toJSValue(value, qmlEngine));
+                {% else %}
+                Q_ASSERT(false); // Writable interface properties are unsupported
+                {% endif %}
 
-            checkMethod(m_set{{property.name}}, "set{{property.name}}").call(args);
-            return true;
+                checkMethod(m_set{{property.name}}, "set{{property.name}}").call(args);
+                return true;
+            } else {
+                onInvalidQMLEngine();
+            }
         }
         return false;
     }
