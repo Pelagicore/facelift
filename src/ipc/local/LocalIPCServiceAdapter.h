@@ -96,8 +96,7 @@ public:
 
     void sendReply(LocalIPCMessage &message)
     {
-        Q_UNUSED(message);
-        Q_ASSERT(false);
+        message.notifyListener();
     }
 
     template<typename Type>
