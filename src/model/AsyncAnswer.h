@@ -85,13 +85,12 @@ public:
     void call(const Types & ... args)
     {
         setAnswered();
-        if (m_context)
-        {
-            qWarning() << "Calling callback with context" << m_context.data();;
+        if (m_context) {
             m_callback(args ...);
         }
-        else
-            qCritical() << "Context destroyed";
+        else {
+            qCritical() << "Callback context destroyed";
+        }
     }
 
 protected:
@@ -135,9 +134,7 @@ public:
     void operator()(const ReturnType &returnValue) const
     {
         if (m_master) {
-            qWarning() << "Calling callback";
             m_master->call(returnValue);
-            qWarning() << "callback called";
         }
         else {
             qCritical() << "No master";
@@ -180,6 +177,8 @@ public:
     {
         if (m_master) {
             m_master->call();
+        } else {
+            qCritical() << "No master";
         }
     }
 
