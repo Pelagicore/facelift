@@ -15,5 +15,5 @@ facelift_add_qml_plugin(CombinedTestsPluginQml
    OUTPUT_BASE_DIRECTORY imports/qml
    SOURCES plugin/CombinedTestsPlugin.cpp
    LINK_LIBRARIES CombinedInterface
+   PRIVATE_DEFINITIONS -DQML_IMPL_LOCATION=${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_compile_definitions(CombinedTestsPluginQml PRIVATE -DQML_IMPL_LOCATION=${CMAKE_CURRENT_SOURCE_DIR})

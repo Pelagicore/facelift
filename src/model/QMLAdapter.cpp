@@ -91,6 +91,7 @@ QQmlEngine* QMLAdapterBase::qmlEngine() const
 {
     if (m_qmlEngine == nullptr) {
         m_qmlEngine = ::qmlEngine(this);
+        Q_ASSERT(m_qmlEngine);
     }
     return m_qmlEngine;
 }

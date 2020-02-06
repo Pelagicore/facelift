@@ -149,6 +149,8 @@ public:
         return ::qmlEngine(this);
     }
 
+    void onInvalidQMLEngine() const;
+
 private:
     QList<QObject *> m_children;
     InterfaceBase *m_interface = nullptr;
