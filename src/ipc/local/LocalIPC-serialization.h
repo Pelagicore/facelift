@@ -170,7 +170,7 @@ template<typename ReturnType>
 inline void LocalIPCServiceAdapterBase::sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue)
 {
     serializeValue(replyMessage, returnValue);
-    send(replyMessage);
+    sendReply(replyMessage);
 }
 
 template<typename Type>
