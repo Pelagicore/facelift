@@ -35,7 +35,8 @@ namespace facelift {
 TAsyncAnswerMasterBase::~TAsyncAnswerMasterBase()
 {
     if (!m_isAlreadyAnswered) {
-        faceliftSeriousError("No answer provided to asynchronous call");
+        // TODO : turn the following into faceliftSeriousError since this should never happen
+        qCritical() << "No answer provided to asynchronous call. An answer must be provided to the caller of an async method ! Context :" << m_context.data();
     }
 }
 
