@@ -36,6 +36,7 @@
 #include <QVariant>
 #include <QList>
 #include <type_traits>
+#include "FaceliftCommon.h"
 
 namespace facelift {
 
