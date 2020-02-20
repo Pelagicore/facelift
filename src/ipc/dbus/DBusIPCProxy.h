@@ -106,12 +106,11 @@ public:
         return b;
     }
 
-    void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) override
+    bool deserializeReadyValue(DBusIPCMessage &msg, bool isCompleteSnapshot)
     {
-        Q_UNUSED(isCompleteSnapshot);
-        bool isReady = false;
-        deserializeValue(msg, isReady);
-        this->setServiceReady(isReady);
+        bool previousIsReady = this->ready();
+        deserializeOptionalValue(msg, this->m_serviceReady, isCompleteSnapshot);
+        return (this->ready() != previousIsReady);
     }
 
     void setServiceRegistered(bool isRegistered) override
@@ -121,7 +120,6 @@ public:
         if (this->ready() != oldReady) {
             this->readyChanged();
         }
-        this->emitChangeSignals();
 
         m_ipcBinder.setServiceAvailable(isRegistered);
     }

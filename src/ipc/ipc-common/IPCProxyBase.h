@@ -80,20 +80,6 @@ public:
         return r;
     }
 
-    void setServiceReady(bool isServiceReady)
-    {
-        if (ready() != isServiceReady) {
-            m_serviceReady = isServiceReady;
-            emit this->readyChanged();
-        }
-    }
-
-    virtual void emitChangeSignals()
-    {
-        emit this->readyChanged();
-    }
-
-
     template<typename ProxyType>
     class InterfacePropertyIPCProxyHandler
     {
@@ -123,11 +109,8 @@ public:
         IPCProxyBase &m_owner;
     };
 
-
-private:
-    bool m_serviceReady = false;
-
 protected:
+    bool m_serviceReady = false;
     IPCProxyBinderBase *m_ipcBinder = nullptr;
 
 };

@@ -143,6 +143,8 @@ protected:
     QString m_introspectionData;
     QString m_serviceName;
 
+    bool m_previousReadyState = false;
+
     bool m_alreadyInitialized = false;
 };
 

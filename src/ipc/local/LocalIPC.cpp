@@ -72,9 +72,8 @@ void LocalIPCServiceAdapterBase::initOutgoingSignalMessage()
 
 void LocalIPCServiceAdapterBase::serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot)
 {
-    Q_UNUSED(isCompleteSnapshot);
     Q_ASSERT(service());
-    serializeValue(msg, service()->ready());
+    serializeOptionalValue(msg, service()->ready(), m_previousReadyState, isCompleteSnapshot);
 }
 
 void LocalIPCServiceAdapterBase::flush()
@@ -177,7 +176,6 @@ void LocalIPCProxyBinder::onServiceAvailable(LocalIPCServiceAdapterBase *adapter
                     this->onSignalTriggered(message);
                 });
         requestPropertyValues();
-        emit serviceAvailableChanged();
     }
 }
 
@@ -264,6 +262,7 @@ void LocalIPCProxyBinder::requestPropertyValues()
                 if (replyMessage.isReplyMessage()) {
                     m_serviceObject->deserializePropertyValues(replyMessage, true);
                     m_serviceObject->setServiceRegistered(true);
+                    emit serviceAvailableChanged();
                 } else {
                     qCDebug(LogIpc) << "Service not yet available : " << objectPath();
                 }

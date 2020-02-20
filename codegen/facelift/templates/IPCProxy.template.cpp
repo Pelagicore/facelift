@@ -34,6 +34,7 @@
 ****************************************************************************/
 
 #include "{{interfaceName}}IPCProxy.h"
+#include "{{interfaceName}}NotAvailableImpl.h"
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
@@ -65,6 +66,8 @@ struct {{className}}::Impl {
     {{interfaceName}}IPCDBusProxy m_ipcDBusProxyAdapter;
 #endif
 
+    {{interfaceName}}NotAvailableImpl m_notAvailableProvider;
+
     std::array<ProxyAdapterEntry, 0
     {% if generateAsyncProxy %} + 1
     {% endif %}
@@ -83,7 +86,7 @@ struct {{className}}::Impl {
     ipc()->setSynchronous(false);
     {% endif %}
 
-    setIPCProxies(m_impl->m_proxies);
+    setIPCProxies(m_impl->m_proxies, m_impl->m_notAvailableProvider);
 }
 
 {{className}}::~{{className}}()

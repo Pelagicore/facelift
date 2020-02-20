@@ -43,10 +43,10 @@
 
 namespace facelift {
 
-template<typename WrapperType, typename NotAvailableImpl>
+template<typename WrapperType>
 class IPCProxy : public WrapperType, public IPCProxyNewBase
 {
-    using InterfaceType = typename NotAvailableImpl::InterfaceType;
+    using InterfaceType = typename WrapperType::InterfaceType;
 
 public:
 
@@ -77,12 +77,12 @@ public:
                 this->refreshProvider();
             });
 
-        refreshProvider();
     }
 
     void refreshProvider() override
     {
-        InterfaceType *provider = &m_notAvailableProvider;
+        Q_ASSERT(m_defaultProvider);
+        InterfaceType *provider = m_defaultProvider;
         if (m_localProviderBinder.provider() != nullptr) {
             provider = m_localProviderBinder.provider();
         } else {
@@ -113,20 +113,23 @@ public:
     }
 
     template<size_t N>
-    void setIPCProxies(std::array<ProxyAdapterEntry, N>& proxies)
+    void setIPCProxies(std::array<ProxyAdapterEntry, N>& proxies, InterfaceType & defaultProvider)
     {
         m_ipcProxies = proxies;
+        m_defaultProvider = &defaultProvider;
+        refreshProvider();
     }
 
     void resetIPCProxies()
     {
         m_ipcProxies.reset();
+        m_defaultProvider = nullptr;
     }
 
 private:
-    NotAvailableImpl m_notAvailableProvider;
     LocalProviderBinder<InterfaceType> m_localProviderBinder;
     StaticArrayReference<ProxyAdapterEntry> m_ipcProxies;
+    InterfaceType * m_defaultProvider = nullptr;
 };
 
 }

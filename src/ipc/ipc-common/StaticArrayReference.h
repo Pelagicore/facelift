@@ -65,6 +65,12 @@ public:
         return m_data + m_size;
     }
 
+    const Type& last() const
+    {
+        Q_ASSERT(m_size > 0);
+        return *(m_data + m_size - 1);
+    }
+
     void reset()
     {
         m_size = 0;

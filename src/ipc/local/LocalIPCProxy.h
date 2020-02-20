@@ -205,14 +205,6 @@ public:
         return b;
     }
 
-    void deserializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot) override
-    {
-        Q_UNUSED(isCompleteSnapshot);
-        bool isReady = false;
-        deserializeValue(msg, isReady);
-        this->setServiceReady(isReady);
-    }
-
     void setServiceRegistered(bool isRegistered) override
     {
         bool oldReady = this->ready();
@@ -220,9 +212,15 @@ public:
         if (this->ready() != oldReady) {
             this->readyChanged();
         }
-        this->emitChangeSignals();
 
         m_ipcBinder.setServiceAvailable(isRegistered);
+    }
+
+    bool deserializeReadyValue(LocalIPCMessage &msg, bool isCompleteSnapshot)
+    {
+        bool previousIsReady = this->ready();
+        deserializeOptionalValue(msg, this->m_serviceReady, isCompleteSnapshot);
+        return (this->ready() != previousIsReady);
     }
 
     LocalIPCProxyBinder *ipc()

@@ -28,8 +28,6 @@
 **
 **********************************************************************/
 
-#pragma once
-
 #include "NewIPCServiceAdapterBase.h"
 #include "IPCServiceAdapterBase.h"
 
