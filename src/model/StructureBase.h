@@ -124,6 +124,11 @@ public:
         return (m_values == right.m_values);
     }
 
+    bool operator!=(const Structure &right) const
+    {
+        return !(this->operator==(right));
+    }
+
 protected:
     template<class Tuple, std::size_t... Is>
     static void toStringWithFields(const Tuple &t, std::index_sequence<Is...>, const FieldNames &names,

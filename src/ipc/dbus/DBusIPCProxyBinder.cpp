@@ -156,6 +156,7 @@ void DBusIPCProxyBinder::checkRegistry()
 
         }
     } else {
+        // TODO : this seems to be called too early
         m_serviceName.clear();
 
         m_busWatcher.removeWatchedService(m_serviceName);

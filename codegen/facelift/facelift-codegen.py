@@ -402,6 +402,7 @@ def run_generation(input, output, dependency, libraryName, all):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}NotAvailableImpl.h', 'ServiceNotAvailableImpl.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "")
 
@@ -417,10 +418,11 @@ def run_generation(input, output, dependency, libraryName, all):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "")
+                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncNotAvailableImpl.h', 'ServiceNotAvailableImpl.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.h', 'IPCLocalProxyAdapter.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.cpp', 'IPCLocalProxyAdapter.template.cpp', ctx, libraryName, "")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "")
+                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "")
 
             for enum in module.enums:
                 ctx.update({'enum': enum})

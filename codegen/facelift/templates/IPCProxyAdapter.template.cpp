@@ -59,32 +59,41 @@ void {{className}}::deserializePropertyValues(InputIPCMessage &msg, bool isCompl
 {
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
+    bool emit_{{property.name}}ChangeSignal = false;
     QString {{property.name}}_objectPath;
     if (deserializeOptionalValue(msg, {{property.name}}_objectPath, isCompleteSnapshot))
     {
         m_{{property.name}}Proxy.update({{property.name}}_objectPath);
         m_{{property.name}} = m_{{property.name}}Proxy.getValue();
+        emit_{{property.name}}ChangeSignal = true;
     }
     {% elif property.type.is_model %}
+    bool emit_{{property.name}}ChangeSignal = false;
     if (isCompleteSnapshot) {
         int {{property.name}}Size;
         deserializeValue(msg, {{property.name}}Size);
         m_{{property.name}}.beginResetModel();
         m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
         m_{{property.name}}.endResetModel();
+        emit_{{property.name}}ChangeSignal = true;
     }
     {% else %}
+    const auto previous_{{property.name}}_Value = m_{{property.name}};
     deserializeOptionalValue(msg, m_{{property.name}}, isCompleteSnapshot);
+    bool emit_{{property.name}}ChangeSignal = isCompleteSnapshot && ((previous_{{property.name}}_Value != m_{{property.name}}));
     {% endif %}
     {% endfor %}
-    BaseType::deserializePropertyValues(msg, isCompleteSnapshot);
-}
 
-void {{className}}::emitChangeSignals() {
-{% for property in interface.properties %}
-    emit {{property.name}}Changed();
-{% endfor %}
-    BaseType::emitChangeSignals();
+    bool emit_ReadyChangeSignal = deserializeReadyValue(msg, isCompleteSnapshot) && isCompleteSnapshot;
+
+    {% for property in interface.properties %}
+    if (emit_{{property.name}}ChangeSignal)
+        emit {{property.name}}Changed();
+    {% endfor %}
+
+    if (emit_ReadyChangeSignal)
+        emit readyChanged();
+
 }
 
 void {{className}}::deserializeSignal(InputIPCMessage &msg)

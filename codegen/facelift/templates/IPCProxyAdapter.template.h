@@ -150,8 +150,6 @@ public:
     {% endif %}
     {% endfor %}
 
-    void emitChangeSignals() override;
-
 private:
     {% for property in interface.properties %}
     {% if property.type.is_interface %}

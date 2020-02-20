@@ -68,9 +68,8 @@ void IPCDBusServiceAdapterBase::initOutgoingSignalMessage() {
 
 void IPCDBusServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
 {
-    Q_UNUSED(isCompleteSnapshot);
     Q_ASSERT(service());
-    serializeValue(msg, service()->ready());
+    serializeOptionalValue(msg, service()->ready(), m_previousReadyState, isCompleteSnapshot);
 }
 
 void IPCDBusServiceAdapterBase::flush()
