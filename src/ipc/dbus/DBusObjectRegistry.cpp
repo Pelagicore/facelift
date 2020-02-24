@@ -30,18 +30,24 @@
 
 #include "DBusObjectRegistry.h"
 #include "DBusManager.h"
-#include "facelift/ipc/dbus/ObjectRegistryAsyncIPCDBusProxy.h"
-#include "facelift/ipc/dbus/ObjectRegistryIPCDBusProxy.h"
+#include "DBusIPCCommon.h"
+#include <limits>
 
 namespace facelift {
 namespace dbus {
+
+using facelift::ipc::dbus::ObjectRegistryIPCDBusProxy;
+using facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy;
+using facelift::ipc::dbus::ObjectRegistryAsync;
+
+const QString DBusObjectRegistry::VERSION_KEY = "@version";
 
 DBusObjectRegistry::DBusObjectRegistry(DBusManager &dbusManager) :
     m_dbusManager(dbusManager)
 {
     const constexpr char* ENV_VAR_NAME = "FACELIFT_DBUS_SERVICE_NAME";
     QByteArray serviceName = qgetenv(ENV_VAR_NAME);
-    m_serviceName = serviceName.isEmpty() ? DEFAULT_SERVICE_NAME : QString(serviceName);
+    m_serviceName = serviceName.isEmpty() ? DBusIPCCommon::DEFAULT_SERVICE_NAME : QString(serviceName);
 }
 
 void DBusObjectRegistry::init()
@@ -49,15 +55,21 @@ void DBusObjectRegistry::init()
     if (!m_initialized) {
         m_initialized = true;
         if (m_dbusManager.registerServiceName(m_serviceName)) {
-            m_master = std::make_unique<MasterImpl>(*this);
+            m_master = std::make_unique<MasterImpl>();
             m_master->init();
-            QObject::connect(m_master.get(), &MasterImpl::objectsChanged, this, &DBusObjectRegistry::objectsChanged);
+            QObject::connect(m_master.get(), &MasterImpl::objectAdded, this, &DBusObjectRegistry::onObjectAdded);
+            QObject::connect(m_master.get(), &MasterImpl::objectRemoved, this, &DBusObjectRegistry::onObjectRemoved);
+            updateObjects(m_master->getObjects());
         } else {
-            m_objectRegistryAsyncProxy = new facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy();
+            m_objectRegistryAsyncProxy = new ObjectRegistryAsyncIPCDBusProxy(this);
             m_objectRegistryAsyncProxy->ipc()->setServiceName(m_serviceName);
             m_objectRegistryAsyncProxy->connectToServer();
-            QObject::connect(m_objectRegistryAsyncProxy, &facelift::ipc::dbus::ObjectRegistryAsync::objectsChanged, this,
-                    &DBusObjectRegistry::objectsChanged);
+            m_objectRegistryAsyncProxy->getObjects(facelift::AsyncAnswer<QMap<QString, QString>>(
+                this, [this](QMap<QString, QString> objectMap) { updateObjects(objectMap); }));
+            QObject::connect(m_objectRegistryAsyncProxy, &ObjectRegistryAsync::objectAdded, this,
+                             &DBusObjectRegistry::onObjectAdded);
+            QObject::connect(m_objectRegistryAsyncProxy, &ObjectRegistryAsync::objectRemoved, this,
+                             &DBusObjectRegistry::onObjectRemoved);
         }
     }
 }
@@ -66,11 +78,11 @@ void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::Asy
 {
     init();
     auto serviceName = DBusManager::instance().serviceName();
-    if (m_master) {
+    if (isMaster()) {
         auto isSuccessful = m_master->registerObject(objectPath, serviceName);
         answer(isSuccessful);
     } else {
-        return m_objectRegistryAsyncProxy->registerObject(objectPath, serviceName, answer);
+        m_objectRegistryAsyncProxy->registerObject(objectPath, serviceName, answer);
     }
 }
 
@@ -78,44 +90,109 @@ void DBusObjectRegistry::unregisterObject(const QString &objectPath)
 {
     init();
     auto serviceName = DBusManager::instance().serviceName();
-    if (m_master) {
+    if (isMaster()) {
         m_master->unregisterObject(objectPath, serviceName);
     } else {
-        return m_objectRegistryAsyncProxy->unregisterObject(objectPath, serviceName);
+        m_objectRegistryAsyncProxy->unregisterObject(objectPath, serviceName);
     }
 }
 
-const QMap<QString, QString> &DBusObjectRegistry::objects(bool blocking)
+void DBusObjectRegistry::updateObjects(const QMap<QString, QString>& objectMap)
+{
+    if (!hasValidObjects()) {
+        int version = objectMap[VERSION_KEY].toInt(); // 0 if key is not present
+        Q_ASSERT(version != INVALID_REGISTRY_VERSION);
+        m_registryVersion = version;
+        m_objects = objectMap;
+        m_objects.remove(VERSION_KEY);
+        emit objectsChanged();
+    }
+}
+
+int DBusObjectRegistry::nextVersion(const int currentVersion)
+{
+    int version = currentVersion + 1;
+    if (version == std::numeric_limits<int>::max()) { // overflow protection
+        version = INITIAL_REGISTRY_VERSION;
+    }
+    return version;
+}
+
+void DBusObjectRegistry::syncObjects()
+{
+    ObjectRegistryIPCDBusProxy objectRegistryProxy;
+    objectRegistryProxy.ipc()->setServiceName(m_serviceName);
+    objectRegistryProxy.connectToServer();
+    updateObjects(objectRegistryProxy.getObjects());
+}
+
+const QMap<QString, QString>& DBusObjectRegistry::objects(bool blocking)
 {
     init();
-    if (m_master) {
-        return m_master->objects();
-    } else {
-        if (blocking) {
-            if (m_objectRegistryProxy == nullptr) {
-                m_objectRegistryProxy = new facelift::ipc::dbus::ObjectRegistryIPCDBusProxy();
-                m_objectRegistryProxy->ipc()->setServiceName(m_serviceName);
-                m_objectRegistryProxy->connectToServer();
-            }
-            return m_objectRegistryProxy->objects();
+    if (!isMaster() && blocking && !hasValidObjects()) {
+        syncObjects();
+    }
+    return m_objects;
+}
+
+void DBusObjectRegistry::onObjectAdded(const QString &objectPath, const QString &serviceName, int registryVersion)
+{
+    if (hasValidObjects() && registryVersion == nextVersion(m_registryVersion)) {
+        m_registryVersion = registryVersion;
+        if (!m_objects.contains(objectPath)) {
+            m_objects.insert(objectPath, serviceName);
+            emit objectsChanged();
         } else {
-            return m_objectRegistryAsyncProxy->objects();
+            qCCritical(LogIpc) << "Cannot add object with object path:" << objectPath << ", service name:" << serviceName
+                               << "Object registry already contains this object path with service name:" << m_objects[objectPath];
         }
     }
 }
 
+void DBusObjectRegistry::onObjectRemoved(const QString &objectPath, int registryVersion)
+{
+    if (hasValidObjects() && registryVersion == nextVersion(m_registryVersion)) {
+        m_registryVersion = registryVersion;
+        if (m_objects.remove(objectPath)) {
+            emit objectsChanged();
+        } else {
+            qCCritical(LogIpc) << "Object does not exist. Object path:" << objectPath;
+        }
+    }
+}
+
+bool DBusObjectRegistry::isMaster() const
+{
+    return m_master != nullptr;
+}
+
 void DBusObjectRegistry::MasterImpl::init()
 {
+    Q_ASSERT(m_version == DBusObjectRegistry::INVALID_REGISTRY_VERSION);
+    m_version = DBusObjectRegistry::INITIAL_REGISTRY_VERSION;
     m_objectRegistryAdapter.registerService(facelift::ipc::dbus::ObjectRegistry::SINGLETON_OBJECT_PATH, this);
+}
+
+void DBusObjectRegistry::MasterImpl::updateVersion()
+{
+    m_version = nextVersion(m_version);
 }
 
 bool DBusObjectRegistry::MasterImpl::registerObject(const QString &objectPath, const QString &serviceName)
 {
-    auto objects = m_objects.value();
-    if (!objects.contains(objectPath)) {
-        qCDebug(LogIpc) << "Object registered at path" << objectPath << "service name:" << serviceName;
-        objects[objectPath] = serviceName;
-        m_objects = objects;
+    Q_ASSERT_X(m_version != DBusObjectRegistry::INVALID_REGISTRY_VERSION, "registerObject",
+               "Attempt to register object before the registry initialization");
+    if (objectPath.isEmpty() || serviceName.isEmpty()) {
+        qCCritical(LogIpc) << "Object path or service name is empty. Object path:" << objectPath
+                           << "service name:" << serviceName;
+        return false;
+    } else if (!m_objectMap.contains(objectPath)) {
+        m_objectMap.insert(objectPath, serviceName);
+        qCDebug(LogIpc) << "Object registered at path" << objectPath
+                        << "service name:" << serviceName;
+
+        updateVersion();
+        emit objectAdded(objectPath, serviceName, m_version);
         return true;
     } else {
         qCCritical(LogIpc) << "Object path is already registered" << objectPath;
@@ -125,18 +202,26 @@ bool DBusObjectRegistry::MasterImpl::registerObject(const QString &objectPath, c
 
 bool DBusObjectRegistry::MasterImpl::unregisterObject(const QString &objectPath, const QString &serviceName)
 {
-    auto objects = m_objects.value();
-    if (objects[objectPath] == serviceName) {
-        objects.remove(objectPath);
-        m_objects = objects;
+    Q_ASSERT_X(m_version != DBusObjectRegistry::INVALID_REGISTRY_VERSION, "registerObject",
+               "Attempt to unregister object before the registry initialization");
+    if (m_objectMap.contains(objectPath) && m_objectMap[objectPath] == serviceName) {
+        m_objectMap.remove(objectPath);
+        updateVersion();
+        emit objectRemoved(objectPath, m_version);
         return true;
     } else {
-        qCCritical(LogIpc, "Could not unregister service at object path '%s' serviceName:'%s'", qPrintable(objectPath), qPrintable(serviceName));
+        qCCritical(LogIpc, "Could not unregister service at object path '%s' serviceName:'%s'", qPrintable(objectPath),
+                   qPrintable(serviceName));
         return false;
     }
-
 }
 
+QMap<QString, QString> DBusObjectRegistry::MasterImpl::getObjects()
+{
+    QMap<QString, QString> result(m_objectMap);
+    result[VERSION_KEY] = QString::number(m_version);
+    return result;
+}
 
-}
-}
+} // end namespace dbus
+} // end namespace facelift

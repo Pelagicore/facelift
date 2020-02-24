@@ -154,12 +154,8 @@ void DBusIPCProxyBinder::checkRegistry()
             if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
                 onServiceNameKnown();
             }
-
         }
-    } else {
-        // TODO : this seems to be called too early
-        m_serviceName.clear();
-
+    } else if (!m_serviceName.isEmpty()){ // no point to proceed on empty service name
         m_busWatcher.removeWatchedService(m_serviceName);
 
         connection().disconnect(m_serviceName,
@@ -171,6 +167,7 @@ void DBusIPCProxyBinder::checkRegistry()
                 SLOT(onSignalTriggered(const QDBusMessage&)));
 
         setServiceAvailable(false);
+        m_serviceName.clear();
     }
 }
 
@@ -202,10 +199,6 @@ void DBusIPCProxyBinder::bindToIPC()
         onServiceNameKnown();
     } else {
         auto &registry = DBusManager::instance().objectRegistry();
-
-        if (isSynchronous()) {
-            registry.objects(true); // Read property value in a blocking way
-        }
         QObject::connect(&registry, &DBusObjectRegistry::objectsChanged, this, [this] () {
             checkRegistry();
         }, Qt::UniqueConnection);

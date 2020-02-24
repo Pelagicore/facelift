@@ -77,3 +77,5 @@ add_test(NAME benchmarking-inprocess.cpp COMMAND test-driver.sh benchmarking/tst
 if(NOT ${FACELIFT_DISABLE_GTEST})
     add_subdirectory(unittest)
 endif()
+
+add_subdirectory(objectregistry)
