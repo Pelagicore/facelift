@@ -53,6 +53,7 @@
 
 #include "DBusManager.h"
 #include "DBusIPCCommon.h"
+#include "IPCDBusServiceAdapterBase.h"
 
 namespace facelift {
 namespace dbus {

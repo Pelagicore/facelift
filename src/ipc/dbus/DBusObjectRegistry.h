@@ -32,7 +32,7 @@
 
 #include "facelift/ipc/dbus/ObjectRegistryImplementationBase.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusProxy.h"
-#include "facelift/ipc/dbus/ObjectRegistryAsyncIPCProxy.h"
+#include "facelift/ipc/dbus/ObjectRegistryAsyncIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusAdapter.h"
 
 
@@ -42,20 +42,18 @@ namespace dbus {
 class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
 {
     Q_OBJECT
-    static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.registry";
+    static constexpr const int INVALID_REGISTRY_VERSION = 0;
+    static constexpr const int INITIAL_REGISTRY_VERSION = 1;
+    static const QString VERSION_KEY;
 public:
 
     QString m_serviceName;
-
-    using Content = QMap<QString, QString>;
 
     class MasterImpl : public facelift::ipc::dbus::ObjectRegistryImplementationBase
     {
 
     public:
-        MasterImpl(DBusObjectRegistry &parent) : facelift::ipc::dbus::ObjectRegistryImplementationBase(&parent)
-        {
-        }
+        MasterImpl() = default;
 
         void init();
 
@@ -63,9 +61,14 @@ public:
 
         bool unregisterObject(const QString &objectPath, const QString &serviceName) override;
 
-    private:
-        facelift::ipc::dbus::ObjectRegistryIPCDBusAdapter m_objectRegistryAdapter;
+        QMap<QString, QString> getObjects() override;
 
+    private:
+        void updateVersion();
+
+        int m_version = DBusObjectRegistry::INVALID_REGISTRY_VERSION;
+        QMap<QString, QString> m_objectMap;
+        facelift::ipc::dbus::ObjectRegistryIPCDBusAdapter m_objectRegistryAdapter;
     };
 
     DBusObjectRegistry(DBusManager &dbusManager);
@@ -76,16 +79,29 @@ public:
 
     void unregisterObject(const QString &objectPath);
 
-    const Content &objects(bool blocking);
+    const QMap<QString, QString>& objects(bool blocking);
 
     Q_SIGNAL void objectsChanged();
 
 private:
-    facelift::ipc::dbus::ObjectRegistryIPCDBusProxy *m_objectRegistryProxy = nullptr;
-    facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy *m_objectRegistryAsyncProxy = nullptr;
+    static int nextVersion(const int currentVersion);
+
+    void onObjectAdded(const QString& objectPath, const QString& serviceName, int registryVersion);
+    void onObjectRemoved(const QString& objectPath, int registryVersion);
+    bool isMaster() const;
+
+    void syncObjects();
+    void updateObjects(const QMap<QString, QString>& objectMap);
+    bool hasValidObjects() const { return m_registryVersion != INVALID_REGISTRY_VERSION; }
+
+    int version() const { return m_registryVersion; }
+
+    facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy* m_objectRegistryAsyncProxy = nullptr;
     DBusManager &m_dbusManager;
     bool m_initialized = false;
     std::unique_ptr<MasterImpl> m_master;
+    QMap<QString, QString> m_objects;
+    int m_registryVersion = INVALID_REGISTRY_VERSION;
 };
 
 }

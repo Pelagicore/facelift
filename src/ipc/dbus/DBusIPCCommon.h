@@ -47,6 +47,7 @@ struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
     static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "SetProperty";
     static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
     static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
+    static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.registry";
 };
 
 }

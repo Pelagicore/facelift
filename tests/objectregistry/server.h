@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -27,21 +27,40 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+#pragma once
 
-module facelift.ipc.dbus 1.0;
+#ifndef CLIENT_EXECUTABLE_LOCATION
+#error "CLIENT_EXECUTABLE_LOCATION must be be defined! Check CMakeLists.txt"
+#endif
 
-@ipc-async: true
-@ipc-sync: true
-interface ObjectRegistry {
-    bool registerObject(string objectPath, string serviceName);
-    bool unregisterObject(string objectPath, string serviceName);
-    /**
-    * Returns current content of the object registry.
-    * Returned map contains a special element "@version" with the version
-    * number of the object registry.
-    */
-    map<string> getObjects();
+#include <memory>
+#include <QString>
+#include "tests/ipc/OtherIPCTestInterfaceImplementationBase.h"
+#include "tests/ipc/IPCTestInterfaceImplementationBase.h"
+#include "tests/ipc/OtherIPCTestInterfaceIPCAdapter.h"
+#include "tests/ipc/IPCTestInterfaceIPCAdapter.h"
 
-    signal objectAdded(string objectPath, string serviceName, int version);
-    signal objectRemoved(string objectPath, int version);
-}
+namespace tests {
+namespace ipc {
+
+class OtherIPCTestInterfaceImpl : public OtherIPCTestInterfaceImplementationBase {
+    Q_OBJECT
+public:
+    OtherIPCTestInterfaceImpl();
+    void requestExit() override;
+
+    OtherIPCTestInterfaceIPCAdapter m_adapter;
+};
+
+class IPCTestInterfaceImpl : public IPCTestInterfaceImplementationBase {
+    Q_OBJECT
+public:
+    IPCTestInterfaceImpl();
+    void registerOtherIPCTestInterface() override;
+
+    IPCTestInterfaceIPCAdapter m_adapter;
+    std::unique_ptr<OtherIPCTestInterfaceImpl> m_syncIPCTestInterfaceImpl;
+};
+
+} // end namespace ipc
+} // end namespace tests

@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -27,21 +27,35 @@
 ** SPDX-License-Identifier: MIT
 **
 **********************************************************************/
+#pragma once
 
-module facelift.ipc.dbus 1.0;
+#include <memory>
+#include <QObject>
+#include "tests/ipc/IPCTestInterfaceAsyncIPCProxy.h"
+#include "tests/ipc/OtherIPCTestInterfaceIPCProxy.h"
 
-@ipc-async: true
-@ipc-sync: true
-interface ObjectRegistry {
-    bool registerObject(string objectPath, string serviceName);
-    bool unregisterObject(string objectPath, string serviceName);
+namespace tests {
+namespace ipc {
+
+class Tester : public QObject {
+    Q_OBJECT
+public:
     /**
-    * Returns current content of the object registry.
-    * Returned map contains a special element "@version" with the version
-    * number of the object registry.
-    */
-    map<string> getObjects();
+     * @brief runTest: tests getting objects in the blocking way, before the non-blocking
+     * call result is received
+     *
+     * scenario:
+     * 1. connect async proxy to DBus (this will trigger getObjects async call)
+     * 2. trigger registering another proxy on the server side
+     * 3. create and connect sync proxy to DBus  (this will trigger getObjects sync call)
+     * 4. call a mathod on sync proxy. Successful call ends test.
+     */
+    void runTest();
 
-    signal objectAdded(string objectPath, string serviceName, int version);
-    signal objectRemoved(string objectPath, int version);
-}
+    std::unique_ptr<IPCTestInterfaceAsyncIPCProxy> m_async;
+    std::unique_ptr<OtherIPCTestInterfaceIPCProxy> m_sync;
+    void registerAnotherAdapter();
+};
+
+} // end namespace ipc
+} // end namespace tests

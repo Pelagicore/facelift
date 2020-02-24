@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,20 +28,19 @@
 **
 **********************************************************************/
 
-module facelift.ipc.dbus 1.0;
+module tests.ipc 1.0
 
 @ipc-async: true
-@ipc-sync: true
-interface ObjectRegistry {
-    bool registerObject(string objectPath, string serviceName);
-    bool unregisterObject(string objectPath, string serviceName);
-    /**
-    * Returns current content of the object registry.
-    * Returned map contains a special element "@version" with the version
-    * number of the object registry.
-    */
-    map<string> getObjects();
+interface IPCTestInterface {
+    void registerOtherIPCTestInterface();
+    signal exitRequested();
+}
 
-    signal objectAdded(string objectPath, string serviceName, int version);
-    signal objectRemoved(string objectPath, int version);
+@ipc-sync: true
+interface OtherIPCTestInterface {
+    /* the successful call causes the server to exit with code 0,
+    * emitting signal exitRequested
+    */
+    void requestExit();
+    signal exitRequested();
 }
