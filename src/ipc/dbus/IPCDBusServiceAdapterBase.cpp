@@ -96,6 +96,13 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
         if (service()) {
             bool sendReply = true;
             if (requestMessage.member() == DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
+                if (!m_signalsConnected) {
+                    m_signalsConnected = true;
+                    QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
+                        this->sendSignal(CommonSignalID::readyChanged);
+                    });
+                    connectSignals();
+                }
                 serializePropertyValues(replyMessage, true);
             } else {
                 auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
@@ -183,12 +190,7 @@ void IPCDBusServiceAdapterBase::registerService()
 
             qCDebug(LogIpc) << "Registering IPC object at " << objectPath();
             m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
-            if (m_alreadyInitialized) {
-                QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
-                    this->sendSignal(CommonSignalID::readyChanged);
-                });
-                connectSignals();
-            } else {
+            if (!m_alreadyInitialized) {
                 qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));
             }
 
