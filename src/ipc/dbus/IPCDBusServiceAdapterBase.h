@@ -144,7 +144,7 @@ protected:
     QString m_serviceName;
 
     bool m_previousReadyState = false;
-
+    bool m_signalsConnected = false;
     bool m_alreadyInitialized = false;
 };
 
