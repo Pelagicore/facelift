@@ -51,6 +51,10 @@ public:
 
     virtual ~PropertyBase();
 
+    PropertyBase(PropertyBase const &) = delete;
+    PropertyBase(PropertyBase const &&) = delete;
+    void operator=(PropertyBase const &x) = delete;
+
     template<typename ServiceType>
     void init(QObject *ownerObject, void (ServiceType::*changeSignal)(), const char *name = "Unknown")
     {

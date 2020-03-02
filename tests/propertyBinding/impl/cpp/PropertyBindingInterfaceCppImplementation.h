@@ -44,15 +44,15 @@ public:
         m_ts.init(this, &PropertyBindingInterfaceImplementation::propertyChanged, "Temp");
 
         m_intProperty1.bind([this]() {
-            return m_intProperty2;
+            return m_intProperty2.value();
         }).addTrigger(this, &PropertyBindingInterfaceImplementationBase::intProperty2Changed);
 
         m_structProperty1.bind([this]() {
-            return m_structProperty2;
+            return m_structProperty2.value();
         }).addTrigger(this, &PropertyBindingInterfaceImplementationBase::structProperty2Changed);
 
         m_structProperty3.bind([this]() {
-            return m_ts;
+            return m_ts.value();
         }).addTrigger(this, &PropertyBindingInterfaceImplementation::propertyChanged);
     }
 

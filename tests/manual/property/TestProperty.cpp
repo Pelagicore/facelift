@@ -40,7 +40,7 @@
 static void testInteger()
 {
     TestPropertyClass c;
-    facelift::Property<int> prop = 7;
+    facelift::Property<int> prop { 7 };
     SignalSpy signalSpy(&c, &TestPropertyClass::aSignal);
     prop.init(&c, &TestPropertyClass::aSignal);
 
