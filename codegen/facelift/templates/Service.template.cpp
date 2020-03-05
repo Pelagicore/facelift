@@ -36,6 +36,9 @@
 #include "{{interfaceName}}.h"
 #include "FaceliftConversion.h"
 
+#ifdef QT_DEBUG
+#include "PropertyVerifier.h"
+#endif
 
 {{module.namespaceCppOpen}}
 
@@ -45,6 +48,14 @@ constexpr const char* {{interfaceName}}::FULLY_QUALIFIED_INTERFACE_NAME;
     : facelift::InterfaceBase(parent)
 {
     init(FULLY_QUALIFIED_INTERFACE_NAME);
-}
 
+#ifdef QT_DEBUG
+    QObject::connect(this, &InterfaceBase::componentCompleted, this, [this]() {
+    {% for property in interface.properties %}
+        facelift::createPropertyVerifier({{property.name}}Property());
+    {% endfor %}
+    });
+#endif
+
+}
 {{module.namespaceCppClose}}
