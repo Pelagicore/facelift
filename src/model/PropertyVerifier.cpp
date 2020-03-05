@@ -1,4 +1,4 @@
-{#*********************************************************************
+/**********************************************************************
 **
 ** Copyright (C) 2018 Luxoft Sweden AB
 **
@@ -26,36 +26,16 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-*********************************************************************#}
+**********************************************************************/
 
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
-
-#include "{{interfaceName}}.h"
-#include "FaceliftConversion.h"
-
-#ifdef QT_DEBUG
 #include "PropertyVerifier.h"
-#endif
 
-{{module.namespaceCppOpen}}
+namespace facelift {
 
-constexpr const char* {{interfaceName}}::FULLY_QUALIFIED_INTERFACE_NAME;
-
-{{interfaceName}}::{{interfaceName}}(QObject* parent)
-    : facelift::InterfaceBase(parent)
+void onUnexpectedChangeSignalTriggered()
 {
-    init(FULLY_QUALIFIED_INTERFACE_NAME);
-
-#ifdef QT_DEBUG
-    QObject::connect(this, &InterfaceBase::componentCompleted, this, [this]() {
-    {% for property in interface.properties %}
-        facelift::checkProperty({{property.name}}Property(), "{{property.name}}");
-    {% endfor %}
-    });
-#endif
+    // uncomment the following line to make unexpected signals fatal
+//    qFatal("Fatal error");
+}
 
 }
-{{module.namespaceCppClose}}

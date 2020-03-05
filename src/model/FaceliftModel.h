@@ -37,7 +37,6 @@
 #include <QDebug>
 #include <QMap>
 #include <qqml.h>
-#include <QPointer>
 
 #include "FaceliftCommon.h"
 #include "AsyncAnswer.h"
@@ -338,6 +337,11 @@ public:
     Class *object() const
     {
         return m_object;
+    }
+
+    GetterMethod getter() const
+    {
+        return m_getter;
     }
 
 private:
