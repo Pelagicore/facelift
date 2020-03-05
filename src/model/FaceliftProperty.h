@@ -111,7 +111,6 @@ protected:
 private:
     void doTriggerChangeSignal();
 
-    bool m_ready = true;
     QObject *m_ownerObject = nullptr;
     ChangeSignal m_ownerSignal = nullptr;
     ChangeSignal m_readySignal = nullptr;
@@ -119,6 +118,7 @@ private:
     const char *m_name = nullptr;
     bool m_notificationTimerEnabled = false;
     bool m_asynchronousNotification = false;
+    bool m_ready = true;
 
 protected:
     QMetaObject::Connection m_getterFunctionContextConnection;

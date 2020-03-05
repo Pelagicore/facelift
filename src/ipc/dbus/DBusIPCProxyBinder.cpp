@@ -48,6 +48,7 @@ DBusIPCProxyBinder::DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent) :
 void DBusIPCProxyBinder::setServiceAvailable(bool isRegistered)
 {
     if (m_serviceAvailable != isRegistered) {
+        qCDebug(LogIpc) << "DBus service available:" << isRegistered << "objectPath:" << objectPath();
         m_serviceAvailable = isRegistered;
         emit serviceAvailableChanged();
     }

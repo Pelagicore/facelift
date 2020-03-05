@@ -101,6 +101,7 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
                     QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
                         this->sendSignal(CommonSignalID::readyChanged);
                     });
+                    qCDebug(LogIpc) << "Enabling IPCDBusServiceAdapter for" << this->service();
                     connectSignals();
                 }
                 serializePropertyValues(replyMessage, true);
@@ -117,7 +118,7 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
             }
             return true;
         } else {
-            qWarning() << "DBus request received for object which has been destroyed" << this;
+            qCWarning(LogIpc) << "DBus request received for object which has been destroyed" << this;
         }
     }
 
@@ -173,7 +174,7 @@ void IPCDBusServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
         dbusManager().connection().unregisterObject(objectPath());
-        qCDebug(LogIpc) << "Unregistered IPC DBUS object at " << objectPath();
+        qCDebug(LogIpc) << "Unregistered IPCDBusServiceAdapter object at " << objectPath();
         dbusManager().objectRegistry().unregisterObject(objectPath());
         m_alreadyInitialized = false;
     }
@@ -188,7 +189,7 @@ void IPCDBusServiceAdapterBase::registerService()
                 DBusManager::instance().registerServiceName(m_serviceName);
             }
 
-            qCDebug(LogIpc) << "Registering IPC object at " << objectPath();
+            qCDebug(LogIpc) << "Registering IPCDBusServiceAdapter object at " << objectPath();
             m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
             if (!m_alreadyInitialized) {
                 qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));
