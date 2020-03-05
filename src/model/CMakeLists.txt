@@ -12,6 +12,7 @@ facelift_add_library(FaceliftModelLib
         FaceliftEnum.cpp
         FaceliftStringConversion.cpp
         AsyncAnswer.cpp
+        PropertyVerifier.cpp
     HEADERS
         FaceliftModel.h
         QMLAdapter.h
@@ -29,6 +30,10 @@ facelift_add_library(FaceliftModelLib
         FaceliftImplementationBase.h
         FaceliftQMLUtils.h
         AsyncAnswer.h
-    LINK_LIBRARIES Qt5::Qml Qt5::Quick FaceliftCommonLib
+        PropertyVerifier.h
+    LINK_LIBRARIES
+        Qt5::Qml
+        Qt5::Quick
+        FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )
