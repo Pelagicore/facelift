@@ -157,7 +157,7 @@ public:
     {
         this->bind([property] () {
                 return property.value();
-            }).addTrigger(property.object, property.signal);
+            }).addTrigger(property.object(), property.signal());
         return *this;
     }
 
@@ -168,7 +168,7 @@ public:
     template<typename Class, typename PropertyType>
     TProperty &addTrigger(const PropertyInterface<Class, PropertyType> &property)
     {
-        this->addTrigger(property.object, property.signal);
+        this->addTrigger(property.object(), property.signal());
         return *this;
     }
 
@@ -225,12 +225,6 @@ public:
         return !(m_previousValue == m_value);
     }
 
-    void clean() override
-    {
-        m_previousValue = m_value;
-        //        qCDebug(LogModel) << "Cleaning " << name() << " value: " << m_previousValue;
-    }
-
     Type &operator-=(const Type &right)
     {
         return operator=(value() - right);
@@ -266,6 +260,13 @@ public:
     }
 
 protected:
+
+    void clean() override
+    {
+        m_previousValue = m_value;
+        //        qCDebug(LogModel) << "Cleaning " << name() << " value: " << m_previousValue;
+    }
+
     void breakBinding()
     {
         if (m_getterFunction) {
@@ -322,7 +323,7 @@ public:
     {
         this->bind([property] () {
                 return property.value();
-            }).addTrigger(property.object, property.signal);
+            }).addTrigger(property.object(), property.signal());
         return *this;
     }
 
@@ -469,11 +470,11 @@ public:
     template<typename Class>
     ModelProperty &bind(const ModelPropertyInterface<Class, ElementType> &property)
     {
-        facelift::Model<ElementType>* model = property.property;
+        facelift::Model<ElementType>* model = property.property();
         this->bindOtherModel(model);
 
         this->beginResetModel();
-        this->reset(property.property->size(), [model](int index) {
+        this->reset(property.property()->size(), [model](int index) {
             return model->elementAt(index);
         });
         this->endResetModel();

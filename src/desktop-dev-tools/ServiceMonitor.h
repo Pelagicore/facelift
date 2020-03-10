@@ -179,7 +179,7 @@ public:
         widget->setValue(property.value());
 
         // Update the GUI if the value is changed in the property
-        connect(&m_provider, property.signal, this, [property, widget]() {
+        connect(&m_provider, property.signal(), this, [property, widget]() {
                 widget->setValue(property.value());
             });
 
