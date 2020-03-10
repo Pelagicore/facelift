@@ -47,7 +47,7 @@ void {{interfaceName}}Wrapper::bind({{interfaceName}}* wrapped, {{interfaceName}
     {% endfor %}
 
     {% for property in interface.properties %}
-    if (propertyValuesDiffer(&{{interfaceName}}::{{property.name}}, wrapped, previouslyWrapped)) {
+    if (changeSignalRequired(&{{interfaceName}}::{{property.name}}, wrapped, previouslyWrapped, m_previous_{{property.name}})) {
         emit {{property.name}}Changed();
     }
     {% endfor %}
