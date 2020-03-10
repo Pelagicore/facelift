@@ -65,24 +65,32 @@ public:
     {% for property in interface.properties %}
 
     {% if property.type.is_model %}
+    mutable facelift::Model<{{property.nestedType.interfaceCppType}}>* m_previous_{{property.name}} = nullptr;
     facelift::Model<{{property.nestedType.interfaceCppType}}>& {{property.name}}() final override
     {
-        return wrapped()->{{property.name}}();
+        m_previous_{{property.name}} = &(wrapped()->{{property.name}}());
+        return *m_previous_{{property.name}};
     }
     {% elif property.type.is_list %}
+    mutable {{property.interfaceCppType}} m_previous_{{property.name}};
     const {{property.interfaceCppType}}& {{property}}() const final override
     {
-        return wrapped()->{{property.name}}();
+        m_previous_{{property}} = wrapped()->{{property.name}}();
+        return m_previous_{{property}};
     }
     {% elif property.type.is_interface %}
+    mutable {{property.interfaceCppType}} m_previous_{{property.name}};
     {{property.interfaceCppType}} {{property}}() final override
     {
-        return wrapped()->{{property.name}}();
+        m_previous_{{property}} = wrapped()->{{property.name}}();
+        return m_previous_{{property}};
     }
     {% else %}
+    mutable {{property.interfaceCppType}} m_previous_{{property.name}};
     const {{property.interfaceCppType}} &{{property}}() const final override
     {
-        return wrapped()->{{property.name}}();
+        m_previous_{{property}} = wrapped()->{{property.name}}();
+        return m_previous_{{property}};
     }
     {% endif %}
     {% if (not property.readonly) %}
