@@ -130,7 +130,7 @@ public:
     virtual const {{property.interfaceCppType}}& {{property}}() const = 0;
     facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}> {{property}}Property()
     {
-        return facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
+        return facelift::PropertyInterface<ThisType, {{property.interfaceCppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed, "{{property.name}}");
     }
     {% if (not property.readonly) %}
     virtual void set{{property}}( {{property.cppMethodArgumentType}} newValue) = 0;

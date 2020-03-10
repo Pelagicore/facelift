@@ -144,23 +144,45 @@ public:
     typedef void (Class::*ChangeSignal)();
     typedef const PropertyType &(Class::*GetterMethod)() const;
 
-    PropertyInterface(Class *o, GetterMethod g, ChangeSignal s)
+    PropertyInterface(Class *object, GetterMethod getter, ChangeSignal signal, const char* name)
     {
-        object = o;
-        signal = s;
-        getter = g;
+        m_object = object;
+        m_signal = signal;
+        m_getter = getter;
+        m_name = name;
     }
 
     const PropertyType &value() const
     {
-        const auto &v = (object->*getter)();
+        const auto &v = (m_object->*m_getter)();
         return v;
     }
 
-    Class *object;
-    ChangeSignal signal;
-    GetterMethod getter;
+    ChangeSignal signal() const
+    {
+        return m_signal;
+    }
 
+    GetterMethod getter() const
+    {
+        return m_getter;
+    }
+
+    Class *object() const
+    {
+        return m_object;
+    }
+
+    const char *name() const
+    {
+        return m_name;
+    }
+
+private:
+    Class *m_object = nullptr;
+    ChangeSignal m_signal;
+    GetterMethod m_getter;
+    const char* m_name = nullptr;
 };
 
 
@@ -267,14 +289,25 @@ template<typename Class, typename PropertyType>
 class ModelPropertyInterface
 {
 public:
-    ModelPropertyInterface(Class* o, facelift::Model<PropertyType>& p)
+    ModelPropertyInterface(Class *object, facelift::Model<PropertyType> &property)
     {
-        object = o;
-        property = &p;
+        m_object = object;
+        m_property = &property;
     }
 
-    Class* object;
-    facelift::Model<PropertyType>* property = nullptr;
+    facelift::Model<PropertyType> *property() const
+    {
+        return m_property;
+    }
+
+    Class *object() const
+    {
+        return m_object;
+    }
+
+private:
+    Class *m_object = nullptr;
+    facelift::Model<PropertyType> *m_property = nullptr;
 };
 
 
@@ -285,22 +318,32 @@ public:
     typedef void (Class::*ChangeSignal)();
     typedef ServiceType * (Class::*GetterMethod)();
 
-    ServicePropertyInterface(Class *o, GetterMethod g, ChangeSignal s)
+    ServicePropertyInterface(Class *object, GetterMethod getter, ChangeSignal signal)
     {
-        object = o;
-        signal = s;
-        getter = g;
+        m_object = object;
+        m_signal = signal;
+        m_getter = getter;
     }
 
     ServiceType *value() const
     {
-        return (object->*getter)();
+        return (m_object->*m_getter)();
     }
 
-    Class *object;
-    ChangeSignal signal;
-    GetterMethod getter;
+    ChangeSignal signal() const
+    {
+        return m_signal;
+    }
 
+    Class *object() const
+    {
+        return m_object;
+    }
+
+private:
+    Class *m_object = nullptr;
+    ChangeSignal m_signal;
+    GetterMethod m_getter;
 };
 
 
