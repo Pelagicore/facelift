@@ -112,10 +112,11 @@ public:
     }
     void qmlCompatibleSet{{field.name}}({{field.type.qmlCompatibleType}} value);
 
-    void set{{field.name}}({{field.cppType}} value)
+    {{struct.name}}& set{{field.name}}({{field.cppType}} value)
     {
         // qDebug() << "Setting field {{field.name}} with value:" << value;
         m_{{field.name}} = value;
+        return *this;
     }
 
 {% endfor %}
