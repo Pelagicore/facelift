@@ -59,6 +59,8 @@ public:
 
     ~TAsyncAnswerMasterBase();
 
+    static void onNoCallbackCalled();
+
 protected:
 
     void setAnswered()
@@ -137,7 +139,7 @@ public:
             m_master->call(returnValue);
         }
         else {
-            qCritical() << "No master";
+            TAsyncAnswerMasterBase::onNoCallbackCalled();
         }
     }
 
@@ -178,7 +180,7 @@ public:
         if (m_master) {
             m_master->call();
         } else {
-            qCritical() << "No master";
+            TAsyncAnswerMasterBase::onNoCallbackCalled();
         }
     }
 

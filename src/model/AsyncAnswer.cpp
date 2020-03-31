@@ -40,4 +40,10 @@ TAsyncAnswerMasterBase::~TAsyncAnswerMasterBase()
     }
 }
 
+void TAsyncAnswerMasterBase::onNoCallbackCalled()
+{
+    qDebug() << "Async answer triggered without callback";
+}
+
+
 }
