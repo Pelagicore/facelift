@@ -43,7 +43,7 @@ set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 
 set(CMAKE_CXX_STANDARD 14)
 if(NOT MSVC AND NOT ANDROID)
-    string(APPEND CMAKE_CXX_FLAGS "-Wsuggest-override -Wno-gnu-zero-variadic-macro-arguments -Wall -pedantic -Wextra")
+    string(APPEND CMAKE_CXX_FLAGS " -Wsuggest-override -Wno-gnu-zero-variadic-macro-arguments -Wall -pedantic -Wextra")
 endif()
 
 if(FACELIFT_ENABLE_CODEGEN)
