@@ -481,7 +481,14 @@ endmacro()
 
 function(facelift_add_library TARGET_NAME)
 
-    _facelift_parse_target_arguments("STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED" "" "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES" ${ARGN})
+    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED" "" "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES" ${ARGN})
+
+    if(ARGUMENT_SYSTEM)
+        message("System library ${TARGET_NAME}")
+        set(SYSTEM_LIB_ARGUMENT SYSTEM)
+    else()
+        unset(SYSTEM_LIB_ARGUMENT)
+    endif()
 
     unset(__INTERFACE)
     if(ARGUMENT_INTERFACE)
@@ -627,7 +634,7 @@ function(facelift_add_library TARGET_NAME)
                 get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
 
                 # Set the installed header location
-                target_include_directories(${TARGET_NAME}
+                target_include_directories(${TARGET_NAME} ${SYSTEM_LIB_ARGUMENT}
                     INTERFACE
                         $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
                 )
@@ -640,7 +647,7 @@ function(facelift_add_library TARGET_NAME)
                     get_filename_component(ABSOLUTE_HEADER_BASE_PATH "${PUBLIC_HEADER_BASE_PATH}" ABSOLUTE)
 
                     # Set the installed header location
-                    target_include_directories(${TARGET_NAME}
+                    target_include_directories(${TARGET_NAME} ${SYSTEM_LIB_ARGUMENT}
                         PUBLIC
                             $<BUILD_INTERFACE:${ABSOLUTE_HEADER_BASE_PATH}>
                     )
@@ -658,7 +665,7 @@ function(facelift_add_library TARGET_NAME)
         # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
         if(HEADERS)
             # Set the installed headers location
-            target_include_directories(${TARGET_NAME}
+            target_include_directories(${TARGET_NAME} ${SYSTEM_LIB_ARGUMENT}
                 INTERFACE
                     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${HEADERS_INSTALLATION_LOCATION}>
             )
