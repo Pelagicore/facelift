@@ -365,7 +365,7 @@ macro(_facelift_parse_target_arguments additionalOptions additionalOneValueArgs 
 
     set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE ${additionalOptions})
     set(oneValueArgs ${additionalOneValueArgs})
-    set(multiValueArgs PRIVATE_DEFINITIONS PUBLIC_DEFINITIONS PROPERTIES
+    set(multiValueArgs PRIVATE_DEFINITIONS PUBLIC_DEFINITIONS PROPERTIES COMPILE_OPTIONS
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
         SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE
         LINK_LIBRARIES
@@ -450,6 +450,8 @@ macro(_facelift_add_target_finish INTERFACE_TARGET_NAME IMPLEMENTATION_TARGET_NA
         # create a valid preprocessor macro based on the target name
         string(REPLACE "-" "_" LIB_PREPROCESSOR_DEFINITION "${INTERFACE_TARGET_NAME}_LIBRARY")
         target_compile_definitions(${IMPLEMENTATION_TARGET_NAME} PRIVATE ${LIB_PREPROCESSOR_DEFINITION} ${ARGUMENT_PRIVATE_DEFINITIONS})
+
+        target_compile_options(${IMPLEMENTATION_TARGET_NAME} PRIVATE ${ARGUMENT_COMPILE_OPTIONS})
 
         target_include_directories(${IMPLEMENTATION_TARGET_NAME} PRIVATE ${ARGUMENT_PRIVATE_INCLUDE_DIRECTORIES})
 
