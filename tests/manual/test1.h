@@ -112,7 +112,7 @@ class AddressBookImplementationWithProperties :
 {
 
 public:
-    QString property1() const
+    QString property1() const override
     {
         return m_property1;
     }
@@ -126,12 +126,12 @@ class AddressBookExtendedImplementationWithProperties :
 {
 
 public:
-    QString property1() const
+    QString property1() const override
     {
         return AddressBookImplementationWithProperties::property1();
     }
 
-    QString property2() const
+    QString property2() const override
     {
         return m_property2;
     }

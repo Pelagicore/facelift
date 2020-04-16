@@ -36,12 +36,12 @@
 class MyAddressBookImplementation : public AddressBookImplementation
 {
 
-    QString property1() const
+    QString property1() const override
     {
         return "gggg";
     }
 
-    void do1()
+    void do1() override
     {
     }
 
@@ -52,7 +52,7 @@ class MyAddressBookImplementationWithProperties : public AddressBookImplementati
 {
 
 public:
-    void do1()
+    void do1() override
     {
         signal1();
     }

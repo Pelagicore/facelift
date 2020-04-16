@@ -72,7 +72,7 @@ public:
 
     void onSignalTriggered(LocalIPCMessage &message);
 
-    void bindToIPC();
+    void bindToIPC() override;
 
     void setServiceAvailable(bool isRegistered);
 
@@ -82,7 +82,7 @@ public:
 
     void notifyServiceAvailable();
 
-    bool isServiceAvailable() const
+    bool isServiceAvailable() const override
     {
         return !m_serviceAdapter.isNull();
     }

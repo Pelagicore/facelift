@@ -59,9 +59,9 @@ public:
 
         void init();
 
-        bool registerObject(const QString &objectPath, const QString &serviceName);
+        bool registerObject(const QString &objectPath, const QString &serviceName) override;
 
-        bool unregisterObject(const QString &objectPath, const QString &serviceName);
+        bool unregisterObject(const QString &objectPath, const QString &serviceName) override;
 
     private:
         facelift::ipc::dbus::ObjectRegistryIPCDBusAdapter m_objectRegistryAdapter;
