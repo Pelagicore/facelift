@@ -56,7 +56,7 @@ public:
         }).addTrigger(this, &PropertyBindingInterfaceImplementation::propertyChanged);
     }
 
-    void updateStructElement()
+    void updateStructElement() override
     {
         TestStruct ts;
         ts.setiData(42);

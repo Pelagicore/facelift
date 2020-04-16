@@ -112,9 +112,9 @@ public:
 
     virtual void serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot);
 
-    void registerService();
+    void registerService() override;
 
-    void unregisterService();
+    void unregisterService() override;
 
     DBusManager &dbusManager();
 
