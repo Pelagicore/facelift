@@ -42,8 +42,41 @@ find_package(Qt5 REQUIRED ${REQUIRED_QT_MODULES})
 set(CMAKE_CONFIG_INSTALLATION_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 14)
+
+
+# Given a list of compiler options, this function returns the list of supported options
+function(check_supported_compiler_flags RETURN_VARIABLE_NAME)
+
+    unset(SUPPORTED_COMPILER_FLAGS)
+
+    foreach(COMPILER_FLAG ${ARGN})
+        # Create a simple hello world program to compile
+        file(WRITE ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeTmp/hello.cpp "int main(int, char **) {return 0;}")
+        try_compile(RESULT
+            ${CMAKE_BINARY_DIR}
+            ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeTmp/hello.cpp
+            COMPILE_DEFINITIONS -Wall -Werror ${COMPILER_FLAG}
+        )
+        if (RESULT)
+            list(APPEND SUPPORTED_COMPILER_FLAGS ${COMPILER_FLAG})
+        endif()
+    endforeach()
+
+    set(${RETURN_VARIABLE_NAME} ${SUPPORTED_COMPILER_FLAGS} PARENT_SCOPE)
+
+endfunction()
+
 if(NOT MSVC AND NOT ANDROID)
-    string(APPEND CMAKE_CXX_FLAGS " -Wsuggest-override -Wno-gnu-zero-variadic-macro-arguments -Wall -pedantic -Wextra")
+    check_supported_compiler_flags(SUPPORTED_FLAGS
+        -Wsuggest-override
+        -Wno-gnu-zero-variadic-macro-arguments
+        -Wall
+        -pedantic
+        -Wextra
+    )
+    string(REPLACE ";" " " SUPPORTED_FLAGS "${SUPPORTED_FLAGS}")
+    string(APPEND CMAKE_CXX_FLAGS " ${SUPPORTED_FLAGS}")
+    message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
 if(FACELIFT_ENABLE_CODEGEN)
