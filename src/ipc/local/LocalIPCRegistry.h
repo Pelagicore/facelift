@@ -40,6 +40,7 @@
 #include <QMap>
 
 #include "LocalIPCServiceAdapter.h"
+#include "Registry.h"
 
 namespace facelift {
 
@@ -56,17 +57,17 @@ public:
 
     LocalIPCServiceAdapterBase *getAdapter(const QString &objectPath);
 
-    Q_SIGNAL void adapterAvailable(LocalIPCServiceAdapterBase *adapter);
-
-    Q_SIGNAL void adapterUnavailable(const QString &objectPath, LocalIPCServiceAdapterBase *adapter);
-
     static LocalIPCRegistry &instance();
 
     static InterfaceBase *serviceMatches(const QString &objectPath, LocalIPCServiceAdapterBase *adapter);
 
-private:
-    QMap<QString, QPointer<LocalIPCServiceAdapterBase> > m_registry;
+    Registry<QPointer<LocalIPCServiceAdapterBase>>& content()
+    {
+        return m_registry;
+    }
 
+private:
+    Registry<QPointer<LocalIPCServiceAdapterBase>> m_registry;
 };
 
 

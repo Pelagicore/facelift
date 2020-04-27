@@ -31,7 +31,6 @@
 #pragma once
 
 #include "ipc-common.h"
-#include "InterfaceManager.h"
 #include "QMLAdapter.h"
 #include "FaceliftStringConversion.h"
 #include "span.h"
@@ -139,15 +138,9 @@ protected:
         }
     }
 
-    void registerLocalService()
-    {
-        InterfaceManager::instance().registerAdapter(objectPath(), this);
-    }
+    void registerLocalService();
 
-    void unregisterLocalService()
-    {
-        InterfaceManager::instance().unregisterAdapter(this);
-    }
+    void unregisterLocalService();
 
     virtual void setService(QObject *service) = 0;
 

@@ -66,6 +66,8 @@ public:
         return m_interfaceName;
     }
 
+    void setObjectPath(const QString &objectPath) override;
+
     void setInterfaceName(const QString &name);
 
     Q_SLOT void onPropertiesChanged(const QDBusMessage &dbusMessage);

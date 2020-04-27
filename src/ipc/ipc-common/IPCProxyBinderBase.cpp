@@ -40,13 +40,19 @@ void IPCProxyBinderBase::connectToServer()
 {
     if (!m_alreadyInitialized) {
         m_alreadyInitialized = true;
+        m_componentCompleted = true;
         bindToIPC();
     }
 }
 
+bool IPCProxyBinderBase::isReadyToConnect() const
+{
+    return m_componentCompleted && enabled() && !objectPath().isEmpty();
+}
+
 void IPCProxyBinderBase::checkInit()
 {
-    if (m_componentCompleted && enabled() && !objectPath().isEmpty()) {
+    if (isReadyToConnect()) {
         this->connectToServer();
         emit complete();
     }

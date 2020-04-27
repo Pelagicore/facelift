@@ -34,7 +34,7 @@
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusAdapter.h"
-
+#include "Registry.h"
 
 namespace facelift {
 namespace dbus {
@@ -79,9 +79,7 @@ public:
 
     void unregisterObject(const QString &objectPath);
 
-    const QMap<QString, QString>& objects(bool blocking);
-
-    Q_SIGNAL void objectsChanged();
+    const Registry<QString>& objects(bool blocking);
 
 private:
     static int nextVersion(const int currentVersion);
@@ -100,8 +98,9 @@ private:
     DBusManager &m_dbusManager;
     bool m_initialized = false;
     std::unique_ptr<MasterImpl> m_master;
-    QMap<QString, QString> m_objects;
+    Registry<QString> m_objects;
     int m_registryVersion = INVALID_REGISTRY_VERSION;
+
 };
 
 }

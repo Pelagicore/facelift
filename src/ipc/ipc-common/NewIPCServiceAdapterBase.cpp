@@ -30,6 +30,7 @@
 
 #include "NewIPCServiceAdapterBase.h"
 #include "IPCServiceAdapterBase.h"
+#include "InterfaceManager.h"
 
 namespace facelift {
 
@@ -39,6 +40,17 @@ NewIPCServiceAdapterBase::NewIPCServiceAdapterBase(QObject *parent) : QObject(pa
 
 NewIPCServiceAdapterBase::~NewIPCServiceAdapterBase() {
     unregisterLocalService();
+}
+
+
+void NewIPCServiceAdapterBase::registerLocalService()
+{
+    InterfaceManager::instance().registerAdapter(objectPath(), this);
+}
+
+void NewIPCServiceAdapterBase::unregisterLocalService()
+{
+    InterfaceManager::instance().unregisterAdapter(this);
 }
 
 void NewIPCServiceAdapterBase::registerService()

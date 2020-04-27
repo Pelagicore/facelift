@@ -31,7 +31,7 @@
 
 #include <QObject>
 #include <QPointer>
-#include <QMap>
+#include "Registry.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -58,16 +58,19 @@ public:
 
     NewIPCServiceAdapterBase *getAdapter(const QString &objectPath);
 
-    Q_SIGNAL void adapterAvailable(NewIPCServiceAdapterBase *adapter);
-
     Q_SIGNAL void adapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter);
 
     static InterfaceManager &instance();
 
     static InterfaceBase * serviceMatches(const QString& objectPath, NewIPCServiceAdapterBase *adapter);
 
+    Registry<QPointer<NewIPCServiceAdapterBase>>& content()
+    {
+        return m_registry;
+    }
+
 private:
-    QMap<QString, QPointer<NewIPCServiceAdapterBase>> m_registry;
+    Registry<QPointer<NewIPCServiceAdapterBase>> m_registry;
 
 };
 
