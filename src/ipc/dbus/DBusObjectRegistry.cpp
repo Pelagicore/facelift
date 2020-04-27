@@ -103,9 +103,9 @@ void DBusObjectRegistry::updateObjects(const QMap<QString, QString>& objectMap)
         int version = objectMap[VERSION_KEY].toInt(); // 0 if key is not present
         Q_ASSERT(version != INVALID_REGISTRY_VERSION);
         m_registryVersion = version;
-        m_objects = objectMap;
-        m_objects.remove(VERSION_KEY);
-        emit objectsChanged();
+        auto cleanObjects = objectMap;
+        cleanObjects.remove(VERSION_KEY);
+        m_objects.setContent(cleanObjects);
     }
 }
 
@@ -126,7 +126,7 @@ void DBusObjectRegistry::syncObjects()
     updateObjects(objectRegistryProxy.getObjects());
 }
 
-const QMap<QString, QString>& DBusObjectRegistry::objects(bool blocking)
+const Registry<QString>& DBusObjectRegistry::objects(bool blocking)
 {
     init();
     if (!isMaster() && blocking && !hasValidObjects()) {
@@ -141,7 +141,6 @@ void DBusObjectRegistry::onObjectAdded(const QString &objectPath, const QString 
         m_registryVersion = registryVersion;
         if (!m_objects.contains(objectPath)) {
             m_objects.insert(objectPath, serviceName);
-            emit objectsChanged();
         } else {
             qCCritical(LogIpc) << "Cannot add object with object path:" << objectPath << ", service name:" << serviceName
                                << "Object registry already contains this object path with service name:" << m_objects[objectPath];
@@ -153,9 +152,7 @@ void DBusObjectRegistry::onObjectRemoved(const QString &objectPath, int registry
 {
     if (hasValidObjects() && registryVersion == nextVersion(m_registryVersion)) {
         m_registryVersion = registryVersion;
-        if (m_objects.remove(objectPath)) {
-            emit objectsChanged();
-        } else {
+        if (!m_objects.remove(objectPath)) {
             qCCritical(LogIpc) << "Object does not exist. Object path:" << objectPath;
         }
     }

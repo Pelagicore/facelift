@@ -145,29 +145,31 @@ void DBusIPCProxyBinder::onServiceNameKnown()
 
 void DBusIPCProxyBinder::checkRegistry()
 {
-    auto registryObjects = m_registry.objects(isSynchronous());
-    if (registryObjects.contains(objectPath())) {
-        auto serviceName = registryObjects[objectPath()];
-        if (serviceName != m_serviceName) {
-            m_serviceName = serviceName;
+    if (isReadyToConnect()) {
+        auto registryObjects = m_registry.objects(isSynchronous());
+        if (registryObjects.contains(objectPath())) {
+            auto serviceName = registryObjects[objectPath()];
+            if (serviceName != m_serviceName) {
+                m_serviceName = serviceName;
 
-            if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
-                onServiceNameKnown();
+                if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
+                    onServiceNameKnown();
+                }
             }
+        } else if (!m_serviceName.isEmpty()){ // no point to proceed on empty service name
+            m_busWatcher.removeWatchedService(m_serviceName);
+
+            connection().disconnect(m_serviceName,
+                    objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
+                    SLOT(onPropertiesChanged(const QDBusMessage&)));
+
+            connection().disconnect(m_serviceName,
+                    objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
+                    SLOT(onSignalTriggered(const QDBusMessage&)));
+
+            setServiceAvailable(false);
+            m_serviceName.clear();
         }
-    } else if (!m_serviceName.isEmpty()){ // no point to proceed on empty service name
-        m_busWatcher.removeWatchedService(m_serviceName);
-
-        connection().disconnect(m_serviceName,
-                objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
-                SLOT(onPropertiesChanged(const QDBusMessage&)));
-
-        connection().disconnect(m_serviceName,
-                objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
-                SLOT(onSignalTriggered(const QDBusMessage&)));
-
-        setServiceAvailable(false);
-        m_serviceName.clear();
     }
 }
 
@@ -192,17 +194,17 @@ DBusIPCMessage DBusIPCProxyBinder::call(DBusIPCMessage &message) const
     return reply;
 }
 
+void DBusIPCProxyBinder::setObjectPath(const QString &objectPath)
+{
+    DBusManager::instance().objectRegistry().objects(false).addListener(objectPath, this, &DBusIPCProxyBinder::checkRegistry);
+    IPCProxyBinderBase::setObjectPath(objectPath);
+}
 
 void DBusIPCProxyBinder::bindToIPC()
 {
     if (m_explicitServiceName) {
         onServiceNameKnown();
     } else {
-        auto &registry = DBusManager::instance().objectRegistry();
-        QObject::connect(&registry, &DBusObjectRegistry::objectsChanged, this, [this] () {
-            checkRegistry();
-        }, Qt::UniqueConnection);
-
         checkRegistry();
     }
 

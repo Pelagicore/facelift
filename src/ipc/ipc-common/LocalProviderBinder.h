@@ -41,47 +41,59 @@
 
 namespace facelift {
 
-
-template<typename InterfaceType>
-class LocalProviderBinder : public QObject
-{
+class LocalProviderBinderBase : public QObject {
 
 public:
-    LocalProviderBinder(IPCProxyNewBase &proxy) : m_proxy(proxy)
+
+    LocalProviderBinderBase(IPCProxyNewBase &proxy) : m_proxy(proxy)
     {
-        QObject::connect(&m_interfaceManager, &InterfaceManager::adapterAvailable, this,
-                &LocalProviderBinder::onLocalAdapterAvailable);
-        QObject::connect(&m_interfaceManager, &InterfaceManager::adapterUnavailable, this,
-                &LocalProviderBinder::onLocalAdapterUnavailable);
     }
+
+    virtual void checkLocalAdapterAvailability() = 0;
 
     void init()
     {
-        auto localAdapter = m_interfaceManager.getAdapter(m_proxy.objectPath());
-        if (localAdapter) {
-            onLocalAdapterAvailable(localAdapter);
-        }
+        m_interfaceManager.content().addListener(m_proxy.objectPath(),
+                this, &LocalProviderBinderBase::checkLocalAdapterAvailability);
+        checkLocalAdapterAvailability();
     }
 
-    void onLocalAdapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter)
+protected:
+    IPCProxyNewBase &m_proxy;
+    InterfaceManager &m_interfaceManager = InterfaceManager::instance();
+
+};
+
+template<typename InterfaceType>
+class LocalProviderBinder : public LocalProviderBinderBase
+{
+
+public:
+    LocalProviderBinder(IPCProxyNewBase &proxy) : LocalProviderBinderBase(proxy)
     {
-        Q_UNUSED(objectPath);
-        if (m_adapter == adapter) {  // We reset if the unregistered instance is the one we were bound to
-            m_provider = nullptr;
-            m_adapter = nullptr;
-            m_proxy.refreshProvider();
-        }
     }
 
-    void onLocalAdapterAvailable(NewIPCServiceAdapterBase *adapter)
+    void checkLocalAdapterAvailability() override
     {
-        auto* service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
-        if (service) {
-            auto provider = qobject_cast<InterfaceType *>(service);
-            m_provider = provider;
-            m_adapter = adapter;
-            if (m_provider) {
-                qCDebug(LogIpc) << "Local server found for " << m_proxy.objectPath();
+        auto adapter = m_interfaceManager.getAdapter(m_proxy.objectPath());
+
+        if (adapter) {
+            auto* service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
+            if (service) {
+                auto provider = qobject_cast<InterfaceType *>(service);
+                if (provider != m_provider) {
+                    m_provider = provider;
+                    m_adapter = adapter;
+                    if (m_provider) {
+                        qCDebug(LogIpc) << "Local server found for " << m_proxy.objectPath();
+                        m_proxy.refreshProvider();
+                    }
+                }
+            }
+        } else {
+            if (m_adapter != nullptr) {
+                m_provider = nullptr;
+                m_adapter = nullptr;
                 m_proxy.refreshProvider();
             }
         }
@@ -95,8 +107,6 @@ public:
 private:
     QPointer<InterfaceType> m_provider;
     QPointer<NewIPCServiceAdapterBase> m_adapter;
-    IPCProxyNewBase &m_proxy;
-    InterfaceManager &m_interfaceManager = InterfaceManager::instance();
 };
 
 }

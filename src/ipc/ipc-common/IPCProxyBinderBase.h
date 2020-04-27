@@ -74,7 +74,7 @@ public:
         return m_objectPath;
     }
 
-    void setObjectPath(const QString &objectPath)
+    virtual void setObjectPath(const QString &objectPath)
     {
         m_objectPath = objectPath;
         checkInit();
@@ -83,6 +83,8 @@ public:
     void onComponentCompleted();
 
     void checkInit();
+
+    bool isReadyToConnect() const;
 
     /**
      * Establish the connection with the server

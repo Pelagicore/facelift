@@ -59,6 +59,8 @@ public:
         return m_serviceName;
     }
 
+    void setObjectPath(const QString &objectPath) override;
+
     void setServiceName(const QString &name);
 
     const QString &interfaceName() const
@@ -76,9 +78,8 @@ public:
 
     void setServiceAvailable(bool isRegistered);
 
-    void onServiceAvailable(LocalIPCServiceAdapterBase *adapter);
+    void checkServiceAvailability();
 
-    void onServiceUnavailable();
 
     void notifyServiceAvailable();
 
