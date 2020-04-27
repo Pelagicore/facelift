@@ -31,7 +31,6 @@
 #pragma once
 
 #include "ipc-common.h"
-#include "InterfaceManager.h"
 #include "IPCProxyBinderBase.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)

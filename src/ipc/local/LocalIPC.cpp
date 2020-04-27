@@ -164,26 +164,31 @@ LocalIPCProxyBinder::LocalIPCProxyBinder(InterfaceBase &owner, QObject *parent) 
 }
 
 
-void LocalIPCProxyBinder::onServiceAvailable(LocalIPCServiceAdapterBase *adapter)
+void LocalIPCProxyBinder::checkServiceAvailability()
 {
-    Q_ASSERT(adapter != nullptr);
-    if (m_serviceAdapter) {
-        QObject::disconnect(m_signalConnection);
-    }
-    if (!isServiceAvailable()) {
-        m_serviceAdapter = adapter;
-        m_signalConnection = QObject::connect(adapter, &LocalIPCServiceAdapterBase::messageSent, this, [this] (LocalIPCMessage &message) {
-                    this->onSignalTriggered(message);
-                });
-        requestPropertyValues();
-    }
-}
+    if (isReadyToConnect()) {
+        auto adapter = LocalIPCRegistry::instance().getAdapter(objectPath());
 
-void LocalIPCProxyBinder::onServiceUnavailable()
-{
-    if (isServiceAvailable()) {
-        m_serviceAdapter = nullptr;
-        emit serviceAvailableChanged();
+        if (adapter) {
+            if (adapter != m_serviceAdapter) {
+                if (m_serviceAdapter) {
+                    QObject::disconnect(m_signalConnection);
+                }
+                if (!isServiceAvailable()) {
+                    m_serviceAdapter = adapter;
+                    m_signalConnection = QObject::connect(adapter, &LocalIPCServiceAdapterBase::messageSent, this, [this] (LocalIPCMessage &message) {
+                                this->onSignalTriggered(message);
+                            });
+                    requestPropertyValues();
+                }
+            }
+        }
+        else {
+            if (m_serviceAdapter) {
+                m_serviceAdapter = nullptr;
+                emit serviceAvailableChanged();
+            }
+        }
     }
 }
 
@@ -201,6 +206,11 @@ void LocalIPCProxyBinder::setServiceAvailable(bool isRegistered)
         m_serviceAvailable = isAvailable;
         emit serviceAvailableChanged();
     }
+}
+
+void LocalIPCProxyBinder::setObjectPath(const QString &objectPath) {
+    IPCProxyBinderBase::setObjectPath(objectPath);
+    LocalIPCRegistry::instance().content().addListener(this->objectPath(), this, &LocalIPCProxyBinder::checkServiceAvailability);
 }
 
 void LocalIPCProxyBinder::setServiceName(const QString &name)
@@ -278,25 +288,7 @@ void LocalIPCProxyBinder::requestPropertyValues()
 
 void LocalIPCProxyBinder::bindToIPC()
 {
-    QObject::connect(&LocalIPCRegistry::instance(), &LocalIPCRegistry::adapterAvailable, this, [this](LocalIPCServiceAdapterBase *adapter) {
-                if (adapter->objectPath() == this->objectPath()) {
-                    onServiceAvailable(adapter);
-                }
-            });
-
-    QObject::connect(&LocalIPCRegistry::instance(), &LocalIPCRegistry::adapterUnavailable, this,
-            [this](const QString &objectPath, LocalIPCServiceAdapterBase *adapter) {
-                Q_UNUSED(adapter);
-                if (objectPath == this->objectPath()) {
-                    onServiceUnavailable();
-                }
-            });
-
-    auto serviceAdapter = LocalIPCRegistry::instance().getAdapter(objectPath());
-    if (serviceAdapter) {
-        onServiceAvailable(serviceAdapter);
-    }
-
+    checkServiceAvailability();
 }
 
 QString LocalIPCMessage::toString() const
@@ -326,14 +318,12 @@ InputPayLoad &LocalIPCMessage::inputPayLoad()
     return *m_inputPayload;
 }
 
-
 void LocalIPCRegistry::registerAdapter(const QString &objectPath, LocalIPCServiceAdapterBase *adapter)
 {
     Q_ASSERT(adapter);
     if ((!m_registry.contains(objectPath)) || (m_registry[objectPath] == nullptr)) {
         m_registry.insert(objectPath, adapter);
         qCDebug(LogIpc) << "Local IPC service registered" << adapter << "under path" << objectPath;
-        emit adapterAvailable(adapter);
     } else {
         qFatal("Can't register new object at path: '%s'. Previously registered object: %s", qPrintable(objectPath),
                 qPrintable(facelift::toString(m_registry[objectPath]->service())));
@@ -345,7 +335,6 @@ void LocalIPCRegistry::unregisterAdapter(LocalIPCServiceAdapterBase *adapter)
     for (auto &key : m_registry.keys()) {
         if (m_registry[key] == adapter) {
             m_registry.remove(key);
-            emit adapterUnavailable(key, adapter);
             qCDebug(LogIpc) << "IPC service unregistered" << adapter;
             break;
         }
