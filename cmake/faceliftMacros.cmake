@@ -10,6 +10,7 @@ if(ENABLE_MONOLITHIC_BUILD)
         message(WARNING "CMake > 3.12.0 is required to enable monolithic build, but your version is ${CMAKE_VERSION}. Forcing ENABLE_MONOLITHIC_BUILD to OFF")
         set(ENABLE_MONOLITHIC_BUILD OFF)
     endif()
+    cmake_policy(SET CMP0079 NEW)  # Needed to alter library definition in parent scope
 endif()
 
 include(GNUInstallDirs)    # for standard installation locations
@@ -481,7 +482,10 @@ endmacro()
 
 function(facelift_add_library TARGET_NAME)
 
-    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED" "" "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES" ${ARGN})
+    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED" ""
+        "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES"
+        ${ARGN}
+    )
 
     if(ARGUMENT_SYSTEM)
         message("System library ${TARGET_NAME}")
@@ -489,6 +493,8 @@ function(facelift_add_library TARGET_NAME)
     else()
         unset(SYSTEM_LIB_ARGUMENT)
     endif()
+
+    list(APPEND ARGUMENT_LINK_LIBRARIES ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
 
     unset(__INTERFACE)
     if(ARGUMENT_INTERFACE)
@@ -516,6 +522,8 @@ function(facelift_add_library TARGET_NAME)
 
             if(ENABLE_MONOLITHIC_BUILD)
 
+                set_property(GLOBAL PROPERTY ${TARGET_NAME}_IS_MONOLITHIC ON)
+
                 set(TARGET_NAME ${TARGET_NAME}_)
 
                 set(__INTERFACE INTERFACE)
@@ -533,19 +541,19 @@ function(facelift_add_library TARGET_NAME)
                     target_link_libraries(${IMPLEMENTATION_TARGET_NAME} ${TARGET_NAME})
                 endif()
 
-                foreach(MONOLITHIC_LINK_LIBRARY ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
-                    list(APPEND ARGUMENT_LINK_LIBRARIES ${MONOLITHIC_LINK_LIBRARY}_)
-                endforeach()
+                set_property(GLOBAL APPEND PROPERTY ${ALIAS_NAME}_LINK_LIBRARIES ${ARGUMENT_LINK_LIBRARIES})
+                get_property(LINK_LIBRARIES GLOBAL PROPERTY ${TARGET_NAME}_LINK_LIBRARIES)
 
                 list(APPEND ARGUMENT_LINK_LIBRARIES ${MONOLITHIC_LINK_LIBRARIES})
+                unset(ARGUMENT_LINK_LIBRARIES)
                 _facelift_add_target_finish(${TARGET_NAME} ${IMPLEMENTATION_TARGET_NAME})
 
                 # Append our object library to the list of libraries to be linked to the monolithic library
-                set_property(GLOBAL APPEND PROPERTY MONOLITHIC_LIBRARIES ${IMPLEMENTATION_TARGET_NAME})
+                set_property(GLOBAL APPEND PROPERTY MONOLITHIC_LIBRARIES ${ALIAS_NAME})
 
                 # Create an interface library with the original target name, which links against the monolithic library
                 add_library(${ALIAS_NAME} INTERFACE)
-                target_link_libraries(${ALIAS_NAME} INTERFACE ${TARGET_NAME} ${PROJECT_NAME} ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
+                target_link_libraries(${ALIAS_NAME} INTERFACE ${TARGET_NAME} ${CMAKE_PROJECT_NAME})
 
                 set(BUILD_MONOLITHIC ON)
 
@@ -749,17 +757,41 @@ function(facelift_export_project)
     install(FILES ${CONFIG_DESTINATION_PATH}/${PROJECT_NAME}Config.cmake.installed DESTINATION ${CMAKE_CONFIG_INSTALLATION_PATH} RENAME ${PROJECT_NAME}Config.cmake)
 
     facelift_export_monolithic()
+
 endfunction()
 
+
 function(facelift_export_monolithic)
-    get_property(MONOLITHIC_LIBRARIES GLOBAL PROPERTY MONOLITHIC_LIBRARIES)
-    if(MONOLITHIC_LIBRARIES AND NOT TARGET ${PROJECT_NAME})
-        add_library(${PROJECT_NAME} SHARED)
-        foreach(LIB ${MONOLITHIC_LIBRARIES})
-            target_link_libraries(${PROJECT_NAME} PRIVATE ${LIB})
-        endforeach()
-        install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+    if (${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})  # We only export the main project
+        get_property(MONOLITHIC_LIBRARIES GLOBAL PROPERTY MONOLITHIC_LIBRARIES)
+        if(MONOLITHIC_LIBRARIES AND NOT TARGET ${CMAKE_PROJECT_NAME})
+
+            add_library(${CMAKE_PROJECT_NAME} SHARED)
+
+            foreach(LIB ${MONOLITHIC_LIBRARIES})
+                target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LIB}__OBJECTS)
+
+                get_property(LINK_LIBRARIES GLOBAL PROPERTY ${LIB}_LINK_LIBRARIES)
+
+                foreach(LINK_LIBRARY ${LINK_LIBRARIES})
+
+                    get_property(IS_MONOLITHIC GLOBAL PROPERTY ${LINK_LIBRARY}_IS_MONOLITHIC SET)
+
+                    if (IS_MONOLITHIC)
+                        target_link_libraries(${LIB} INTERFACE ${LINK_LIBRARY})
+                        target_link_libraries(${LIB}_ INTERFACE ${LINK_LIBRARY}_)
+                    else()
+                        target_link_libraries(${LIB}_ INTERFACE ${LINK_LIBRARY})
+                    endif()
+
+                endforeach()
+
+            endforeach()
+            install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        endif()
     endif()
+
 endfunction()
 
 
