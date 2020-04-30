@@ -54,7 +54,7 @@ void DBusObjectRegistry::init()
 {
     if (!m_initialized) {
         m_initialized = true;
-        if (m_dbusManager.registerServiceName(m_serviceName)) {
+        if (!m_dbusManager.isDBusConnected() || m_dbusManager.registerServiceName(m_serviceName)) {
             m_master = std::make_unique<MasterImpl>();
             m_master->init();
             QObject::connect(m_master.get(), &MasterImpl::objectAdded, this, &DBusObjectRegistry::onObjectAdded);
@@ -123,6 +123,7 @@ void DBusObjectRegistry::syncObjects()
     ObjectRegistryIPCDBusProxy objectRegistryProxy;
     objectRegistryProxy.ipc()->setServiceName(m_serviceName);
     objectRegistryProxy.connectToServer();
+    Q_ASSERT(objectRegistryProxy.ready());
     updateObjects(objectRegistryProxy.getObjects());
 }
 
