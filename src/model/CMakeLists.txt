@@ -29,7 +29,6 @@ facelift_add_library(FaceliftModelLib
         FaceliftImplementationBase.h
         FaceliftQMLUtils.h
         AsyncAnswer.h
-    LINK_LIBRARIES Qt5::Qml Qt5::Quick
-    MONOLITHIC_LINK_LIBRARIES FaceliftCommonLib
+    LINK_LIBRARIES Qt5::Qml Qt5::Quick FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )

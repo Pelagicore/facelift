@@ -3,6 +3,8 @@ find_package(Qt5DBus QUIET)
 
 if(Qt5DBus_FOUND)
 
+    set_target_properties(Qt5::DBus PROPERTIES IMPORTED_GLOBAL TRUE)
+
     if(WIN32)
         set(GENERATED_FILE_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/FaceliftIPCLibDBus)  # There is a weird issue on Windows related to the MOC if the generated files are outside of ${CMAKE_CURRENT_BINARY_DIR}
     else()
@@ -35,8 +37,7 @@ if(Qt5DBus_FOUND)
             ${GENERATED_FILE_PATH}/ipc/*.h
             ${GENERATED_FILE_PATH}/ipc_dbus/*.h
             ${GENERATED_FILE_PATH}/types/*.h
-        LINK_LIBRARIES Qt5::DBus
-        MONOLITHIC_LINK_LIBRARIES FaceliftIPCCommonLib FaceliftIPCLocalLib
+        LINK_LIBRARIES Qt5::DBus FaceliftIPCCommonLib FaceliftIPCLocalLib
         PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
         PUBLIC_DEFINITIONS
             DBUS_IPC_ENABLED
