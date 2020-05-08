@@ -56,6 +56,10 @@ public:
         return m_serviceName;
     }
 
+    /**
+     * @brief setServiceName sets the service name, then calls connectToServer
+     * @param name the service name
+     */
     void setServiceName(const QString &name);
 
     bool enabled() const
@@ -74,6 +78,10 @@ public:
         return m_objectPath;
     }
 
+    /**
+     * @brief setObjectPath sets the object path, then calls connectToServer
+     * @param objectPath the object path
+     */
     virtual void setObjectPath(const QString &objectPath)
     {
         m_objectPath = objectPath;

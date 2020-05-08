@@ -64,15 +64,23 @@ public:
                 if (m_localProviderBinder.provider() == nullptr) {
                     auto serviceName = ipc()->serviceName();
                     auto objPath = ipc()->objectPath();
+                    bool serviceFound = false;
                     for (auto& proxy : m_ipcProxies) {
                         auto proxyAdapterIPCBinder = proxy.ipcBinder;
                         if (proxyAdapterIPCBinder != nullptr) {
+                            proxyAdapterIPCBinder->setEnabled(false); // prevent connecting to server in next two steps
                             proxyAdapterIPCBinder->setObjectPath(objPath);
-                            if(!serviceName.isEmpty()) {
+                            if (!serviceName.isEmpty()) {
                                 proxyAdapterIPCBinder->setServiceName(serviceName);
                             }
-                            proxyAdapterIPCBinder->connectToServer();
+                            if (!serviceFound) {
+                                proxyAdapterIPCBinder->setEnabled(true);
+                                proxyAdapterIPCBinder->connectToServer();
+                            }
                             QObject::connect(proxyAdapterIPCBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
+                            if (proxyAdapterIPCBinder->isServiceAvailable()) {
+                                serviceFound = true;
+                            }
                         }
                     }
                 }
