@@ -86,7 +86,7 @@ public:
         return m_previous_{{property}};
     }
     {% else %}
-    mutable {{property.interfaceCppType}} m_previous_{{property.name}};
+    mutable {{property.interfaceCppType}} m_previous_{{property.name}} = {};
     const {{property.interfaceCppType}} &{{property}}() const final override
     {
         m_previous_{{property}} = wrapped()->{{property.name}}();
