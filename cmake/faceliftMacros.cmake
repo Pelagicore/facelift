@@ -663,12 +663,18 @@ function(facelift_add_library TARGET_NAME)
             endif()
         endif()
 
+        set(EXPORT_ARGUMENTS EXPORT ${PROJECT_NAME}Targets)
+
+    else()
+
+        unset(EXPORT_ARGUMENTS)
+
     endif()
 
     if(INSTALL_LIB)
 
         # Install library
-        install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        install(TARGETS ${TARGET_NAME} ${EXPORT_ARGUMENTS} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
         # Do not define target include directories if no headers are present. This avoids the creation and inclusion of empty directories.
         if(HEADERS)
