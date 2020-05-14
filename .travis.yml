@@ -44,7 +44,7 @@ matrix:
     env: COMPILER=clang++-6.0 QT=512 DISABLE_IPC=OFF MONOLITHIC_BUILD=OFF
 
 install:
-- sudo apt-get install python3 python3-pip python3-setuptools doxygen libgl1-mesa-dev
+- sudo apt-get install python3 python3-pip python3-setuptools graphviz doxygen libgl1-mesa-dev
 - sudo pip3 install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog path.py
 
 before_script:
@@ -52,8 +52,9 @@ before_script:
 - PATH="$QTDIR/bin:$PATH"
 - source /opt/qt${QT}/bin/qt${QT}-env.sh
 - cd ${TRAVIS_BUILD_DIR}
+- source ci/travis/setup_cmake.sh
 - mkdir build
-- source setup_gtest.sh
+- source ci/travis/setup_gtest.sh
 
 script:
 - cd build

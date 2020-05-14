@@ -45,11 +45,17 @@ install:
         $env:PATH="C:/projects/deps/doxygen-1.8.10;$env:PATH"
         doxygen --version
       }
+  
+  #######################################################################################
+  # Update CMake
+  #######################################################################################
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - cmd: ci\appveyor\setup_cmake.bat
 
 before_build:
   - cmd: cd %APPVEYOR_BUILD_FOLDER%
   - cmd: set PATH=C:\Python37-x64;%PATH%
-  - cmd: python -m pip install antlr4-python3-runtime six pyyaml click typing jinja2 watchdog path.py
+  - cmd: python -m pip install antlr4-python3-runtime six pyyaml click typing watchdog path.py jinja2==2.10.3
   - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.12\msvc2017_64\bin;%PATH%
   - IF "%ARCHITECTURE%" == "x64" IF "%COMPILER%" == "MSVC_15" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=x64 -host_arch=x64
   - IF "%ARCHITECTURE%" == "x86" IF "%COMPILER%" == "MSVC_15" set PATH=C:\Qt\5.12\msvc2017\bin;%PATH%
