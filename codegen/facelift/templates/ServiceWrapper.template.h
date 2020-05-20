@@ -79,7 +79,7 @@ public:
         return m_previous_{{property}};
     }
     {% elif property.type.is_interface %}
-    mutable {{property.interfaceCppType}} m_previous_{{property.name}};
+    mutable {{property.interfaceCppType}} m_previous_{{property.name}} = nullptr;
     {{property.interfaceCppType}} {{property}}() final override
     {
         m_previous_{{property}} = wrapped()->{{property.name}}();
