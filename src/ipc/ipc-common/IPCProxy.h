@@ -61,46 +61,52 @@ public:
     {
         QObject::connect(ipc(), &IPCProxyBinderBase::complete, this, [this] () {
                 m_localProviderBinder.init();
-                if (m_localProviderBinder.provider() == nullptr) {
-                    auto serviceName = ipc()->serviceName();
-                    auto objPath = ipc()->objectPath();
-                    for (auto& proxy : m_ipcProxies) {
-                        auto proxyAdapterIPCBinder = proxy.ipcBinder;
-                        if (proxyAdapterIPCBinder != nullptr) {
-                            proxyAdapterIPCBinder->setObjectPath(objPath);
-                            if(!serviceName.isEmpty()) {
-                                proxyAdapterIPCBinder->setServiceName(serviceName);
-                            }
-                            proxyAdapterIPCBinder->connectToServer();
-                            QObject::connect(proxyAdapterIPCBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
-                        }
+                for (auto& proxy : m_ipcProxies) {
+                    auto ipcBinder = proxy.ipcBinder;
+                    if (ipcBinder != nullptr) {
+                        QObject::connect(ipcBinder, &IPCProxyBinderBase::serviceAvailableChanged, this, &IPCProxy::refreshProvider);
                     }
                 }
                 this->refreshProvider();
-            });
+        });
+    }
 
+    void enableBinder(IPCProxyBinderBase * ipcBinder)
+    {
+        ipcBinder->setObjectPath(ipc()->objectPath());
+        const auto &serviceName = ipc()->serviceName();
+        if (!serviceName.isEmpty()) {
+            ipcBinder->setServiceName(serviceName);
+        }
+        ipcBinder->setEnabled(true);
+        ipcBinder->connectToServer();
     }
 
     void refreshProvider() override
     {
         Q_ASSERT(m_defaultProvider);
         InterfaceType *provider = m_defaultProvider;
+        bool serviceFound = false;
         if (m_localProviderBinder.provider() != nullptr) {
             provider = m_localProviderBinder.provider();
-            for (auto& proxy : m_ipcProxies) {
-                auto ipcBinder = proxy.ipcBinder;
-                if (ipcBinder != nullptr) {
+            serviceFound = true;
+        }
+
+        for (auto& proxy : m_ipcProxies) {
+            auto ipcBinder = proxy.ipcBinder;
+            if (ipcBinder != nullptr) {
+
+                if (!serviceFound) {
+                    enableBinder(ipcBinder);
+
+                    if (ipcBinder->isServiceAvailable()) {
+                        provider = proxy.proxy;
+                        serviceFound = true;
+                    }
+                } else {
                     ipcBinder->setEnabled(false);
                 }
-            }
-        } else {
-            for (auto& proxy : m_ipcProxies) {
-                auto ipcBinder = proxy.ipcBinder;
-                if ((ipcBinder != nullptr) && ipcBinder->isServiceAvailable()) {
-                    provider = proxy.proxy;
-                    ipcBinder->setEnabled(true);
-                    break;
-                }
+
             }
         }
 
@@ -126,7 +132,7 @@ public:
     {
         m_ipcProxies = proxies;
         m_defaultProvider = &defaultProvider;
-        refreshProvider();
+        this->setWrapped(m_defaultProvider);
     }
 
     void resetIPCProxies()
