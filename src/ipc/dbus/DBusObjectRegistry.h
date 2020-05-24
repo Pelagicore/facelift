@@ -73,8 +73,6 @@ public:
 
     DBusObjectRegistry(DBusManager &dbusManager);
 
-    void init();
-
     void registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer);
 
     void unregisterObject(const QString &objectPath);
@@ -82,6 +80,8 @@ public:
     const Registry<QString>& objects(bool blocking);
 
 private:
+    void init();
+
     static int nextVersion(const int currentVersion);
 
     void onObjectAdded(const QString& objectPath, const QString& serviceName, int registryVersion);

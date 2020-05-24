@@ -52,7 +52,6 @@ DBusObjectRegistry &DBusManager::objectRegistry()
 {
     if (m_objectRegistry == nullptr) {
         m_objectRegistry = new DBusObjectRegistry(*this);
-        m_objectRegistry->init();
     }
 
     return *m_objectRegistry;
