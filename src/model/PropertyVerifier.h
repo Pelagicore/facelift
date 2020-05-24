@@ -57,13 +57,13 @@ void checkProperty(OwnerType* object, Getter getter, Signal signal, const char* 
 template<typename OwnerType, typename PropertyType>
 static void checkProperty(const PropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
 {
-    checkProperty(property.object(), property.getter(), property.signal(), propertyName);
+    facelift::checkProperty(property.object(), property.getter(), property.signal(), propertyName);
 }
 
 template<typename OwnerType, typename PropertyType>
 static void checkProperty(const ServicePropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
 {
-    checkProperty(property.object(), property.getter(), property.signal(), propertyName);
+    facelift::checkProperty(property.object(), property.getter(), property.signal(), propertyName);
 }
 
 template<typename OwnerType, typename PropertyType>
