@@ -52,6 +52,9 @@ class FaceliftIPCCommonLib_EXPORT InterfaceManager : public QObject
     Q_OBJECT
 
 public:
+
+    InterfaceManager();
+
     void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter);
 
     void unregisterAdapter(NewIPCServiceAdapterBase *adapter);

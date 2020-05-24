@@ -51,6 +51,9 @@ class FaceliftIPCLocalLib_EXPORT LocalIPCRegistry : public QObject
     Q_OBJECT
 
 public:
+
+    LocalIPCRegistry();
+
     void registerAdapter(const QString &objectPath, LocalIPCServiceAdapterBase *adapter);
 
     void unregisterAdapter(LocalIPCServiceAdapterBase *adapter);

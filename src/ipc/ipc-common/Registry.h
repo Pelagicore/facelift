@@ -29,43 +29,71 @@
 **********************************************************************/
 #pragma once
 
+#include <QObject>
 #include <QString>
 #include <QMap>
 #include <functional>
 #include <QVector>
+#include <QDebug>
+
+namespace facelift {
 
 template<typename Type, typename Key = QString>
 class Registry {
+
+    struct Listener {
+        QObject* context = nullptr;
+        std::function<void()> function;
+    };
+
 public:
-    using ListenerFunction = std::function<void()>;
+
+    Registry(QObject* owner)
+    {
+        m_owner = owner;
+    }
 
     template<typename SourceObjectType, typename SourceSignalType>
     void addListener(const Key& key, SourceObjectType *receiver, void (SourceSignalType::*receiverMethod)()) const
     {
         auto& listeners = m_listeners[key];
-        QPointer<SourceObjectType> p(receiver);
-        listeners.append([p, receiverMethod]() {
-            if (p) {
-                auto *receiver = p.data();
-                (receiver->*receiverMethod)();
+        Listener e;
+        e.context = receiver;
+        e.function = [receiverMethod, receiver]() {
+            (receiver->*receiverMethod)();
+        };
+        listeners.append(e);
+        QObject::connect(receiver, &QObject::destroyed, m_owner, [this, key] (QObject *obj) {
+            auto& elements = m_listeners[key];
+            for (int i = 0; i < elements.size(); i++) {
+                if (elements[i].context == obj) {
+                    elements.remove(i);
+                    break;
+                }
             }
         });
+    }
+
+    void notifyListeners(const Key& key) const
+    {
+        if (m_listeners.contains(key)) {
+            const auto listeners = m_listeners[key];
+            for (const auto& listener : listeners) {
+                listener.function();
+            }
+        }
     }
 
     typename QMap<Key, Type>::iterator insert(const Key& key, Type value) {
         Q_ASSERT(!m_content.contains(key));
         auto iterator = m_content.insert(key, value);
-        for (const auto& listener : m_listeners[key]) {
-            listener();
-        }
+        notifyListeners(key);
         return iterator;
     }
 
     bool remove(const Key& key) {
         bool isItemRemoved = m_content.remove(key);
-        for (const auto& listener : m_listeners[key]) {
-            listener();
-        }
+        notifyListeners(key);
         return isItemRemoved;
     }
 
@@ -112,17 +140,15 @@ public:
         m_content = content;
 
         for (const auto & key : modifiedItems) {
-            if (m_listeners.contains(key)) {
-                for (const auto& a : m_listeners[key]) {
-                    a();
-                }
-            }
+            notifyListeners(key);
         }
 
     }
 
 private:
     QMap<Key, Type> m_content;
-    mutable QMap<Key, QVector<ListenerFunction>> m_listeners;  // "mutable" since adding a listener is not considered as a change
-
+    mutable QMap<Key, QVector<Listener>> m_listeners;  // "mutable" since adding a listener is not considered as a change
+    QObject* m_owner = nullptr;
 };
+
+}

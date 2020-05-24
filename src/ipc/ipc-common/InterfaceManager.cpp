@@ -34,6 +34,10 @@
 
 namespace facelift {
 
+InterfaceManager::InterfaceManager() : m_registry(this)
+{
+}
+
 void InterfaceManager::registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter)
 {
     Q_ASSERT(adapter);
