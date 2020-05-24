@@ -318,6 +318,10 @@ InputPayLoad &LocalIPCMessage::inputPayLoad()
     return *m_inputPayload;
 }
 
+LocalIPCRegistry::LocalIPCRegistry() : m_registry(this)
+{
+}
+
 void LocalIPCRegistry::registerAdapter(const QString &objectPath, LocalIPCServiceAdapterBase *adapter)
 {
     Q_ASSERT(adapter);
