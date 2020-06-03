@@ -160,7 +160,7 @@ public:
     template<typename Type>
     using IPCProxyType = typename Type::IPCLocalProxyType;
 
-    LocalIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), LocalIPCProxyBase(m_ipcBinder), m_ipcBinder(*this)
+    LocalIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), LocalIPCProxyBase(*this), m_ipcBinder(*this)
     {
         m_ipcBinder.setInterfaceName(InterfaceType::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
