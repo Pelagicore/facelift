@@ -86,8 +86,10 @@ public:
 
     LocalIPCMessage &operator=(const LocalIPCMessage &other)
     {
-        m_data = other.m_data;
-        copyRequestMessage(other);
+        if (this != &other) {
+            m_data = other.m_data;
+            copyRequestMessage(other);
+        }
         return *this;
     }
 

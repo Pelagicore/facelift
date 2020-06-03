@@ -129,7 +129,9 @@ public:
 
     AsyncAnswer &operator=(const AsyncAnswer &other)
     {
-        m_master = other.m_master;
+        if (this != &other) {
+            m_master = other.m_master;
+        }
         return *this;
     }
 
