@@ -36,40 +36,50 @@
 
 namespace facelift {
 
-void onUnexpectedChangeSignalTriggered();
+class PropertyVerifier {
 
-template<typename Getter, typename Signal, typename OwnerType>
-void checkProperty(OwnerType* object, Getter getter, Signal signal, const char* propertyName = nullptr)
-{
-    auto previousValue = (object->*getter)();
-    QObject::connect(object, signal, [previousValue, getter, object, propertyName]() mutable {
-        auto newValue = (object->*getter)();
-        if (previousValue == newValue) {
-            qCCritical(LogModel) << "Change signal triggered but the value has not changed" << newValue
-                << object << "propertyName:" << (propertyName ? propertyName : "Unknown");
-            onUnexpectedChangeSignalTriggered();
-        } else {
-            previousValue = newValue;
-        }
-    });
-}
+public:
 
-template<typename OwnerType, typename PropertyType>
-static void checkProperty(const PropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
-{
-    facelift::checkProperty(property.object(), property.getter(), property.signal(), propertyName);
-}
+    static bool isEnabled();
 
-template<typename OwnerType, typename PropertyType>
-static void checkProperty(const ServicePropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
-{
-    facelift::checkProperty(property.object(), property.getter(), property.signal(), propertyName);
-}
+    template<typename Getter, typename Signal, typename OwnerType>
+    static void checkProperty(OwnerType* object, Getter getter, Signal signal, const char* propertyName = nullptr)
+    {
+        auto previousValue = (object->*getter)();
+        QObject::connect(object, signal, [previousValue, getter, object, propertyName]() mutable {
+            auto newValue = (object->*getter)();
+            if (previousValue == newValue) {
+                qCCritical(LogModel) << "Change signal triggered but the value has not changed" << newValue
+                    << object << "propertyName:" << (propertyName ? propertyName : "Unknown");
+                onUnexpectedChangeSignalTriggered();
+            } else {
+                previousValue = newValue;
+            }
+        });
+    }
 
-template<typename OwnerType, typename PropertyType>
-static void checkProperty(const ModelPropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
-{
-    M_UNUSED(property, propertyName);    // TODO: implement
-}
+    template<typename OwnerType, typename PropertyType>
+    static void checkProperty(const PropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
+    {
+        checkProperty(property.object(), property.getter(), property.signal(), propertyName);
+    }
+
+    template<typename OwnerType, typename PropertyType>
+    static void checkProperty(const ServicePropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
+    {
+        checkProperty(property.object(), property.getter(), property.signal(), propertyName);
+    }
+
+    template<typename OwnerType, typename PropertyType>
+    static void checkProperty(const ModelPropertyInterface<OwnerType, PropertyType>& property, const char* propertyName)
+    {
+        M_UNUSED(property, propertyName);    // TODO: implement
+    }
+
+private:
+
+    static void onUnexpectedChangeSignalTriggered();
+
+};
 
 }
