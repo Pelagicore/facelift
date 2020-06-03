@@ -128,7 +128,7 @@ private:
     QString m_interfaceName;
     LocalIPCRequestHandler *m_serviceObject = nullptr;
     QPointer<LocalIPCServiceAdapterBase> m_serviceAdapter;
-    QMetaObject::Connection m_signalConnection;
+    QMetaObject::Connection m_signalConnection{};
     bool m_explicitServiceName = false;
     bool m_serviceAvailable = false;
 };

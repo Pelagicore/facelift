@@ -52,9 +52,8 @@ class TAsyncAnswerMasterBase {
 
 public:
 
-    TAsyncAnswerMasterBase(QObject* context)
+    TAsyncAnswerMasterBase(QObject* context) : m_context(context)
     {
-        m_context = context;
     }
 
     ~TAsyncAnswerMasterBase();

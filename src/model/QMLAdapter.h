@@ -159,7 +159,7 @@ public:
     }
 
 private:
-    ProviderImplementationType m_provider;
+    ProviderImplementationType m_provider{};
 
 };
 

@@ -121,7 +121,7 @@ private:
     bool m_ready = true;
 
 protected:
-    QMetaObject::Connection m_getterFunctionContextConnection;
+    QMetaObject::Connection m_getterFunctionContextConnection{};
     QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
 
 };

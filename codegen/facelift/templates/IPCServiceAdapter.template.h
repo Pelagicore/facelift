@@ -71,6 +71,10 @@ public:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
         , m_{{property.name}}Handler(*this)
+    {% elif property.type.is_interface %}
+        , m_previous{{property.name}}ObjectPath = {}
+    {% else %}
+    	, m_previous{{property.name}} = {}
     {% endif %}
     {% endfor %}
     {
