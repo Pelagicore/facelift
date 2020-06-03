@@ -46,7 +46,9 @@ DBusIPCMessage::DBusIPCMessage(const DBusIPCMessage &other) : m_message(other.m_
 
 DBusIPCMessage &DBusIPCMessage::operator=(const DBusIPCMessage &other)
 {
-    m_message = other.m_message;
+    if (this != &other) {
+        m_message = other.m_message;
+    }
     return *this;
 }
 
