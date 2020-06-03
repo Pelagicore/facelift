@@ -32,7 +32,12 @@
 
 namespace facelift {
 
-void onUnexpectedChangeSignalTriggered()
+bool PropertyVerifier::isEnabled() {
+    static bool isDisabled = qEnvironmentVariableIsSet("FACELIFT_DISABLE_PROPERTY_VERIFIER");
+    return !isDisabled;
+}
+
+void PropertyVerifier::onUnexpectedChangeSignalTriggered()
 {
     // uncomment the following line to make unexpected signals fatal
 //    qFatal("Fatal error");
