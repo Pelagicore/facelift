@@ -83,7 +83,6 @@ public:
 
     const QString &implementationID() const
     {
-        return m_implementationID;
         Q_ASSERT(m_interface != nullptr);
         return m_interface->implementationID();
     }
