@@ -116,7 +116,7 @@ public:
         QList<ModelDataType> list;
 
         // Make sure we do not request items which are out of range
-        first = qMin(first, m_model->size() - 1);
+        first = qMax(first, 0);
         last = qMin(last, m_model->size() - 1);
 
         for (int i = first; i <= last; ++i) {
