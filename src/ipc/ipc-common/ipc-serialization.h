@@ -40,6 +40,7 @@
 #include "StructureBase.h"
 #include "FaceliftUtils.h"
 #include "FaceliftProperty.h"
+#include <tuple>
 
 namespace facelift {
 
@@ -140,14 +141,28 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_base_of<StructureBas
 
     static void write(OutputPayLoad &msg, const Type &param)
     {
-        for_each_in_tuple_const(param.asTuple(), StreamWriteFunction<OutputPayLoad>(msg));
+        IPCTypeHandler<typename Type::FieldTupleTypes>::write(msg, param.asTuple());
     }
 
     static void read(InputPayLoad &msg, Type &param)
     {
-        typename Type::FieldTupleTypes tuple;
-        for_each_in_tuple(tuple, StreamReadFunction<InputPayLoad>(msg));
-        param.setValue(tuple);
+        IPCTypeHandler<typename Type::FieldTupleTypes>::read(msg, param.asTuple());
+    }
+
+};
+
+
+template<typename ... Types>
+struct IPCTypeHandler<std::tuple<Types...>>
+{
+    static void write(OutputPayLoad &msg, const std::tuple<Types...> &param)
+    {
+        for_each_in_tuple_const(param, StreamWriteFunction<OutputPayLoad>(msg));
+    }
+
+    static void read(InputPayLoad &msg, std::tuple<Types...> &param)
+    {
+        for_each_in_tuple(param, StreamReadFunction<InputPayLoad>(msg));
     }
 
 };
@@ -176,7 +191,7 @@ struct IPCTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::
 
 
 template<typename ElementType>
-struct IPCTypeHandler<QList<ElementType> >
+struct IPCTypeHandler<QList<ElementType>>
 {
     static void writeDBUSSignature(QTextStream &s)
     {
@@ -209,7 +224,7 @@ struct IPCTypeHandler<QList<ElementType> >
 
 
 template<typename ElementType>
-struct IPCTypeHandler<QMap<QString, ElementType> >
+struct IPCTypeHandler<QMap<QString, ElementType>>
 {
     static void writeDBUSSignature(QTextStream &s)
     {
