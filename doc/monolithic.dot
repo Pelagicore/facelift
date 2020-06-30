@@ -1,0 +1,48 @@
+digraph "MyProject" {
+node [
+  fontsize = "12"
+];
+subgraph clusterLegend {
+  label = "Legend";
+  color = black;
+  edge [ style = invis ];
+  legendNode0 [ label = "Executable", shape = egg ];
+  legendNode1 [ label = "Static Library", shape = octagon ];
+  legendNode2 [ label = "Shared Library", shape = doubleoctagon ];
+  legendNode3 [ label = "Module Library", shape = tripleoctagon ];
+  legendNode4 [ label = "Interface Library", shape = pentagon ];
+  legendNode5 [ label = "Object Library", shape = hexagon ];
+  legendNode6 [ label = "Unknown Library", shape = septagon ];
+  legendNode7 [ label = "Custom Target", shape = box ];
+  legendNode0 -> legendNode1 [ style = solid ];
+  legendNode0 -> legendNode2 [ style = solid ];
+  legendNode0 -> legendNode3;
+  legendNode1 -> legendNode4 [ label = "Interface", style = dashed ];
+  legendNode2 -> legendNode5 [ label = "Private", style = dotted ];
+  legendNode3 -> legendNode6 [ style = solid ];
+  legendNode0 -> legendNode7;
+}
+    "node0" [ label = "MyLibrary1", shape = pentagon ];
+    "node1" [ label = "MyLibrary1_", shape = pentagon ];
+    "node2" [ label = "Qt5::Core", shape = doubleoctagon ];
+    "node1" -> "node2" [ style = dashed ] // MyLibrary1_ -> Qt5::Core
+    "node0" -> "node1" [ style = dashed ] // MyLibrary1 -> MyLibrary1_
+    "node3" [ label = "MyProject", shape = doubleoctagon ];
+    "node4" [ label = "MyLibrary1__OBJECTS", shape = hexagon ];
+    "node4" -> "node1"  // MyLibrary1__OBJECTS -> MyLibrary1_
+    "node5" [ label = "Qt5::moc", shape = egg ];
+    "node4" -> "node5"  // MyLibrary1__OBJECTS -> Qt5::moc
+    "node3" -> "node4" [ style = dotted ] // MyProject -> MyLibrary1__OBJECTS
+    "node6" [ label = "MyLibrary2__OBJECTS", shape = hexagon ];
+    "node7" [ label = "MyLibrary2_", shape = pentagon ];
+    "node7" -> "node1" [ style = dashed ] // MyLibrary2_ -> MyLibrary1_
+    "node7" -> "node2" [ style = dashed ] // MyLibrary2_ -> Qt5::Core
+    "node6" -> "node7"  // MyLibrary2__OBJECTS -> MyLibrary2_
+    "node6" -> "node5"  // MyLibrary2__OBJECTS -> Qt5::moc
+    "node3" -> "node6" [ style = dotted ] // MyProject -> MyLibrary2__OBJECTS
+    "node0" -> "node3" [ style = dashed ] // MyLibrary1 -> MyProject
+    "node8" [ label = "MyLibrary2", shape = pentagon ];
+    "node8" -> "node0" [ style = dashed ] // MyLibrary2 -> MyLibrary1
+    "node8" -> "node7" [ style = dashed ] // MyLibrary2 -> MyLibrary2_
+    "node8" -> "node3" [ style = dashed ] // MyLibrary2 -> MyProject
+}

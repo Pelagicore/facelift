@@ -68,8 +68,8 @@ triggered, which can save a lot of boilerplate code. Here is the generated code
 \includelineno "MyInterfaceImplementationBase.h"
 
 Here is an example of an implementation based on the ImplementationBase class
-("MyInterfaceImplementation.h"):
-\snippet "MyInterfaceImplementation.h" indoc
+("MyInterfaceCppImplementation.h"):
+\snippet "MyInterfaceCppImplementation.h" indoc
 
 \section iiii Registration of the Interface
 
