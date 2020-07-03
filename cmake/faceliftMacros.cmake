@@ -584,10 +584,6 @@ function(facelift_add_library TARGET_NAME)
                 set(LIBRARY_TYPE INTERFACE)
             endif()
             add_library(${TARGET_NAME} ${LIBRARY_TYPE} ${ALL_SOURCES})
-            if(NOT "${LIBRARY_TYPE}" STREQUAL "INTERFACE")
-                set_target_properties(${TARGET_NAME} PROPERTIES LINK_DEPENDS_NO_SHARED true)
-            endif()
-
             target_link_libraries(${TARGET_NAME} ${__INTERFACE} ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
             _facelift_add_target_finish(${TARGET_NAME} ${TARGET_NAME})
 
@@ -702,7 +698,6 @@ function(facelift_add_executable TARGET_NAME)
     _facelift_parse_target_arguments("" "" "" ${ARGN})
     _facelift_add_target_start(${TARGET_NAME})
     add_executable(${TARGET_NAME} ${ALL_SOURCES})
-    set_target_properties(${TARGET_NAME} PROPERTIES LINK_DEPENDS_NO_SHARED true)
 
     if (NOT ${ARGUMENT_NO_INSTALL})
         install(TARGETS ${TARGET_NAME} EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
