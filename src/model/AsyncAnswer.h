@@ -99,17 +99,25 @@ protected:
     CallBack m_callback;
 };
 
+template<typename T>
+struct CallBackType {
+    using type = std::function<void (const T &)>;
+};
+
+template<>
+struct CallBackType<void> {
+    using type = std::function<void ()>;
+};
 
 template<typename ReturnType>
 class AsyncAnswer
 {
-    typedef std::function<void (const ReturnType &)> CallBack;
+    using CallBack = typename CallBackType<ReturnType>::type;
 
 public:
     class Master : public TAsyncAnswerMaster<CallBack>
     {
     public:
-        using TAsyncAnswerMaster<CallBack>::m_callback;
         Master(QObject* context, CallBack callback) : TAsyncAnswerMaster<CallBack>(context, callback)
         {
         }
@@ -135,7 +143,9 @@ public:
         return *this;
     }
 
-    void operator()(const ReturnType &returnValue) const
+    template<typename T = ReturnType>
+    typename std::enable_if<!std::is_void<T>::value>::type
+    operator()(const T &returnValue) const
     {
         if (m_master) {
             m_master->call(returnValue);
@@ -145,39 +155,9 @@ public:
         }
     }
 
-private:
-    std::shared_ptr<Master> m_master;
-};
-
-template<>
-class AsyncAnswer<void>
-{
-    typedef std::function<void ()> CallBack;
-
-public:
-    class Master : public TAsyncAnswerMaster<CallBack>
-    {
-    public:
-        using TAsyncAnswerMaster<CallBack>::m_callback;
-
-        Master(QObject* context, CallBack callback) : TAsyncAnswerMaster<CallBack>(context, callback)
-        {
-        }
-    };
-
-    AsyncAnswer()
-    {
-    }
-
-    AsyncAnswer(QObject* context, CallBack callback) : m_master(new Master(context, callback))
-    {
-    }
-
-    AsyncAnswer(const AsyncAnswer &other) : m_master(other.m_master)
-    {
-    }
-
-    void operator()() const
+    template<typename T = ReturnType>
+    typename std::enable_if<std::is_void<T>::value>::type
+    operator()() const
     {
         if (m_master) {
             m_master->call();
@@ -190,5 +170,4 @@ private:
     std::shared_ptr<Master> m_master;
 };
 
-}
-
+} // namespace facelift
