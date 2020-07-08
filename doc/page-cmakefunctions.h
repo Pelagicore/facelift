@@ -50,6 +50,7 @@ facelift_add_qml_plugin(<TargetName>
                         [HEADERS_GLOB_NO_INSTALL [Globbing expressions]...]
                         [HEADERS_GLOB_RECURSE_NO_INSTALL [Globbing expressions]...]
                         [LINK_LIBRARIES lib1 [lib2...]]
+                        [LINK_DEPENDS_NO_SHARED <ON|OFF>]
                         [NO_INSTALL])
 \endcode
 
@@ -72,6 +73,7 @@ facelift_add_library(<TargetName>
                      [LINK_LIBRARIES lib1 [lib2...]]
                      [NO_EXPORT]
                      [NO_INSTALL]
+                     [LINK_DEPENDS_NO_SHARED <ON|OFF>]
                      [MONOLITHIC_SUPPORTED])
 \endcode
 
@@ -85,7 +87,8 @@ facelift_add_executable(<TargetName>
                         [HEADERS_GLOB ghdr1 [Globbing expressions]...]
                         [SOURCES_GLOB_RECURSE [Globbing expressions]...]
                         [HEADERS_GLOB_RECURSE [Globbing expressions]...]
-                        [LINK_LIBRARIES lib1 [lib2...]])
+                        [LINK_LIBRARIES lib1 [lib2...]]
+                        [LINK_DEPENDS_NO_SHARED <ON|OFF>])
 
 \endcode
 
@@ -99,7 +102,8 @@ facelift_add_test(<TargetName>
                   [HEADERS_GLOB [Globbing expressions]...]
                   [SOURCES_GLOB_RECURSE [Globbing expressions]...]
                   [HEADERS_GLOB_RECURSE [Globbing expressions]...]
-                  [LINK_LIBRARIES lib1 [lib2...]])
+                  [LINK_LIBRARIES lib1 [lib2...]]
+                  [LINK_DEPENDS_NO_SHARED <ON|OFF>])
 \endcode
 
 
@@ -124,5 +128,6 @@ This function adds a test with the name \e TargetName.The parameter descriptions
 \param URI The URI of the Target i.e qml plugin
 \param VERSION The target i.e Qml plugin version, if not provided it defaults to 1.0
 \param MONOLITHIC_SUPPORTED Include the library into the monolithic library
+\param LINK_DEPENDS_NO_SHARED Append cmake property LINK_DEPENDS_NO_SHARED to the target
 
 */

@@ -483,7 +483,7 @@ endmacro()
 
 function(facelift_add_library TARGET_NAME)
 
-    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED;NO_MONOLITHIC" ""
+    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED;NO_MONOLITHIC" "LINK_DEPENDS_NO_SHARED"
         "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES"
         ${ARGN}
     )
@@ -496,6 +496,10 @@ function(facelift_add_library TARGET_NAME)
     endif()
 
     list(APPEND ARGUMENT_LINK_LIBRARIES ${ARGUMENT_MONOLITHIC_LINK_LIBRARIES})
+
+    if (DEFINED ARGUMENT_LINK_DEPENDS_NO_SHARED)
+        set(CMAKE_LINK_DEPENDS_NO_SHARED ${ARGUMENT_LINK_DEPENDS_NO_SHARED})
+    endif()
 
     unset(__INTERFACE)
     if(ARGUMENT_INTERFACE)
@@ -695,8 +699,12 @@ endfunction()
 
 
 function(facelift_add_executable TARGET_NAME)
-    _facelift_parse_target_arguments("" "" "" ${ARGN})
+    _facelift_parse_target_arguments("" "LINK_DEPENDS_NO_SHARED" "" ${ARGN})
     _facelift_add_target_start(${TARGET_NAME})
+    if (DEFINED ARGUMENT_LINK_DEPENDS_NO_SHARED)
+        set(CMAKE_LINK_DEPENDS_NO_SHARED ${ARGUMENT_LINK_DEPENDS_NO_SHARED})
+    endif()
+
     add_executable(${TARGET_NAME} ${ALL_SOURCES})
 
     if (NOT ${ARGUMENT_NO_INSTALL})
