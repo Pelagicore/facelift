@@ -43,7 +43,7 @@
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
-#include "FaceliftProperty.h"
+#include "ModelProperty.h"
 
 #include "QMLAdapter.h"
 #include "QMLModel.h"

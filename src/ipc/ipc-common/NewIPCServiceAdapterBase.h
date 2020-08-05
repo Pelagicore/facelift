@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -32,7 +32,7 @@
 
 #include "ipc-common.h"
 #include "QMLAdapter.h"
-#include "FaceliftStringConversion.h"
+#include "StringConversionHandler.h"
 #include "span.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
@@ -62,42 +62,22 @@ public:
         return m_enabled;
     }
 
-    void setEnabled(bool enabled)
-    {
-        m_enabled = enabled;
-        onValueChanged();
-    }
+    void setEnabled(bool enabled);
 
-    void checkedSetService(QObject *service)
-    {
-        setService(service);
-        onValueChanged();
-    }
+    void checkedSetService(QObject *service);
 
     const QString &objectPath() const
     {
         return m_objectPath;
     }
 
-    void setObjectPath(const QString &objectPath)
-    {
-        m_objectPath = objectPath;
-        onValueChanged();
-    }
+    void setObjectPath(const QString &objectPath);
 
     virtual InterfaceBase *service() const = 0;
 
-    bool isReady() const
-    {
-        return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
-    }
+    bool isReady() const;
 
-    void onProviderCompleted()
-    {
-        // The parsing of the provider is finished => all our properties are set and we are ready to register our service
-        m_providerReady = true;
-        onValueChanged();
-    }
+    void onProviderCompleted();
 
     void registerService();
 
@@ -108,7 +88,10 @@ public:
 
 protected:
 
-    void setServiceAdapters(facelift::span<IPCServiceAdapterBase*> adapters);
+    void setServiceAdapters(facelift::span<IPCServiceAdapterBase*> adapters)
+    {
+        m_ipcServiceAdapters = adapters;
+    }
 
     template<typename ServiceType>
     ServiceType *bindToProvider(QObject *s)
@@ -155,6 +138,5 @@ private:
     bool m_providerReady = false;
     bool m_registered = false;
 };
-
 
 }

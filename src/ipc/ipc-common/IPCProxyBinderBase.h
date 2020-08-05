@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -63,22 +63,15 @@ public:
         return m_enabled;
     }
 
-    void setEnabled(bool enabled)
-    {
-        m_enabled = enabled;
-        checkInit();
-    }
+    void setEnabled(bool enabled);
 
     const QString &objectPath() const
     {
         return m_objectPath;
     }
 
-    virtual void setObjectPath(const QString &objectPath)
-    {
-        m_objectPath = objectPath;
-        checkInit();
-    }
+
+    virtual void setObjectPath(const QString &objectPath);
 
     void onComponentCompleted();
 
@@ -93,16 +86,14 @@ public:
 
     virtual void bindToIPC()
     {
+
     }
 
     Q_SIGNAL void complete();
 
     Q_SIGNAL void serviceAvailableChanged();
 
-    virtual bool isServiceAvailable() const {
-        Q_ASSERT(false); // TODO: remove
-        return true;
-    }
+    virtual bool isServiceAvailable() const;
 
     InterfaceBase &owner()
     {
@@ -138,9 +129,11 @@ public:
     {
         return m_isSynchronous;
     }
+
 protected:
     bool m_explicitServiceName = false;
     QString m_serviceName;
+
 private:
     QMap<QString, IPCProxyBinderBase *> m_subProxies;
     QString m_objectPath;

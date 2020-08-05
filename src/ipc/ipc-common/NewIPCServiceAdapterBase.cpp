@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -69,10 +69,6 @@ void NewIPCServiceAdapterBase::unregisterService()
     m_ipcServiceAdapters.clear();
 }
 
-void NewIPCServiceAdapterBase::setServiceAdapters(facelift::span<IPCServiceAdapterBase*> adapters) {
-    m_ipcServiceAdapters = adapters;
-}
-
 void NewIPCServiceAdapterBase::onValueChanged()
 {
     if (isReady()) {
@@ -87,5 +83,36 @@ void NewIPCServiceAdapterBase::onValueChanged()
         }
     }
 }
+
+void NewIPCServiceAdapterBase::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
+    onValueChanged();
+}
+
+void NewIPCServiceAdapterBase::checkedSetService(QObject *service)
+{
+    setService(service);
+    onValueChanged();
+}
+
+void NewIPCServiceAdapterBase::setObjectPath(const QString &objectPath)
+{
+    m_objectPath = objectPath;
+    onValueChanged();
+}
+
+bool NewIPCServiceAdapterBase::isReady() const
+{
+    return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
+}
+
+void NewIPCServiceAdapterBase::onProviderCompleted()
+{
+    // The parsing of the provider is finished => all our properties are set and we are ready to register our service
+    m_providerReady = true;
+    onValueChanged();
+}
+
 
 }

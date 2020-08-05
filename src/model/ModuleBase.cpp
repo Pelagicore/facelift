@@ -29,7 +29,7 @@
 **********************************************************************/
 
 #include "ModuleBase.h"
-#include "StructureBase.h"
+#include "Structure.h"
 #include "FaceliftModel.h"
 
 namespace facelift {

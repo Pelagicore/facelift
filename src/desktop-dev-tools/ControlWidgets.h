@@ -48,7 +48,7 @@
 
 #include "FaceliftUtils.h"
 #include "FaceliftModel.h"
-#include "StructureBase.h"
+#include "Structure.h"
 
 namespace facelift {
 
