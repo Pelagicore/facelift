@@ -32,7 +32,7 @@
 
 #include <QObject>
 
-#include "FaceliftProperty.h"
+#include "ModelProperty.h"
 
 struct TunerServiceStation
 {

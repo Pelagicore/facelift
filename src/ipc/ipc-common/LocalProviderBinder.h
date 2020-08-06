@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,6 +30,7 @@
 #pragma once
 
 #include <QObject>
+#include "LocalProviderBinderBase.h"
 #include "InterfaceManager.h"
 #include "IPCProxyNewBase.h"
 
@@ -40,29 +41,6 @@
 #endif
 
 namespace facelift {
-
-class LocalProviderBinderBase : public QObject {
-
-public:
-
-    LocalProviderBinderBase(IPCProxyNewBase &proxy) : m_proxy(proxy)
-    {
-    }
-
-    virtual void checkLocalAdapterAvailability() = 0;
-
-    void init()
-    {
-        m_interfaceManager.content().addListener(m_proxy.objectPath(),
-                this, &LocalProviderBinderBase::checkLocalAdapterAvailability);
-        checkLocalAdapterAvailability();
-    }
-
-protected:
-    IPCProxyNewBase &m_proxy;
-    InterfaceManager &m_interfaceManager = InterfaceManager::instance();
-
-};
 
 template<typename InterfaceType>
 class LocalProviderBinder : public LocalProviderBinderBase

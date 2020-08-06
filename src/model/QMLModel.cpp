@@ -37,9 +37,5 @@ Q_LOGGING_CATEGORY(LogModel, "facelift.model")
 
 QQmlEngine *QMLModelImplementationFrontendBase::s_engine = nullptr;
 
-void ModelQMLImplementationBase::onInvalidQMLEngine() const
-{
-    faceliftSeriousError("QML engine is not available");
-}
 
 }

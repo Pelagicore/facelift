@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -32,44 +32,11 @@
 
 #include "FaceliftCommon.h"
 #include "FaceliftConversion.h"
+#include "QMLModelTypeHandler.h"
 
 namespace facelift {
 
-template<typename Type>
-inline const typename TypeHandler<Type>::QMLType toQMLCompatibleType(const Type &v)
-{
-    return TypeHandler<Type>::toQMLCompatibleType(v);
-}
 
-template<typename Type, typename Sfinae = void>
-struct QMLModelTypeHandler
-{
-    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-    {
-        return engine->toScriptValue(facelift::toQMLCompatibleType(v));
-    }
-
-    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
-    {
-        v = engine->fromScriptValue<Type>(value);
-    }
-};
-
-template<typename Type>
-struct QMLModelTypeHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
-{
-    static QJSValue toJSValue(const Type &v, QQmlEngine *engine)
-    {
-        Q_UNUSED(engine)
-        return QJSValue(v);
-    }
-
-    static void fromJSValue(Type &v, const QJSValue &value, QQmlEngine *engine)
-    {
-        Q_UNUSED(engine)
-        v = static_cast<Type>(value.toInt());
-    }
-};
 
 template<typename Type>
 QJSValue toJSValue(const Type &v, QQmlEngine *engine)

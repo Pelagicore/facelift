@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,8 +30,9 @@
 
 #pragma once
 
-#include "LocalIPC.h"
+#include "LocalIPCMessage.h"
 #include "IPCServiceAdapterBase.h"
+#include "LocalIPCServiceAdapterBase.h"
 
 #if defined(FaceliftIPCLocalLib_LIBRARY)
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
@@ -44,90 +45,6 @@ namespace facelift {
 namespace local {
 
 using namespace facelift;
-
-class FaceliftIPCLocalLib_EXPORT LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
-{
-    Q_OBJECT
-
-    typedef const char *MemberIDType;
-
-public:
-    template<typename Type>
-    using IPCAdapterType = typename Type::IPCLocalAdapterType;
-
-    LocalIPCServiceAdapterBase(QObject *parent = nullptr);
-
-    ~LocalIPCServiceAdapterBase();
-
-    IPCHandlingResult handleMessage(LocalIPCMessage &message);
-
-    void flush();
-
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v);
-
-    void initOutgoingSignalMessage();
-
-    template<typename MemberID, typename ... Args>
-    void sendSignal(MemberID signalID, const Args & ... args);
-
-    template<typename ReturnType>
-    void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue);
-
-    void sendAsyncCallAnswer(LocalIPCMessage &replyMessage);
-
-    virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
-
-    virtual void serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot);
-
-    void registerService() override;
-
-    void unregisterService() override;
-
-    Q_SIGNAL void messageSent(LocalIPCMessage &message);
-
-    void send(LocalIPCMessage &message)
-    {
-        emit messageSent(message);
-    }
-
-    void sendReply(LocalIPCMessage &message)
-    {
-        message.notifyListener();
-    }
-
-    template<typename Type>
-    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
-
-    template<typename Type>
-    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
-
-    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
-
-    QString introspect(const QString &path) const;
-
-    template<typename T>
-    MemberIDType memberID(T member, MemberIDType memberName) const
-    {
-        // Local member IDs are strings
-        Q_UNUSED(member);
-        return memberName;
-    }
-
-protected:
-    std::unique_ptr<LocalIPCMessage> m_pendingOutgoingMessage;
-
-    QString m_introspectionData;
-    QString m_serviceName;
-
-    bool m_previousReadyState = false;
-
-    bool m_alreadyInitialized = false;
-};
-
 
 template<typename ServiceType>
 class LocalIPCServiceAdapter : public LocalIPCServiceAdapterBase

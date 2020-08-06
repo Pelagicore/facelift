@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,23 +28,14 @@
 **
 **********************************************************************/
 
-#include "StructureBase.h"
+#include "Structure.h"
 
 namespace facelift {
 
 constexpr int StructureBase::ROLE_ID;
 
-StructureBase::StructureBase()
-{
-}
-
-StructureBase::~StructureBase()
-{
-}
-
-StructureFactoryBase::StructureFactoryBase(QQmlEngine *engine) : QObject(engine)
-{
-}
+StructureBase::StructureBase() = default;
+StructureBase::~StructureBase() = default;
 
 
 }

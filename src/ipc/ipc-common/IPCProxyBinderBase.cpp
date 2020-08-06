@@ -71,4 +71,22 @@ void IPCProxyBinderBase::setServiceName(const QString &name)
     checkInit();
 }
 
+void IPCProxyBinderBase::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
+    checkInit();
+}
+
+void IPCProxyBinderBase::setObjectPath(const QString &objectPath)
+{
+    m_objectPath = objectPath;
+    checkInit();
+}
+
+bool IPCProxyBinderBase::isServiceAvailable() const {
+    Q_ASSERT(false); // TODO: remove
+    return true;
+}
+
+
 } // end namespace facelift
