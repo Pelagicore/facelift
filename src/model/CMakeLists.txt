@@ -78,6 +78,7 @@ facelift_add_library(FaceliftModelLib
         TypeHandlerBase.h
         BinarySeralizer.h
         StructTypeHandler.h
+        PropertyInterface.h
     LINK_LIBRARIES
         Qt5::Qml
         Qt5::Quick
