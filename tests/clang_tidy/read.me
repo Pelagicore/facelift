@@ -1,0 +1,14 @@
+# clang-tidy is a clang-based C++ “linter” tool.
+
+# source code: https://llvm.org/docs/GettingStarted.html#checkout
+# docs: http://clang.llvm.org/extra/clang-tidy/
+# install clang-tidy, clang-tools using apt-get:
+  $ sudo apt install clang-tidy clang-tools
+
+# How to use
+ Create a build folder and jump into it:
+  $ mkdir build && cd "$_"
+ Run the script:
+  $ facelift/tests/clang_tidy/test_clang_tidy.sh
+ Results of analysis will be available in the folder
+  $ clang_tidy/report_yy-mm-dd-hhmmss/report
