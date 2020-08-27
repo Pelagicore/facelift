@@ -30,14 +30,7 @@
 
 #include "FaceliftPlugin.h"
 
-#ifdef ENABLE_DESKTOP_TOOLS
-#include "ServiceMonitorQMLComponent.h"
-#endif
-
 void FaceliftPlugin::registerTypes(const char *uri)
 {
     Q_UNUSED(uri);
-#ifdef ENABLE_DESKTOP_TOOLS
-    ::qmlRegisterType<facelift::ServiceMonitorQMLComponent>(uri, 1, 0, "ServiceMonitor");
-#endif
 }

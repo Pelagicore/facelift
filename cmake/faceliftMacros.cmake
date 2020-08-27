@@ -293,16 +293,6 @@ function(facelift_add_interface TARGET_NAME)
         PUBLIC_HEADER_BASE_PATH ${TYPES_OUTPUT_PATH}
     )
 
-    if(TARGET FaceliftDesktopDevTools)
-        list(APPEND ARGS
-            SOURCES_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.cpp
-            HEADERS_GLOB_RECURSE ${DEVTOOLS_OUTPUT_PATH}/*.h
-            LINK_LIBRARIES FaceliftDesktopDevTools
-            PUBLIC_HEADER_BASE_PATH ${DEVTOOLS_OUTPUT_PATH}
-        )
-        list(APPEND MODULE_COMPILE_DEFINITIONS ENABLE_DESKTOP_TOOLS)
-    endif()
-
     if(TARGET FaceliftIPCLib)
 
         if(TARGET FaceliftIPCLibDBus)
