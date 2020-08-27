@@ -27,7 +27,6 @@
 | FACELIFT_ENABLE_DBUS_IPC          | Enables DBUS IPC. The DBUS IPC classes are build and DBUS communication is functional. \n Cannot use with FACELIFT_DISABLE_DBUS_IPC |
 | FACELIFT_BUILD_EXAMPLES           | builds examples attached to project                                 |
 | FACELIFT_BUILD_TESTS              | builds tests (can be run by ctest later)                            |
-| FACELIFT_ENABLE_DESKTOP_DEV_TOOLS | Enable development/debugging tools                                  |
 
 
 */
