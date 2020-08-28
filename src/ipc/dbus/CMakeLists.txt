@@ -22,6 +22,7 @@ if(Qt5DBus_FOUND)
             DBusManager.cpp
         HEADERS
             DBusManager.h
+            DBusManagerInterface.h
             DBusIPCProxy.h
             IPCDBusServiceAdapter.h
             DBusObjectRegistry.h
