@@ -40,13 +40,13 @@
 #include "IPCProxyBinderBase.h"
 #include "DBusIPCMessage.h"
 #include "ipc-serialization.h"
+#include "DBusManagerInterface.h"
 
 class QDBusMessage;
 
 namespace facelift {
 namespace dbus {
 
-class DBusManager;
 class DBusRequestHandler;
 class DBusObjectRegistry;
 
@@ -59,7 +59,7 @@ public:
     template<typename Type>
     using IPCProxyType = typename Type::IPCDBusProxyType;
 
-    DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent = nullptr);
+    DBusIPCProxyBinder(DBusManagerInterface& dbusManager, InterfaceBase &owner, QObject *parent = nullptr);
 
     const QString &interfaceName() const
     {
@@ -114,10 +114,6 @@ public:
     template<typename ReturnType, typename ... Args>
     void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
 
-    QDBusConnection &connection() const;
-
-    DBusManager &manager() const;
-
     void setHandler(DBusRequestHandler *handler);
 
 private:
@@ -127,7 +123,7 @@ private:
     QDBusServiceWatcher m_busWatcher;
     DBusRequestHandler *m_serviceObject = nullptr;
     bool m_serviceAvailable = false;
-    DBusObjectRegistry &m_registry;
+    DBusManagerInterface &m_dbusManager;
 };
 
 

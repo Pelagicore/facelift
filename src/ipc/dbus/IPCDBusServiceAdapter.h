@@ -35,6 +35,7 @@
 #include "DBusIPCMessage.h"
 #include "ipc-common.h"
 #include "IPCDBusServiceAdapterBase.h"
+#include "DBusManagerInterface.h"
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
@@ -48,8 +49,6 @@ namespace dbus {
 
 using namespace facelift;
 
-class DBusManager;
-
 template<typename ServiceType>
 class IPCDBusServiceAdapter : public IPCDBusServiceAdapterBase
 {
@@ -60,7 +59,8 @@ public:
     using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
     using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
 
-    IPCDBusServiceAdapter(QObject *parent) : IPCDBusServiceAdapterBase(parent)
+    IPCDBusServiceAdapter(DBusManagerInterface& dbusManager, QObject *parent) :
+        IPCDBusServiceAdapterBase(dbusManager, parent)
     {
         setInterfaceName(ServiceType::FULLY_QUALIFIED_INTERFACE_NAME);
     }

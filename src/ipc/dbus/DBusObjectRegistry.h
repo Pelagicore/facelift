@@ -35,7 +35,7 @@
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusAdapter.h"
 #include "Registry.h"
-#include "DBusManager.h"
+#include "DBusManagerInterface.h"
 
 namespace facelift {
 namespace dbus {

@@ -33,6 +33,7 @@
 #include "IPCProxyBase.h"
 #include "DBusRequestHandler.h"
 #include "DBusIPCProxyBinder.h"
+#include "DBusManager.h"
 
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
@@ -46,8 +47,6 @@ namespace dbus {
 
 using namespace facelift;
 
-class DBusManager;
-
 template<typename InterfaceType>
 class DBusIPCProxy : public IPCProxyBase<InterfaceType>, protected DBusRequestHandler
 {
@@ -60,7 +59,9 @@ public:
     template<typename Type>
     using IPCProxyType = typename Type::IPCDBusProxyType;
 
-    DBusIPCProxy(QObject *parent = nullptr) : IPCProxyBase<InterfaceType>(parent), m_ipcBinder(*this)
+    DBusIPCProxy(QObject *parent = nullptr) :
+        IPCProxyBase<InterfaceType>(parent),
+        m_ipcBinder(DBusManager::instance(), *this)
     {
         m_ipcBinder.setInterfaceName(InterfaceType::FULLY_QUALIFIED_INTERFACE_NAME);
         m_ipcBinder.setHandler(this);
