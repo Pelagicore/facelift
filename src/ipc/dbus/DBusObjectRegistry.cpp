@@ -77,7 +77,7 @@ void DBusObjectRegistry::init()
 void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer)
 {
     init();
-    auto serviceName = DBusManager::instance().serviceName();
+    auto serviceName = m_dbusManager.serviceName();
     if (isMaster()) {
         auto isSuccessful = m_master->registerObject(objectPath, serviceName);
         answer(isSuccessful);
@@ -89,7 +89,7 @@ void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::Asy
 void DBusObjectRegistry::unregisterObject(const QString &objectPath)
 {
     init();
-    auto serviceName = DBusManager::instance().serviceName();
+    auto serviceName = m_dbusManager.serviceName();
     if (isMaster()) {
         m_master->unregisterObject(objectPath, serviceName);
     } else {

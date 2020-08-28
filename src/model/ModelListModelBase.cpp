@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #include "ModelListModelBase.h"
-#include "ServiceRegistry.h"
 
 namespace facelift {
 
