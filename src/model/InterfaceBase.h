@@ -106,7 +106,7 @@ private:
 
 };
 
-FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase & i);
+FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase&);
 
 }
 

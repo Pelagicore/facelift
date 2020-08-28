@@ -31,6 +31,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QPointer>
 #include "Registry.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
