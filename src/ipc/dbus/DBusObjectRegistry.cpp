@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #include "DBusObjectRegistry.h"
-#include "DBusManager.h"
 #include "DBusIPCCommon.h"
 #include <limits>
 

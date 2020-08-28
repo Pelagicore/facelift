@@ -34,8 +34,89 @@
 ****************************************************************************/
 {% set baseClass = "::facelift::dbus::IPCDBusServiceAdapter<" + interfaceName + ">" %}
 {% set proxyTypeNameSuffix = "IPCDBusAdapter" %}
+{% set className = interfaceName + proxyTypeNameSuffix %}
 
+#pragma once
+
+{{classExportDefines}}
+
+#include "FaceliftUtils.h"
 #include "IPCDBusServiceAdapter.h"
+#include "IPCAdapterModelPropertyHandler.h"
+#include "DBusManager.h"
 
-{% include "IPCServiceAdapter.template.h" %}
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"
+#include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCCommon.h"
+
+//// Sub interfaces
+{% for property in interface.referencedInterfaceTypes %}
+#include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}{{proxyTypeNameSuffix}}.h"
+{% endfor %}
+
+{{module.namespaceCppOpen}}
+
+class {{interfaceName}}IPCQMLAdapterType;
+
+class {{classExport}} {{className}}: public {{baseClass}}
+{
+    Q_OBJECT
+
+public:
+
+    using ServiceType = {{interfaceName}};
+    using BaseType = {{baseClass}};
+    using ThisType = {{className}};
+    using SignalID = {{interface}}IPCCommon::SignalID;
+    using MethodID = {{interface}}IPCCommon::MethodID;
+
+    {{className}}(QObject* parent = nullptr) :
+        BaseType(facelift::dbus::DBusManager::instance(), parent)
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+        , m_{{property.name}}Handler(*this)
+    {% endif %}
+    {% endfor %}
+    {
+    }
+
+    void appendDBUSIntrospectionData(QTextStream &s) const override;
+
+    ::facelift::IPCHandlingResult handleMethodCallMessage(InputIPCMessage &requestMessage,
+            OutputIPCMessage &replyMessage) override;
+
+    void connectSignals() override;
+
+    void serializePropertyValues(OutputIPCMessage& msg, bool isCompleteSnapshot) override;
+
+    {% for event in interface.signals %}
+    void {{event}}(
+    {%- set comma = joiner(", ") -%}
+    {%- for parameter in event.parameters -%}
+        {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
+    {%- endfor -%}  )
+    {
+        sendSignal(SignalID::{{event}}
+        {%- for parameter in event.parameters -%}
+            , {{parameter.name}}
+        {%- endfor -%}  );
+    }
+    {% endfor %}
+
+private:
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    ::facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
+    {% elif property.type.is_interface %}
+    QString m_previous{{property.name}}ObjectPath;
+    {% else %}
+    {{property.interfaceCppType}} m_previous{{property.name}} {};
+    {% endif %}
+    {% if property.type.is_interface %}
+    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}};
+    {% endif %}
+    {% endfor %}
+};
+
+{{module.namespaceCppClose}}
 
