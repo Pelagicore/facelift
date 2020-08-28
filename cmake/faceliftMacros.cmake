@@ -3,7 +3,8 @@ option(IGNORE_AUTO_UNITY_BUILD "Disable unity build even if AUTO_UNITY_BUILD opt
 option(DISABLE_UNITY_BUILD "Completely disable unity build" OFF)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(DISABLE_DEVELOPMENT_FILE_INSTALLATION "Disable development file installation" OFF)
-option(ENABLE_MONOLITHIC_BUILD "Enable monolithic build" OFF)
+option(ENABLE_AUTO_MONOLITHIC "Enable monolithic support for all shared libraries" OFF)
+option(ENABLE_MONOLITHIC_BUILD "Enable monolithic build" ${ENABLE_AUTO_MONOLITHIC})
 
 if(ENABLE_MONOLITHIC_BUILD)
     if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -482,7 +483,7 @@ endmacro()
 
 function(facelift_add_library TARGET_NAME)
 
-    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED" ""
+    _facelift_parse_target_arguments("SYSTEM;STATIC;SHARED;OBJECT;MODULE;MONOLITHIC_SUPPORTED;NO_MONOLITHIC" ""
         "HEADERS_NO_INSTALL;HEADERS_GLOB_NO_INSTALL;HEADERS_GLOB_RECURSE_NO_INSTALL;PUBLIC_HEADER_BASE_PATH;MONOLITHIC_LINK_LIBRARIES"
         ${ARGN}
     )
@@ -505,18 +506,21 @@ function(facelift_add_library TARGET_NAME)
     else()
         if(${ARGUMENT_STATIC})
             set(LIBRARY_TYPE STATIC)
+            set(PREVENT_MONOLITHIC ON)
         endif()
         if(${ARGUMENT_OBJECT})
             set(LIBRARY_TYPE OBJECT)
+            set(PREVENT_MONOLITHIC ON)
         endif()
         if(${ARGUMENT_MODULE})
             set(LIBRARY_TYPE MODULE)
+            set(PREVENT_MONOLITHIC ON)
         endif()
         if(${ARGUMENT_SHARED})
             set(LIBRARY_TYPE SHARED)
         endif()
 
-        if(${ARGUMENT_MONOLITHIC_SUPPORTED})
+        if(ARGUMENT_MONOLITHIC_SUPPORTED OR (ENABLE_AUTO_MONOLITHIC AND (NOT ARGUMENT_NO_MONOLITHIC) AND (NOT PREVENT_MONOLITHIC)))
 
             set(ALIAS_NAME ${TARGET_NAME})
 

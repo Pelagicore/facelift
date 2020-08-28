@@ -31,7 +31,7 @@
 #include <QtCore>
 #include <QDebug>
 
-#include "FaceliftProperty.h"
+#include "ModelProperty.h"
 #include "TestProperty.h"
 
 #include "facelift-test.h"

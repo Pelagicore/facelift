@@ -64,12 +64,11 @@ bool DBusManager::registerServiceName(const QString &serviceName)
     return success;
 }
 
-
-
 QString DBusManager::serviceName() const
 {
     return m_busConnection.baseService();
 }
+
 
 } // end namespace dbus
 } // end namespace facelift

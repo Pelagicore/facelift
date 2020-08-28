@@ -10,7 +10,8 @@ The following functions are public and are meant to be used by FaceLift users.
 facelift_add_interface(<TargetName>
                        INTERFACE_DEFINITION_FOLDER dir
                        [LINK_LIBRARIES lib1 [lib2...]]
-                       [IMPORT_FOLDERS folder1 [folder2...]])
+                       [IMPORT_FOLDERS folder1 [folder2...]]
+                       [MONOLITHIC_SUPPORTED])
 \endcode
 
 This function adds a library containing the C++ classes generated from some QFace interface definition files
@@ -70,7 +71,8 @@ facelift_add_library(<TargetName>
                      [PUBLIC_HEADER_BASE_PATH path]
                      [LINK_LIBRARIES lib1 [lib2...]]
                      [NO_EXPORT]
-                     [NO_INSTALL])
+                     [NO_INSTALL]
+                     [MONOLITHIC_SUPPORTED])
 \endcode
 
 This function adds a library with the name \e TargetName from the specified source and header files. The parameter descriptions can be found below.
@@ -121,5 +123,6 @@ This function adds a test with the name \e TargetName.The parameter descriptions
 \param OUTPUT_BASE_DIRECTORY The directory relative to CMAKE_BINARY_DIR, where the plugin will be installed. If not given default is imports
 \param URI The URI of the Target i.e qml plugin
 \param VERSION The target i.e Qml plugin version, if not provided it defaults to 1.0
+\param MONOLITHIC_SUPPORTED Include the library into the monolithic library
 
 */

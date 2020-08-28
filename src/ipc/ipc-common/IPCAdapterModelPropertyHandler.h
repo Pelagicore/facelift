@@ -110,20 +110,22 @@ public:
 
     void handleModelRequest(typename IPCAdapterType::InputIPCMessage &requestMessage, typename IPCAdapterType::OutputIPCMessage &replyMessage)
     {
-        int first, last;
+        std::tuple<int, QList<ModelDataType>> requestResult;
+        int & first = std::get<0>(requestResult);
+        auto & list = std::get<1>(requestResult);
+        int last;
         m_adapter.deserializeValue(requestMessage, first);
         m_adapter.deserializeValue(requestMessage, last);
-        QList<ModelDataType> list;
 
         // Make sure we do not request items which are out of range
-        first = qMin(first, m_model->size() - 1);
+        first = qMax(first, 0);
         last = qMin(last, m_model->size() - 1);
 
         for (int i = first; i <= last; ++i) {
             list.append(m_model->elementAt(i));
         }
 
-        m_adapter.serializeValue(replyMessage, list);
+        m_adapter.serializeValue(replyMessage, requestResult);
     }
 
 private:

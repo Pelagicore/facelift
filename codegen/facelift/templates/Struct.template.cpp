@@ -114,7 +114,9 @@ const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
 
 {{struct.name}}& {{struct.name}}::operator=(const {{struct.name}} &right)
 {
-    copyFrom(right);
+    if (this != &right) {
+        copyFrom(right);
+    }
     return *this;
 }
 

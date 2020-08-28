@@ -1,0 +1,38 @@
+digraph "MyProject" {
+node [
+  fontsize = "12"
+];
+subgraph clusterLegend {
+  label = "Legend";
+  color = black;
+  edge [ style = invis ];
+  legendNode0 [ label = "Executable", shape = egg ];
+  legendNode1 [ label = "Static Library", shape = octagon ];
+  legendNode2 [ label = "Shared Library", shape = doubleoctagon ];
+  legendNode3 [ label = "Module Library", shape = tripleoctagon ];
+  legendNode4 [ label = "Interface Library", shape = pentagon ];
+  legendNode5 [ label = "Object Library", shape = hexagon ];
+  legendNode6 [ label = "Unknown Library", shape = septagon ];
+  legendNode7 [ label = "Custom Target", shape = box ];
+  legendNode0 -> legendNode1 [ style = solid ];
+  legendNode0 -> legendNode2 [ style = solid ];
+  legendNode0 -> legendNode3;
+  legendNode1 -> legendNode4 [ label = "Interface", style = dashed ];
+  legendNode2 -> legendNode5 [ label = "Private", style = dotted ];
+  legendNode3 -> legendNode6 [ style = solid ];
+  legendNode0 -> legendNode7;
+}
+    "node0" [ label = "MyLibrary1", shape = pentagon ];
+    "node1" [ label = "MyLibrary1_OBJECTS", shape = octagon ];
+    "node2" [ label = "Qt5::Core", shape = doubleoctagon ];
+    "node1" -> "node2"  // MyLibrary1_OBJECTS -> Qt5::Core
+    "node3" [ label = "Qt5::moc", shape = egg ];
+    "node1" -> "node3"  // MyLibrary1_OBJECTS -> Qt5::moc
+    "node0" -> "node1" [ style = dashed ] // MyLibrary1 -> MyLibrary1_OBJECTS
+    "node4" [ label = "MyLibrary2", shape = pentagon ];
+    "node5" [ label = "MyLibrary2_OBJECTS", shape = octagon ];
+    "node5" -> "node0"  // MyLibrary2_OBJECTS -> MyLibrary1
+    "node5" -> "node2"  // MyLibrary2_OBJECTS -> Qt5::Core
+    "node5" -> "node3"  // MyLibrary2_OBJECTS -> Qt5::moc
+    "node4" -> "node5" [ style = dashed ] // MyLibrary2 -> MyLibrary2_OBJECTS
+}

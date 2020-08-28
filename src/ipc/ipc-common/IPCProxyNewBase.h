@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -47,10 +47,7 @@ public:
 
     virtual void refreshProvider() = 0;
 
-    const QString &objectPath() const
-    {
-        return m_ipc.objectPath();
-    }
+    const QString &objectPath() const;
 
     IPCProxyBinderBase *ipc()
     {

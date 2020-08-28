@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "FaceliftProperty.h"
+#include "ModelProperty.h"
 
 class QMLAdapterBase :
     public QObject

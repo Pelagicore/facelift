@@ -43,19 +43,6 @@ namespace facelift {
 
 class NewIPCServiceAdapterBase;
 
-class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public QObject
-{
-    Q_OBJECT
-
-public:
-    IPCAttachedPropertyFactory(QObject *parent);
-
-    static InterfaceBase *getProvider(QObject *object);
-
-    static NewIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
-
-};
-
 class FaceliftIPCCommonLib_EXPORT IPCAdapterFactoryManager
 {
 public:
@@ -87,9 +74,7 @@ private:
     QMap<QString, IPCAdapterFactory> m_factories;
 };
 
-
-
 }
 
-QML_DECLARE_TYPEINFO(facelift::IPCAttachedPropertyFactory, QML_HAS_ATTACHED_PROPERTIES)
+
 

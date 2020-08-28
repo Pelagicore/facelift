@@ -38,7 +38,7 @@
 {{classExportDefines}}
 
 #include "{{interfaceName}}.h"
-#include "FaceliftProperty.h"
+#include "ModelProperty.h"
 
 {{module.namespaceCppOpen}}
 

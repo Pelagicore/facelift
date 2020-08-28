@@ -210,5 +210,6 @@ void DBusIPCProxyBinder::bindToIPC()
 
 }
 
+
 } // end namespace dbus
 } // end namespace facelift

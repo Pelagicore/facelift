@@ -39,7 +39,7 @@
 
 {{classExportDefines}}
 
-#include "StructureBase.h"
+#include "Structure.h"
 #include "FaceliftQMLUtils.h"
 
 // Dependencies

@@ -2,24 +2,32 @@
 facelift_add_library(FaceliftIPCCommonLib
     SOURCES
         ipc-common.cpp
-        IPCProxyBase.cpp
+        IPCProxyBaseBase.cpp
         ModuleIPCBase.cpp
         ipc-serialization.cpp
         IPCServiceAdapterBase.cpp
-        NotAvailableImpl.cpp
+        NotAvailableImplBase.cpp
         IPCAdapterFactoryManager.cpp
+        IPCAttachedPropertyFactory.cpp
         IPCProxyBinderBase.cpp
         InterfaceManager.cpp
         IPCProxyNewBase.cpp
         NewIPCServiceAdapterBase.cpp
+        OutputPayLoad.cpp
+        InputPayLoad.cpp
+        LocalProviderBinderBase.cpp
     HEADERS
         ipc-common.h
         NotAvailableImpl.h
+        NotAvailableImplBase.h
         IPCProxyNewBase.h
         LocalProviderBinder.h
+        LocalProviderBinderBase.h
         StaticArrayReference.h
+        IPCProxyBaseBase.h
         IPCProxyBase.h
         IPCProxy.h
+        IPCTypeHandler.h
         InterfaceManager.h
         IPCProxyModelProperty.h
         IPCProxyBinderBase.h
@@ -29,8 +37,15 @@ facelift_add_library(FaceliftIPCCommonLib
         ModuleIPCBase.h
         ipc-serialization.h
         IPCAdapterFactoryManager.h
+        IPCAttachedPropertyFactory.h
         IPCServiceAdapter.h
         Registry.h
+        InputPayLoad.h
+        OutputPayLoad.h
+        DBusSignatureHelper.h
+        IPCTypeRegisterHandler.h
+        AppendDBUSSignatureFunction.h
+        SerializeParameterFunction.h
     LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )
