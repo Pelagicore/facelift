@@ -31,8 +31,9 @@
 
 #include <QObject>
 #include "LocalProviderBinderBase.h"
-#include "InterfaceManager.h"
 #include "IPCProxyNewBase.h"
+#include "InterfaceManagerInterface.h"
+#include "NewIPCServiceAdapterBase.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -47,7 +48,8 @@ class LocalProviderBinder : public LocalProviderBinderBase
 {
 
 public:
-    LocalProviderBinder(IPCProxyNewBase &proxy) : LocalProviderBinderBase(proxy)
+    LocalProviderBinder(InterfaceManagerInterface& interfaceManager, IPCProxyNewBase &proxy) :
+        LocalProviderBinderBase(interfaceManager, proxy)
     {
     }
 
@@ -56,7 +58,7 @@ public:
         auto adapter = m_interfaceManager.getAdapter(m_proxy.objectPath());
 
         if (adapter) {
-            auto* service = m_interfaceManager.serviceMatches(m_proxy.objectPath(), adapter);
+            auto* service = (m_proxy.objectPath() == adapter->objectPath() ? adapter->service() : nullptr);
             if (service) {
                 auto provider = qobject_cast<InterfaceType *>(service);
                 if (provider != m_provider) {

@@ -30,7 +30,7 @@
 #pragma once
 
 #include <QObject>
-#include "InterfaceManager.h"
+#include "InterfaceManagerInterface.h"
 #include "IPCProxyNewBase.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
@@ -45,7 +45,7 @@ class LocalProviderBinderBase : public QObject {
 
 public:
 
-    LocalProviderBinderBase(IPCProxyNewBase &proxy);
+    LocalProviderBinderBase(InterfaceManagerInterface& interfaceManager, IPCProxyNewBase &proxy);
 
     virtual void checkLocalAdapterAvailability() = 0;
 
@@ -53,7 +53,7 @@ public:
 
 protected:
     IPCProxyNewBase &m_proxy;
-    InterfaceManager &m_interfaceManager = InterfaceManager::instance();
+    InterfaceManagerInterface &m_interfaceManager;
 };
 
 }

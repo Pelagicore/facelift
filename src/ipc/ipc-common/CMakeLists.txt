@@ -29,6 +29,7 @@ facelift_add_library(FaceliftIPCCommonLib
         IPCProxy.h
         IPCTypeHandler.h
         InterfaceManager.h
+        InterfaceManagerInterface.h
         IPCProxyModelProperty.h
         IPCProxyBinderBase.h
         IPCAdapterModelPropertyHandler.h

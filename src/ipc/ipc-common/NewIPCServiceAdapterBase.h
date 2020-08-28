@@ -34,6 +34,7 @@
 #include "QMLAdapter.h"
 #include "StringConversionHandler.h"
 #include "span.h"
+#include "InterfaceManagerInterface.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -53,7 +54,7 @@ public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
 
-    NewIPCServiceAdapterBase(QObject *parent);
+    NewIPCServiceAdapterBase(InterfaceManagerInterface& interfaceManager, QObject *parent);
 
     ~NewIPCServiceAdapterBase();
 
@@ -137,6 +138,7 @@ private:
     bool m_enabled = true;
     bool m_providerReady = false;
     bool m_registered = false;
+    InterfaceManagerInterface& m_interfaceManager;
 };
 
 }
