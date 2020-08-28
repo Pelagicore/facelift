@@ -60,9 +60,16 @@ void LocalIPCProxyBinder::checkServiceAvailability()
                 }
                 if (!isServiceAvailable()) {
                     m_serviceAdapter = adapter;
-                    m_signalConnection = QObject::connect(adapter, &LocalIPCServiceAdapterBase::messageSent, this, [this] (LocalIPCMessage &message) {
-                                this->onSignalTriggered(message);
-                            });
+                    m_signalConnection = QObject::connect(adapter, &LocalIPCServiceAdapterBase::messageSent, this, [this](LocalIPCMessage &msg){
+                        if ((msg.interface() == FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME) &&
+                                msg.member() == FaceliftIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME) {
+                            onPropertiesChanged(msg);
+                        }
+                        else if (!msg.member().isEmpty()) {
+                            m_serviceObject->handleSignals(msg);
+                        }
+                    });
+
                     requestPropertyValues();
                 }
             }
@@ -110,7 +117,7 @@ void LocalIPCProxyBinder::setInterfaceName(const QString &name)
     checkInit();
 }
 
-void LocalIPCProxyBinder::onServerNotAvailableError(const char *methodName) const
+void LocalIPCProxyBinder::onServerNotAvailableError(const QString& methodName) const
 {
     qCCritical(LogIpc,
             "Error message received when calling method '%s' on service at path '%s'. "
@@ -120,13 +127,7 @@ void LocalIPCProxyBinder::onServerNotAvailableError(const char *methodName) cons
 
 void LocalIPCProxyBinder::onPropertiesChanged(LocalIPCMessage &msg)
 {
-    m_serviceObject->deserializePropertyValues(msg, false);
-}
-
-void LocalIPCProxyBinder::onSignalTriggered(LocalIPCMessage &msg)
-{
-    m_serviceObject->deserializePropertyValues(msg, false);
-    m_serviceObject->deserializeSignal(msg);
+    m_serviceObject->unmarshalPropertiesChanged(msg);
 }
 
 LocalIPCMessage LocalIPCProxyBinder::call(LocalIPCMessage &message) const
@@ -150,11 +151,12 @@ void LocalIPCProxyBinder::asyncCall(LocalIPCMessage &requestMessage, QObject *co
 
 void LocalIPCProxyBinder::requestPropertyValues()
 {
-    LocalIPCMessage msg(FaceliftIPCCommon::GET_PROPERTIES_MESSAGE_NAME);
+    LocalIPCMessage msg(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::GET_ALL_PROPERTIES);
+    msg << interfaceName();
 
     auto replyHandler = [this](LocalIPCMessage &replyMessage) {
                 if (replyMessage.isReplyMessage()) {
-                    m_serviceObject->deserializePropertyValues(replyMessage, true);
+                    m_serviceObject->unmarshalPropertyValues(replyMessage);
                     m_serviceObject->setServiceRegistered(true);
                     emit serviceAvailableChanged();
                 } else {

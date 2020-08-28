@@ -31,7 +31,6 @@
 #pragma once
 
 #include "ipc-common.h"
-#include "IPCProxyBaseBase.h"
 #include "IPCProxyBinderBase.h"
 
 
@@ -44,7 +43,7 @@
 namespace facelift {
 
 template<typename AdapterType>
-class IPCProxyBase : public AdapterType, protected IPCProxyBaseBase
+class IPCProxyBase : public AdapterType
 {
 
 public:

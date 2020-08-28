@@ -81,6 +81,7 @@ facelift_add_library(FaceliftModelLib
     LINK_LIBRARIES
         Qt5::Qml
         Qt5::Quick
+        Qt5::DBus
         FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )

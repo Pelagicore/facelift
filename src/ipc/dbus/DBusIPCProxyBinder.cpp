@@ -60,25 +60,18 @@ void DBusIPCProxyBinder::setInterfaceName(const QString &name)
     checkInit();
 }
 
-void DBusIPCProxyBinder::onServerNotAvailableError(const char *methodName) const
+void DBusIPCProxyBinder::onServerNotAvailableError(const QString &propertyName) const
 {
     qCCritical(LogIpc,
         "Error message received when calling method '%s' on service at path '%s'. "
         "This likely indicates that the server you are trying to access is not available yet",
-        qPrintable(methodName), qPrintable(objectPath()));
+        qPrintable(propertyName), qPrintable(objectPath()));
 }
 
 void DBusIPCProxyBinder::onPropertiesChanged(const QDBusMessage &dbusMessage)
 {
     DBusIPCMessage msg(dbusMessage);
-    m_serviceObject->deserializePropertyValues(msg, false);
-}
-
-void DBusIPCProxyBinder::onSignalTriggered(const QDBusMessage &dbusMessage)
-{
-    DBusIPCMessage msg(dbusMessage);
-    m_serviceObject->deserializePropertyValues(msg, false);
-    m_serviceObject->deserializeSignal(msg);
+    m_serviceObject->unmarshalPropertiesChanged(msg);
 }
 
 void DBusIPCProxyBinder::setHandler(DBusRequestHandler *handler)
@@ -90,11 +83,11 @@ void DBusIPCProxyBinder::setHandler(DBusRequestHandler *handler)
 
 void DBusIPCProxyBinder::requestPropertyValues()
 {
-    DBusIPCMessage msg(serviceName(), objectPath(), interfaceName(), DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME);
-
+    DBusIPCMessage msg(serviceName(), objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::GET_ALL_PROPERTIES);
+    msg << QVariant::fromValue(interfaceName());
     auto replyHandler = [this](DBusIPCMessage &replyMessage) {
         if (replyMessage.isReplyMessage()) {
-            m_serviceObject->deserializePropertyValues(replyMessage, true);
+            m_serviceObject->unmarshalPropertyValues(replyMessage);
             m_serviceObject->setServiceRegistered(true);
         } else {
             qCDebug(LogIpc) << "Service not yet available : " << objectPath();
@@ -115,16 +108,16 @@ void DBusIPCProxyBinder::onServiceNameKnown()
     auto& connection = m_dbusManager.connection();
 
     auto successPropertyChangeSignal = connection.connect(m_serviceName,
-                    objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
+                    objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
     Q_UNUSED(successPropertyChangeSignal); // TODO: check
 
-    auto successSignalTriggeredSignal = connection.connect(m_serviceName,
-                    objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
-                    SLOT(onSignalTriggered(const QDBusMessage&)));
-
-    Q_UNUSED(successSignalTriggeredSignal); // TODO: check
+    for (const QString& signalEntry: m_serviceObject->getSignals()) {
+        auto signalConnected = connection.connect(m_serviceName,
+                                                  objectPath(), m_interfaceName, signalEntry, this, SLOT(handleGenericSignals(const QDBusMessage&)));
+        Q_UNUSED(successPropertyChangeSignal); // TODO: check
+    }
 
     m_busWatcher.addWatchedService(m_serviceName);
     m_busWatcher.setConnection(connection);
@@ -155,17 +148,24 @@ void DBusIPCProxyBinder::checkRegistry()
             auto& connection = m_dbusManager.connection();
 
             connection.disconnect(m_serviceName,
-                    objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
+                    objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
-            connection.disconnect(m_serviceName,
-                    objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
-                    SLOT(onSignalTriggered(const QDBusMessage&)));
+            for (const QString& signalEntry: m_serviceObject->getSignals()) {
+                connection.disconnect(m_serviceName,
+                                      objectPath(), interfaceName(), signalEntry, this, SLOT(handleGenericSignals(const QDBusMessage&)));
+            }
 
             setServiceAvailable(false);
             m_serviceName.clear();
         }
     }
+}
+
+void DBusIPCProxyBinder::handleGenericSignals(const QDBusMessage& msg)
+{
+    DBusIPCMessage dbusMsg(msg);
+    m_serviceObject->handleSignals(dbusMsg);
 }
 
 void DBusIPCProxyBinder::asyncCall(DBusIPCMessage &message, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)

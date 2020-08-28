@@ -39,6 +39,8 @@
 
 {{classExportDefines}}
 
+#include <QDBusArgument>
+#include <QtDBus>
 #include "Structure.h"
 #include "FaceliftQMLUtils.h"
 
@@ -84,6 +86,27 @@ public:
 
     {{struct.name}}& operator=(const {{struct.name}} &right);
 
+    friend QDBusArgument &operator<<(QDBusArgument &argument, const {{struct.name}} &{{struct.name|lower}});
+    friend const QDBusArgument &operator>>(const QDBusArgument &argument, {{struct.name}} &{{struct.name|lower}});
+
+    static void registerDBusTypes()
+    {
+        {% for field in struct.fields %}
+        {% if field.type.is_struct %}
+        {{field.type.cppType}}::registerDBusTypes();
+        {% endif %}
+        {% if (not field.type.is_primitive and not field.type.is_model and not field.type.is_interface and not field.type.is_list and not field.type.is_map) %}
+        qDBusRegisterMetaType<{{field.cppType}}>();
+        {% endif %}
+        {% if (field.type.is_list or field.type.is_map) %}
+        {% if (not field.type.nested.is_primitive) %}
+        qDBusRegisterMetaType<{{field.cppType}}>();
+        qDBusRegisterMetaType<{{field.type.nested.cppType}}>();
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+    }
+
     Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const;
 
     {% if struct.isSerializable %}
@@ -126,6 +149,26 @@ private:
 {% endfor -%}
 };
 
+inline QDBusArgument &operator<<(QDBusArgument &argument, const {{struct.name}} &{{struct.name|lower}})
+{
+    argument.beginStructure();
+    {% for field in struct.fields %}
+    argument << {{struct.name|lower}}.m_{{field}};
+    {% endfor -%}
+    argument.endStructure();
+    return argument;
+}
+
+inline const QDBusArgument &operator>>(const QDBusArgument &argument, {{struct.name}} &{{struct.name|lower}})
+{
+    argument.beginStructure();
+    {% for field in struct.fields %}
+    argument >> {{struct.name|lower}}.m_{{field}};
+    {% endfor -%}
+    argument.endStructure();
+
+    return argument;
+}
 
 {{module.namespaceCppClose}}
 
@@ -144,8 +187,10 @@ inline QDebug operator<< (QDebug d, const {{struct.fullyQualifiedCppType}} &f)
     return d;
 }
 
+typedef QMap<QString,{{struct.fullyQualifiedCppType}}> QMapOf{{struct.fullyQualifiedCppType|replace("::","")}};
+
 Q_DECLARE_METATYPE(QList<{{struct.fullyQualifiedCppType}}>)   // Needed for list properties
-//Q_DECLARE_METATYPE(QMap<QString, {{struct.fullyQualifiedCppType}}>)   // TODO: Needed for map properties?
+Q_DECLARE_METATYPE(QMapOf{{struct.fullyQualifiedCppType|replace("::","")}})
 Q_DECLARE_METATYPE({{struct.fullyQualifiedCppType}})
 
 

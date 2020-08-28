@@ -67,6 +67,24 @@ DBusIPCMessage::DBusIPCMessage(const QString &path, const QString &interface, co
     m_message = QDBusMessage::createSignal(path, interface, signal);
 }
 
+QList<QVariant> DBusIPCMessage::arguments() const
+{
+    return m_message.arguments();
+}
+
+DBusIPCMessage &DBusIPCMessage::operator<<(const QVariant &arg)
+{
+    static int qListStringTypeId = qMetaTypeId<QList<QString>>();
+    if (arg.userType() != qListStringTypeId) { // workaround to use QList<QString> since its signature matches the QStringList
+        m_message << arg;
+    }
+    else {
+        QStringList stringList(arg.value<QList<QString>>());
+        m_message << stringList;
+    }
+    return *this;
+}
+
 QString DBusIPCMessage::member() const
 {
     return m_message.member();
@@ -119,28 +137,7 @@ bool DBusIPCMessage::isErrorMessage() const
     return (m_message.type() == QDBusMessage::ErrorMessage);
 }
 
-OutputPayLoad &DBusIPCMessage::outputPayLoad()
-{
-    if (m_outputPayload == nullptr) {
-        m_outputPayload = std::make_unique<OutputPayLoad>(m_payload);
-    }
-    return *m_outputPayload;
-}
-
-InputPayLoad &DBusIPCMessage::inputPayLoad()
-{
-    if (m_inputPayload == nullptr) {
-        m_payload = m_message.arguments()[0].value<QByteArray>();
-        m_inputPayload = std::make_unique<InputPayLoad>(m_payload);
-    }
-    return *m_inputPayload;
-}
-
 QDBusMessage& DBusIPCMessage::outputMessage() {
-    if (m_outputPayload) {
-        m_message << m_outputPayload->getContent();
-        m_outputPayload.reset();
-    }
     return m_message;
 }
 

@@ -36,56 +36,22 @@
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
 #endif
 
+#include <QtDBus>
 #include "LocalIPCMessage.h"
-#include "ipc-serialization.h"
 #include "LocalIPCProxy.h"
 #include "LocalIPCServiceAdapter.h"
+#include "FaceliftIPCCommon.h"
 
 namespace facelift {
 
 namespace local {
-
-
-template<typename Type>
-inline void LocalIPCServiceAdapterBase::serializeValue(LocalIPCMessage &msg, const Type &v)
-{
-    typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-    IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-}
-
-template<typename Type>
-inline void LocalIPCServiceAdapterBase::deserializeValue(LocalIPCMessage &msg, Type &v)
-{
-    typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-    SerializedType serializedValue;
-    IPCTypeHandler<Type>::read(msg.inputPayLoad(), serializedValue);
-    IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-}
-
-
-template<typename Type>
-inline void LocalIPCProxyBinder::serializeValue(LocalIPCMessage &msg, const Type &v)
-{
-    typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-    IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-}
-
-template<typename Type>
-inline void LocalIPCProxyBinder::deserializeValue(LocalIPCMessage &msg, Type &v)
-{
-    typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-    SerializedType serializedValue;
-    IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
-    IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-}
-
 
 template<typename ... Args>
 inline LocalIPCMessage LocalIPCProxyBinder::sendMethodCall(const char *methodName, const Args & ... args) const
 {
     LocalIPCMessage msg(methodName);
     auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, SerializeParameterFunction<LocalIPCProxyBinder>(msg.outputPayLoad(), *this));
+    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
     auto replyMessage = call(msg);
     if (replyMessage.isErrorMessage()) {
         onServerNotAvailableError(methodName);
@@ -98,11 +64,11 @@ inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, fac
 {
     LocalIPCMessage msg(methodName);
     auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, SerializeParameterFunction<LocalIPCProxyBinder>(msg.outputPayLoad(), *this));
+    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
     asyncCall(msg, this, [this, answer](LocalIPCMessage &msg) {
                 ReturnType returnValue;
                 if (msg.isReplyMessage()) {
-                    deserializeValue(msg, returnValue);
+                    returnValue = (!msg.arguments().isEmpty() ? qvariant_cast<ReturnType>(msg.arguments()[0]): ReturnType());
                     answer(returnValue);
                 } else {
                     qCWarning(LogIpc) << "Error received" << msg.toString();
@@ -115,88 +81,51 @@ inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, fac
 {
     LocalIPCMessage msg(methodName);
     auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, SerializeParameterFunction<LocalIPCProxyBinder>(msg.outputPayLoad(), *this));
+    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
     asyncCall(msg, this, [answer](LocalIPCMessage &msg) {
                 Q_UNUSED(msg);
                 answer();
             });
 }
 
-template<typename ReturnType, typename ... Args>
-inline void LocalIPCProxyBinder::sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
-{
-    LocalIPCMessage msg = sendMethodCall(methodName, args ...);
-    if (msg.isReplyMessage()) {
-        const_cast<LocalIPCProxyBinder *>(this)->deserializeValue(msg, returnValue);
-    } else {
-        assignDefaultValue(returnValue);
-    }
-}
-
-
 template<typename PropertyType>
-inline void LocalIPCProxyBinder::sendSetterCall(const char *methodName, const PropertyType &value)
+inline void LocalIPCProxyBinder::sendSetterCall(const QString& property, const PropertyType &value)
 {
-    LocalIPCMessage msg(methodName);
-    serializeValue(msg, value);
+    LocalIPCMessage msg(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::SET_PROPERTY);
+    msg << QVariant::fromValue(m_interfaceName);
+    msg << QVariant::fromValue(property);
+    msg << QVariant::fromValue(QDBusVariant(QVariant::fromValue(value)));
     if (isSynchronous()) {
         auto replyMessage = call(msg);
         if (replyMessage.isErrorMessage()) {
-            onServerNotAvailableError(methodName);
+            onServerNotAvailableError(property);
         }
     } else {
-        asyncCall(msg, this, [this, methodName](const LocalIPCMessage &replyMessage) {
+        asyncCall(msg, this, [this, property](const LocalIPCMessage &replyMessage) {
                     if (replyMessage.isErrorMessage()) {
-                        onServerNotAvailableError(methodName);
+                        onServerNotAvailableError(property);
                     }
                 });
     }
 }
 
 
-template<typename MemberID, typename ... Args>
-inline void LocalIPCServiceAdapterBase::sendSignal(MemberID signalID, const Args & ... args)
+template<typename ... Args>
+inline void LocalIPCServiceAdapterBase::sendSignal(const QString& signalName, const Args & ... args)
 {
-    if (m_pendingOutgoingMessage == nullptr) {
-        initOutgoingSignalMessage();
-        auto argTuple = std::make_tuple(signalID, args ...);
-        for_each_in_tuple(argTuple, SerializeParameterFunction<LocalIPCServiceAdapterBase>(m_pendingOutgoingMessage->outputPayLoad(), *this));
-        flush();
-    }
+    LocalIPCMessage signal(signalName);
+    auto argTuple = std::make_tuple(args ...);
+    for_each_in_tuple(argTuple, [this, &signal](const auto &v){signal << QVariant::fromValue(v);});
+    this->send(signal);
 }
 
 template<typename ReturnType>
 inline void LocalIPCServiceAdapterBase::sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue)
 {
-    serializeValue(replyMessage, returnValue);
+    replyMessage << QVariant::fromValue(returnValue);
     sendReply(replyMessage);
 }
 
-template<typename Type>
-inline void LocalIPCServiceAdapterBase::serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue,
-        bool isCompleteSnapshot)
-{
-    if (isCompleteSnapshot) {
-        serializeValue(msg, currentValue);
-    } else {
-        if (previousValue == currentValue) {
-            msg.outputPayLoad().writeSimple(false);
-        } else {
-            msg.outputPayLoad().writeSimple(true);
-            serializeValue(msg, currentValue);
-            previousValue = currentValue;
-        }
-    }
-}
-
-template<typename Type>
-inline void LocalIPCServiceAdapterBase::serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot)
-{
-    msg.outputPayLoad().writeSimple(isCompleteSnapshot);
-    if (isCompleteSnapshot) {
-        serializeValue(msg, currentValue);
-    }
-}
 }
 
 }

@@ -21,6 +21,7 @@ if(Qt5DBus_FOUND)
             DBusIPCProxyBinder.cpp
             DBusManager.cpp
         HEADERS
+            DBusIPCCommon.h
             DBusManager.h
             DBusManagerInterface.h
             DBusIPCProxy.h

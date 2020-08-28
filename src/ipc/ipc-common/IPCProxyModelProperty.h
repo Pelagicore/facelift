@@ -30,6 +30,9 @@
 #pragma once
 
 #include <QObject>
+#include <QtDBus>
+#include "FaceliftUtils.h"
+#include "ModelProperty.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -50,66 +53,58 @@ public:
     {
     }
 
-    void handleSignal(typename IPCProxyType::InputIPCMessage &msg)
+    void handleSignal(const typename IPCProxyType::InputIPCMessage &msg)
     {
-        ModelUpdateEvent event;
-        m_proxy.deserializeValue(msg, event);
-        switch (event) {
+        QListIterator<QVariant> argumentsIterator(msg.arguments());
+        const QString& modelPropertyName = (argumentsIterator.hasNext() ? qdbus_cast<QString>(argumentsIterator.next()): QString());
 
-        case ModelUpdateEvent::DataChanged:
-        {
-            int first;
-            QList<ModelDataType> list;
-            m_proxy.deserializeValue(msg, first);
-            m_proxy.deserializeValue(msg, list);
-            int last = first + list.size() - 1;
-            for (int i = first; i <= last; ++i) {
-                m_cache.insert(i, list.at(i - first));
+        if (!modelPropertyName.isEmpty()) {
+            const QString& eventName = (argumentsIterator.hasNext() ? qdbus_cast<QString>(argumentsIterator.next()): QString());
+
+            if (eventName == QStringLiteral("ModelUpdateEventDataChanged"))
+            {
+                int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                QList<ModelDataType> list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
+
+                int last = first + list.size() - 1;
+                for (int i = first; i <= last; ++i) {
+                    m_cache.insert(i, list.at(i - first));
+                }
+                emit this->dataChanged(first, last);
             }
-            emit this->dataChanged(first, last);
-        } break;
-
-        case ModelUpdateEvent::Insert:
-        {
-            int first, last;
-            m_proxy.deserializeValue(msg, first);
-            m_proxy.deserializeValue(msg, last);
-            emit this->beginInsertElements(first, last);
-            clear(); // TODO: insert elements in cache without clear()
-            emit this->endInsertElements();
-        } break;
-
-        case ModelUpdateEvent::Remove:
-        {
-            int first, last;
-            m_proxy.deserializeValue(msg, first);
-            m_proxy.deserializeValue(msg, last);
-            emit this->beginRemoveElements(first, last);
-            m_cache.clear(); // TODO: remove elements from cache without clear()
-            emit this->endRemoveElements();
-        } break;
-
-        case ModelUpdateEvent::Move:
-        {
-            int sourceFirstIndex, sourceLastIndex, destinationIndex;
-            m_proxy.deserializeValue(msg, sourceFirstIndex);
-            m_proxy.deserializeValue(msg, sourceLastIndex);
-            m_proxy.deserializeValue(msg, destinationIndex);
-            emit this->beginMoveElements(sourceFirstIndex, sourceLastIndex, destinationIndex);
-            m_cache.clear(); // TODO: move elements in cache without clear()
-            emit this->endMoveElements();
-        } break;
-
-        case ModelUpdateEvent::Reset:
-        {
-            emit this->beginResetModel();
-            int size;
-            m_proxy.deserializeValue(msg, size);
-            this->setSize(size);
-            clear();
-            emit this->endResetModel();
-        } break;
-
+            else if (eventName == QStringLiteral("ModelUpdateEventInsert")) {
+                int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                emit this->beginInsertElements(first, last);
+                clear(); // TODO: insert elements in cache without clear()
+                emit this->endInsertElements();
+            }
+            else if (eventName == QStringLiteral("ModelUpdateEventRemove"))
+            {
+                int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                emit this->beginRemoveElements(first, last);
+                m_cache.clear(); // TODO: remove elements from cache without clear()
+                emit this->endRemoveElements();
+            }
+            else if (eventName == QStringLiteral("ModelUpdateEventMove")) {
+                int sourceFirstIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                int sourceLastIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                int destinationIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                emit this->beginMoveElements(sourceFirstIndex, sourceLastIndex, destinationIndex);
+                m_cache.clear(); // TODO: move elements in cache without clear()
+                emit this->endMoveElements();
+            }
+            else if (eventName == QStringLiteral("ModelUpdateEventReset")) {
+                emit this->beginResetModel();
+                int size = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                this->setSize(size);
+                clear();
+                emit this->endResetModel();
+            }
+            else {
+                qCWarning(LogIpc) << "Unhandled event for model property" << eventName;
+            }
         }
     }
 
@@ -135,11 +130,10 @@ public:
                     --last;
                 }
 
-                std::tuple<int, QList<ModelDataType>> requestResult;
-                m_proxy.ipc()->sendMethodCallWithReturn(requestMemberID, requestResult, first, last);
-
-                first = std::get<0>(requestResult);
-                auto &list = std::get<1>(requestResult);
+                QList<QVariant> args = m_proxy.ipc()->sendMethodCallWithReturn(requestMemberID, first, last);
+                QListIterator<QVariant> argumentsIterator(args);
+                first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                QList<ModelDataType> list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
                 last = first + list.size() - 1;
 
                 for (int i = first; i <= last; ++i) {
@@ -187,10 +181,11 @@ public:
             }
 
             if (first <= last) {
-                m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<std::tuple<int, QList<ModelDataType>>>(&m_proxy, [this](std::tuple<int, QList<ModelDataType>> result) {
+                m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<QVariant>>(&m_proxy, [this](QList<QVariant> arguments) {
                         //                    qCDebug(LogIpc) << "Received model items " << first << "-" << last;
-                        auto & first = std::get<0>(result);
-                        auto & list = std::get<1>(result);
+                        QListIterator<QVariant> argumentsIterator(arguments);
+                        auto first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+                        auto list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
                         auto last = first + list.size() - 1;
                         for (int i = first; i <= last; ++i) {
                             auto &newItem = list[i - first];

@@ -39,9 +39,28 @@
 #include "InterfaceManager.h"
 
 #ifdef DBUS_IPC_ENABLED
+#include <QtDBus>
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
+{% for struct in module.structs %}
+#include "{{struct.fullyQualifiedPath}}.h"
+{% endfor %}
+
+{% for enum in module.enums %}
+#include "{{enum.fullyQualifiedPath}}.h"
+{% endfor %}
+
 {% for property in interface.referencedInterfaceTypes %}
 #include "{{property.fullyQualifiedPath}}{% if generateAsyncProxy %}Async{% endif %}IPCDBusAdapter.h"
+{% endfor %}
+
+{% for type in interface.referencedTypes %}
+{% if (not type.is_primitive) %}
+{% if (not type.is_model) %}
+{% if (not type.is_interface) %}
+{{type.requiredInclude}}
+{% endif %}
+{% endif %}
+{% endif %}
 {% endfor %}
 #endif
 
@@ -80,6 +99,22 @@ struct {{interfaceName}}IPCAdapter::Impl {
 {{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) :
     BaseType(facelift::InterfaceManager::instance(), parent)
 {
+#ifdef DBUS_IPC_ENABLED
+    {% for type in interface.referencedTypes %}
+    {% if (not type.is_primitive) %}
+    {% if (not type.is_model) %}
+    {% if (not type.is_interface) %}
+    qDBusRegisterMetaType<{{type.fullyQualifiedCppType}}>();
+    qDBusRegisterMetaType<QMap<QString,{{type.fullyQualifiedCppType}}>>();
+    qDBusRegisterMetaType<QList<{{type.fullyQualifiedCppType}}>>();
+    {% if type.is_struct %}
+    {{type.fullyQualifiedCppType}}::registerDBusTypes();
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+#endif
 }
 
 {{interfaceName}}IPCAdapter::~{{interfaceName}}IPCAdapter() {

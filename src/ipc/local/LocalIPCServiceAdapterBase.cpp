@@ -40,28 +40,6 @@
 namespace facelift {
 namespace local {
 
-void LocalIPCServiceAdapterBase::initOutgoingSignalMessage()
-{
-    m_pendingOutgoingMessage = std::make_unique<LocalIPCMessage>(FaceliftIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
-
-    // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
-    this->serializePropertyValues(*m_pendingOutgoingMessage, false);
-}
-
-void LocalIPCServiceAdapterBase::serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot)
-{
-    Q_ASSERT(service());
-    serializeOptionalValue(msg, service()->ready(), m_previousReadyState, isCompleteSnapshot);
-}
-
-void LocalIPCServiceAdapterBase::flush()
-{
-    if (m_pendingOutgoingMessage) {
-        this->send(*m_pendingOutgoingMessage);
-        m_pendingOutgoingMessage.reset();
-    }
-}
-
 IPCHandlingResult LocalIPCServiceAdapterBase::handleMessage(LocalIPCMessage &requestMessage)
 {
     LocalIPCMessage replyMessage = requestMessage.createReply();
@@ -71,9 +49,18 @@ IPCHandlingResult LocalIPCServiceAdapterBase::handleMessage(LocalIPCMessage &req
     auto handlingResult = IPCHandlingResult::OK;
 
     bool sendReply = true;
-    if (requestMessage.member() == FaceliftIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
-        serializePropertyValues(replyMessage, true);
-    } else {
+    if (requestMessage.interface() == FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME) {
+        if (requestMessage.member() == FaceliftIPCCommon::GET_ALL_PROPERTIES) {
+            marshalPropertyValues(requestMessage.arguments(), replyMessage);
+        }
+        else if (requestMessage.member() == FaceliftIPCCommon::GET_PROPERTY) {
+            marshalProperty(requestMessage.arguments(), replyMessage);
+        }
+        else if (requestMessage.member() == FaceliftIPCCommon::SET_PROPERTY) {
+            setProperty(requestMessage.arguments());
+        }
+    }
+    else {
         handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
         if (handlingResult == IPCHandlingResult::INVALID) {
             replyMessage = requestMessage.createErrorReply();
@@ -126,9 +113,6 @@ void LocalIPCServiceAdapterBase::registerService()
         m_alreadyInitialized = true;
         qCDebug(LogIpc) << "Registering local IPC object at " << objectPath();
         if (m_alreadyInitialized) {
-            QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
-                        this->sendSignal(CommonSignalID::readyChanged);
-                    });
             connectSignals();
         } else {
             qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));

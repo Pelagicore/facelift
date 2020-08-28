@@ -76,13 +76,6 @@ void Module::registerTypes()
     if (!alreadyRegistered) {
         alreadyRegistered = true;
 
-        {% for enum in module.enums %}
-        facelift::qRegisterMetaType<{{enum.fullyQualifiedCppType}}>();
-        {% endfor %}
-        {% for struct in module.structs %}
-        qRegisterMetaType<{{struct.fullyQualifiedCppType}}>();
-        {% endfor %}
-
     #ifdef ENABLE_DESKTOP_TOOLS
         ModuleMonitor::registerTypes();
     #endif

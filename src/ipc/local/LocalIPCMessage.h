@@ -71,7 +71,9 @@ public:
 
     LocalIPCMessage();
 
-    LocalIPCMessage(const char *methodName);
+    LocalIPCMessage(const QString& methodName);
+
+    LocalIPCMessage(const QString &interface, const char *methodName);
 
     LocalIPCMessage(const LocalIPCMessage &other);
 
@@ -84,6 +86,14 @@ public:
         return m_data.m_member;
     }
 
+    QString interface() const
+    {
+        return m_data.m_interface;
+    }
+
+    QList<QVariant> arguments() const;
+
+    LocalIPCMessage &operator<<(const QVariant &arg);
 
     LocalIPCMessage createReply() const;
 
@@ -101,10 +111,6 @@ public:
         return (m_data.m_messageType == MessageType::Error);
     }
 
-    OutputPayLoad &outputPayLoad();
-
-    InputPayLoad &inputPayLoad();
-
     void addListener(const QObject *context, ReplyFunction function);
 
     void notifyListener();
@@ -112,15 +118,14 @@ public:
 private:
     struct
     {
+        QString m_interface;
         QString m_member;
-        QByteArray m_payload;
         MessageType m_messageType = MessageType::Request;
         ReplyFunction m_listener;
         QPointer<const QObject> m_listenerContext;
+        QList<QVariant> m_arguments;
     } m_data;
 
-    std::unique_ptr<OutputPayLoad> m_outputPayload;
-    std::unique_ptr<InputPayLoad> m_inputPayload;
     std::unique_ptr<LocalIPCMessage> m_requestMessage;
 
 };

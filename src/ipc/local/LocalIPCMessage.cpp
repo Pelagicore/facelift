@@ -45,32 +45,22 @@ QString LocalIPCMessage::toString() const
 
     s << "Local IPC message ";
     s << " member:" << m_data.m_member;
-    s << m_data.m_payload;
+    s << m_data.m_arguments;
     return str;
-}
-
-OutputPayLoad &LocalIPCMessage::outputPayLoad()
-{
-    if (m_outputPayload == nullptr) {
-        m_outputPayload = std::make_unique<OutputPayLoad>(m_data.m_payload);
-    }
-    return *m_outputPayload;
-}
-
-InputPayLoad &LocalIPCMessage::inputPayLoad()
-{
-    if (m_inputPayload == nullptr) {
-        m_inputPayload = std::make_unique<InputPayLoad>(m_data.m_payload);
-    }
-    return *m_inputPayload;
 }
 
 LocalIPCMessage::LocalIPCMessage()
 {
 }
 
-LocalIPCMessage::LocalIPCMessage(const char *methodName)
+LocalIPCMessage::LocalIPCMessage(const QString &methodName)
 {
+    m_data.m_member = methodName;
+}
+
+LocalIPCMessage::LocalIPCMessage(const QString &interface, const char *methodName)
+{
+    m_data.m_interface = interface;
     m_data.m_member = methodName;
 }
 
@@ -94,6 +84,17 @@ void LocalIPCMessage::copyRequestMessage(const LocalIPCMessage &other)
     if (other.m_requestMessage) {
         m_requestMessage = std::make_unique<LocalIPCMessage>(*other.m_requestMessage);
     }
+}
+
+QList<QVariant> LocalIPCMessage::arguments() const
+{
+    return m_data.m_arguments;
+}
+
+LocalIPCMessage &LocalIPCMessage::operator<<(const QVariant &arg)
+{
+    m_data.m_arguments.append(arg);
+    return *this;
 }
 
 LocalIPCMessage LocalIPCMessage::createReply() const

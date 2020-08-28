@@ -67,7 +67,6 @@ public:
     using ServiceType = {{interfaceName}};
     using BaseType = {{baseClass}};
     using ThisType = {{className}};
-    using SignalID = {{interface}}IPCCommon::SignalID;
     using MethodID = {{interface}}IPCCommon::MethodID;
 
     {{className}}(QObject* parent = nullptr) :
@@ -87,7 +86,11 @@ public:
 
     void connectSignals() override;
 
-    void serializePropertyValues(OutputIPCMessage& msg, bool isCompleteSnapshot) override;
+    void marshalPropertyValues(const QList<QVariant>& arguments, OutputIPCMessage& msg) override;
+
+    void marshalProperty(const QList<QVariant>& arguments, OutputIPCMessage& msg) override;
+
+    void setProperty(const QList<QVariant>& arguments) override;
 
     {% for event in interface.signals %}
     void {{event}}(
@@ -96,7 +99,7 @@ public:
         {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
-        sendSignal(SignalID::{{event}}
+        sendSignal("{{event}}"
         {%- for parameter in event.parameters -%}
             , {{parameter.name}}
         {%- endfor -%}  );

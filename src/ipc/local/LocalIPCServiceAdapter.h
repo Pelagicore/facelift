@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include <QtDBus>
 #include "LocalIPCMessage.h"
 #include "IPCServiceAdapterBase.h"
 #include "LocalIPCServiceAdapterBase.h"
@@ -89,6 +90,16 @@ public:
     {
         Q_ASSERT(qobject_cast<ServiceType *>(serverObject) != nullptr);
         registerService(objectPath, static_cast<ServiceType *>(serverObject));  // TODO: get rid of that cast
+    }
+
+    template<typename T>
+    T castArgument(const QVariant& value) {
+        return qvariant_cast<T>(value);
+    }
+
+    template<typename T>
+    T castDBusVariantArgument(const QVariant& value) {
+        return qvariant_cast<T>(qvariant_cast<QDBusVariant>(value).variant());
     }
 
 protected:

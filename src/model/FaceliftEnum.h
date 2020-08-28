@@ -39,6 +39,47 @@
 #include "FaceliftCommon.h"
 #include <QObject>
 #include <QTextStream>
+#include <QDBusArgument>
+
+template<typename T, typename TEnum = void>
+class QDBusEnumMarshal;
+
+template<typename T>
+class QDBusEnumMarshal<T, typename std::enable_if<std::is_enum<T>::value>::type>
+{
+public:
+    static QDBusArgument& marshal(QDBusArgument &argument, const T& source)
+    {
+        argument.beginStructure();
+        argument << static_cast<int>(source);
+        argument.endStructure();
+        return argument;
+    }
+
+    static const QDBusArgument& unmarshal(const QDBusArgument &argument, T &source)
+    {
+        int a;
+        argument.beginStructure();
+        argument >> a;
+        argument.endStructure();
+
+        source = static_cast<T>(a);
+
+        return argument;
+    }
+};
+
+template<typename T>
+QDBusArgument& operator<<(QDBusArgument &argument, const T& source)
+{
+    return QDBusEnumMarshal<T>::marshal(argument, source);
+}
+
+template<typename T>
+const QDBusArgument& operator>>(const QDBusArgument &argument, T &source)
+{
+    return QDBusEnumMarshal<T>::unmarshal(argument, source);
+}
 
 namespace facelift {
 

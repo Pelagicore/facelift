@@ -32,6 +32,7 @@
 
 #include "LocalIPCMessage.h"
 #include "IPCServiceAdapterBase.h"
+#include "FaceliftIPCCommon.h"
 
 #if defined(FaceliftIPCLocalLib_LIBRARY)
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
@@ -61,18 +62,11 @@ public:
 
     IPCHandlingResult handleMessage(LocalIPCMessage &message);
 
-    void flush();
+    template<typename Value>
+    inline void sendPropertiesChanged(const QString& property , const Value & value);
 
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v);
-
-    void initOutgoingSignalMessage();
-
-    template<typename MemberID, typename ... Args>
-    void sendSignal(MemberID signalID, const Args & ... args);
+    template<typename ... Args>
+    void sendSignal(const QString& signalName, const Args & ... args);
 
     template<typename ReturnType>
     void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue);
@@ -81,7 +75,11 @@ public:
 
     virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
 
-    virtual void serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot);
+    virtual void marshalPropertyValues(const QList<QVariant>& arguments, LocalIPCMessage &msg) = 0;
+
+    virtual void marshalProperty(const QList<QVariant>& arguments, LocalIPCMessage &msg) = 0;
+
+    virtual void setProperty(const QList<QVariant>& arguments) = 0;
 
     void registerService() override;
 
@@ -92,12 +90,6 @@ public:
     void send(LocalIPCMessage &message);
 
     void sendReply(LocalIPCMessage &message);
-
-    template<typename Type>
-    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
-
-    template<typename Type>
-    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
 
     virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
 
@@ -122,6 +114,14 @@ protected:
     bool m_alreadyInitialized = false;
 };
 
+template<typename Value>
+inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QString& property , const Value & value)
+{
+    LocalIPCMessage reply(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
+    reply << interfaceName();
+    reply << QVariantMap{{property, QVariant::fromValue(value)}};
+    this->send(reply);
+}
 
 }
 

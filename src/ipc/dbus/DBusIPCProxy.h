@@ -56,6 +56,8 @@ public:
     using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
     using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
 
+    template<typename T> struct type { };
+
     template<typename Type>
     using IPCProxyType = typename Type::IPCDBusProxyType;
 
@@ -76,42 +78,6 @@ public:
         // DBus member IDs are strings
         Q_UNUSED(member);
         return memberName;
-    }
-
-    template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-    }
-
-    template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        SerializedType serializedValue;
-        IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
-        IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-    }
-
-    template<typename Type>
-    bool deserializeOptionalValue(DBusIPCMessage &msg, Type &value, bool isCompleteSnapshot)
-    {
-        bool b = true;
-        if (!isCompleteSnapshot) {
-            msg.inputPayLoad().readNextParameter(b);
-        }
-        if (b) {
-            this->deserializeValue(msg, value);
-        }
-        return b;
-    }
-
-    bool deserializeReadyValue(DBusIPCMessage &msg, bool isCompleteSnapshot)
-    {
-        bool previousIsReady = this->ready();
-        deserializeOptionalValue(msg, this->m_serviceReady, isCompleteSnapshot);
-        return (this->ready() != previousIsReady);
     }
 
     void setServiceRegistered(bool isRegistered) override
@@ -141,10 +107,29 @@ public:
         m_ipcBinder.connectToServer();
     }
 
+    template<typename T>
+    T castArgument(const QVariant& value) {
+        return castArgumentPrivate(type<T>(), value);
+    }
+
+    template<typename T>
+    T castDBusVariantArgument(const QVariant& value) {
+        return qdbus_cast<T>(value);
+    }
+
 protected:
     bool m_serviceRegistered = false;
 private:
     DBusIPCProxyBinder m_ipcBinder;
+
+    template<typename T>
+    T castArgumentPrivate(type<T>, const QVariant& value) {
+        return qdbus_cast<T>(value);
+    }
+
+    QList<QString> castArgumentPrivate(type<QList<QString>>, const QVariant& value) {
+        return qdbus_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
+    }
 
 };
 

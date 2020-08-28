@@ -67,8 +67,6 @@ public:
 
     void onPropertiesChanged(LocalIPCMessage &message);
 
-    void onSignalTriggered(LocalIPCMessage &message);
-
     void bindToIPC() override;
 
     void setServiceAvailable(bool isRegistered);
@@ -81,16 +79,10 @@ public:
 
     void requestPropertyValues();
 
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v);
-
-    void onServerNotAvailableError(const char *methodName) const;
+    void onServerNotAvailableError(const QString &methodName) const;
 
     template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value);
+    void sendSetterCall(const QString &property, const PropertyType &value);
 
     template<typename ... Args>
     LocalIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;

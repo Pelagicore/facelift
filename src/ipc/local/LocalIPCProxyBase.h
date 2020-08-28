@@ -34,6 +34,7 @@
 #include "IPCProxyBase.h"
 #include "LocalIPCRequestHandler.h"
 #include "LocalIPCProxyBinder.h"
+#include <QtDBus>
 
 #if defined(FaceliftIPCLocalLib_LIBRARY)
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
@@ -49,6 +50,16 @@ class FaceliftIPCLocalLib_EXPORT LocalIPCProxyBase : protected LocalIPCRequestHa
 {
 public:
     LocalIPCProxyBase(LocalIPCProxyBinder &ipcBinder);
+
+    template<typename T>
+    T castArgument(const QVariant& value) {
+        return qvariant_cast<T>(value);
+    }
+
+    template<typename T>
+    T castDBusVariantArgument(const QVariant& value) {
+        return qvariant_cast<T>(qvariant_cast<QDBusVariant>(value).variant());
+    }
 
 protected:
     LocalIPCProxyBinder &m_ipcBinder;

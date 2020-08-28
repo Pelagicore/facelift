@@ -47,22 +47,9 @@ public:
         {{operation.name}},
         {% endfor %}
         {% for property in interface.properties %}
-        {% if (not property.readonly) %}
-        set{{property.name}},
-        {% endif %}
         {% if (property.type.is_model) %}
         {{property.name}},  // model
         {% endif %}
-        {% endfor %}
-    };
-
-    enum class SignalID {
-        invalid = static_cast<int>(facelift::CommonSignalID::firstSpecific),
-        {% for signal in interface.signals %}
-        {{signal.name}},
-        {% endfor %}
-        {% for property in interface.properties %}
-        {{property.name}},
         {% endfor %}
     };
 

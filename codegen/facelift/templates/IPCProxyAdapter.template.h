@@ -60,7 +60,6 @@ public:
 
     using ThisType = {{className}};
     using BaseType = {{baseClass}};
-    using SignalID = {{interface}}IPCCommon::SignalID;
     using MethodID = {{interface}}IPCCommon::MethodID;
 
     // override the default QMLAdapter type to add the IPC related properties
@@ -68,7 +67,7 @@ public:
 
     {{className}}(QObject *parent = nullptr);
 
-    void deserializePropertyValues(InputIPCMessage &msg, bool isCompleteSnapshot) override;
+    void unmarshalPropertyValues(InputIPCMessage &msg) override;
 
     {% if interface.hasModelProperty %}
     void setServiceRegistered(bool isRegistered) override
@@ -85,7 +84,10 @@ public:
 
     {% endif %}
 
-    void deserializeSignal(InputIPCMessage &msg) override;
+    void handleSignals(InputIPCMessage& msg) override;
+    const QList<QString>& getSignals() const override;
+
+    void unmarshalPropertiesChanged(InputIPCMessage &msg) override;
 
     {% for operation in interface.operations %}
 
@@ -122,7 +124,6 @@ public:
     }
 
     {% elif property.type.is_list %}
-
     const {{property.interfaceCppType}}& {{property}}() const override
     {
         return m_{{property.name}};
@@ -150,6 +151,15 @@ public:
     {% endif %}
     {% endfor %}
 
+    {% if interface.hasModelProperty %}
+    void onModelUpdateEvent(const InputIPCMessage& msg);
+
+    Q_SIGNAL void ModelUpdateEventDataChanged(const InputIPCMessage& msg);
+    Q_SIGNAL void ModelUpdateEventInsert(const InputIPCMessage& msg);
+    Q_SIGNAL void ModelUpdateEventRemove(const InputIPCMessage& msg);
+    Q_SIGNAL void ModelUpdateEventMove(const InputIPCMessage& msg);
+    Q_SIGNAL void ModelUpdateEventReset(const InputIPCMessage& msg);
+    {% endif %}
 private:
     {% for property in interface.properties %}
     {% if property.type.is_interface %}
@@ -159,6 +169,7 @@ private:
     facelift::IPCProxyModelProperty<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}};
     {% endif %}
     {% endfor %}
+
 };
 
 

@@ -43,7 +43,6 @@
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
 #include "ModelProperty.h"
-
 #include "ipc-common.h"
 
 namespace facelift {
@@ -61,8 +60,10 @@ class FaceliftIPCLocalLib_EXPORT LocalIPCRequestHandler
 {
 
 public:
-    virtual void deserializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot) = 0;
-    virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
+    virtual void unmarshalPropertyValues(LocalIPCMessage &msg) = 0;
+    virtual void unmarshalPropertiesChanged(LocalIPCMessage &msg) = 0;
+    virtual void handleSignals(LocalIPCMessage& msg) = 0;
+    virtual const QList<QString>& getSignals() const = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
 
 };

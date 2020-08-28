@@ -57,29 +57,6 @@
 namespace facelift {
 namespace dbus {
 
-constexpr const char *DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME;
-
-void IPCDBusServiceAdapterBase::initOutgoingSignalMessage() {
-    m_pendingOutgoingMessage = std::make_unique<DBusIPCMessage>(objectPath(), interfaceName(), DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
-
-    // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
-    this->serializePropertyValues(*m_pendingOutgoingMessage, false);
-}
-
-void IPCDBusServiceAdapterBase::serializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot)
-{
-    Q_ASSERT(service());
-    serializeOptionalValue(msg, service()->ready(), m_previousReadyState, isCompleteSnapshot);
-}
-
-void IPCDBusServiceAdapterBase::flush()
-{
-    if (m_pendingOutgoingMessage) {
-        this->send(*m_pendingOutgoingMessage);
-        m_pendingOutgoingMessage.reset();
-    }
-}
-
 bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
 {
     DBusIPCMessage requestMessage(dbusMsg);
@@ -89,29 +66,33 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
     qCDebug(LogIpc) << "Handling incoming message: " << requestMessage.toString();
 
     if (dbusMsg.interface() == DBusIPCCommon::INTROSPECTABLE_INTERFACE_NAME) {
-        // TODO
+        // is handled via the QDBusVirtualObject
     } else if (dbusMsg.interface() == DBusIPCCommon::PROPERTIES_INTERFACE_NAME) {
-        // TODO
-    } else {
+        if (!m_signalsConnected) {
+            m_signalsConnected = true;
+            qCDebug(LogIpc) << "Enabling IPCDBusServiceAdapter for" << this->service();
+            connectSignals();
+        }
+        if (dbusMsg.member() == DBusIPCCommon::GET_ALL_PROPERTIES) {
+            marshalPropertyValues(dbusMsg.arguments(), replyMessage);
+            send(replyMessage);
+        }
+        else if (dbusMsg.member() == DBusIPCCommon::GET_PROPERTY) {
+            marshalProperty(dbusMsg.arguments(), replyMessage);
+            send(replyMessage);
+        }
+        else if (dbusMsg.member() == DBusIPCCommon::SET_PROPERTY) {
+            setProperty(dbusMsg.arguments());
+            send(replyMessage);
+        }
+    } else if (dbusMsg.interface() == interfaceName()) {
         if (service()) {
             bool sendReply = true;
-            if (requestMessage.member() == DBusIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
-                if (!m_signalsConnected) {
-                    m_signalsConnected = true;
-                    QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
-                        this->sendSignal(CommonSignalID::readyChanged);
-                    });
-                    qCDebug(LogIpc) << "Enabling IPCDBusServiceAdapter for" << this->service();
-                    connectSignals();
-                }
-                serializePropertyValues(replyMessage, true);
-            } else {
-                auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
-                if (handlingResult == IPCHandlingResult::INVALID) {
-                    replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
-                } else if (handlingResult == IPCHandlingResult::OK_ASYNC) {
-                    sendReply = false;
-                }
+            auto handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
+            if (handlingResult == IPCHandlingResult::INVALID) {
+                replyMessage = requestMessage.createErrorReply("Invalid arguments", "TODO");
+            } else if (handlingResult == IPCHandlingResult::OK_ASYNC) {
+                sendReply = false;
             }
             if (sendReply) {
                 send(replyMessage);

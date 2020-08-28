@@ -75,35 +75,6 @@ public:
         return memberName;
     }
 
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-    }
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        SerializedType serializedValue;
-        IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
-        IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-    }
-
-    template<typename Type>
-    bool deserializeOptionalValue(LocalIPCMessage &msg, Type &value, bool isCompleteSnapshot)
-    {
-        bool b = true;
-        if (!isCompleteSnapshot) {
-            msg.inputPayLoad().readNextParameter(b);
-        }
-        if (b) {
-            this->deserializeValue(msg, value);
-        }
-        return b;
-    }
-
     void setServiceRegistered(bool isRegistered) override
     {
         bool oldReady = this->ready();
@@ -113,13 +84,6 @@ public:
         }
 
         m_ipcBinder.setServiceAvailable(isRegistered);
-    }
-
-    bool deserializeReadyValue(LocalIPCMessage &msg, bool isCompleteSnapshot)
-    {
-        bool previousIsReady = this->ready();
-        deserializeOptionalValue(msg, this->m_serviceReady, isCompleteSnapshot);
-        return (this->ready() != previousIsReady);
     }
 
     LocalIPCProxyBinder *ipc()

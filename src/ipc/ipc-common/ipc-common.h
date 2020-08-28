@@ -39,19 +39,10 @@
 #include <QDataStream>
 
 #include "FaceliftModel.h"
-#include "InputPayLoad.h"
-#include "OutputPayLoad.h"
-#include "DBusSignatureHelper.h"
-#include "IPCTypeRegisterHandler.h"
 
 namespace facelift {
 
 FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
-
-enum class CommonSignalID {
-    readyChanged,
-    firstSpecific
-};
 
 typedef int ASyncRequestID;
 
@@ -60,21 +51,6 @@ enum class IPCHandlingResult {
     OK_ASYNC,    // Message is handled but it is an asynchronous request, so no reply should be sent for now
     INVALID,     // Message is invalid and could not be handled
 };
-
-enum class ModelUpdateEvent {
-    DataChanged,
-    Insert,
-    Remove,
-    Move,
-    Reset
-};
-
-template<typename Type>
-inline void assignDefaultValue(Type &v)
-{
-    v = Type {};
-}
-
 
 }
 

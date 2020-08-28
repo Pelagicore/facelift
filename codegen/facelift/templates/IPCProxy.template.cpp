@@ -39,6 +39,15 @@
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
+{% for type in interface.referencedTypes %}
+{% if (not type.is_primitive) %}
+{% if (not type.is_model) %}
+{% if (not type.is_interface) %}
+{{type.requiredInclude}}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
 #endif
 
 {% set className = interfaceName + "IPCProxy" %}
@@ -81,6 +90,20 @@ struct {{className}}::Impl {
 {{className}}::{{className}}(QObject *parent) : BaseType(facelift::InterfaceManager::instance(), parent),
     m_impl(std::make_unique<Impl>())
 {
+#ifdef DBUS_IPC_ENABLED
+    {% for type in interface.referencedTypes %}
+    {% if (not type.is_primitive) %}
+    {% if (not type.is_model) %}
+    {% if (not type.is_interface) %}
+    qDBusRegisterMetaType<{{type.fullyQualifiedCppType}}>();
+    qDBusRegisterMetaType<QMap<QString,{{type.fullyQualifiedCppType}}>>();
+    qDBusRegisterMetaType<QList<{{type.fullyQualifiedCppType}}>>();
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+#endif
+
     ipc()->setObjectPath(SINGLETON_OBJECT_PATH);
 
     {% if generateAsyncProxy %}
