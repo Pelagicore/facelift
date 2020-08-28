@@ -32,6 +32,7 @@
 #include <QObject>
 #include <QPointer>
 #include "Registry.h"
+#include "InterfaceManagerInterface.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -41,33 +42,32 @@
 
 namespace facelift {
 
-class NewIPCServiceAdapterBase;
 class InterfaceBase;
 
 /**
  * This class maintains a registry of IPC services registered locally, which enables local proxies to get a direct reference to them
  */
-class FaceliftIPCCommonLib_EXPORT InterfaceManager : public QObject
+class FaceliftIPCCommonLib_EXPORT InterfaceManager : public InterfaceManagerInterface
 {
     Q_OBJECT
 
 public:
+    InterfaceManager(const InterfaceManager&) = delete;
+    InterfaceManager(const InterfaceManager&&) = delete;
+    InterfaceManager& operator=(const InterfaceManager&) = delete;
+    InterfaceManager& operator=(const InterfaceManager&&) = delete;
 
-    InterfaceManager();
+    void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter) override;
 
-    void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter);
+    void unregisterAdapter(NewIPCServiceAdapterBase *adapter) override;
 
-    void unregisterAdapter(NewIPCServiceAdapterBase *adapter);
-
-    NewIPCServiceAdapterBase *getAdapter(const QString &objectPath);
-
-    Q_SIGNAL void adapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter);
+    NewIPCServiceAdapterBase *getAdapter(const QString &objectPath) override;
 
     static InterfaceManager &instance();
 
     static InterfaceBase * serviceMatches(const QString& objectPath, NewIPCServiceAdapterBase *adapter);
 
-    Registry<QPointer<NewIPCServiceAdapterBase>>& content()
+    Registry<QPointer<NewIPCServiceAdapterBase>>& content() override
     {
         return m_registry;
     }
@@ -75,6 +75,8 @@ public:
 private:
     Registry<QPointer<NewIPCServiceAdapterBase>> m_registry;
 
+    // singleton
+    InterfaceManager();
 };
 
 }
