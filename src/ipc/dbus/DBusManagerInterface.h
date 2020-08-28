@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,59 +30,30 @@
 
 #pragma once
 
-#include <QObject>
-
-#include "DBusManagerInterface.h"
-
 #if defined(FaceliftIPCLibDBus_LIBRARY)
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
 #else
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
 #endif
 
+#include <QString>
+#include <QDBusConnection>
+
 namespace facelift {
 namespace dbus {
 
 class DBusObjectRegistry;
 
-using namespace facelift;
-
-class FaceliftIPCLibDBus_EXPORT DBusManager : public DBusManagerInterface
+class FaceliftIPCLibDBus_EXPORT DBusManagerInterface
 {
 public:
-    DBusManager(const DBusManager&) = delete;
-    DBusManager(const DBusManager&&) = delete;
-    DBusManager& operator=(const DBusManager&) = delete;
-    DBusManager& operator=(const DBusManager&&) = delete;
-
-    static DBusManager &instance();
-
-    bool isDBusConnected() const override
-    {
-        return m_dbusConnected;
-    }
-
-    bool registerServiceName(const QString &serviceName) override;
-
-    QDBusConnection &connection() override
-    {
-        return m_busConnection;
-    }
-
-    QString serviceName() const override;
-
-    DBusObjectRegistry &objectRegistry() override;
-
-private:
-    QDBusConnection m_busConnection;
-    DBusObjectRegistry *m_objectRegistry = nullptr;
-    bool m_dbusConnected = false;
-
-    // singleton
-    DBusManager();
+    virtual ~DBusManagerInterface() = default;
+    virtual bool isDBusConnected() const = 0;
+    virtual bool registerServiceName(const QString &serviceName) = 0;
+    virtual QDBusConnection &connection() = 0;
+    virtual QString serviceName() const = 0;
+    virtual DBusObjectRegistry &objectRegistry() = 0;
 };
 
-
-}
-
-}
+} // end namespace dbus
+} // end namespace facelift
