@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -29,8 +29,9 @@
 **********************************************************************/
 #pragma once
 
-#include "IPCServiceAdapterBase.h"
-#include "NewIPCServiceAdapterBase.h"
+#include <QObject>
+#include <QString>
+#include "Registry.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -40,50 +41,17 @@
 
 namespace facelift {
 
-class IPCAdapterFactoryManager;
-class InterfaceManagerInterface;
+class NewIPCServiceAdapterBase;
 
-template<typename InterfaceType>
-class IPCServiceAdapter : public NewIPCServiceAdapterBase
+class FaceliftIPCCommonLib_EXPORT InterfaceManagerInterface : public QObject
 {
+    Q_OBJECT
 public:
-    using TheServiceType = InterfaceType;
-    using NewIPCServiceAdapterBase::registerService;
-
-    IPCServiceAdapter(InterfaceManagerInterface& interfaceManager, QObject *parent) :
-        NewIPCServiceAdapterBase(interfaceManager, parent)
-    {
-        setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
-    }
-
-    InterfaceType *service() const override
-    {
-        return m_service;
-    }
-
-    void setService(TheServiceType *service)
-    {
-        m_service = service;
-    }
-
-    void registerService(TheServiceType *service)
-    {
-        setService(service);
-        registerService();
-    }
-
-protected:
-
-    void setService(QObject *service) override
-    {
-        m_service = bindToProvider<InterfaceType>(service);
-    }
-
-    friend class IPCAdapterFactoryManager;
-
-private:
-    QPointer<InterfaceType> m_service;
-
+    virtual void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter) = 0;
+    virtual void unregisterAdapter(NewIPCServiceAdapterBase *adapter) = 0;
+    virtual NewIPCServiceAdapterBase *getAdapter(const QString &objectPath) = 0;
+    virtual Registry<QPointer<NewIPCServiceAdapterBase>>& content() = 0;
+    Q_SIGNAL void adapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter);
 };
 
-}
+} // end namespace facelift

@@ -39,7 +39,9 @@
 
 namespace facelift {
 
-LocalProviderBinderBase::LocalProviderBinderBase(IPCProxyNewBase &proxy) : m_proxy(proxy)
+LocalProviderBinderBase::LocalProviderBinderBase(InterfaceManagerInterface& interfaceManager, IPCProxyNewBase &proxy) :
+    m_proxy(proxy),
+    m_interfaceManager(interfaceManager)
 {
 }
 

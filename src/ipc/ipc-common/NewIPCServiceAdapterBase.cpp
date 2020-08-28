@@ -30,11 +30,12 @@
 
 #include "NewIPCServiceAdapterBase.h"
 #include "IPCServiceAdapterBase.h"
-#include "InterfaceManager.h"
 
 namespace facelift {
 
-NewIPCServiceAdapterBase::NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
+NewIPCServiceAdapterBase::NewIPCServiceAdapterBase(InterfaceManagerInterface& interfaceManager, QObject *parent) :
+    QObject(parent),
+    m_interfaceManager(interfaceManager)
 {
 }
 
@@ -45,12 +46,12 @@ NewIPCServiceAdapterBase::~NewIPCServiceAdapterBase() {
 
 void NewIPCServiceAdapterBase::registerLocalService()
 {
-    InterfaceManager::instance().registerAdapter(objectPath(), this);
+    m_interfaceManager.registerAdapter(objectPath(), this);
 }
 
 void NewIPCServiceAdapterBase::unregisterLocalService()
 {
-    InterfaceManager::instance().unregisterAdapter(this);
+    m_interfaceManager.unregisterAdapter(this);
 }
 
 void NewIPCServiceAdapterBase::registerService()
