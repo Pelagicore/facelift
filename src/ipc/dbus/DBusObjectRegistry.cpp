@@ -42,7 +42,7 @@ using facelift::ipc::dbus::ObjectRegistryAsync;
 
 const QString DBusObjectRegistry::VERSION_KEY = "@version";
 
-DBusObjectRegistry::DBusObjectRegistry(DBusManager &dbusManager) :
+DBusObjectRegistry::DBusObjectRegistry(DBusManagerInterface &dbusManager) :
     m_dbusManager(dbusManager), m_objects(this)
 {
     const constexpr char* ENV_VAR_NAME = "FACELIFT_DBUS_SERVICE_NAME";
