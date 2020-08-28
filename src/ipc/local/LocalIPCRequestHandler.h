@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,27 +30,45 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
+#if defined(FaceliftIPCLocalLib_LIBRARY)
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
 #else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
+#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
 #endif
 
+#include <memory>
+
+#include <QDebug>
+
+#include "FaceliftModel.h"
+#include "FaceliftUtils.h"
+#include "ModelProperty.h"
+
+#include "ipc-common.h"
+
 namespace facelift {
-namespace dbus {
 
-class DBusIPCMessage;
+namespace ipc { namespace local {
+class ObjectRegistry;
+class ObjectRegistryAsync;
+} }
 
-class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
+namespace local {
+
+using namespace facelift;
+
+class FaceliftIPCLocalLib_EXPORT LocalIPCRequestHandler
 {
-public:
 
-    virtual void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) = 0;
-    virtual void deserializeSignal(DBusIPCMessage &msg) = 0;
+public:
+    virtual ~LocalIPCRequestHandler() = default;
+    virtual void deserializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot) = 0;
+    virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
 
-    virtual ~DBusRequestHandler() = default;
 };
 
-} // end namespace dbus
-} // end namespace facelift
+
+}
+
+}
