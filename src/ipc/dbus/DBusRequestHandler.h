@@ -48,6 +48,8 @@ public:
     virtual void deserializePropertyValues(DBusIPCMessage &msg, bool isCompleteSnapshot) = 0;
     virtual void deserializeSignal(DBusIPCMessage &msg) = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
+
+    virtual ~DBusRequestHandler() = default;
 };
 
 } // end namespace dbus
