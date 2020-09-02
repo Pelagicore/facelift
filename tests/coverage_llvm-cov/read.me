@@ -1,0 +1,16 @@
+# docs:
+  LLVM-COV: https://llvm.org/docs/CommandGuide/llvm-cov.html
+  LCOV:     http://ltp.sourceforge.net/coverage/lcov/lcov.1.php
+# source code:
+  LLVM-COV: git clone http://llvm.org/git/llvm.git
+  LCOV:     http://ltp.sourceforge.net/coverage/lcov.php
+# install LCOV,  LLVM-COV using apt-get:
+  $ sudo apt-get install lcov llvm
+
+# How to use
+ Create a build folder and jump into it:
+  $ mkdir build && cd "$_"
+ Run the script:
+  $ facelift/tests/coverage_llvm-cov/test_llvm-cov.sh
+ Results of coverage will be available in the folder
+  $ llvm-cov/report_yy-mm-dd-hms
