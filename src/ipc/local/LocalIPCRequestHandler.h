@@ -61,6 +61,7 @@ class FaceliftIPCLocalLib_EXPORT LocalIPCRequestHandler
 {
 
 public:
+    virtual ~LocalIPCRequestHandler() = default;
     virtual void deserializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot) = 0;
     virtual void deserializeSignal(LocalIPCMessage &msg) = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
