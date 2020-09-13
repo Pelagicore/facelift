@@ -56,8 +56,6 @@ public:
     using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
     using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
 
-    template<typename T> struct type { };
-
     template<typename Type>
     using IPCProxyType = typename Type::IPCDBusProxyType;
 
@@ -108,28 +106,19 @@ public:
     }
 
     template<typename T>
-    T castArgument(const QVariant& value) {
-        return castArgumentPrivate(type<T>(), value);
+    T castFromVariant(const QVariant& value) {
+        return m_ipcBinder.castFromVariant<T>(value);
     }
 
     template<typename T>
-    T castDBusVariantArgument(const QVariant& value) {
-        return qdbus_cast<T>(value);
+    T castFromDBusVariant(const QVariant& value) {
+        return m_ipcBinder.castFromDBusVariant<T>(value);
     }
 
 protected:
     bool m_serviceRegistered = false;
 private:
     DBusIPCProxyBinder m_ipcBinder;
-
-    template<typename T>
-    T castArgumentPrivate(type<T>, const QVariant& value) {
-        return qdbus_cast<T>(value);
-    }
-
-    QList<QString> castArgumentPrivate(type<QList<QString>>, const QVariant& value) {
-        return qdbus_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
-    }
 
 };
 

@@ -43,6 +43,7 @@
 #include "FaceliftUtils.h"
 #include "DBusIPCCommon.h"
 #include "DBusManagerInterface.h"
+#include "IPCServiceAdapterBase.h"
 
 class QDBusMessage;
 
@@ -112,8 +113,62 @@ public:
 
     void setHandler(DBusRequestHandler *handler);
 
+    template<typename T>
+    T castFromVariant(const QVariant& value) {
+        return castFromVariantSpecialized(HelperType<T>(), value);
+    }
+
+    template<typename T>
+    T castFromDBusVariant(const QVariant& value) {
+        return castFromVariantSpecialized(HelperType<T>(), value);
+    }
+
+    template<typename T>
+    QDBusVariant castToDBusVariant(const T& value) {
+        return QDBusVariant(QVariant::fromValue(value));
+    }
+
+    QDBusVariant castToDBusVariant(const QList<QString>& value) {
+        return QDBusVariant(QVariant::fromValue(QStringList(value))); // workaround to use QList<QString> since its signature matches the QStringList
+    }
 private:
     void checkRegistry();
+
+    template<typename T> struct HelperType { };
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return qdbus_cast<T>(value);
+    }
+
+    QList<QString> castFromVariantSpecialized(HelperType<QList<QString>>, const QVariant& value) {
+        return qdbus_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCDBusProxyType>(qdbus_cast<DBusObjectPath>(value));
+    }
+
+    template<typename T>
+    QMap<QString, T*> castFromVariantSpecialized(HelperType<QMap<QString, T*>>, const QVariant& value) {
+        QMap<QString, T*> ret;
+        auto objectPaths = qdbus_cast<QMap<QString, DBusObjectPath>>(value);
+        for (const QString& key: objectPaths.keys()) {
+            ret[key] = getOrCreateSubProxy<typename T::IPCDBusProxyType>(objectPaths[key]);
+        }
+        return ret;
+    }
+
+    template<typename T>
+    QList<T*> castFromVariantSpecialized(HelperType<QList<T*>>, const QVariant& value) {
+        QList<T*> ret;
+        auto objectPaths = qdbus_cast<QStringList/*QList<DBusObjectPath>*/>(value);
+        for (const DBusObjectPath& objectPath: objectPaths) {
+            ret.append(getOrCreateSubProxy<typename T::IPCDBusProxyType>(objectPath));
+        }
+        return ret;
+    }
 
     QString m_interfaceName;
     QDBusServiceWatcher m_busWatcher;
@@ -145,7 +200,9 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
     asyncCall(msg, this, [this, answer](DBusIPCMessage &msg) {
         ReturnType returnValue;
         if (msg.isReplyMessage()) {
-            returnValue = (!msg.arguments().isEmpty() ? qdbus_cast<ReturnType>(msg.arguments()[0]): ReturnType());
+            if (!msg.arguments().isEmpty()) {
+                returnValue = castFromVariant<ReturnType>(msg.arguments()[0]);
+            }
             answer(returnValue);
         } else {
             qCWarning(LogIpc) << "Error received" << msg.toString();
@@ -182,7 +239,7 @@ inline void DBusIPCProxyBinder::sendSetterCall(const QString &property, const Pr
     DBusIPCMessage msg(m_serviceName, objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::SET_PROPERTY);
     msg << QVariant::fromValue(m_interfaceName);
     msg << QVariant::fromValue(property);
-    msg << QVariant::fromValue(QDBusVariant(QVariant::fromValue(value)));
+    msg << QVariant::fromValue(castToDBusVariant(value));
     if (isSynchronous()) {
         auto replyMessage = call(msg);
         if (replyMessage.isErrorMessage()) {

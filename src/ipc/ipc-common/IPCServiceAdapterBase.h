@@ -30,6 +30,7 @@
 #pragma once
 
 #include <QObject>
+#include <QtDBus>
 #include "FaceliftModel.h"
 
 
@@ -41,6 +42,7 @@
 
 namespace facelift {
 
+typedef QString DBusObjectPath; // potentially could be QDBusObjectPath but no empty QDBusObjectPath is allowed
 
 class FaceliftIPCCommonLib_EXPORT IPCServiceAdapterBase : public QObject
 {
@@ -109,29 +111,42 @@ public:
         return serviceAdapter;
     }
 
-    template<typename InterfaceType, typename InterfaceAdapterType>
-    class InterfacePropertyIPCAdapterHandler
+    template<typename T>
+    const char* typeToSignature() const
     {
-
-    public:
-        void update(IPCServiceAdapterBase *parent, InterfaceType *service)
-        {
-            if (m_service != service) {
-                m_service = service;
-                m_serviceAdapter = parent->getOrCreateAdapter<InterfaceAdapterType>(service);
-            }
-        }
-
-        QString objectPath() const
-        {
-            return (m_serviceAdapter ? m_serviceAdapter->objectPath() :  "");
-        }
-
-        QPointer<InterfaceType> m_service;
-        QPointer<InterfaceAdapterType> m_serviceAdapter;
-    };
-
+        return typeToSignatureSpecialized(HelperType<T>());
+    }
 private:
+    template<typename T> struct HelperType { };
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    const char* typeToSignatureSpecialized(HelperType<T>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<T>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<T>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<DBusObjectPath>());
+    }
+
+    inline const char* typeToSignatureSpecialized(HelperType<QList<QString>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QStringList>());
+    }
+
+    template<typename T>
+    inline const char* typeToSignatureSpecialized(HelperType<QList<T*>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QStringList>());
+    }
+
+    template<typename T>
+    inline const char* typeToSignatureSpecialized(HelperType<QMap<QString, T*>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QMap<QString, QString>>());
+    }
+
     QList<QPointer<IPCServiceAdapterBase> > m_subAdapters;
     QString m_objectPath;
     QString m_interfaceName;

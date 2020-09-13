@@ -162,9 +162,6 @@ public:
     {% endif %}
 private:
     {% for property in interface.properties %}
-    {% if property.type.is_interface %}
-    InterfacePropertyIPCProxyHandler<{{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}}Proxy;
-    {% endif %}
     {% if property.type.is_model %}
     facelift::IPCProxyModelProperty<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}};
     {% endif %}

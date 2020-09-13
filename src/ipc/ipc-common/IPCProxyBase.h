@@ -72,35 +72,6 @@ public:
         return r;
     }
 
-    template<typename ProxyType>
-    class InterfacePropertyIPCProxyHandler
-    {
-
-    public:
-        InterfacePropertyIPCProxyHandler(IPCProxyBase &owner) : m_owner(owner)
-        {
-        }
-
-        void update(const QString &objectPath)
-        {
-            if (m_proxy && (m_proxy->ipc()->objectPath() != objectPath)) {
-                m_proxy = nullptr;
-            }
-            if (!m_proxy) {
-                m_proxy = m_owner.m_ipcBinder->template getOrCreateSubProxy<ProxyType>(objectPath);
-            }
-        }
-
-        ProxyType *getValue() const
-        {
-            return m_proxy;
-        }
-
-    private:
-        QPointer<ProxyType> m_proxy;
-        IPCProxyBase &m_owner;
-    };
-
 protected:
     bool m_serviceReady = false;
     IPCProxyBinderBase *m_ipcBinder = nullptr;

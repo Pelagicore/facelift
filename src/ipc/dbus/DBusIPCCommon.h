@@ -38,21 +38,10 @@
 
 #include <QtDBus>
 
-template<typename T>
-const char* typeToSignature()
-{
-  return QDBusMetaType::typeToSignature(qMetaTypeId<T>());
-}
-
-template<>
-inline const char* typeToSignature<QList<QString>>()
-{
-  return QDBusMetaType::typeToSignature(qMetaTypeId<QStringList>());
-}
-
 namespace facelift {
 namespace dbus {
 using namespace facelift;
+
 
 struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
     static constexpr const char *GET_ALL_PROPERTIES = "GetAll";

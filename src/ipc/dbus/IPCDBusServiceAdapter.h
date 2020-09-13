@@ -58,7 +58,6 @@ public:
     typedef ServiceType TheServiceType;
     using InputIPCMessage = ::facelift::dbus::DBusIPCMessage;
     using OutputIPCMessage = ::facelift::dbus::DBusIPCMessage;
-    template<typename T> struct type { };
 
     IPCDBusServiceAdapter(DBusManagerInterface& dbusManager, QObject *parent) :
         IPCDBusServiceAdapterBase(dbusManager, parent)
@@ -91,37 +90,9 @@ public:
         Q_ASSERT(qobject_cast<ServiceType*>(serverObject) != nullptr);
         registerService(objectPath, static_cast<ServiceType *>(serverObject));
     }
-
-    template<typename T>
-    T castArgument(const QVariant& value) {
-        return castArgumentPrivate(type<T>(), value);
-    }
-
-    template<typename T>
-    T castDBusVariantArgument(const QVariant& value) {
-        return castDBusVariantArgumentPrivate(type<T>(), value);
-    }
-
 protected:
     QPointer<ServiceType> m_service;
 
-    template<typename T>
-    T castArgumentPrivate(type<T>, const QVariant& value) {
-        return qdbus_cast<T>(value);
-    }
-
-    QList<QString> castArgumentPrivate(type<QList<QString>>, const QVariant& value) {
-        return qdbus_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
-    }
-
-    template<typename T>
-    T castDBusVariantArgumentPrivate(type<T>, const QVariant& value) {
-        return qvariant_cast<T>(qdbus_cast<QDBusVariant>(value).variant());
-    }
-
-    QList<QString> castDBusVariantArgumentPrivate(type<QList<QString>>, const QVariant& value) {
-        return qvariant_cast<QStringList>(qdbus_cast<QDBusVariant>(value).variant());
-    }
 };
 
 }

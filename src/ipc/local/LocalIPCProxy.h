@@ -42,6 +42,8 @@
 
 namespace facelift {
 
+typedef QString DBusObjectPath;
+
 namespace local {
 
 using namespace facelift;
@@ -102,7 +104,52 @@ public:
         m_ipcBinder.connectToServer();
     }
 
+    template<typename T>
+    T castFromVariant(const QVariant& value) {
+        return castFromVariantSpecialized(HelperType<T>(), value);
+    }
+
+    template<typename T>
+    T castFromDBusVariant(const QVariant& value) {
+        return castFromVariantSpecialized(HelperType<T>(), qvariant_cast<QDBusVariant>(value).variant());
+    }
+
 private:
+    template<typename T> struct HelperType { };
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return qvariant_cast<T>(value);
+    }
+
+    QList<QString> castFromVariantSpecialized(HelperType<QList<QString>>, const QVariant& value) {
+        return qvariant_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(qvariant_cast<DBusObjectPath>(value));
+    }
+
+    template<typename T>
+    QMap<QString, T*> castFromVariantSpecialized(HelperType<QMap<QString, T*>>, const QVariant& value) {
+        QMap<QString, T*> ret;
+        auto objectPaths = qvariant_cast<QMap<QString, DBusObjectPath>>(value);
+        for (const QString& key: objectPaths.keys()) {
+            ret[key] = getOrCreateSubProxy<typename T::IPCLocalProxyType>(objectPaths[key]);
+        }
+        return ret;
+    }
+
+    template<typename T>
+    QList<T*> castFromVariantSpecialized(HelperType<QList<T*>>, const QVariant& value) {
+        QList<T*> ret;
+        auto objectPaths = qvariant_cast<QStringList/*QList<DBusObjectPath>*/>(value);
+        for (const DBusObjectPath& objectPath: objectPaths) {
+            ret.append(getOrCreateSubProxy<typename T::IPCLocalProxyType>(objectPath));
+        }
+        return ret;
+    }
+
     LocalIPCProxyBinder m_ipcBinder;
 };
 

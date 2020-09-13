@@ -110,13 +110,6 @@ private:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     ::facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
-    {% elif property.type.is_interface %}
-    QString m_previous{{property.name}}ObjectPath;
-    {% else %}
-    {{property.interfaceCppType}} m_previous{{property.name}} {};
-    {% endif %}
-    {% if property.type.is_interface %}
-    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}};
     {% endif %}
     {% endfor %}
 };

@@ -51,16 +51,6 @@ class FaceliftIPCLocalLib_EXPORT LocalIPCProxyBase : protected LocalIPCRequestHa
 public:
     LocalIPCProxyBase(LocalIPCProxyBinder &ipcBinder);
 
-    template<typename T>
-    T castArgument(const QVariant& value) {
-        return qvariant_cast<T>(value);
-    }
-
-    template<typename T>
-    T castDBusVariantArgument(const QVariant& value) {
-        return qvariant_cast<T>(qvariant_cast<QDBusVariant>(value).variant());
-    }
-
 protected:
     LocalIPCProxyBinder &m_ipcBinder;
     bool m_serviceRegistered = false;
