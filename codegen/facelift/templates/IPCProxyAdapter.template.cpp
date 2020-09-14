@@ -67,12 +67,11 @@ void {{className}}::unmarshalPropertyValues(InputIPCMessage &msg)
                 m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(values[propertyName]);
                 bool emit_{{property.name}}ChangeSignal = ((previous_{{property.name}}_Value != m_{{property.name}}));
             {% elif property.type.is_model %}
-                bool emit_{{property.name}}ChangeSignal = false;
+                bool emit_{{property.name}}ChangeSignal = true;
                 int {{property.name}}Size = castFromDBusVariant<int>(values[propertyName]);
                 m_{{property.name}}.beginResetModel();
                 m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
                 m_{{property.name}}.endResetModel();
-                emit_{{property.name}}ChangeSignal = true;
             {% else %}
                 const auto previous_{{property.name}}_Value = m_{{property.name}};
                 m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(values[propertyName]);
@@ -157,10 +156,14 @@ void {{className}}::unmarshalPropertiesChanged(InputIPCMessage &msg)
         {% for property in interface.properties %}
         if (propertyName == QStringLiteral("{{property.name}}")) {
         {% if property.type.is_model %}
+            int {{property.name}}Size = castFromDBusVariant<int>(changedProperties[propertyName]);
+            m_{{property.name}}.beginResetModel();
+            m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
+            m_{{property.name}}.endResetModel();
         {% else %}
             m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(changedProperties[propertyName]);
-            emit {{property.name}}Changed(); // trust the propertiesChanged signal and emit without checking
         {% endif %}
+            emit {{property.name}}Changed(); // trust the propertiesChanged signal and emit without checking
         }
         {% endfor %}
     }

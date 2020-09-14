@@ -36,7 +36,6 @@
 #  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <QtDBus>
 
 namespace facelift {
 namespace dbus {

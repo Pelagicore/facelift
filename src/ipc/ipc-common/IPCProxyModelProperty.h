@@ -57,54 +57,52 @@ public:
     {
         QListIterator<QVariant> argumentsIterator(msg.arguments());
         const QString& modelPropertyName = (argumentsIterator.hasNext() ? qdbus_cast<QString>(argumentsIterator.next()): QString());
+        Q_ASSERT(!modelPropertyName.isEmpty());
+        const QString& eventName = msg.member();
 
-        if (!modelPropertyName.isEmpty()) {
-            const QString& eventName = (argumentsIterator.hasNext() ? qdbus_cast<QString>(argumentsIterator.next()): QString());
+        if (eventName == QStringLiteral("ModelUpdateEventDataChanged"))
+        {
+            int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            QList<ModelDataType> list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
 
-            if (eventName == QStringLiteral("ModelUpdateEventDataChanged"))
-            {
-                int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                QList<ModelDataType> list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
-
-                int last = first + list.size() - 1;
-                for (int i = first; i <= last; ++i) {
-                    m_cache.insert(i, list.at(i - first));
-                }
-                emit this->dataChanged(first, last);
+            int last = first + list.size() - 1;
+            for (int i = first; i <= last; ++i) {
+                m_cache.insert(i, list.at(i - first));
             }
-            else if (eventName == QStringLiteral("ModelUpdateEventInsert")) {
-                int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                emit this->beginInsertElements(first, last);
-                clear(); // TODO: insert elements in cache without clear()
-                emit this->endInsertElements();
-            }
-            else if (eventName == QStringLiteral("ModelUpdateEventRemove"))
-            {
-                int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                emit this->beginRemoveElements(first, last);
-                m_cache.clear(); // TODO: remove elements from cache without clear()
-                emit this->endRemoveElements();
-            }
-            else if (eventName == QStringLiteral("ModelUpdateEventMove")) {
-                int sourceFirstIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                int sourceLastIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                int destinationIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                emit this->beginMoveElements(sourceFirstIndex, sourceLastIndex, destinationIndex);
-                m_cache.clear(); // TODO: move elements in cache without clear()
-                emit this->endMoveElements();
-            }
-            else if (eventName == QStringLiteral("ModelUpdateEventReset")) {
-                emit this->beginResetModel();
-                int size = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                this->setSize(size);
-                clear();
-                emit this->endResetModel();
-            }
-            else {
-                qCWarning(LogIpc) << "Unhandled event for model property" << eventName;
-            }
+            emit this->dataChanged(first, last);
+        }
+        else if (eventName == QStringLiteral("ModelUpdateEventInsert")) {
+            int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            emit this->beginInsertElements(first, last);
+            clear(); // TODO: insert elements in cache without clear()
+            emit this->endInsertElements();
+        }
+        else if (eventName == QStringLiteral("ModelUpdateEventRemove"))
+        {
+            int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            emit this->beginRemoveElements(first, last);
+            m_cache.clear(); // TODO: remove elements from cache without clear()
+            emit this->endRemoveElements();
+        }
+        else if (eventName == QStringLiteral("ModelUpdateEventMove")) {
+            int sourceFirstIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            int sourceLastIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            int destinationIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            emit this->beginMoveElements(sourceFirstIndex, sourceLastIndex, destinationIndex);
+            m_cache.clear(); // TODO: move elements in cache without clear()
+            emit this->endMoveElements();
+        }
+        else if (eventName == QStringLiteral("ModelUpdateEventReset")) {
+            emit this->beginResetModel();
+            int size = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            this->setSize(size);
+            clear();
+            emit this->endResetModel();
+        }
+        else {
+            qCWarning(LogIpc) << "Unhandled event for model property" << eventName;
         }
     }
 

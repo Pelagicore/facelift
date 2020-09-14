@@ -40,7 +40,6 @@
 {{classExportDefines}}
 
 #include "FaceliftModel.h"
-#include <QtDBus>
 
 // Dependencies
 {% for type in interface.referencedTypes %}

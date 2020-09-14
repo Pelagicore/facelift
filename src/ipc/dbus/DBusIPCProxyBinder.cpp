@@ -116,7 +116,7 @@ void DBusIPCProxyBinder::onServiceNameKnown()
     for (const QString& signalEntry: m_serviceObject->getSignals()) {
         auto signalConnected = connection.connect(m_serviceName,
                                                   objectPath(), m_interfaceName, signalEntry, this, SLOT(handleGenericSignals(const QDBusMessage&)));
-        Q_UNUSED(successPropertyChangeSignal); // TODO: check
+        Q_UNUSED(signalConnected) // TODO: check
     }
 
     m_busWatcher.addWatchedService(m_serviceName);
