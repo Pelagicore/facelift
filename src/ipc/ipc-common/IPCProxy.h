@@ -34,6 +34,7 @@
 #include "StaticArrayReference.h"
 #include "IPCProxyBinderBase.h"
 #include "LocalProviderBinder.h"
+#include "InterfaceManagerInterface.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -55,9 +56,9 @@ public:
         InterfaceType* proxy = nullptr;
     };
 
-    IPCProxy(QObject *parent) : WrapperType(parent)
+    IPCProxy(InterfaceManagerInterface& interfaceManager, QObject *parent) : WrapperType(parent)
         , IPCProxyNewBase(*static_cast<InterfaceBase *>(this))
-        , m_localProviderBinder(*this)
+        , m_localProviderBinder(interfaceManager, *this)
     {
         QObject::connect(ipc(), &IPCProxyBinderBase::complete, this, [this] () {
                 m_localProviderBinder.init();

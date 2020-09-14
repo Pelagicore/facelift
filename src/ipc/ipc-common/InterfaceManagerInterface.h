@@ -1,6 +1,6 @@
-{#*********************************************************************
+/**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -26,31 +26,33 @@
 **
 ** SPDX-License-Identifier: MIT
 **
-*********************************************************************#}
-
-/****************************************************************************
-** This is an auto-generated file.
-** Do not edit! All changes made to it will be lost.
-****************************************************************************/
-
+**********************************************************************/
 #pragma once
 
-{{classExportDefines}}
+#include <QObject>
+#include <QString>
+#include <QPointer>
+#include "Registry.h"
 
-#include "ServiceMonitor.h"
+#if defined(FaceliftIPCCommonLib_LIBRARY)
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
+#endif
 
-{% for interface in module.interfaces %}
-#include "{{interface.fullyQualifiedPath}}Monitor.h"
-{% endfor %}
+namespace facelift {
 
-{{module.namespaceCppOpen}}
+class NewIPCServiceAdapterBase;
 
-class {{classExport}} ModuleMonitor : public facelift::ModuleMonitorBase {
-
+class FaceliftIPCCommonLib_EXPORT InterfaceManagerInterface : public QObject
+{
+    Q_OBJECT
 public:
-    static void registerTypes();
-
+    virtual void registerAdapter(const QString &objectPath, NewIPCServiceAdapterBase *adapter) = 0;
+    virtual void unregisterAdapter(NewIPCServiceAdapterBase *adapter) = 0;
+    virtual NewIPCServiceAdapterBase *getAdapter(const QString &objectPath) = 0;
+    virtual Registry<QPointer<NewIPCServiceAdapterBase>>& content() = 0;
+    Q_SIGNAL void adapterUnavailable(QString objectPath, NewIPCServiceAdapterBase *adapter);
 };
 
-{{module.namespaceCppClose}}
-
+} // end namespace facelift

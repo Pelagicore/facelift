@@ -30,7 +30,7 @@
 
 #include <QDBusPendingCallWatcher>
 #include "DBusIPCProxyBinder.h"
-#include "DBusManager.h"
+#include "DBusManagerInterface.h"
 #include "DBusRequestHandler.h"
 #include "DBusIPCCommon.h"
 #include "DBusObjectRegistry.h"
@@ -38,9 +38,9 @@
 namespace facelift {
 namespace dbus {
 
-DBusIPCProxyBinder::DBusIPCProxyBinder(InterfaceBase &owner, QObject *parent) :
+DBusIPCProxyBinder::DBusIPCProxyBinder(DBusManagerInterface& dbusManager, InterfaceBase &owner, QObject *parent) :
     IPCProxyBinderBase(owner, parent),
-    m_registry(DBusManager::instance().objectRegistry())
+    m_dbusManager(dbusManager)
 {
     m_busWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration);
 }
@@ -81,16 +81,6 @@ void DBusIPCProxyBinder::onSignalTriggered(const QDBusMessage &dbusMessage)
     m_serviceObject->deserializeSignal(msg);
 }
 
-QDBusConnection &DBusIPCProxyBinder::connection() const
-{
-    return manager().connection();
-}
-
-DBusManager &DBusIPCProxyBinder::manager() const
-{
-    return DBusManager::instance();
-}
-
 void DBusIPCProxyBinder::setHandler(DBusRequestHandler *handler)
 {
     m_serviceObject = handler;
@@ -122,20 +112,22 @@ void DBusIPCProxyBinder::requestPropertyValues()
 
 void DBusIPCProxyBinder::onServiceNameKnown()
 {
-    auto successPropertyChangeSignal = connection().connect(m_serviceName,
+    auto& connection = m_dbusManager.connection();
+
+    auto successPropertyChangeSignal = connection.connect(m_serviceName,
                     objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
     Q_UNUSED(successPropertyChangeSignal); // TODO: check
 
-    auto successSignalTriggeredSignal = connection().connect(m_serviceName,
+    auto successSignalTriggeredSignal = connection.connect(m_serviceName,
                     objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
                     SLOT(onSignalTriggered(const QDBusMessage&)));
 
     Q_UNUSED(successSignalTriggeredSignal); // TODO: check
 
     m_busWatcher.addWatchedService(m_serviceName);
-    m_busWatcher.setConnection(connection());
+    m_busWatcher.setConnection(connection);
     QObject::connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, [this](){
         requestPropertyValues();
     });
@@ -146,24 +138,27 @@ void DBusIPCProxyBinder::onServiceNameKnown()
 void DBusIPCProxyBinder::checkRegistry()
 {
     if (isReadyToConnect()) {
-        auto registryObjects = m_registry.objects(isSynchronous());
+        auto& objectRegistry = m_dbusManager.objectRegistry();
+        auto registryObjects = objectRegistry.objects(isSynchronous());
         if (registryObjects.contains(objectPath())) {
             auto serviceName = registryObjects[objectPath()];
             if (serviceName != m_serviceName) {
                 m_serviceName = serviceName;
 
-                if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && manager().isDBusConnected()) {
+                if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && m_dbusManager.isDBusConnected()) {
                     onServiceNameKnown();
                 }
             }
         } else if (!m_serviceName.isEmpty()){ // no point to proceed on empty service name
             m_busWatcher.removeWatchedService(m_serviceName);
 
-            connection().disconnect(m_serviceName,
+            auto& connection = m_dbusManager.connection();
+
+            connection.disconnect(m_serviceName,
                     objectPath(), m_interfaceName, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
-            connection().disconnect(m_serviceName,
+            connection.disconnect(m_serviceName,
                     objectPath(), m_interfaceName, DBusIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME, this,
                     SLOT(onSignalTriggered(const QDBusMessage&)));
 
@@ -175,8 +170,9 @@ void DBusIPCProxyBinder::checkRegistry()
 
 void DBusIPCProxyBinder::asyncCall(DBusIPCMessage &message, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
 {
+    auto& connection = m_dbusManager.connection();
     qCDebug(LogIpc) << "Sending async IPC message : " << message.toString();
-    auto reply = new QDBusPendingCallWatcher(connection().asyncCall(message.outputMessage()));
+    auto reply = new QDBusPendingCallWatcher(connection.asyncCall(message.outputMessage()));
     QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
         DBusIPCMessage msg(reply->reply());
         if (msg.isReplyMessage()) {
@@ -188,15 +184,16 @@ void DBusIPCProxyBinder::asyncCall(DBusIPCMessage &message, const QObject *conte
 
 DBusIPCMessage DBusIPCProxyBinder::call(DBusIPCMessage &message) const
 {
+    auto& connection = m_dbusManager.connection();
     qCDebug(LogIpc) << "Sending blocking IPC message : " << message.toString();
-    auto replyDbusMessage = connection().call(message.outputMessage());
+    auto replyDbusMessage = connection.call(message.outputMessage());
     DBusIPCMessage reply(replyDbusMessage);
     return reply;
 }
 
 void DBusIPCProxyBinder::setObjectPath(const QString &objectPath)
 {
-    DBusManager::instance().objectRegistry().objects(false).addListener(objectPath, this, &DBusIPCProxyBinder::checkRegistry);
+    m_dbusManager.objectRegistry().objects(false).addListener(objectPath, this, &DBusIPCProxyBinder::checkRegistry);
     IPCProxyBinderBase::setObjectPath(objectPath);
 }
 

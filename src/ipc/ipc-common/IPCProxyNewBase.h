@@ -45,6 +45,8 @@ class FaceliftIPCCommonLib_EXPORT IPCProxyNewBase
 public:
     IPCProxyNewBase(InterfaceBase &owner);
 
+    virtual ~IPCProxyNewBase();
+
     virtual void refreshProvider() = 0;
 
     const QString &objectPath() const;

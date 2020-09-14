@@ -10,7 +10,6 @@ facelift_add_library(FaceliftModelLib
         TAsyncAnswerMasterBase.cpp
         PropertyInit.cpp
         ModelBase.cpp
-        ServiceRegistry.cpp
         InterfaceBase.cpp
         PropertyBase.cpp
         QMLAdapterBase.cpp
@@ -27,7 +26,6 @@ facelift_add_library(FaceliftModelLib
         ServiceWrapper.h
         StructureBase.h
         ModuleBase.h
-        ServiceRegistry.h
         StructQObjectWrapper.h
         QMLModel.h
         ModelProperty.h

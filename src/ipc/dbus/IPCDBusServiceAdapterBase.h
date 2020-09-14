@@ -41,12 +41,11 @@
 #include "DBusIPCMessage.h"
 #include "ipc-common.h"
 #include "ipc-serialization.h"
+#include "DBusManagerInterface.h"
 
 namespace facelift {
 
 namespace dbus {
-
-class DBusManager;
 
 class FaceliftIPCLibDBus_EXPORT IPCDBusServiceAdapterBase : public IPCServiceAdapterBase
 {
@@ -82,7 +81,7 @@ public:
         IPCDBusServiceAdapterBase &m_adapter;
     };
 
-    IPCDBusServiceAdapterBase(QObject *parent = nullptr);
+    IPCDBusServiceAdapterBase(DBusManagerInterface& dbusManager, QObject *parent = nullptr);
 
     ~IPCDBusServiceAdapterBase();
 
@@ -116,8 +115,6 @@ public:
 
     void unregisterService() override;
 
-    DBusManager &dbusManager();
-
     template<typename Type>
     void serializeOptionalValue(DBusIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
 
@@ -146,6 +143,8 @@ protected:
     bool m_previousReadyState = false;
     bool m_signalsConnected = false;
     bool m_alreadyInitialized = false;
+
+    DBusManagerInterface& m_dbusManager;
 };
 
 template<typename Type>

@@ -45,9 +45,8 @@ void InterfaceBase::setComponentCompleted() {
     }
 }
 
-void registerInterfaceImplementationInstance(InterfaceBase & i)
+void registerInterfaceImplementationInstance(InterfaceBase&)
 {
-    facelift::ServiceRegistry::instance().registerObject(&i);
 }
 
 

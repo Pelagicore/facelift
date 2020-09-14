@@ -28,23 +28,32 @@
 **
 **********************************************************************/
 
-#include "ServiceRegistry.h"
+#pragma once
+
+#if defined(FaceliftIPCLibDBus_LIBRARY)
+#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
+#else
+#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
+#endif
+
+#include <QString>
+#include <QDBusConnection>
 
 namespace facelift {
+namespace dbus {
 
-ServiceRegistry::~ServiceRegistry() = default;
+class DBusObjectRegistry;
 
-void ServiceRegistry::registerObject(InterfaceBase *i)
+class FaceliftIPCLibDBus_EXPORT DBusManagerInterface
 {
-    m_objects.append(i);
-    emit objectRegistered(i);
-}
+public:
+    virtual ~DBusManagerInterface() = default;
+    virtual bool isDBusConnected() const = 0;
+    virtual bool registerServiceName(const QString &serviceName) = 0;
+    virtual QDBusConnection &connection() = 0;
+    virtual QString serviceName() const = 0;
+    virtual DBusObjectRegistry &objectRegistry() = 0;
+};
 
-ServiceRegistry &ServiceRegistry::instance()
-{
-    static ServiceRegistry reg;
-    return reg;
-}
-
-
-}
+} // end namespace dbus
+} // end namespace facelift

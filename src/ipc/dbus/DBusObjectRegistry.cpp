@@ -29,7 +29,6 @@
 **********************************************************************/
 
 #include "DBusObjectRegistry.h"
-#include "DBusManager.h"
 #include "DBusIPCCommon.h"
 #include <limits>
 
@@ -42,7 +41,7 @@ using facelift::ipc::dbus::ObjectRegistryAsync;
 
 const QString DBusObjectRegistry::VERSION_KEY = "@version";
 
-DBusObjectRegistry::DBusObjectRegistry(DBusManager &dbusManager) :
+DBusObjectRegistry::DBusObjectRegistry(DBusManagerInterface &dbusManager) :
     m_dbusManager(dbusManager), m_objects(this)
 {
     const constexpr char* ENV_VAR_NAME = "FACELIFT_DBUS_SERVICE_NAME";
@@ -77,7 +76,7 @@ void DBusObjectRegistry::init()
 void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer)
 {
     init();
-    auto serviceName = DBusManager::instance().serviceName();
+    auto serviceName = m_dbusManager.serviceName();
     if (isMaster()) {
         auto isSuccessful = m_master->registerObject(objectPath, serviceName);
         answer(isSuccessful);
@@ -89,7 +88,7 @@ void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::Asy
 void DBusObjectRegistry::unregisterObject(const QString &objectPath)
 {
     init();
-    auto serviceName = DBusManager::instance().serviceName();
+    auto serviceName = m_dbusManager.serviceName();
     if (isMaster()) {
         m_master->unregisterObject(objectPath, serviceName);
     } else {

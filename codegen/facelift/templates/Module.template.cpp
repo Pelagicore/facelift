@@ -62,13 +62,6 @@
 #include "{{module.fullyQualifiedPath}}/ModuleIPC.h"
 #endif
 
-#ifdef ENABLE_DESKTOP_TOOLS
-#include "{{module.fullyQualifiedPath}}/ModuleMonitor.h"
-#include "{{module.fullyQualifiedPath}}/ModuleDummy.h"
-#include "ServiceMonitorQMLComponent.h"
-#endif
-
-
 {{module.namespaceCppOpen}}
 
 

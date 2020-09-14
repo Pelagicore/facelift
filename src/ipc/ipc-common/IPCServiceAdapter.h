@@ -41,6 +41,7 @@
 namespace facelift {
 
 class IPCAdapterFactoryManager;
+class InterfaceManagerInterface;
 
 template<typename InterfaceType>
 class IPCServiceAdapter : public NewIPCServiceAdapterBase
@@ -49,7 +50,8 @@ public:
     using TheServiceType = InterfaceType;
     using NewIPCServiceAdapterBase::registerService;
 
-    IPCServiceAdapter(QObject *parent) : NewIPCServiceAdapterBase(parent)
+    IPCServiceAdapter(InterfaceManagerInterface& interfaceManager, QObject *parent) :
+        NewIPCServiceAdapterBase(interfaceManager, parent)
     {
         setObjectPath(InterfaceType::SINGLETON_OBJECT_PATH);
     }

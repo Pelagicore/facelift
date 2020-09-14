@@ -35,6 +35,7 @@
 
 #include "{{interfaceName}}IPCProxy.h"
 #include "{{interfaceName}}NotAvailableImpl.h"
+#include "InterfaceManager.h"
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusProxy.h"
@@ -77,7 +78,7 @@ struct {{className}}::Impl {
     > m_proxies = {};
 };
 
-{{className}}::{{className}}(QObject *parent) : BaseType(parent),
+{{className}}::{{className}}(QObject *parent) : BaseType(facelift::InterfaceManager::instance(), parent),
     m_impl(std::make_unique<Impl>())
 {
     ipc()->setObjectPath(SINGLETON_OBJECT_PATH);

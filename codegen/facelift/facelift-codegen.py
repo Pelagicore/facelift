@@ -367,9 +367,6 @@ def run_generation(input, output, dependency, libraryName, all):
             generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx, libraryName, "")
-            generateFile(generator, 'devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx, libraryName, "")
-            generateFile(generator, 'devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx, libraryName, "")
-            generateFile(generator, 'devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx, libraryName, "")
             for interface in module.interfaces:
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})
@@ -382,8 +379,6 @@ def run_generation(input, output, dependency, libraryName, all):
                 generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.cpp', 'ImplementationBase.template.cpp', ctx, libraryName, "")
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLAdapter.h', 'QMLAdapter.template.h', ctx, libraryName, "")
                 generateFile(generator, 'types/{{path}}/{{interface}}QMLAdapter.cpp', 'QMLAdapter.template.cpp', ctx, libraryName, "")
-                generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "")
-                generateFile(generator, 'devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx, libraryName, "")
 
                 if isQMLImplementationEnabled(interface):
                     generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBaseQML.h', 'ImplementationBaseQML.template.h', ctx, libraryName, "")

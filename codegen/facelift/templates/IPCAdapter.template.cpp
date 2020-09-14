@@ -36,6 +36,7 @@
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCAdapter.h"
 #include "IPCServiceAdapterBase.h"
 #include <array>
+#include "InterfaceManager.h"
 
 #ifdef DBUS_IPC_ENABLED
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}IPCDBusAdapter.h"
@@ -76,7 +77,8 @@ struct {{interfaceName}}IPCAdapter::Impl {
 };
 
 
-{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) : BaseType(parent)
+{{interfaceName}}IPCAdapter::{{interfaceName}}IPCAdapter(QObject* parent) :
+    BaseType(facelift::InterfaceManager::instance(), parent)
 {
 }
 

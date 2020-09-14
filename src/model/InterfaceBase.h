@@ -33,7 +33,6 @@
 #include <QObject>
 #include <QMap>
 
-#include "ServiceRegistry.h"
 
 #if defined(FaceliftModelLib_LIBRARY)
 #  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
@@ -107,7 +106,7 @@ private:
 
 };
 
-FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase & i);
+FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase&);
 
 }
 
