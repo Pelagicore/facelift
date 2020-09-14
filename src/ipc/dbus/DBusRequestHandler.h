@@ -50,6 +50,8 @@ public:
     virtual void handleSignals(DBusIPCMessage& msg) = 0;
     virtual const QList<QString>& getSignals() const = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
+
+    virtual ~DBusRequestHandler() = default;
 };
 
 } // end namespace dbus
