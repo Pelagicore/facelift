@@ -44,7 +44,9 @@
 
 // Dependencies
 {% for field in struct.fields %}
+{% if field.type.requiredInclude != "" %}
 {{field.type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}
