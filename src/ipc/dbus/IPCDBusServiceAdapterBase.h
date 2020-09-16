@@ -93,7 +93,7 @@ public:
     inline void sendPropertiesChanged(const QString& property , const Value & value);
 
     template<typename ... Args>
-    void sendSignal(const QString& signalName, const Args & ... args);
+    void sendSignal(const QString& signalName, Args && ... args);
 
     template<typename ReturnType>
     void sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue);
@@ -224,11 +224,13 @@ inline void IPCDBusServiceAdapterBase::sendPropertiesChanged(const QString& prop
 }
 
 template<typename ... Args>
-inline void IPCDBusServiceAdapterBase::sendSignal(const QString& signalName, const Args & ... args)
+inline void IPCDBusServiceAdapterBase::sendSignal(const QString& signalName, Args && ... args)
 {
     DBusIPCMessage signal(objectPath(), interfaceName(), signalName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [this, &signal](const auto &v){signal << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(signal << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     this->send(signal);
 }
 

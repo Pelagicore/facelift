@@ -39,8 +39,6 @@
 
 {{classExportDefines}}
 
-#include <QDBusArgument>
-#include <QtDBus>
 #include "Structure.h"
 #include "FaceliftQMLUtils.h"
 
@@ -49,6 +47,7 @@
 {{field.type.requiredInclude}}
 {% endfor %}
 
+class QDBusArgument;
 {{module.namespaceCppOpen}}
 
 {% if struct.isQObjectWrapperEnabled %}
@@ -89,23 +88,11 @@ public:
     friend QDBusArgument &operator<<(QDBusArgument &argument, const {{struct.name}} &{{struct.name|lower}});
     friend const QDBusArgument &operator>>(const QDBusArgument &argument, {{struct.name}} &{{struct.name|lower}});
 
-    static void registerDBusTypes()
-    {
-        {% for field in struct.fields %}
-        {% if field.type.is_struct %}
-        {{field.type.cppType}}::registerDBusTypes();
-        {% endif %}
-        {% if (not field.type.is_primitive and not field.type.is_model and not field.type.is_interface and not field.type.is_list and not field.type.is_map) %}
-        qDBusRegisterMetaType<{{field.cppType}}>();
-        {% endif %}
-        {% if (field.type.is_list or field.type.is_map) %}
-        {% if (not field.type.nested.is_primitive) %}
-        qDBusRegisterMetaType<{{field.cppType}}>();
-        qDBusRegisterMetaType<{{field.type.nested.cppType}}>();
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-    }
+
+    friend QDataStream& operator<<( QDataStream& dataStream,  const {{struct.name}} &{{struct.name|lower}} );
+    friend QDataStream& operator>>( QDataStream& dataStream, {{struct.name}} &{{struct.name|lower}} );
+
+    static void registerDBusTypes();
 
     Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const;
 
@@ -148,27 +135,6 @@ private:
     {{field.cppType}}& m_{{field}};
 {% endfor -%}
 };
-
-inline QDBusArgument &operator<<(QDBusArgument &argument, const {{struct.name}} &{{struct.name|lower}})
-{
-    argument.beginStructure();
-    {% for field in struct.fields %}
-    argument << {{struct.name|lower}}.m_{{field}};
-    {% endfor -%}
-    argument.endStructure();
-    return argument;
-}
-
-inline const QDBusArgument &operator>>(const QDBusArgument &argument, {{struct.name}} &{{struct.name|lower}})
-{
-    argument.beginStructure();
-    {% for field in struct.fields %}
-    argument >> {{struct.name|lower}}.m_{{field}};
-    {% endfor -%}
-    argument.endStructure();
-
-    return argument;
-}
 
 {{module.namespaceCppClose}}
 

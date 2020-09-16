@@ -37,7 +37,6 @@
 
 #include "{{className}}.h"
 #include "FaceliftEnum.h"
-#include "DBusIPCCommon.h"
 
 {{module.namespaceCppOpen}}
 
@@ -94,6 +93,7 @@ void {{className}}::unmarshalPropertyValues(InputIPCMessage &msg)
 
 void {{className}}::handleSignals(InputIPCMessage& msg)
 {
+    Q_UNUSED(msg);
     {% for event in interface.signals %}
     if (msg.member() == QStringLiteral("{{event}}")) {
         QListIterator<QVariant> argumentsIterator(msg.arguments());
@@ -149,6 +149,7 @@ void {{className}}::onModelUpdateEvent(const InputIPCMessage& msg)
 
 void {{className}}::unmarshalPropertiesChanged(InputIPCMessage &msg)
 {
+    {% if interface.properties %}
     QListIterator<QVariant> argumentsIterator(msg.arguments());
     QString interfaceName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
     QVariantMap changedProperties = (argumentsIterator.hasNext() ? castFromVariant<QVariantMap>(argumentsIterator.next()): QVariantMap());
@@ -167,6 +168,9 @@ void {{className}}::unmarshalPropertiesChanged(InputIPCMessage &msg)
         }
         {% endfor %}
     }
+    {% else %}
+    Q_UNUSED(msg);
+    {% endif %}
 }
 
 {% for property in interface.properties %}

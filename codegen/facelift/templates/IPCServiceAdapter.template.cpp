@@ -36,7 +36,6 @@
 {% set className = interfaceName + proxyTypeNameSuffix %}
 
 #include <QtDBus>
-#include "DBusIPCCommon.h"
 #include "{{className}}.h"
 
 {{module.namespaceCppOpen}}

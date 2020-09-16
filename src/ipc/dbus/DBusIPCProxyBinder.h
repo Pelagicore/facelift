@@ -100,16 +100,16 @@ public:
     void sendSetterCall(const QString& property, const PropertyType &value);
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
+    DBusIPCMessage sendMethodCall(const char *methodName, Args && ... args) const;
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args);
 
     template<typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args);
 
     template<typename ... Args>
-    QList<QVariant> sendMethodCallWithReturn(const char *methodName, const Args & ... args) const;
+    QList<QVariant> sendMethodCallWithReturn(const char *methodName, Args && ... args) const;
 
     void setHandler(DBusRequestHandler *handler);
 
@@ -179,11 +179,13 @@ private:
 
 
 template<typename ... Args>
-inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName, const Args & ... args) const
+inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName, Args && ... args) const
 {
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     auto replyMessage = this->call(msg);
     if (replyMessage.isErrorMessage()) {
         onServerNotAvailableError(methodName);
@@ -192,11 +194,13 @@ inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName,
 }
 
 template<typename ReturnType, typename ... Args>
-inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
+inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args)
 {
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     asyncCall(msg, this, [this, answer](DBusIPCMessage &msg) {
         ReturnType returnValue;
         if (msg.isReplyMessage()) {
@@ -211,19 +215,21 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
 }
 
 template<typename ... Args>
-inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
+inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args)
 {
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     asyncCall(msg, this, [answer](DBusIPCMessage &msg) {
-        Q_UNUSED(msg);
+        Q_UNUSED(msg)
         answer();
     });
 }
 
 template<typename ... Args>
-inline QList<QVariant> DBusIPCProxyBinder::sendMethodCallWithReturn(const char *methodName, const Args & ... args) const
+inline QList<QVariant> DBusIPCProxyBinder::sendMethodCallWithReturn(const char *methodName, Args && ... args) const
 {
     DBusIPCMessage msg = sendMethodCall(methodName, args ...);
     QList<QVariant> ret;

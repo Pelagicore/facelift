@@ -47,11 +47,13 @@ namespace facelift {
 namespace local {
 
 template<typename ... Args>
-inline LocalIPCMessage LocalIPCProxyBinder::sendMethodCall(const char *methodName, const Args & ... args) const
+inline LocalIPCMessage LocalIPCProxyBinder::sendMethodCall(const char *methodName, Args && ... args) const
 {
     LocalIPCMessage msg(methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     auto replyMessage = call(msg);
     if (replyMessage.isErrorMessage()) {
         onServerNotAvailableError(methodName);
@@ -60,11 +62,13 @@ inline LocalIPCMessage LocalIPCProxyBinder::sendMethodCall(const char *methodNam
 }
 
 template<typename ReturnType, typename ... Args>
-inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
+inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args)
 {
     LocalIPCMessage msg(methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     asyncCall(msg, this, [this, answer](LocalIPCMessage &msg) {
                 ReturnType returnValue;
                 if (msg.isReplyMessage()) {
@@ -77,11 +81,13 @@ inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, fac
 }
 
 template<typename ... Args>
-inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
+inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args)
 {
     LocalIPCMessage msg(methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [&msg](const auto &v){msg << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
     asyncCall(msg, this, [answer](LocalIPCMessage &msg) {
                 Q_UNUSED(msg);
                 answer();
@@ -111,11 +117,14 @@ inline void LocalIPCProxyBinder::sendSetterCall(const QString& property, const P
 
 
 template<typename ... Args>
-inline void LocalIPCServiceAdapterBase::sendSignal(const QString& signalName, const Args & ... args)
+inline void LocalIPCServiceAdapterBase::sendSignal(const QString& signalName, Args && ... args)
 {
     LocalIPCMessage signal(signalName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, [this, &signal](const auto &v){signal << QVariant::fromValue(v);});
+    using expander = int[];
+        (void)expander{0,
+            (void(signal << QVariant::fromValue(std::forward<Args>(args))), 0)...
+        };
+
     this->send(signal);
 }
 

@@ -85,16 +85,16 @@ public:
     void sendSetterCall(const QString &property, const PropertyType &value);
 
     template<typename ... Args>
-    LocalIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
+    LocalIPCMessage sendMethodCall(const char *methodName, Args && ... args) const;
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args);
 
     template<typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args);
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, Args && ... args) const;
 
     LocalIPCMessage call(LocalIPCMessage &message) const;
 

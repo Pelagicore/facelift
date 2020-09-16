@@ -67,7 +67,7 @@ public:
     inline void sendPropertiesChanged(const QString& property , const Value & value);
 
     template<typename ... Args>
-    void sendSignal(const QString& signalName, const Args & ... args);
+    void sendSignal(const QString& signalName, Args && ... args);
 
     template<typename ReturnType>
     void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue);

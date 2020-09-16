@@ -1,3 +1,4 @@
+find_package(Qt5DBus REQUIRED)
 
 facelift_add_library(FaceliftIPCCommonLib
     SOURCES
@@ -34,6 +35,9 @@ facelift_add_library(FaceliftIPCCommonLib
         IPCAttachedPropertyFactory.h
         IPCServiceAdapter.h
         Registry.h
-    LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
+    LINK_LIBRARIES
+        FaceliftModelLib
+        FaceliftCommonLib
+        Qt5::DBus
     MONOLITHIC_SUPPORTED
 )

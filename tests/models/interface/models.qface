@@ -42,4 +42,44 @@ interface ModelInterface {
     void deleteModelItems(int first, int last);
     void insertNewModelItems(int first, int last);
     void renameModelItem(int first, int last, int serial);
+
+    OversizedStruct oversizedStruct;
+    HugeStruct hugeStruct;
+    HugeStruct hungryBeast(HugeStruct hugeStruct);
+}
+
+
+struct FirstLevel {
+string someString;
+int someInt;
+bool someBool;
+string someOtherString;
+int someOtherInt;
+bool someOtherBool;
+}
+
+struct SecondLevel {
+FirstLevel firstLevel;
+FirstLevel anotherfirstLevel;
+FirstLevel yetAnotherFirstLevel;
+}
+
+struct ThirdLevel {
+SecondLevel secondLevel;
+SecondLevel anotherSecondLevel;
+SecondLevel yetAnotherSecondLevel;
+}
+
+struct HugeStruct {
+    ThirdLevel thirdLevel;
+    ThirdLevel anotherThirdLevel;
+    ThirdLevel yetAnotherThirdLevel;
+}
+
+@serializeOverIPC: true
+struct OversizedStruct {
+ThirdLevel thirdLevel;
+ThirdLevel anotherThirdLevel;
+ThirdLevel yetAnotherThirdLevel;
+ThirdLevel theKiller;
 }

@@ -211,6 +211,9 @@ def isQMLImplementationEnabled(self):
 def isSerializable(self):
     return True if self.tags.get('serializable') else generateAll
 
+def serializeOverIPC(self):
+    return True if self.tags.get('serializeOverIPC') else generateAll
+
 def isQObjectWrapperEnabled(self):
     return True if self.tags.get('qml-component') else False
 
@@ -309,6 +312,7 @@ setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
 
 setattr(qface.idl.domain.Struct, 'verifyStruct', property(verifyStruct))
 setattr(qface.idl.domain.Struct, 'isSerializable', property(isSerializable))
+setattr(qface.idl.domain.Struct, 'serializeOverIPC', property(serializeOverIPC))
 setattr(qface.idl.domain.Struct, 'isQObjectWrapperEnabled', property(isQObjectWrapperEnabled))
 setattr(qface.idl.domain.Struct, 'isQObjectWrapperDeprecated', property(isQObjectWrapperDeprecated))
 
