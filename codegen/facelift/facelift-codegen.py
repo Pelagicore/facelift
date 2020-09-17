@@ -132,7 +132,7 @@ def requiredIncludeFromType(symbol, suffix):
 
 def insertUniqueType(symbol, unique_types):
     type = symbol.type.nested if symbol.type.nested else symbol.type
-    if type not in (t.name for t in unique_types):
+    if type.name not in (t.name for t in unique_types):
         unique_types.append(type)
 
 def referencedTypes(self):
