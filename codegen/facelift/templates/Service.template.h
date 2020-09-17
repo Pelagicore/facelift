@@ -43,7 +43,9 @@
 
 // Dependencies
 {% for type in interface.referencedTypes %}
+{% if type.requiredInclude != "" %}
 {{type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}

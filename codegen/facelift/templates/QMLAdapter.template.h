@@ -48,7 +48,9 @@
 #include "{{interfaceName}}.h"
 
 {% for type in interface.referencedTypes %}
+{% if type.requiredInclude != "" %}
 {{type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 //// Sub interfaces
