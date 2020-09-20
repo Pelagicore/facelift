@@ -104,6 +104,7 @@ struct {{interfaceName}}IPCAdapter::Impl {
 #ifdef DBUS_IPC_ENABLED
     {% for type in interface.referencedTypes %}
     {% if (not type.is_primitive) %}
+    {% if (not type.is_enum) %}
     {% if (not type.is_model) %}
     {% if (not type.is_interface) %}
     qDBusRegisterMetaType<{{type.fullyQualifiedCppType}}>();
@@ -118,6 +119,7 @@ struct {{interfaceName}}IPCAdapter::Impl {
     {{type.nested.fullyQualifiedCppType}}::registerDBusTypes();
     Q_ASSERT_X(strlen(QDBusMetaType::typeToSignature(qMetaTypeId<{{type.fullyQualifiedCppType}}>())) < DBUS_MAXIMUM_SIGNATURE_LENGTH, "Signature overflow",
              "Struct's signature exceeds dbus limit, annonate @serializeOverIPC to switch to binary array stream of the struct over dbus, but yet better rethink your structure!");
+    {% endif %}
     {% endif %}
     {% endif %}
     {% endif %}

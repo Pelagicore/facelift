@@ -52,21 +52,15 @@ class QDBusEnumMarshal<T, typename std::enable_if<std::is_enum<T>::value>::type>
 public:
     static QDBusArgument& marshal(QDBusArgument &argument, const T& source)
     {
-        argument.beginStructure();
         argument << static_cast<int>(source);
-        argument.endStructure();
         return argument;
     }
 
     static const QDBusArgument& unmarshal(const QDBusArgument &argument, T &source)
     {
-        int a;
-        argument.beginStructure();
-        argument >> a;
-        argument.endStructure();
-
-        source = static_cast<T>(a);
-
+        int tmp;
+        argument >> tmp;
+        source = static_cast<T>(tmp);
         return argument;
     }
 };

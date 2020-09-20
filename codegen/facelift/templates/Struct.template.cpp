@@ -141,11 +141,11 @@ void {{struct.name}}::registerDBusTypes()
     {% if field.type.nested.is_struct %}
     {{field.type.nested.cppType}}::registerDBusTypes();
     {% endif %}
-    {% if (not field.type.is_primitive and not field.type.is_model and not field.type.is_interface and not field.type.is_list and not field.type.is_map) %}
+    {% if (not field.type.is_primitive and not field.type.is_enum and not field.type.is_model and not field.type.is_interface and not field.type.is_list and not field.type.is_map) %}
     qDBusRegisterMetaType<{{field.cppType}}>();
     {% endif %}
     {% if (field.type.is_list or field.type.is_map) %}
-    {% if (not field.type.nested.is_primitive) %}
+    {% if (not field.type.nested.is_primitive) or (not field.type.nested.is_enum) %}
     qDBusRegisterMetaType<{{field.cppType}}>();
     qDBusRegisterMetaType<{{field.type.nested.cppType}}>();
     {% endif %}

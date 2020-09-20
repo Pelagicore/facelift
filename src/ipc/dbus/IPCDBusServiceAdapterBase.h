@@ -177,9 +177,14 @@ private:
         return qvariant_cast<QStringList>(qdbus_cast<QDBusVariant>(value).variant());
     }
 
-    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
     QVariant castToVariantSpecialized(HelperType<T>, const T& value) {
         return QVariant::fromValue(value);
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    QVariant castToVariantSpecialized(HelperType<T>, const T& value) {
+        return QVariant::fromValue(static_cast<int>(value));
     }
 
     QVariant castToVariantSpecialized(HelperType<QList<QString>>, const QList<QString>& value) {
@@ -212,6 +217,22 @@ private:
         }
         return QVariant::fromValue(objectPathesMap);
     }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    QVariant castToVariantSpecialized(HelperType<QList<T>>, const QList<T>& value) {
+        QList<int> ret;
+        std::transform(value.begin(), value.end(), std::back_inserter(ret), [](const T& entry){return static_cast<int>(entry);});
+        return QVariant::fromValue(ret);
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    QVariant castToVariantSpecialized(HelperType<QMap<QString, T>>, const QMap<QString, T>& value) {
+        QMap<QString, int> ret;
+        for (const QString& key: value.keys()) {
+            ret[key] = static_cast<int>(value[key]);
+        }
+        return QVariant::fromValue(ret);
+    }
 };
 
 template<typename Value>
@@ -229,7 +250,7 @@ inline void IPCDBusServiceAdapterBase::sendSignal(const QString& signalName, Arg
     DBusIPCMessage signal(objectPath(), interfaceName(), signalName);
     using expander = int[];
         (void)expander{0,
-            (void(signal << QVariant::fromValue(std::forward<Args>(args))), 0)...
+            (void(signal << castToVariant(std::forward<Args>(args))), 0)...
         };
     this->send(signal);
 }
@@ -237,7 +258,7 @@ inline void IPCDBusServiceAdapterBase::sendSignal(const QString& signalName, Arg
 template<typename ReturnType>
 inline void IPCDBusServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage, const ReturnType returnValue)
 {
-    replyMessage << QVariant::fromValue(returnValue);
+    replyMessage << castToVariant(returnValue);
     send(replyMessage);
 }
 

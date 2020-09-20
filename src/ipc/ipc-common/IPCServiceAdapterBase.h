@@ -118,10 +118,16 @@ public:
     }
 private:
     template<typename T> struct HelperType { };
-    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
     const char* typeToSignatureSpecialized(HelperType<T>) const
     {
         return QDBusMetaType::typeToSignature(qMetaTypeId<T>());
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    const char* typeToSignatureSpecialized(HelperType<T>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<int>());
     }
 
     template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
@@ -145,6 +151,18 @@ private:
     inline const char* typeToSignatureSpecialized(HelperType<QMap<QString, T*>>) const
     {
         return QDBusMetaType::typeToSignature(qMetaTypeId<QMap<QString, QString>>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<QList<T>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QList<int>>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<QMap<QString, T>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QMap<QString, int>>());
     }
 
     QList<QPointer<IPCServiceAdapterBase> > m_subAdapters;

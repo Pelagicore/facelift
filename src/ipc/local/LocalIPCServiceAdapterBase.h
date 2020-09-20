@@ -114,13 +114,18 @@ public:
         return qvariant_cast<T>(qvariant_cast<QDBusVariant>(value).variant());
     }
 
-    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
     QVariant castToVariant(const T& value) {
         return QVariant::fromValue(value);
     }
 
     QVariant castToVariant(const QList<QString>& value) {
         return QVariant::fromValue(QStringList(value)); // workaround to use QList<QString> since its signature matches the QStringList
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    QVariant castToVariant(const T& value) {
+        return QVariant::fromValue(static_cast<int>(value));
     }
 
     template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
@@ -155,12 +160,7 @@ public:
         return QDBusVariant(castToVariant(value));
     }
 
-    QDBusVariant castToDBusVariant(const QList<QString>& value) {
-        return QDBusVariant(castToVariant(value));
-    }
-
 protected:
-    std::unique_ptr<LocalIPCMessage> m_pendingOutgoingMessage;
 
     QString m_introspectionData;
     QString m_serviceName;

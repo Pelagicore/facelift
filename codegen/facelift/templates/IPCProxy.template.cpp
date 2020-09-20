@@ -93,11 +93,13 @@ struct {{className}}::Impl {
 #ifdef DBUS_IPC_ENABLED
     {% for type in interface.referencedTypes %}
     {% if (not type.is_primitive) %}
+    {% if (not type.is_enum) %}
     {% if (not type.is_model) %}
     {% if (not type.is_interface) %}
     qDBusRegisterMetaType<{{type.fullyQualifiedCppType}}>();
     qDBusRegisterMetaType<QMap<QString,{{type.fullyQualifiedCppType}}>>();
     qDBusRegisterMetaType<QList<{{type.fullyQualifiedCppType}}>>();
+    {% endif %}
     {% endif %}
     {% endif %}
     {% endif %}
