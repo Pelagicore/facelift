@@ -106,13 +106,8 @@ public:
     }
 
     template<typename T>
-    T castFromVariant(const QVariant& value) {
-        return m_ipcBinder.castFromVariant<T>(value);
-    }
-
-    template<typename T>
-    T castFromDBusVariant(const QVariant& value) {
-        return m_ipcBinder.castFromDBusVariant<T>(value);
+    T castFromQVariant(const QVariant& value) {
+        return m_ipcBinder.castFromQVariant<T>(value);
     }
 
 protected:

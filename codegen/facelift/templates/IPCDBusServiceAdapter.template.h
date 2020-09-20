@@ -44,6 +44,7 @@
 #include "IPCDBusServiceAdapter.h"
 #include "IPCAdapterModelPropertyHandler.h"
 #include "DBusManager.h"
+#include "FaceliftDBusMarshaller.h"
 
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}.h"
 #include "{{module.fullyQualifiedPath}}/{{interfaceName}}QMLAdapter.h"
@@ -86,13 +87,13 @@ public:
 
     void connectSignals() override;
 
-    QMap<QString, QDBusVariant> changedProperties();
+    QVariantMap changedProperties();
 
-    void marshalPropertyValues(const QList<QVariant>& arguments, OutputIPCMessage& msg) override;
+    QVariantMap marshalProperties() override;
 
-    void marshalProperty(const QList<QVariant>& arguments, OutputIPCMessage& msg) override;
+    QVariant marshalProperty(const QString& propertyName) override;
 
-    void setProperty(const QList<QVariant>& arguments) override;
+    void setProperty(const QString& propertyName, const QVariant& value) override;
 
     {% for event in interface.signals %}
     void {{event}}(

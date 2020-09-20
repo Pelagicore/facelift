@@ -36,31 +36,13 @@
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <QDataStream>
-#include "FaceliftModel.h"
+#include <QTextStream>
 
 namespace facelift {
 
-FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
-
-typedef int ASyncRequestID;
-
-enum class IPCHandlingResult {
-    OK,          // Message is successfully handled
-    OK_ASYNC,    // Message is handled but it is an asynchronous request, so no reply should be sent for now
-    INVALID,     // Message is invalid and could not be handled
-};
-
-struct FaceliftIPCCommonLib_EXPORT IPCCommon
-{
-    static constexpr const char *MODEL_DATA_CHANGED_MESSAGE_NAME = "ModelUpdateEventDataChanged";
-    static constexpr const char *MODEL_INSERT_MESSAGE_NAME = "ModelUpdateEventInsert";
-    static constexpr const char *MODEL_REMOVE_MESSAGE_NAME = "ModelUpdateEventRemove";
-    static constexpr const char *MODEL_MOVE_MESSAGE_NAME = "ModelUpdateEventMove";
-    static constexpr const char *MODEL_RESET_MESSAGE_NAME = "ModelUpdateEventReset";
-};
-
-
-
+void appendPropertySignature(QTextStream& s, const char* propertyName, const char* type, bool readonly);
+void appendReadyProperty(QTextStream& s);
+void appendDBusMethodSignature(QTextStream &s, const char* methodName, const std::list<std::pair<const char*, const char*>>& inputArgs, const char* outputArgType = "");
+void appendDBusSignalSignature(QTextStream &s, const char* signalName, const std::list<std::pair<const char*, const char*>>& args);
+void appendDBusModelSignals(QTextStream &s);
 }
-

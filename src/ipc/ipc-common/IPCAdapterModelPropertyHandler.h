@@ -30,7 +30,6 @@
 #pragma once
 
 #include <QObject>
-#include <QtDBus>
 #include "ipc-common.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
@@ -60,7 +59,7 @@ public:
             for (int i = first ; i <= last ; i++) {
                 changedItems.append(m_model->elementAt(i));
             }
-            m_adapter.sendSignal("ModelUpdateEventDataChanged", modelPropertyName, first, changedItems);
+            m_adapter.sendSignal(IPCCommon::MODEL_DATA_CHANGED_MESSAGE_NAME, modelPropertyName, first, changedItems);
         });
         QObject::connect(m_model, &facelift::ModelBase::beginRemoveElements, &m_adapter, [this] (int first, int last) {
             m_removeFirst = first;
@@ -69,7 +68,7 @@ public:
         QObject::connect(m_model, &facelift::ModelBase::endRemoveElements, &m_adapter, [this, modelPropertyName] () {
             Q_ASSERT(m_removeFirst != UNDEFINED);
             Q_ASSERT(m_removeLast != UNDEFINED);
-            m_adapter.sendSignal("ModelUpdateEventRemove", modelPropertyName, m_removeFirst, m_removeLast);
+            m_adapter.sendSignal(IPCCommon::MODEL_REMOVE_MESSAGE_NAME, modelPropertyName, m_removeFirst, m_removeLast);
             m_removeFirst = UNDEFINED;
             m_removeLast = UNDEFINED;
         });
@@ -82,7 +81,7 @@ public:
             Q_ASSERT(m_moveSourceFirstIndex != UNDEFINED);
             Q_ASSERT(m_moveSourceLastIndex != UNDEFINED);
             Q_ASSERT(m_moveDestinationIndex != UNDEFINED);
-            m_adapter.sendSignal("ModelUpdateEventMove", modelPropertyName, m_moveSourceFirstIndex, m_moveSourceLastIndex, m_moveDestinationIndex);
+            m_adapter.sendSignal(IPCCommon::MODEL_MOVE_MESSAGE_NAME, modelPropertyName, m_moveSourceFirstIndex, m_moveSourceLastIndex, m_moveDestinationIndex);
             m_moveSourceFirstIndex = UNDEFINED;
             m_moveSourceLastIndex = UNDEFINED;
             m_moveDestinationIndex = UNDEFINED;
@@ -94,7 +93,7 @@ public:
         QObject::connect(m_model, &facelift::ModelBase::endInsertElements, &m_adapter, [this, modelPropertyName] () {
             Q_ASSERT(m_insertFirst != UNDEFINED);
             Q_ASSERT(m_insertLast != UNDEFINED);
-            m_adapter.sendSignal("ModelUpdateEventInsert", modelPropertyName, m_insertFirst, m_insertLast);
+            m_adapter.sendSignal(IPCCommon::MODEL_INSERT_MESSAGE_NAME, modelPropertyName, m_insertFirst, m_insertLast);
             m_insertFirst = UNDEFINED;
             m_insertLast = UNDEFINED;
         });
@@ -103,16 +102,13 @@ public:
         });
         QObject::connect(m_model, &facelift::ModelBase::endResetModel, &m_adapter, [this, modelPropertyName] () {
             Q_ASSERT(m_resettingModel);
-            m_adapter.sendSignal("ModelUpdateEventReset", modelPropertyName, m_model->size());
+            m_adapter.sendSignal(IPCCommon::MODEL_RESET_MESSAGE_NAME, modelPropertyName, m_model->size());
             m_resettingModel = false;
         });
     }
 
-    void handleModelRequest(typename IPCAdapterType::InputIPCMessage &requestMessage, typename IPCAdapterType::OutputIPCMessage &replyMessage)
+    void handleModelRequest(int first, int last, typename IPCAdapterType::OutputIPCMessage &replyMessage)
     {
-        QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
-        int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-        int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
         QList<ModelDataType> list;
 
         // Make sure we do not request items which are out of range
@@ -123,8 +119,8 @@ public:
             list.append(m_model->elementAt(i));
         }
 
-        replyMessage << QVariant::fromValue(first);
-        replyMessage << QVariant::fromValue(list);
+        replyMessage << m_adapter.template castToQVariant(first);
+        replyMessage << m_adapter.template castToQVariant(list);
     }
 
 private:

@@ -25,6 +25,7 @@ if(Qt5DBus_FOUND)
             DBusManager.h
             DBusManagerInterface.h
             DBusIPCProxy.h
+            FaceliftDBusMarshaller.h
             IPCDBusServiceAdapter.h
             DBusObjectRegistry.h
             DBusIPCMessage.h

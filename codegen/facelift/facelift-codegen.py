@@ -132,7 +132,7 @@ def requiredIncludeFromType(symbol, suffix):
 
 def insertUniqueType(symbol, unique_types):
     type = symbol.type.nested if symbol.type.nested else symbol.type
-    if type not in (t.name for t in unique_types):
+    if type.name not in (t.name for t in unique_types):
         unique_types.append(type)
 
 def referencedTypes(self):
@@ -149,21 +149,23 @@ def referencedTypes(self):
             insertUniqueType(param, types)
     return types
 
-def appendTypeIfStructure(symbol, list):
+def appendTypeIfStructureAndUnique(symbol, unique_list):
     type = symbol.type.nested if symbol.type.nested else symbol.type
-    if type.is_struct:
-        list.append(type)
+    if type.is_struct and type.name not in (t.name for t in unique_list):
+        unique_list.append(type)
 
 def referencedStructureTypes(self):
     interfaces = []
     for property in self.properties:
-        appendTypeIfStructure(property, interfaces)
+        appendTypeIfStructureAndUnique(property, interfaces)
     for m in self.operations:
         for param in m.parameters:
-            appendTypeIfStructure(param, interfaces)
+            appendTypeIfStructureAndUnique(param, interfaces)
+        if m.hasReturnValue:
+            appendTypeIfStructureAndUnique(m.type, interfaces)
     for m in self.signals:
         for param in m.parameters:
-            appendTypeIfStructure(param, interfaces)
+            appendTypeIfStructureAndUnique(param, interfaces)
     return interfaces
 
 def appendTypeIfInterface(symbol, list):
@@ -211,8 +213,8 @@ def isQMLImplementationEnabled(self):
 def isSerializable(self):
     return True if self.tags.get('serializable') else generateAll
 
-def serializeOverIPC(self):
-    return True if self.tags.get('serializeOverIPC') else generateAll
+def toByteArrayOverDBus(self):
+    return True if self.tags.get('toByteArrayOverDBus') else generateAll
 
 def isQObjectWrapperEnabled(self):
     return True if self.tags.get('qml-component') else False
@@ -312,7 +314,7 @@ setattr(qface.idl.domain.Operation, 'isAsync', property(isAsync))
 
 setattr(qface.idl.domain.Struct, 'verifyStruct', property(verifyStruct))
 setattr(qface.idl.domain.Struct, 'isSerializable', property(isSerializable))
-setattr(qface.idl.domain.Struct, 'serializeOverIPC', property(serializeOverIPC))
+setattr(qface.idl.domain.Struct, 'toByteArrayOverDBus', property(toByteArrayOverDBus))
 setattr(qface.idl.domain.Struct, 'isQObjectWrapperEnabled', property(isQObjectWrapperEnabled))
 setattr(qface.idl.domain.Struct, 'isQObjectWrapperDeprecated', property(isQObjectWrapperDeprecated))
 
@@ -371,6 +373,7 @@ def run_generation(input, output, dependency, libraryName, all):
             generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx, libraryName, "")
+
             for interface in module.interfaces:
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})

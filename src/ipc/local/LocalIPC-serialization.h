@@ -36,7 +36,6 @@
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <QtDBus>
 #include "LocalIPCMessage.h"
 #include "LocalIPCProxy.h"
 #include "LocalIPCServiceAdapter.h"
@@ -72,7 +71,7 @@ inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, fac
     asyncCall(msg, this, [this, answer](LocalIPCMessage &msg) {
                 ReturnType returnValue;
                 if (msg.isReplyMessage()) {
-                    returnValue = (!msg.arguments().isEmpty() ? qvariant_cast<ReturnType>(msg.arguments()[0]): ReturnType());
+                    returnValue = (!msg.arguments().isEmpty() ? qvariant_cast<ReturnType>(msg.arguments().first()): ReturnType());
                     answer(returnValue);
                 } else {
                     qCWarning(LogIpc) << "Error received" << msg.toString();
@@ -97,10 +96,10 @@ inline void LocalIPCProxyBinder::sendAsyncMethodCall(const char *methodName, fac
 template<typename PropertyType>
 inline void LocalIPCProxyBinder::sendSetterCall(const QString& property, const PropertyType &value)
 {
-    LocalIPCMessage msg(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::SET_PROPERTY);
+    LocalIPCMessage msg(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::SET_PROPERTY_MESSAGE_NAME);
     msg << QVariant::fromValue(m_interfaceName);
     msg << QVariant::fromValue(property);
-    msg << QVariant::fromValue(QDBusVariant(QVariant::fromValue(value)));
+    msg << QVariant::fromValue(QVariant::fromValue(value));
     if (isSynchronous()) {
         auto replyMessage = call(msg);
         if (replyMessage.isErrorMessage()) {

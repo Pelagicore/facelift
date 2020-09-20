@@ -47,7 +47,6 @@
 {{field.type.requiredInclude}}
 {% endfor %}
 
-class QDBusArgument;
 {{module.namespaceCppOpen}}
 
 {% if struct.isQObjectWrapperEnabled %}
@@ -85,15 +84,6 @@ public:
 
     {{struct.name}}& operator=(const {{struct.name}} &right);
 
-    friend QDBusArgument &operator<<(QDBusArgument &argument, const {{struct.name}} &{{struct.name|lower}});
-    friend const QDBusArgument &operator>>(const QDBusArgument &argument, {{struct.name}} &{{struct.name|lower}});
-
-
-    friend QDataStream& operator<<( QDataStream& dataStream,  const {{struct.name}} &{{struct.name|lower}} );
-    friend QDataStream& operator>>( QDataStream& dataStream, {{struct.name}} &{{struct.name|lower}} );
-
-    static void registerDBusTypes();
-
     Q_INVOKABLE {{struct.fullyQualifiedCppType}} clone() const;
 
     {% if struct.isSerializable %}
@@ -104,6 +94,10 @@ public:
 
     void deserialize(const QByteArray &array);
 
+    {% endif %}
+
+    {% if struct.toByteArrayOverDBus %}
+    static bool toByteArrayOverDBus();
     {% endif %}
 
     QString toString() const;

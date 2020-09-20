@@ -58,7 +58,6 @@ constexpr const char* {{interfaceName}}::FULLY_QUALIFIED_INTERFACE_NAME;
         });
     }
 #endif
-    registerTypes("");
 
 }
 {{module.namespaceCppClose}}

@@ -1,8 +1,7 @@
-find_package(Qt5DBus REQUIRED)
-
 facelift_add_library(FaceliftIPCCommonLib
     SOURCES
         ipc-common.cpp
+        DBusSignatureHelper.cpp
         ModuleIPCBase.cpp
         IPCServiceAdapterBase.cpp
         NotAvailableImplBase.cpp
@@ -15,6 +14,7 @@ facelift_add_library(FaceliftIPCCommonLib
         LocalProviderBinderBase.cpp
     HEADERS
         ipc-common.h
+        DBusSignatureHelper.h
         NotAvailableImpl.h
         NotAvailableImplBase.h
         IPCProxyNewBase.h
@@ -38,6 +38,5 @@ facelift_add_library(FaceliftIPCCommonLib
     LINK_LIBRARIES
         FaceliftModelLib
         FaceliftCommonLib
-        Qt5::DBus
     MONOLITHIC_SUPPORTED
 )

@@ -42,11 +42,12 @@ namespace local {
 
 struct FaceliftIPCLocalLib_EXPORT FaceliftIPCCommon
 {
-    static constexpr const char *GET_ALL_PROPERTIES = "GetAll";
-    static constexpr const char *GET_PROPERTY = "Get";
-    static constexpr const char *SET_PROPERTY = "Set";
-    static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
-    static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
+   static constexpr const char *GET_ALL_PROPERTIES_MESSAGE_NAME = "GetAll";
+   static constexpr const char *GET_PROPERTY_MESSAGE_NAME = "Get";
+   static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "Set";
+   static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
+   static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
+   static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
 };
 
 }

@@ -91,6 +91,12 @@ public:
         registerService(objectPath, static_cast<ServiceType *>(serverObject));  // TODO: get rid of that cast
     }
 
+    template<typename T>
+    const char* typeToSignature() const
+    {
+        return "";
+    }
+
 protected:
     QPointer<ServiceType> m_service;
 };

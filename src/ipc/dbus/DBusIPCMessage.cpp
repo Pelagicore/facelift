@@ -74,14 +74,7 @@ QList<QVariant> DBusIPCMessage::arguments() const
 
 DBusIPCMessage &DBusIPCMessage::operator<<(const QVariant &arg)
 {
-    static int qListStringTypeId = qMetaTypeId<QList<QString>>();
-    if (arg.userType() != qListStringTypeId) { // workaround to use QList<QString> since its signature matches the QStringList
-        m_message << arg;
-    }
-    else {
-        QStringList stringList(arg.value<QList<QString>>());
-        m_message << stringList;
-    }
+    m_message << arg;
     return *this;
 }
 
@@ -117,9 +110,9 @@ DBusIPCMessage DBusIPCMessage::createReply()
     return DBusIPCMessage(m_message.createReply());
 }
 
-DBusIPCMessage DBusIPCMessage::createErrorReply(const QString &msg, const QString &member)
+DBusIPCMessage DBusIPCMessage::createErrorReply(const QString &name, const QString &msg)
 {
-    return DBusIPCMessage(m_message.createErrorReply(msg, member));
+    return DBusIPCMessage(m_message.createErrorReply(name, msg));
 }
 
 QString DBusIPCMessage::signature() const

@@ -60,8 +60,8 @@ class FaceliftIPCLocalLib_EXPORT LocalIPCRequestHandler
 {
 
 public:
-    virtual void unmarshalPropertyValues(LocalIPCMessage &msg) = 0;
-    virtual void unmarshalPropertiesChanged(LocalIPCMessage &msg) = 0;
+    virtual void unmarshalProperties(const QVariantMap& changedProperties) = 0;
+    virtual void unmarshalPropertiesChanged(const QVariantMap& changedProperties) = 0;
     virtual void handleSignals(LocalIPCMessage& msg) = 0;
     virtual const QList<QString>& getSignals() const = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;

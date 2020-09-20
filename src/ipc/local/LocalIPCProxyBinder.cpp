@@ -37,7 +37,6 @@
 #include "LocalIPCProxy.h"
 #include "LocalIPC-serialization.h"
 #include "LocalIPCRegistry.h"
-#include "FaceliftIPCCommon.h"
 
 
 namespace facelift {
@@ -127,7 +126,12 @@ void LocalIPCProxyBinder::onServerNotAvailableError(const QString& methodName) c
 
 void LocalIPCProxyBinder::onPropertiesChanged(LocalIPCMessage &msg)
 {
-    m_serviceObject->unmarshalPropertiesChanged(msg);
+    QListIterator<QVariant> argumentsIterator(msg.arguments());
+    QString interfaceName = (argumentsIterator.hasNext() ? qvariant_cast<QString>(argumentsIterator.next()): QString());
+    if (interfaceName == m_interfaceName) {
+        QVariantMap changedProperties = (argumentsIterator.hasNext() ? qvariant_cast<QVariantMap>(argumentsIterator.next()): QVariantMap());
+        m_serviceObject->unmarshalPropertiesChanged(changedProperties);
+    }
 }
 
 LocalIPCMessage LocalIPCProxyBinder::call(LocalIPCMessage &message) const
@@ -151,12 +155,13 @@ void LocalIPCProxyBinder::asyncCall(LocalIPCMessage &requestMessage, QObject *co
 
 void LocalIPCProxyBinder::requestPropertyValues()
 {
-    LocalIPCMessage msg(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::GET_ALL_PROPERTIES);
+    LocalIPCMessage msg(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::GET_ALL_PROPERTIES_MESSAGE_NAME);
     msg << interfaceName();
 
     auto replyHandler = [this](LocalIPCMessage &replyMessage) {
                 if (replyMessage.isReplyMessage()) {
-                    m_serviceObject->unmarshalPropertyValues(replyMessage);
+                    QVariantMap values = (!replyMessage.arguments().isEmpty() ? qvariant_cast<QVariantMap>(replyMessage.arguments().first()): QVariantMap());
+                    m_serviceObject->unmarshalProperties(values);
                     m_serviceObject->setServiceRegistered(true);
                     emit serviceAvailableChanged();
                 } else {

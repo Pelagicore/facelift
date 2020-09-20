@@ -1,10 +1,4 @@
 
-set(QtDBusDependency "")
-if(FACELIFT_DBUS_IPC_ENABLED)
-find_package(Qt5DBus REQUIRED)
-set(QtDBusDependency "Qt5::DBus")
-endif()
-
 facelift_add_library(FaceliftModelLib
     SOURCES
         StructureBase.cpp
@@ -87,7 +81,6 @@ facelift_add_library(FaceliftModelLib
     LINK_LIBRARIES
         Qt5::Qml
         Qt5::Quick
-        ${QtDBusDependency}
         FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )

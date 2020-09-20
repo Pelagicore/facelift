@@ -30,7 +30,6 @@
 
 #pragma once
 
-#include <QtDBus>
 #include "LocalIPCMessage.h"
 #include "IPCServiceAdapterBase.h"
 #include "FaceliftIPCCommon.h"
@@ -63,7 +62,7 @@ public:
 
     IPCHandlingResult handleMessage(LocalIPCMessage &message);
 
-    inline void sendPropertiesChanged(const QMap<QString, QDBusVariant> &changedProperties);
+    inline void sendPropertiesChanged(const QVariantMap &changedProperties);
 
     template<typename ... Args>
     void sendSignal(const QString& signalName, Args && ... args);
@@ -75,11 +74,11 @@ public:
 
     virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
 
-    virtual void marshalPropertyValues(const QList<QVariant>& arguments, LocalIPCMessage &msg) = 0;
+    virtual QVariantMap marshalProperties() = 0;
 
-    virtual void marshalProperty(const QList<QVariant>& arguments, LocalIPCMessage &msg) = 0;
+    virtual QVariant marshalProperty(const QString& propertyName) = 0;
 
-    virtual void setProperty(const QList<QVariant>& arguments) = 0;
+    virtual void setProperty(const QString& propertyName, const QVariant& value) = 0;
 
     void registerService() override;
 
@@ -104,59 +103,40 @@ public:
     }
 
     template<typename T>
-    T castFromVariant(const QVariant& value) {
+    T castFromQVariant(const QVariant& value) {
         return qvariant_cast<T>(value);
     }
 
-    template<typename T>
-    T castFromDBusVariant(const QVariant& value) {
-        return qvariant_cast<T>(qvariant_cast<QDBusVariant>(value).variant());
-    }
-
-    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
-    QVariant castToVariant(const T& value) {
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const T& value) {
         return QVariant::fromValue(value);
     }
 
-    QVariant castToVariant(const QList<QString>& value) {
-        return QVariant::fromValue(QStringList(value)); // workaround to use QList<QString> since its signature matches the QStringList
-    }
-
-    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
-    QVariant castToVariant(const T& value) {
-        return QVariant::fromValue(static_cast<int>(value));
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const T& value) {
+        QString  objectPath;
+        if (value != nullptr) {
+            objectPath = getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(value)->objectPath();
+        }
+        return QVariant::fromValue(objectPath);
     }
 
     template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
-    QVariant castToVariant(const T& value) {
-        DBusObjectPath  dbusObjectPath;
-        if (value != nullptr) {
-            dbusObjectPath = DBusObjectPath (getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(value)->objectPath());
-        }
-        return QVariant::fromValue(dbusObjectPath);
-    }
-
-    template<typename T>
-    QVariant castToVariant(const QList<T*>& value) {
-        QStringList /*QList<DBusObjectPath >*/ objectPathes;
-        for (T* service: value) {
-            objectPathes.append(DBusObjectPath (getOrCreateAdapter<typename T::IPCLocalAdapterType>(service)->objectPath()));
+    QVariant castToQVariant(const QList<T>& value) {
+        QStringList objectPathes;
+        for (T service: value) {
+            objectPathes.append(getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(service)->objectPath());
         }
         return QVariant::fromValue(objectPathes);
     }
 
-    template<typename T>
-    QVariant castToVariant(const QMap<QString, T*>& value) {
-        QMap<QString, DBusObjectPath > objectPathesMap;
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const QMap<QString, T>& value) {
+        QMap<QString, QString> objectPathesMap;
         for (const QString& key: value.keys()) {
-            objectPathesMap[key] = DBusObjectPath(getOrCreateAdapter<typename T::IPCLocalAdapterType>(value[key])->objectPath());
+            objectPathesMap[key] = getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(value[key])->objectPath();
         }
         return QVariant::fromValue(objectPathesMap);
-    }
-
-    template<typename T>
-    QDBusVariant castToDBusVariant(const T& value) {
-        return QDBusVariant(castToVariant(value));
     }
 
 protected:
@@ -169,7 +149,7 @@ protected:
     bool m_alreadyInitialized = false;
 };
 
-inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QMap<QString, QDBusVariant> &changedProperties )
+inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QVariantMap &changedProperties )
 {
     LocalIPCMessage reply(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
     reply << interfaceName();

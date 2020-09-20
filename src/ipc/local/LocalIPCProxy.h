@@ -42,8 +42,6 @@
 
 namespace facelift {
 
-typedef QString DBusObjectPath;
-
 namespace local {
 
 using namespace facelift;
@@ -105,47 +103,38 @@ public:
     }
 
     template<typename T>
-    T castFromVariant(const QVariant& value) {
-        return castFromVariantSpecialized(HelperType<T>(), value);
-    }
-
-    template<typename T>
-    T castFromDBusVariant(const QVariant& value) {
-        return castFromVariantSpecialized(HelperType<T>(), qvariant_cast<QDBusVariant>(value).variant());
+    T castFromQVariant(const QVariant& value) {
+        return castFromQVariantSpecialized(HelperType<T>(), value);
     }
 
 private:
     template<typename T> struct HelperType { };
     template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
-    T castFromVariantSpecialized(HelperType<T>, const QVariant& value) {
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
         return qvariant_cast<T>(value);
     }
 
-    QList<QString> castFromVariantSpecialized(HelperType<QList<QString>>, const QVariant& value) {
-        return qvariant_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(qvariant_cast<QString>(value));
     }
 
     template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
-    T castFromVariantSpecialized(HelperType<T>, const QVariant& value) {
-        return getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(qvariant_cast<DBusObjectPath>(value));
-    }
-
-    template<typename T>
-    QMap<QString, T*> castFromVariantSpecialized(HelperType<QMap<QString, T*>>, const QVariant& value) {
-        QMap<QString, T*> ret;
-        auto objectPaths = qvariant_cast<QMap<QString, DBusObjectPath>>(value);
+    QMap<QString, T> castFromQVariantSpecialized(HelperType<QMap<QString, T>>, const QVariant& value) {
+        QMap<QString, T> ret;
+        auto objectPaths = qvariant_cast<QMap<QString, QString>>(value);
         for (const QString& key: objectPaths.keys()) {
-            ret[key] = getOrCreateSubProxy<typename T::IPCLocalProxyType>(objectPaths[key]);
+            ret[key] = getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(objectPaths[key]);
         }
         return ret;
     }
 
-    template<typename T>
-    QList<T*> castFromVariantSpecialized(HelperType<QList<T*>>, const QVariant& value) {
-        QList<T*> ret;
-        auto objectPaths = qvariant_cast<QStringList/*QList<DBusObjectPath>*/>(value);
-        for (const DBusObjectPath& objectPath: objectPaths) {
-            ret.append(getOrCreateSubProxy<typename T::IPCLocalProxyType>(objectPath));
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QList<T> castFromQVariantSpecialized(HelperType<QList<T>>, const QVariant& value) {
+        QList<T> ret;
+        auto objectPaths = qvariant_cast<QStringList>(value);
+        for (const QString& objectPath: objectPaths) {
+            ret.append(getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(objectPath));
         }
         return ret;
     }

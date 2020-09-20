@@ -39,7 +39,7 @@ The following annotations can be used in structure definitions:
 
 |Annotation                     |              Description                                    | Supported over IPC |
 |-------------------------------|-------------------------------------------------------------|--------------------|
-|\@serializeOverIPC: true       | Treat the whole structure as byte array over IPC reducing structure signature only to DBUS Type BYTE | Yes             |
+|\@toByteArrayOverDBus: true    | Serialize the whole structure as one byte array over IPC reducing structure signature only to DBUS Type ARRAY OF BYTE | Yes             |
 |\@serializable: true           | Adds serialization/deserialization capability to the structure | Yes             |
 |\@qml-component: true          | Enables the creation and registration of a creatable QML component for the corresponding structure | Yes |
 

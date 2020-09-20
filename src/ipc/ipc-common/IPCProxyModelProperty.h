@@ -30,9 +30,9 @@
 #pragma once
 
 #include <QObject>
-#include <QtDBus>
 #include "FaceliftUtils.h"
 #include "ModelProperty.h"
+#include "ipc-common.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -56,14 +56,14 @@ public:
     void handleSignal(const typename IPCProxyType::InputIPCMessage &msg)
     {
         QListIterator<QVariant> argumentsIterator(msg.arguments());
-        const QString& modelPropertyName = (argumentsIterator.hasNext() ? qdbus_cast<QString>(argumentsIterator.next()): QString());
+        const QString& modelPropertyName = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<QString>(argumentsIterator.next()): QString());
         Q_ASSERT(!modelPropertyName.isEmpty());
-        const QString& eventName = msg.member();
+        const QString& messageName = msg.member();
 
-        if (eventName == QStringLiteral("ModelUpdateEventDataChanged"))
+        if (messageName == IPCCommon::MODEL_DATA_CHANGED_MESSAGE_NAME)
         {
-            int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-            QList<ModelDataType> list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
+            int first = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+            QList<ModelDataType> list = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
 
             int last = first + list.size() - 1;
             for (int i = first; i <= last; ++i) {
@@ -71,38 +71,38 @@ public:
             }
             emit this->dataChanged(first, last);
         }
-        else if (eventName == QStringLiteral("ModelUpdateEventInsert")) {
-            int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-            int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+        else if (messageName == IPCCommon::MODEL_INSERT_MESSAGE_NAME) {
+            int first = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+            int last = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
             emit this->beginInsertElements(first, last);
             clear(); // TODO: insert elements in cache without clear()
             emit this->endInsertElements();
         }
-        else if (eventName == QStringLiteral("ModelUpdateEventRemove"))
+        else if (messageName == IPCCommon::MODEL_REMOVE_MESSAGE_NAME)
         {
-            int first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-            int last = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            int first = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+            int last = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
             emit this->beginRemoveElements(first, last);
             m_cache.clear(); // TODO: remove elements from cache without clear()
             emit this->endRemoveElements();
         }
-        else if (eventName == QStringLiteral("ModelUpdateEventMove")) {
-            int sourceFirstIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-            int sourceLastIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-            int destinationIndex = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+        else if (messageName == IPCCommon::MODEL_MOVE_MESSAGE_NAME) {
+            int sourceFirstIndex = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+            int sourceLastIndex = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+            int destinationIndex = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
             emit this->beginMoveElements(sourceFirstIndex, sourceLastIndex, destinationIndex);
             m_cache.clear(); // TODO: move elements in cache without clear()
             emit this->endMoveElements();
         }
-        else if (eventName == QStringLiteral("ModelUpdateEventReset")) {
+        else if (messageName == IPCCommon::MODEL_RESET_MESSAGE_NAME) {
             emit this->beginResetModel();
-            int size = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
+            int size = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
             this->setSize(size);
             clear();
             emit this->endResetModel();
         }
         else {
-            qCWarning(LogIpc) << "Unhandled event for model property" << eventName;
+            qCCritical(LogIpc) << "Unhandled event for model property" << messageName;
         }
     }
 
@@ -130,8 +130,8 @@ public:
 
                 QList<QVariant> args = m_proxy.ipc()->sendMethodCallWithReturn(requestMemberID, first, last);
                 QListIterator<QVariant> argumentsIterator(args);
-                first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                QList<ModelDataType> list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
+                first = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+                QList<ModelDataType> list = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
                 last = first + list.size() - 1;
 
                 for (int i = first; i <= last; ++i) {
@@ -182,8 +182,8 @@ public:
                 m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<QVariant>>(&m_proxy, [this](QList<QVariant> arguments) {
                         //                    qCDebug(LogIpc) << "Received model items " << first << "-" << last;
                         QListIterator<QVariant> argumentsIterator(arguments);
-                        auto first = (argumentsIterator.hasNext() ? qdbus_cast<int>(argumentsIterator.next()): int());
-                        auto list = (argumentsIterator.hasNext() ? qdbus_cast<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
+                        auto first = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<int>(argumentsIterator.next()): int());
+                        auto list = (argumentsIterator.hasNext() ? m_proxy.template castFromQVariant<QList<ModelDataType>>(argumentsIterator.next()): QList<ModelDataType>());
                         auto last = first + list.size() - 1;
                         for (int i = first; i <= last; ++i) {
                             auto &newItem = list[i - first];

@@ -91,7 +91,6 @@ public:
     {% endif %}
     {% endfor %}
 
-    Q_PROPERTY(bool ready READ ready)
     bool ready() const override
     {
         return m_ready.value();

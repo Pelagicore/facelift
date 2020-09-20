@@ -51,7 +51,6 @@
 #include "DBusIPCProxy.h"
 #include "DBusObjectRegistry.h"
 
-#include "DBusIPCCommon.h"
 #include "IPCDBusServiceAdapterBase.h"
 
 namespace facelift {
@@ -60,8 +59,8 @@ namespace dbus {
 bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
 {
     DBusIPCMessage requestMessage(dbusMsg);
-
     DBusIPCMessage replyMessage = requestMessage.createReply();
+    bool retVal = false;
 
     qCDebug(LogIpc) << "Handling incoming message: " << requestMessage.toString();
 
@@ -73,16 +72,43 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
             qCDebug(LogIpc) << "Enabling IPCDBusServiceAdapter for" << this->service();
             connectSignals();
         }
-        if (dbusMsg.member() == DBusIPCCommon::GET_ALL_PROPERTIES) {
-            marshalPropertyValues(dbusMsg.arguments(), replyMessage);
-            send(replyMessage);
+        if (dbusMsg.member() == DBusIPCCommon::GET_ALL_PROPERTIES_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(dbusMsg.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            if (msgInterfaceName == interfaceName()) {
+                QVariantMap ret = marshalProperties();
+                QMap<QString, QDBusVariant> convertedToDBusVariant;
+                for (const QString& key: ret.keys()) {
+                    convertedToDBusVariant[key] = QDBusVariant(ret[key]);
+                }
+                replyMessage << QVariant::fromValue(convertedToDBusVariant);
+                send(replyMessage);
+                retVal = true;
+            }
         }
-        else if (dbusMsg.member() == DBusIPCCommon::GET_PROPERTY) {
-            marshalProperty(dbusMsg.arguments(), replyMessage);
-            send(replyMessage);
+        else if (dbusMsg.member() == DBusIPCCommon::GET_PROPERTY_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(dbusMsg.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            if (msgInterfaceName == interfaceName()) {
+                auto propertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+                QVariant value = marshalProperty(propertyName);
+                if (value.isValid()) {
+                    replyMessage << QVariant::fromValue(QDBusVariant(value));
+                    send(replyMessage);
+                    retVal = true;
+                }
+            }
         }
-        else if (dbusMsg.member() == DBusIPCCommon::SET_PROPERTY) {
-            setProperty(dbusMsg.arguments());
+        else if (dbusMsg.member() == DBusIPCCommon::SET_PROPERTY_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            if (msgInterfaceName == interfaceName()) {
+                QString propertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+                if (argumentsIterator.hasNext()) {
+                    setProperty(propertyName, qdbus_cast<QDBusVariant>(argumentsIterator.next()).variant());
+                    retVal = true;
+                }
+            }
             send(replyMessage);
         }
     } else if (dbusMsg.interface() == interfaceName()) {
@@ -97,13 +123,13 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
             if (sendReply) {
                 send(replyMessage);
             }
-            return true;
+            retVal = true;
         } else {
             qCWarning(LogIpc) << "DBus request received for object which has been destroyed" << this;
         }
     }
 
-    return false;
+    return retVal;
 }
 
 IPCDBusServiceAdapterBase::IPCDBusServiceAdapterBase(DBusManagerInterface& dbusManager, QObject *parent) :

@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2020 Luxoft Sweden AB
+** Copyright (C) 2018 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,39 +28,10 @@
 **
 **********************************************************************/
 
-#pragma once
+module tests.combined.another 1.0
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
-#include <QDataStream>
-#include "FaceliftModel.h"
-
-namespace facelift {
-
-FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
-
-typedef int ASyncRequestID;
-
-enum class IPCHandlingResult {
-    OK,          // Message is successfully handled
-    OK_ASYNC,    // Message is handled but it is an asynchronous request, so no reply should be sent for now
-    INVALID,     // Message is invalid and could not be handled
-};
-
-struct FaceliftIPCCommonLib_EXPORT IPCCommon
-{
-    static constexpr const char *MODEL_DATA_CHANGED_MESSAGE_NAME = "ModelUpdateEventDataChanged";
-    static constexpr const char *MODEL_INSERT_MESSAGE_NAME = "ModelUpdateEventInsert";
-    static constexpr const char *MODEL_REMOVE_MESSAGE_NAME = "ModelUpdateEventRemove";
-    static constexpr const char *MODEL_MOVE_MESSAGE_NAME = "ModelUpdateEventMove";
-    static constexpr const char *MODEL_RESET_MESSAGE_NAME = "ModelUpdateEventReset";
-};
-
-
-
+enum AnotherEnum {
+    O1,
+    O2,
+    O3
 }
-

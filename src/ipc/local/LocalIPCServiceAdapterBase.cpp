@@ -50,14 +50,27 @@ IPCHandlingResult LocalIPCServiceAdapterBase::handleMessage(LocalIPCMessage &req
 
     bool sendReply = true;
     if (requestMessage.interface() == FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME) {
-        if (requestMessage.member() == FaceliftIPCCommon::GET_ALL_PROPERTIES) {
-            marshalPropertyValues(requestMessage.arguments(), replyMessage);
+        if (requestMessage.member() == FaceliftIPCCommon::GET_ALL_PROPERTIES_MESSAGE_NAME) {
+            replyMessage << QVariant::fromValue(marshalProperties());
         }
-        else if (requestMessage.member() == FaceliftIPCCommon::GET_PROPERTY) {
-            marshalProperty(requestMessage.arguments(), replyMessage);
+        else if (requestMessage.member() == FaceliftIPCCommon::GET_PROPERTY_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            // no need to check interface name in local variant
+            auto propertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            QVariant value = marshalProperty(propertyName);
+            replyMessage << value;
+            send(replyMessage);
         }
-        else if (requestMessage.member() == FaceliftIPCCommon::SET_PROPERTY) {
-            setProperty(requestMessage.arguments());
+        else if (requestMessage.member() == FaceliftIPCCommon::SET_PROPERTY_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            if (msgInterfaceName == interfaceName()) {
+                QString propertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+                if (argumentsIterator.hasNext()) {
+                    setProperty(propertyName, argumentsIterator.next());
+                }
+            }
         }
     }
     else {

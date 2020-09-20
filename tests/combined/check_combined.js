@@ -42,6 +42,8 @@ function defaults() {
     compare(api.structProperty2.cs.aString, "");
     compare(api.structProperty2.e, 0);
 
+    compare(api.structWithExtDependency.otherEnums, []);
+
     compare(api.intListProperty, []);
     compare(api.boolListProperty.length, 0);
     compare(api.enumListProperty.length, 0);
@@ -66,6 +68,8 @@ function initialized() {
     compare(api.structProperty2.cs.aString, "ok");
     compare(api.structProperty2.e, 1);
 
+    compare(api.structWithExtDependency.otherEnums[0], 1);
+
     compare(api.intListProperty.length, 5);
     compare(api.intListProperty[2], 3);
     compare(api.boolListProperty.length, 3);
@@ -85,6 +89,8 @@ function initialized() {
 
     compare(api.intMapProperty.one, 1);
     compare(api.intMapProperty.two, 2);
+
+    compare(api.emptyString, "");
 }
 
 function methods() {
@@ -119,6 +125,8 @@ function methods() {
     os.ival = 101;
     compare(api.method7(os), OtherEnum.O3);
 
+    compare(api.listOfAnotherEnums()[0], OtherEnum.O2);
+
     if (!api.qmlImplementationUsed) {
         api.interfaceProperty.doSomething();
         compare(api.otherInterfaceProperty.otherMethod(OtherEnum.O3), "O3");
@@ -128,6 +136,9 @@ function methods() {
             asyncResult.answer = result;
         });
         tryCompare(asyncResult, "answer", 42);
+
+        api.interfaceMapProperty["key1"].doSomething();
+        api.interfaceListProperty[0].doSomething();
     }
 }
 

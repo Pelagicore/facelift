@@ -100,8 +100,16 @@ public:
         s2.sete(CombiEnum::E2);
         m_structProperty2 = s2;
 
+        StructWithExtDependency structWithExtDep;
+        structWithExtDep.setotherEnums({OtherEnum::O2});
+        structWithExtDep.setotherEnumMap({{"O1", OtherEnum::O1}, {"O2", OtherEnum::O2}});
+        m_structWithExtDependency.setValue(structWithExtDep);
+
         m_interfaceProperty.setValue(new CombinedInterface2Implementation(this, "#7"));
         m_otherInterfaceProperty.setValue(new OtherInterfaceImplementation(this));
+
+        m_interfaceListProperty.addElement(new CombinedInterface2Implementation(this, ""));
+        m_interfaceMapProperty = facelift::Map<tests::combined::CombinedInterface2*>({{"key1", new CombinedInterface2Implementation(this, "blabla")}});
 
         m_intListProperty = { 1, 2, 3, 5, 8 };
         m_boolListProperty = { false, true, true };
@@ -238,5 +246,16 @@ public:
         if (os.ival() == 101)
             return OtherEnum::O3;
         return OtherEnum::O1;
+    }
+
+    HugeStruct hungryBeast(const tests::combined::HugeStruct& hugeStruct) override
+    {
+        return hugeStruct;
+    }
+
+    QList<tests::combined::another::AnotherEnum> listOfAnotherEnums() override
+    {
+        QList<tests::combined::another::AnotherEnum> anotherEnums{tests::combined::another::AnotherEnum::O2};
+        return anotherEnums;
     }
 };

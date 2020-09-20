@@ -35,7 +35,8 @@
 
 {% set className = interfaceName + proxyTypeNameSuffix %}
 
-#include <QtDBus>
+#include "ipc-common.h"
+#include "DBusSignatureHelper.h"
 #include "{{className}}.h"
 
 {{module.namespaceCppOpen}}
@@ -56,7 +57,7 @@ facelift::IPCHandlingResult {{className}}::handleMethodCallMessage(InputIPCMessa
     {% for operation in interface.operations %}
     if (member == memberID(MethodID::{{operation.name}}, "{{operation.name}}")) {
         {% for parameter in operation.parameters %}
-        {{parameter.cppType}} param_{{parameter.name}} = (argumentsIterator.hasNext() ? castFromVariant<{{parameter.cppType}}>(argumentsIterator.next()):{% if not parameter.type.is_interface %}{{parameter.cppType}}(){% else %}nullptr{% endif %});
+        {{parameter.cppType}} param_{{parameter.name}} = (argumentsIterator.hasNext() ? castFromQVariant<{{parameter.cppType}}>(argumentsIterator.next()):{% if not parameter.type.is_interface %}{{parameter.cppType}}(){% else %}nullptr{% endif %});
         {% endfor %}
         {% if operation.isAsync %}
         theService->{{operation.name}}({% for parameter in operation.parameters %} param_{{parameter.name}}, {%- endfor -%}
@@ -74,7 +75,7 @@ facelift::IPCHandlingResult {{className}}::handleMethodCallMessage(InputIPCMessa
             {{ comma() }}param_{{parameter.name}}
         {%- endfor -%});
         {% if operation.hasReturnValue %}
-        replyMessage << castToVariant(returnValue);
+        replyMessage << castToQVariant(returnValue);
         {% endif %}
         {% endif %}
     } else
@@ -82,7 +83,10 @@ facelift::IPCHandlingResult {{className}}::handleMethodCallMessage(InputIPCMessa
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     if (member == memberID(MethodID::{{property.name}}, "{{property.name}}")) {
-        m_{{property.name}}Handler.handleModelRequest(requestMessage, replyMessage);
+        QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
+        int first = (argumentsIterator.hasNext() ? castFromQVariant<int>(argumentsIterator.next()): int());
+        int last = (argumentsIterator.hasNext() ? castFromQVariant<int>(argumentsIterator.next()): int());
+        m_{{property.name}}Handler.handleModelRequest(first, last, replyMessage);
     } else
     {% endif %}
     {% endfor %}
@@ -95,50 +99,41 @@ facelift::IPCHandlingResult {{className}}::handleMethodCallMessage(InputIPCMessa
 
 void {{className}}::appendDBUSIntrospectionData(QTextStream &s) const
 {
-    Q_UNUSED(s);   // For empty interfaces
+    Q_UNUSED(s)   // For empty interfaces
     {% for property in interface.properties %}
     {% if not property.type.is_model %}
-    s << QStringLiteral("<property name=\"{{property.name}}\" type=\"%1\" access=\"%2\"/>").arg(typeToSignature<{{property.type.interfaceCppType}}>(),
-                               {{ property.readonly | cppBool }} ? QStringLiteral("read"): QStringLiteral("readwrite"));
+    facelift::appendPropertySignature(s, "{{property.name}}", typeToSignature<{{property.type.interfaceCppType}}>(), {{ property.readonly | cppBool }});
     {% endif %}
     {% endfor %}
-    s << QStringLiteral("<property name=\"ready\" type=\"b\" access=\"read\"/>");
+    facelift::appendReadyProperty(s);
 
     {% for operation in interface.operations %}
-    s << "<method name=\"{{operation.name}}\">";
-    {%- for parameter in operation.parameters -%}
-    s << "<arg name=\"{{parameter.name}}\" type=\"";
-    s << typeToSignature<{{parameter.type.interfaceCppType}}>();
-    s << "\" direction=\"in\"/>";
-    {%- endfor -%}
-
+    facelift::appendDBusMethodSignature(s, "{{operation.name}}", std::list<std::pair<const char*, const char*>>{
+    {%- set comma = joiner(", ") -%}
+    {% for parameter in operation.parameters %}
+    {{ comma() }}{"{{parameter.name}}", typeToSignature<{{parameter.type.interfaceCppType}}>()}
+    {% endfor %}
+    }
     {% if operation.hasReturnValue %}
-    s << "<arg name=\"returnValue\" type=\"";
-    s << typeToSignature<{{operation.interfaceCppType}}>();
-    s << "\" direction=\"out\"/>";
-    {% endif %};
-    s << "</method>";
+    , typeToSignature<{{operation.interfaceCppType}}>()
+    {% endif %}
+    );
     {% endfor %}
 
     // signals
     {% for signal in interface.signals %}
     {
-        s << "<signal name=\"{{signal.name}}\">";
-        {%- for parameter in signal.parameters -%}
-        s << "<arg name=\"{{parameter.name}}\" type=\"";
-        s << typeToSignature<{{parameter.type.interfaceCppType}}>();
-        s << "\" direction=\"out\"/>";
-        {%- endfor -%}
-        s << "</signal>";
+    facelift::appendDBusSignalSignature(s, "{{signal.name}}", std::list<std::pair<const char*, const char*>>{
+    {%- set comma = joiner(", ") -%}
+    {% for parameter in signal.parameters %}
+    {{ comma() }}{"{{parameter.name}}", typeToSignature<{{parameter.type.interfaceCppType}}>()}
+    {% endfor %}
+    });
     }
     {% endfor %}
 
     {% if interface.hasModelProperty %}
-    s << "<signal name=\"ModelUpdateEventDataChanged\">";
-    s << "<arg name=\"modelName\" type=\"s\" direction=\"out\"/>";
-    s << "<arg name=\"first\" type=\"i\" direction=\"out\"/>";
-    s << "<arg name=\"changedItems\" type=\"a(v)\" direction=\"out\"/>";
-    s << "</signal>";
+    facelift::appendDBusModelSignals(s);
     {% endif %}
 }
 
@@ -154,6 +149,7 @@ void {{className}}::connectSignals()
     m_previous{{property.name}} = theService->{{property.name}}();
     {% endif %}
     {% endfor %}
+    m_previousReadyState = theService->ready();
 
     // Properties
     {% for property in interface.properties %}
@@ -165,7 +161,7 @@ void {{className}}::connectSignals()
     {% endfor %}
 
     QObject::connect(theService, &ServiceType::readyChanged, this, [this, theService] () {
-        this->sendPropertiesChanged(QMap<QString, QDBusVariant>{ {"ready", castToDBusVariant(theService->ready())} });
+        this->sendPropertiesChanged(changedProperties());
     });
 
     // Signals
@@ -174,86 +170,77 @@ void {{className}}::connectSignals()
     {% endfor %}
 }
 
-QMap<QString, QDBusVariant> {{className}}::changedProperties()
+QVariantMap {{className}}::changedProperties()
 {
-    QMap<QString, QDBusVariant> ret;
+    QMap<QString, QVariant> ret;
     auto theService = service();
     Q_UNUSED(theService);
     {% for property in interface.properties %}
     {% if not property.type.is_model %}
     if (m_previous{{property.name}} != theService->{{property.name}}()) {
-        ret[QStringLiteral("{{property.name}}")] = castToDBusVariant(theService->{{property.name}}());
+        ret[QStringLiteral("{{property.name}}")] = castToQVariant(theService->{{property.name}}());
         m_previous{{property.name}} = theService->{{property.name}}();
     }
     {% endif %}
     {% endfor %}
+    if (m_previousReadyState != theService->ready()) {
+        ret[QStringLiteral("ready")] = castToQVariant(theService->ready());
+        m_previousReadyState = theService->ready();
+    }
     return ret;
 }
 
-void {{className}}::marshalPropertyValues(const QList<QVariant>& arguments, OutputIPCMessage& msg)
+QVariantMap {{className}}::marshalProperties()
 {
-    QListIterator<QVariant> argumentsIterator(arguments);
-    auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
-    if (msgInterfaceName == interfaceName()) {
-        auto theService = service();
-        QMap<QString, QDBusVariant> ret;
-        {#% if (not interface.properties) %#}
-        Q_UNUSED(theService);
-        {#% endif %#}
+    QVariantMap ret;
+    auto theService = service();
+    {#% if (not interface.properties) %#}
+    Q_UNUSED(theService);
+    {#% endif %#}
 
-        {% for property in interface.properties %}
-        {% if property.type.is_model %}
-        ret["{{property.name}}"] = castToDBusVariant(theService->{{property.name}}().size());
-        {% else %}
-        ret["{{property.name}}"] = castToDBusVariant(theService->{{property.name}}());
-        {% endif %}
-        {% endfor %}
-        ret["ready"] = castToDBusVariant(theService->ready());
-        msg << castToVariant(ret);
-    }
+    {% for property in interface.properties %}
+    {% if property.type.is_model %}
+    ret["{{property.name}}"] = castToQVariant(theService->{{property.name}}().size());
+    {% else %}
+    ret["{{property.name}}"] = castToQVariant(theService->{{property.name}}());
+    {% endif %}
+    {% endfor %}
+    ret["ready"] = castToQVariant(theService->ready());
+    return ret;
 }
 
-void {{className}}::marshalProperty(const QList<QVariant>& arguments, OutputIPCMessage& msg)
+QVariant {{className}}::marshalProperty(const QString& propertyName)
 {
-    QListIterator<QVariant> argumentsIterator(arguments);
-    auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
-    if (msgInterfaceName == interfaceName()) {
-        auto propertyName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
-        {% for property in interface.properties %}
-        if (propertyName == QStringLiteral("{{property.name}}")) {
-        {% if property.type.is_model %}
+    {% for property in interface.properties %}
+    if (propertyName == QStringLiteral("{{property.name}}")) {
+    {% if property.type.is_model %}
 
-        {% else %}
-            msg << castToVariant(service()->{{property.name}}());
-        {% endif %}
-        }
-        {% endfor %}
-        if (propertyName == QStringLiteral("ready")) {
-            msg << castToVariant(service()->ready());
-        }
+    {% else %}
+        return castToQVariant(service()->{{property.name}}());
+    {% endif %}
     }
+    {% endfor %}
+    if (propertyName == QStringLiteral("ready")) {
+        return castToQVariant(service()->ready());
+    }
+return QVariant();
 }
 
-void {{className}}::setProperty(const QList<QVariant>& arguments)
+void {{className}}::setProperty(const QString& propertyName, const QVariant& value)
 {
-    QListIterator<QVariant> argumentsIterator(arguments);
-    auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
-    if (msgInterfaceName == interfaceName()) {
-        auto propertyName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
-        if (argumentsIterator.hasNext()) {
-            {% for property in interface.properties %}
-            if (propertyName == QStringLiteral("{{property.name}}")) {
-            {% if property.type.is_interface %}
-                Q_ASSERT(false); // Writable interface properties are unsupported
-            {% elif property.type.is_model %}
+    Q_UNUSED(propertyName)
+    Q_UNUSED(value)
+    {% for property in interface.properties %}
+    if (propertyName == QStringLiteral("{{property.name}}")) {
+    {% if property.type.is_interface %}
+        Q_ASSERT(false); // Writable interface properties are unsupported
+    {% elif property.type.is_model %}
 
-            {% elif (not property.readonly) %}
-                service()->set{{property.name}}(castFromDBusVariant<{{property.cppType}}>(argumentsIterator.next()));
-            {% endif %}
-	    }
-            {% endfor %}
-        }
+    {% elif (not property.readonly) %}
+        service()->set{{property.name}}(castFromQVariant<{{property.cppType}}>(value));
+    {% endif %}
     }
+    {% endfor %}
 }
 
 {{module.namespaceCppClose}}

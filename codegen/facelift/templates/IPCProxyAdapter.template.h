@@ -67,7 +67,7 @@ public:
 
     {{className}}(QObject *parent = nullptr);
 
-    void unmarshalPropertyValues(InputIPCMessage &msg) override;
+    void unmarshalProperties(const QVariantMap& values) override;
 
     {% if interface.hasModelProperty %}
     void setServiceRegistered(bool isRegistered) override
@@ -85,9 +85,10 @@ public:
     {% endif %}
 
     void handleSignals(InputIPCMessage& msg) override;
+
     const QList<QString>& getSignals() const override;
 
-    void unmarshalPropertiesChanged(InputIPCMessage &msg) override;
+    void unmarshalPropertiesChanged(const QVariantMap& changedProperties) override;
 
     {% for operation in interface.operations %}
 

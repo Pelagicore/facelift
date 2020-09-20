@@ -122,7 +122,7 @@ void DBusObjectRegistry::syncObjects()
     ObjectRegistryIPCDBusProxy objectRegistryProxy;
     objectRegistryProxy.ipc()->setServiceName(m_serviceName);
     objectRegistryProxy.connectToServer();
-  //  Q_ASSERT(objectRegistryProxy.ready());
+    Q_ASSERT(objectRegistryProxy.ready());
     updateObjects(objectRegistryProxy.getObjects());
 }
 

@@ -32,7 +32,6 @@
 #include "DBusIPCProxyBinder.h"
 #include "DBusManagerInterface.h"
 #include "DBusRequestHandler.h"
-#include "DBusIPCCommon.h"
 #include "DBusObjectRegistry.h"
 
 namespace facelift {
@@ -71,7 +70,12 @@ void DBusIPCProxyBinder::onServerNotAvailableError(const QString &propertyName) 
 void DBusIPCProxyBinder::onPropertiesChanged(const QDBusMessage &dbusMessage)
 {
     DBusIPCMessage msg(dbusMessage);
-    m_serviceObject->unmarshalPropertiesChanged(msg);
+    QListIterator<QVariant> argumentsIterator(msg.arguments());
+    QString interfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+    if (interfaceName == m_interfaceName) {
+        QVariantMap changedProperties = (argumentsIterator.hasNext() ? castFromQVariant<QVariantMap>(argumentsIterator.next()): QVariantMap());
+        m_serviceObject->unmarshalPropertiesChanged(changedProperties);
+    }
 }
 
 void DBusIPCProxyBinder::setHandler(DBusRequestHandler *handler)
@@ -83,11 +87,12 @@ void DBusIPCProxyBinder::setHandler(DBusRequestHandler *handler)
 
 void DBusIPCProxyBinder::requestPropertyValues()
 {
-    DBusIPCMessage msg(serviceName(), objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::GET_ALL_PROPERTIES);
+    DBusIPCMessage msg(serviceName(), objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::GET_ALL_PROPERTIES_MESSAGE_NAME);
     msg << QVariant::fromValue(interfaceName());
     auto replyHandler = [this](DBusIPCMessage &replyMessage) {
         if (replyMessage.isReplyMessage()) {
-            m_serviceObject->unmarshalPropertyValues(replyMessage);
+            QVariantMap values = (!replyMessage.arguments().isEmpty() ? castFromQVariant<QVariantMap>(replyMessage.arguments().first()): QVariantMap());
+            m_serviceObject->unmarshalProperties(values);
             m_serviceObject->setServiceRegistered(true);
         } else {
             qCDebug(LogIpc) << "Service not yet available : " << objectPath();

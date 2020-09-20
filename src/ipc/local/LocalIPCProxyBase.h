@@ -34,7 +34,6 @@
 #include "IPCProxyBase.h"
 #include "LocalIPCRequestHandler.h"
 #include "LocalIPCProxyBinder.h"
-#include <QtDBus>
 
 #if defined(FaceliftIPCLocalLib_LIBRARY)
 #  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT

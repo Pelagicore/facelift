@@ -36,8 +36,6 @@
 {% set className = interfaceName + proxyTypeNameSuffix %}
 
 #include "{{className}}.h"
-#include "FaceliftEnum.h"
-
 {{module.namespaceCppOpen}}
 
 {{className}}::{{className}}(QObject *parent) : BaseType(parent)
@@ -53,53 +51,56 @@
     {% endif %}
 }
 
-void {{className}}::unmarshalPropertyValues(InputIPCMessage &msg)
+void {{className}}::unmarshalProperties(const QVariantMap& values)
 {
-    QListIterator<QVariant> argumentsIterator(msg.arguments());
-    if (argumentsIterator.hasNext()) {
-        QMap<QString, QVariant> values = castFromVariant<QMap<QString, QVariant>>(argumentsIterator.next());
-        for (const QString &propertyName: values.keys()) {
-            {% for property in interface.properties %}
-            if (propertyName == QStringLiteral("{{property.name}}")) {
-            {% if property.type.is_interface %}
-                const {{property.interfaceCppType}} previous_{{property.name}}_Value = m_{{property.name}};
-                m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(values[propertyName]);
-                bool emit_{{property.name}}ChangeSignal = ((previous_{{property.name}}_Value != m_{{property.name}}));
-            {% elif property.type.is_model %}
-                bool emit_{{property.name}}ChangeSignal = true;
-                int {{property.name}}Size = castFromDBusVariant<int>(values[propertyName]);
-                m_{{property.name}}.beginResetModel();
-                m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
-                m_{{property.name}}.endResetModel();
-            {% else %}
-                const auto previous_{{property.name}}_Value = m_{{property.name}};
-                m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(values[propertyName]);
-                bool emit_{{property.name}}ChangeSignal = ((previous_{{property.name}}_Value != m_{{property.name}}));
-            {% endif %}
-                if (emit_{{property.name}}ChangeSignal)
-                    emit {{property.name}}Changed();
-            }
-            {% endfor %}
-            if (propertyName == QStringLiteral("ready")) {
-                bool previousIsReady = this->ready();
-                m_serviceReady = castFromDBusVariant<bool>(values[propertyName]);
-                bool emit_ReadyChangeSignal = (previousIsReady != m_serviceReady);
-                if (emit_ReadyChangeSignal)
-                    emit readyChanged();
-            }
+    QMap<QString, bool> emitChangeSignal;
+    for (const QString &propertyName: values.keys()) {
+        {% for property in interface.properties %}
+        if (propertyName == QStringLiteral("{{property.name}}")) {
+        {% if property.type.is_interface %}
+            const {{property.interfaceCppType}} previous_{{property.name}}_Value = m_{{property.name}};
+            m_{{property.name}} = castFromQVariant<{{property.interfaceCppType}}>(values[propertyName]);
+            emitChangeSignal[QStringLiteral("{{property.name}}")] = ((previous_{{property.name}}_Value != m_{{property.name}}));
+        {% elif property.type.is_model %}
+            emitChangeSignal[QStringLiteral("{{property.name}}")] = true;
+            int {{property.name}}Size = castFromQVariant<int>(values[propertyName]);
+            m_{{property.name}}.beginResetModel();
+            m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
+            m_{{property.name}}.endResetModel();
+        {% else %}
+            const auto previous_{{property.name}}_Value = m_{{property.name}};
+            m_{{property.name}} = castFromQVariant<{{property.interfaceCppType}}>(values[propertyName]);
+            emitChangeSignal[QStringLiteral("{{property.name}}")] = ((previous_{{property.name}}_Value != m_{{property.name}}));
+        {% endif %}
+        }
+        {% endfor %}
+        if (propertyName == QStringLiteral("ready")) {
+            bool previousIsReady = this->ready();
+            m_serviceReady = castFromQVariant<bool>(values[propertyName]);
+            emitChangeSignal[QStringLiteral("ready")] = (previousIsReady != m_serviceReady);
+        }
+    }
+    for (const QString &propertyName: emitChangeSignal.keys()) {
+        {% for property in interface.properties %}
+        if (propertyName == QStringLiteral("{{property.name}}") && emitChangeSignal[propertyName]) {
+            emit {{property.name}}Changed();
+        }
+        {% endfor %}
+        if (propertyName == QStringLiteral("ready") && emitChangeSignal[propertyName]) {
+            emit readyChanged();
         }
     }
 }
 
 void {{className}}::handleSignals(InputIPCMessage& msg)
 {
-    Q_UNUSED(msg);
+    Q_UNUSED(msg)
     {% for event in interface.signals %}
     if (msg.member() == QStringLiteral("{{event}}")) {
         QListIterator<QVariant> argumentsIterator(msg.arguments());
         {% for parameter in event.parameters %}
         {{parameter.interfaceCppType}} param_{{parameter.name}};
-        param_{{parameter.name}} = (argumentsIterator.hasNext() ? castFromVariant<{{parameter.interfaceCppType}}>(argumentsIterator.next()):{% if not parameter.type.is_interface %}{{parameter.interfaceCppType}}(){% else %}nullptr{% endif %});
+        param_{{parameter.name}} = (argumentsIterator.hasNext() ? castFromQVariant<{{parameter.interfaceCppType}}>(argumentsIterator.next()):{% if not parameter.type.is_interface %}{{parameter.interfaceCppType}}(){% else %}nullptr{% endif %});
         {% endfor %}
         emit {{event}}(
         {%- set comma = joiner(", ") -%}
@@ -121,11 +122,11 @@ const QList<QString>& {{className}}::getSignals() const
     "{{event}}",
     {% endfor %}
     {% if interface.hasModelProperty %}
-    "ModelUpdateEventDataChanged",
-    "ModelUpdateEventInsert",
-    "ModelUpdateEventRemove",
-    "ModelUpdateEventMove",
-    "ModelUpdateEventReset"
+    facelift::IPCCommon::MODEL_DATA_CHANGED_MESSAGE_NAME,
+    facelift::IPCCommon::MODEL_INSERT_MESSAGE_NAME,
+    facelift::IPCCommon::MODEL_REMOVE_MESSAGE_NAME,
+    facelift::IPCCommon::MODEL_MOVE_MESSAGE_NAME,
+    facelift::IPCCommon::MODEL_RESET_MESSAGE_NAME,
     {% endif %}
     };
 
@@ -136,7 +137,7 @@ const QList<QString>& {{className}}::getSignals() const
 void {{className}}::onModelUpdateEvent(const InputIPCMessage& msg)
 {
     QListIterator<QVariant> argumentsIterator(msg.arguments());
-    const QString& modelPropertyName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
+    const QString& modelPropertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     if (modelPropertyName == QStringLiteral("{{property.name}}")) {
@@ -147,22 +148,19 @@ void {{className}}::onModelUpdateEvent(const InputIPCMessage& msg)
 }
 {% endif %}
 
-void {{className}}::unmarshalPropertiesChanged(InputIPCMessage &msg)
+void {{className}}::unmarshalPropertiesChanged(const QVariantMap& changedProperties)
 {
     {% if interface.properties %}
-    QListIterator<QVariant> argumentsIterator(msg.arguments());
-    QString interfaceName = (argumentsIterator.hasNext() ? castFromVariant<QString>(argumentsIterator.next()): QString());
-    QVariantMap changedProperties = (argumentsIterator.hasNext() ? castFromVariant<QVariantMap>(argumentsIterator.next()): QVariantMap());
     for (const QString &propertyName: changedProperties.keys()) {
         {% for property in interface.properties %}
         if (propertyName == QStringLiteral("{{property.name}}")) {
         {% if property.type.is_model %}
-            int {{property.name}}Size = castFromDBusVariant<int>(changedProperties[propertyName]);
+            int {{property.name}}Size = castFromQVariant<int>(changedProperties[propertyName]);
             m_{{property.name}}.beginResetModel();
             m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
             m_{{property.name}}.endResetModel();
         {% else %}
-            m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(changedProperties[propertyName]);
+            m_{{property.name}} = castFromQVariant<{{property.interfaceCppType}}>(changedProperties[propertyName]);
         {% endif %}
         }
         {% endfor %}
@@ -177,7 +175,7 @@ void {{className}}::unmarshalPropertiesChanged(InputIPCMessage &msg)
         {% endfor %}
     }
     {% else %}
-    Q_UNUSED(msg);
+    Q_UNUSED(changedProperties);
     {% endif %}
 }
 
@@ -226,7 +224,7 @@ void {{className}}::{{operation.name}}(
             {%- for parameter in operation.parameters -%}
             , {{parameter.name}}
             {%- endfor -%} );
-        return (!args.isEmpty() ? castFromVariant<{{operation.interfaceCppType}}>(args[0]):{% if not (operation.type.is_interface) %}{{operation.cppType}}(){% else %}nullptr{% endif %});
+        return (!args.isEmpty() ? castFromQVariant<{{operation.interfaceCppType}}>(args.first()):{% if not (operation.type.is_interface) %}{{operation.cppType}}(){% else %}nullptr{% endif %});
         {% else %}
         ipc()->sendMethodCall(memberID(MethodID::{{operation.name}}, "{{operation.name}}")
         {%- for parameter in operation.parameters -%}

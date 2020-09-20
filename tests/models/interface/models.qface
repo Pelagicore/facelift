@@ -76,7 +76,7 @@ struct HugeStruct {
     ThirdLevel yetAnotherThirdLevel;
 }
 
-@serializeOverIPC: true
+@toByteArrayOverDBus: true
 struct OversizedStruct {
 ThirdLevel thirdLevel;
 ThirdLevel anotherThirdLevel;

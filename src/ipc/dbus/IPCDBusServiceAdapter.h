@@ -90,9 +90,63 @@ public:
         Q_ASSERT(qobject_cast<ServiceType*>(serverObject) != nullptr);
         registerService(objectPath, static_cast<ServiceType *>(serverObject));
     }
-protected:
-    QPointer<ServiceType> m_service;
 
+    template<typename T>
+    const char* typeToSignature() const
+    {
+        static std::once_flag registerFlag;
+        std::call_once(registerFlag, [](){registerDBusType(HelperType<T>());});
+        return typeToSignatureSpecialized(HelperType<T>());
+    }
+protected:
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
+    const char* typeToSignatureSpecialized(HelperType<T>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<T>());
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    const char* typeToSignatureSpecialized(HelperType<T>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<int>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<T>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QString>());
+    }
+
+    inline const char* typeToSignatureSpecialized(HelperType<QList<QString>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QStringList>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<QList<T>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QStringList>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<QMap<QString, T>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QMap<QString, QString>>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<QList<T>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QList<int>>());
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    inline const char* typeToSignatureSpecialized(HelperType<QMap<QString, T>>) const
+    {
+        return QDBusMetaType::typeToSignature(qMetaTypeId<QMap<QString, int>>());
+    }
+    QPointer<ServiceType> m_service;
 };
 
 }

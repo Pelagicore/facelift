@@ -36,12 +36,7 @@
 ****************************************************************************/
 
 #include "{{struct}}.h"
-#ifdef DBUS_IPC_ENABLED
-#include <QtDBus>
-#include <QDBusArgument>
-#endif
 #include "FaceliftConversion.h"
-#include "FaceliftEnum.h"
 
 {{module.namespaceCppOpen}}
 
@@ -100,6 +95,12 @@ void {{struct.name}}::deserialize(const QByteArray &array)
 
 {% endif %}
 
+{% if struct.toByteArrayOverDBus %}
+bool {{struct.name}}::toByteArrayOverDBus()
+{
+    return true;
+}
+{% endif %}
 
 const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
     {%- for field in struct.fields -%}
@@ -131,77 +132,4 @@ QString {{struct.name}}::toString() const
     return toStringWithFields(CLASS_ID, FIELD_NAMES);
 }
 
-#ifdef DBUS_IPC_ENABLED
-void {{struct.name}}::registerDBusTypes()
-{
-    {% for field in struct.fields %}
-    {% if field.type.is_struct %}
-    {{field.type.cppType}}::registerDBusTypes();
-    {% endif %}
-    {% if field.type.nested.is_struct %}
-    {{field.type.nested.cppType}}::registerDBusTypes();
-    {% endif %}
-    {% if (not field.type.is_primitive and not field.type.is_enum and not field.type.is_model and not field.type.is_interface and not field.type.is_list and not field.type.is_map) %}
-    qDBusRegisterMetaType<{{field.cppType}}>();
-    {% endif %}
-    {% if (field.type.is_list or field.type.is_map) %}
-    {% if (not field.type.nested.is_primitive) or (not field.type.nested.is_enum) %}
-    qDBusRegisterMetaType<{{field.cppType}}>();
-    qDBusRegisterMetaType<{{field.type.nested.cppType}}>();
-    {% endif %}
-    {% endif %}
-    {% endfor %}
-}
-
-QDBusArgument &operator<<(QDBusArgument &argument, const {{struct.name}} &{{struct.name|lower}})
-{
-    argument.beginStructure();
-    {% if not struct.serializeOverIPC %}
-    {% for field in struct.fields %}
-    argument << {{struct.name|lower}}.m_{{field}};
-    {% endfor -%}
-    {% else %}
-    QByteArray byteArray;
-    QDataStream dataStream(&byteArray, QIODevice::WriteOnly);
-    dataStream << {{struct.name|lower}};
-    argument << byteArray;
-    {% endif %}
-    argument.endStructure();
-    return argument;
-}
-
-const QDBusArgument &operator>>(const QDBusArgument &argument, {{struct.name}} &{{struct.name|lower}})
-{
-    argument.beginStructure();
-    {% if not struct.serializeOverIPC %}
-    {% for field in struct.fields %}
-    argument >> {{struct.name|lower}}.m_{{field}};
-    {% endfor -%}
-    {% else %}
-    QByteArray byteArray;
-    QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
-    argument >> byteArray;
-    dataStream >> {{struct.name|lower}};
-    {% endif %}
-    argument.endStructure();
-
-    return argument;
-}
-
-QDataStream& operator<<( QDataStream& dataStream,  const {{struct.name}} &{{struct.name|lower}} )
-{
-    {% for field in struct.fields %}
-    dataStream << {{struct.name|lower}}.m_{{field}};
-    {% endfor %}
-    return dataStream;
-}
-
-QDataStream& operator>>( QDataStream& dataStream, {{struct.name}} &{{struct.name|lower}} )
-{
-    {% for field in struct.fields %}
-    dataStream >> {{struct.name|lower}}.m_{{field}};
-    {% endfor %}
-    return dataStream;
-}
-#endif
 {{module.namespaceCppClose}}
