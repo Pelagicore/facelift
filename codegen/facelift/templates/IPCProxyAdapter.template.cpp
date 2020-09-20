@@ -164,7 +164,15 @@ void {{className}}::unmarshalPropertiesChanged(InputIPCMessage &msg)
         {% else %}
             m_{{property.name}} = castFromDBusVariant<{{property.interfaceCppType}}>(changedProperties[propertyName]);
         {% endif %}
-            emit {{property.name}}Changed(); // trust the propertiesChanged signal and emit without checking
+        }
+        {% endfor %}
+    }
+    for (const QString &propertyName: changedProperties.keys()) {
+        {% for property in interface.properties %}
+        if (propertyName == QStringLiteral("{{property.name}}")) {
+        {% if not property.type.is_model %}
+            emit {{property.name}}Changed();
+        {% endif %}
         }
         {% endfor %}
     }

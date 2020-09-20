@@ -82,6 +82,8 @@ public:
 
     void connectSignals() override;
 
+    QMap<QString, QDBusVariant> changedProperties();
+
     void marshalPropertyValues(const QList<QVariant>& arguments, OutputIPCMessage& msg) override;
 
     void marshalProperty(const QList<QVariant>& arguments, OutputIPCMessage& msg) override;
@@ -106,6 +108,8 @@ private:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     ::facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
+    {% else %}
+    {{property.interfaceCppType}} m_previous{{property.name}} {};
     {% endif %}
     {% endfor %}
 };

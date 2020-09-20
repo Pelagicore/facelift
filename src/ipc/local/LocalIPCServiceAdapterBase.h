@@ -63,8 +63,7 @@ public:
 
     IPCHandlingResult handleMessage(LocalIPCMessage &message);
 
-    template<typename Value>
-    inline void sendPropertiesChanged(const QString& property , const Value & value);
+    inline void sendPropertiesChanged(const QMap<QString, QDBusVariant> &changedProperties);
 
     template<typename ... Args>
     void sendSignal(const QString& signalName, Args && ... args);
@@ -170,12 +169,11 @@ protected:
     bool m_alreadyInitialized = false;
 };
 
-template<typename Value>
-inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QString& property , const Value & value)
+inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QMap<QString, QDBusVariant> &changedProperties )
 {
     LocalIPCMessage reply(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
     reply << interfaceName();
-    reply << QVariant::fromValue(QMap<QString, QDBusVariant>{{property, castToDBusVariant(value)}});
+    reply << QVariant::fromValue(changedProperties);
     this->send(reply);
 }
 

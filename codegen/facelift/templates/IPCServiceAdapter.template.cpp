@@ -150,7 +150,8 @@ void {{className}}::connectSignals()
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     m_{{property.name}}Handler.connectModel(QStringLiteral("{{property.name}}"), theService->{{property.name}}());
-    {% elif property.type.is_interface %}
+    {% else %}
+    m_previous{{property.name}} = theService->{{property.name}}();
     {% endif %}
     {% endfor %}
 
@@ -158,19 +159,35 @@ void {{className}}::connectSignals()
     {% for property in interface.properties %}
     {% if (not property.type.is_model) %}
     QObject::connect(theService, &ServiceType::{{property.name}}Changed, this, [this, theService] () {
-        this->sendPropertiesChanged("{{property.name}}", theService->{{property.name}}());
+        this->sendPropertiesChanged(changedProperties());
     });
     {% endif %}
     {% endfor %}
 
     QObject::connect(theService, &ServiceType::readyChanged, this, [this, theService] () {
-        this->sendPropertiesChanged("ready", theService->ready());
+        this->sendPropertiesChanged(QMap<QString, QDBusVariant>{ {"ready", castToDBusVariant(theService->ready())} });
     });
 
     // Signals
     {% for signal in interface.signals %}
     QObject::connect(theService, &ServiceType::{{signal}}, this, &ThisType::{{signal}});
     {% endfor %}
+}
+
+QMap<QString, QDBusVariant> {{className}}::changedProperties()
+{
+    QMap<QString, QDBusVariant> ret;
+    auto theService = service();
+    Q_UNUSED(theService);
+    {% for property in interface.properties %}
+    {% if not property.type.is_model %}
+    if (m_previous{{property.name}} != theService->{{property.name}}()) {
+        ret[QStringLiteral("{{property.name}}")] = castToDBusVariant(theService->{{property.name}}());
+        m_previous{{property.name}} = theService->{{property.name}}();
+    }
+    {% endif %}
+    {% endfor %}
+    return ret;
 }
 
 void {{className}}::marshalPropertyValues(const QList<QVariant>& arguments, OutputIPCMessage& msg)

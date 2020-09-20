@@ -88,9 +88,7 @@ public:
 
     bool handleMessage(const QDBusMessage &dbusMsg);
 
-
-    template<typename Value>
-    inline void sendPropertiesChanged(const QString& property , const Value & value);
+    inline void sendPropertiesChanged(const QMap<QString, QDBusVariant>& changedProperties);
 
     template<typename ... Args>
     void sendSignal(const QString& signalName, Args && ... args);
@@ -235,12 +233,11 @@ private:
     }
 };
 
-template<typename Value>
-inline void IPCDBusServiceAdapterBase::sendPropertiesChanged(const QString& property, const Value &value)
+inline void IPCDBusServiceAdapterBase::sendPropertiesChanged(const QMap<QString, QDBusVariant> &changedProperties)
 {
     DBusIPCMessage reply(objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
     reply << interfaceName();
-    reply << QVariant::fromValue(QMap<QString, QDBusVariant>{{property, castToDBusVariant(value)}});
+    reply << QVariant::fromValue(changedProperties);
     this->send(reply);
 }
 
