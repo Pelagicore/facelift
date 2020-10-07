@@ -144,13 +144,14 @@ protected:
     DBusVirtualObject m_dbusVirtualObject;
 
     QString m_introspectionData;
-    QString m_serviceName;
 
     bool m_previousReadyState = false;
     bool m_signalsConnected = false;
     bool m_alreadyInitialized = false;
 
     DBusManagerInterface& m_dbusManager;
+    QDBusConnection m_connection;
+    QString m_address;
 private:
     template<typename T, typename std::enable_if_t<!std::is_enum<T>::value, int> = 0>
     T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {

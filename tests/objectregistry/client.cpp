@@ -36,13 +36,12 @@
 
 void tests::ipc::Tester::registerAnotherAdapter()
 {
-    auto &manager = facelift::dbus::DBusManager::instance();
     facelift::dbus::DBusIPCMessage msg(
         facelift::dbus::DBusIPCCommon::DEFAULT_SERVICE_NAME,
         m_async->ipc()->objectPath(),
         tests::ipc::IPCTestInterfaceAsyncIPCProxy::FULLY_QUALIFIED_INTERFACE_NAME,
         "registerOtherIPCTestInterface");
-    manager.connection().call(msg.outputMessage());
+    QDBusConnection::sessionBus().call(msg.outputMessage());
 }
 
 void tests::ipc::Tester::runTest()

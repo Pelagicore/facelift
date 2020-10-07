@@ -72,6 +72,8 @@ public:
 
     void setObjectPath(const QString &objectPath) override;
 
+    void setAddress(const QString& address) override;
+
     void setInterfaceName(const QString &name);
 
     Q_SLOT void onPropertiesChanged(const QDBusMessage &dbusMessage);
@@ -223,6 +225,7 @@ private:
     DBusRequestHandler *m_serviceObject = nullptr;
     bool m_serviceAvailable = false;
     DBusManagerInterface &m_dbusManager;
+    QDBusConnection m_connection;
 };
 
 

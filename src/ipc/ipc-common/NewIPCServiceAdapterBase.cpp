@@ -59,7 +59,7 @@ void NewIPCServiceAdapterBase::registerService()
     registerLocalService();
     createAdapters();
     for (auto& ipcAdapter : m_ipcServiceAdapters) {
-        ipcAdapter->registerService(objectPath(), service());
+        ipcAdapter->registerService(objectPath(), address(), serviceName(), service());
     }
 }
 
@@ -83,6 +83,18 @@ void NewIPCServiceAdapterBase::onValueChanged()
             m_registered = false;
         }
     }
+}
+
+void NewIPCServiceAdapterBase::setAddress(const QString &address)
+{
+    m_address = address;
+    onValueChanged();
+}
+
+void NewIPCServiceAdapterBase::setServiceName(const QString& serviceName)
+{
+    m_serviceName = serviceName;
+    onValueChanged();
 }
 
 void NewIPCServiceAdapterBase::setEnabled(bool enabled)

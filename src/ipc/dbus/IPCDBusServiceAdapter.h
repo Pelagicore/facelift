@@ -86,8 +86,20 @@ public:
         return m_service;
     }
 
-    void registerService(const QString &objectPath, InterfaceBase* serverObject) override {
+    void registerService(const QString &objectPath, const QString& address, const QString& serviceName, InterfaceBase* serverObject) override {
         Q_ASSERT(qobject_cast<ServiceType*>(serverObject) != nullptr);
+        if (address.isEmpty()) {
+            m_connection = QDBusConnection::sessionBus();
+        }
+        else {
+            m_connection = QDBusConnection::connectToBus(address, address);
+        }
+        if (m_connection.isConnected()) {
+            m_connection.registerService(serviceName);
+        }
+        else {
+            qCCritical(LogIpc()) << "Not connected to DBUS at address:" << (address.isEmpty() ? QStringLiteral("session bus"): address);
+        }
         registerService(objectPath, static_cast<ServiceType *>(serverObject));
     }
 

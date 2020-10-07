@@ -85,8 +85,10 @@ public:
         return m_service;
     }
 
-    void registerService(const QString &objectPath, InterfaceBase *serverObject) override
+    void registerService(const QString &objectPath, const QString& address, const QString& serviceName, InterfaceBase *serverObject) override
     {
+        Q_UNUSED(serviceName)
+        Q_UNUSED(address)
         Q_ASSERT(qobject_cast<ServiceType *>(serverObject) != nullptr);
         registerService(objectPath, static_cast<ServiceType *>(serverObject));  // TODO: get rid of that cast
     }

@@ -53,7 +53,7 @@ void DBusObjectRegistry::init()
 {
     if (!m_initialized) {
         m_initialized = true;
-        if (!m_dbusManager.isDBusConnected() || m_dbusManager.registerServiceName(m_serviceName)) {
+        if (!QDBusConnection::sessionBus().isConnected() || QDBusConnection::sessionBus().registerService(m_serviceName)) {
             m_master = std::make_unique<MasterImpl>();
             m_master->init();
             QObject::connect(m_master.get(), &MasterImpl::objectAdded, this, &DBusObjectRegistry::onObjectAdded);
@@ -73,10 +73,9 @@ void DBusObjectRegistry::init()
     }
 }
 
-void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer)
+void DBusObjectRegistry::registerObject(const QString &objectPath, const QString& serviceName, facelift::AsyncAnswer<bool> answer)
 {
     init();
-    auto serviceName = m_dbusManager.serviceName();
     if (isMaster()) {
         auto isSuccessful = m_master->registerObject(objectPath, serviceName);
         answer(isSuccessful);
@@ -85,10 +84,9 @@ void DBusObjectRegistry::registerObject(const QString &objectPath, facelift::Asy
     }
 }
 
-void DBusObjectRegistry::unregisterObject(const QString &objectPath)
+void DBusObjectRegistry::unregisterObject(const QString &objectPath, const QString& serviceName)
 {
     init();
-    auto serviceName = m_dbusManager.serviceName();
     if (isMaster()) {
         m_master->unregisterObject(objectPath, serviceName);
     } else {

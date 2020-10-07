@@ -74,7 +74,7 @@ public:
         m_objectPath = objectPath;
     }
 
-    virtual void registerService(const QString &objectPath, InterfaceBase* serverObject) = 0;
+    virtual void registerService(const QString &objectPath, const QString& address, const QString& serviceName, InterfaceBase* serverObject) = 0;
 
     virtual void unregisterService() = 0;
 

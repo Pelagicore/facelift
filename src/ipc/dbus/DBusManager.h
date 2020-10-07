@@ -57,27 +57,10 @@ public:
 
     static DBusManager &instance();
 
-    bool isDBusConnected() const override
-    {
-        return m_dbusConnected;
-    }
-
-    bool registerServiceName(const QString &serviceName) override;
-
-    QDBusConnection &connection() override
-    {
-        return m_busConnection;
-    }
-
-    QString serviceName() const override;
-
     DBusObjectRegistry &objectRegistry() override;
 
 private:
-    QDBusConnection m_busConnection;
     DBusObjectRegistry *m_objectRegistry = nullptr;
-    bool m_dbusConnected = false;
-
     // singleton
     DBusManager();
 };

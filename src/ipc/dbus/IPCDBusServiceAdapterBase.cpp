@@ -135,7 +135,8 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
 IPCDBusServiceAdapterBase::IPCDBusServiceAdapterBase(DBusManagerInterface& dbusManager, QObject *parent) :
     IPCServiceAdapterBase(parent),
     m_dbusVirtualObject(*this),
-    m_dbusManager(dbusManager)
+    m_dbusManager(dbusManager),
+    m_connection(QDBusConnection::sessionBus())
 {
 }
 
@@ -147,7 +148,7 @@ void IPCDBusServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage
 void IPCDBusServiceAdapterBase::send(DBusIPCMessage &message)
 {
     qCDebug(LogIpc) << "Sending IPC message : " << message.toString();
-    bool successful = m_dbusManager.connection().send(message.outputMessage());
+    bool successful = m_connection.send(message.outputMessage());
     Q_ASSERT(successful);
 }
 
@@ -178,9 +179,9 @@ QString IPCDBusServiceAdapterBase::introspect(const QString &path) const
 void IPCDBusServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
-        m_dbusManager.connection().unregisterObject(objectPath());
+        m_connection.unregisterObject(objectPath());
         qCDebug(LogIpc) << "Unregistered IPCDBusServiceAdapter object at " << objectPath();
-        m_dbusManager.objectRegistry().unregisterObject(objectPath());
+        m_dbusManager.objectRegistry().unregisterObject(objectPath(), m_connection.baseService());
         m_alreadyInitialized = false;
     }
 }
@@ -188,19 +189,15 @@ void IPCDBusServiceAdapterBase::unregisterService()
 void IPCDBusServiceAdapterBase::registerService()
 {
     if (!m_alreadyInitialized) {
-        if (m_dbusManager.isDBusConnected()) {
-
-            if (!m_serviceName.isEmpty()) {
-                m_dbusManager.registerServiceName(m_serviceName);
-            }
+        if (m_connection.isConnected()) {
 
             qCDebug(LogIpc) << "Registering IPCDBusServiceAdapter object at " << objectPath();
-            m_alreadyInitialized = m_dbusManager.connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
+            m_alreadyInitialized = m_connection.registerVirtualObject(objectPath(), &m_dbusVirtualObject);
             if (!m_alreadyInitialized) {
                 qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));
             }
 
-            m_dbusManager.objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
+            m_dbusManager.objectRegistry().registerObject(objectPath(), m_connection.baseService(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
                 Q_ASSERT(isSuccessful);
             }));
         }

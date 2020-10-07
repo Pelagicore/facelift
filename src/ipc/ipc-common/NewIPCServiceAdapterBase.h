@@ -53,6 +53,8 @@ public:
     Q_PROPERTY(QObject * service READ service WRITE checkedSetService)
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
+    Q_PROPERTY(QString address READ address WRITE setAddress)
+    Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
 
     NewIPCServiceAdapterBase(InterfaceManagerInterface& interfaceManager, QObject *parent);
 
@@ -62,6 +64,20 @@ public:
     {
         return m_enabled;
     }
+
+    const QString& address() const
+    {
+        return m_address;
+    }
+
+    const QString& serviceName() const
+    {
+        return m_serviceName;
+    }
+
+    void setAddress(const QString& address);
+
+    void setServiceName(const QString& serviceName);
 
     void setEnabled(bool enabled);
 
@@ -138,6 +154,8 @@ private:
     bool m_enabled = true;
     bool m_providerReady = false;
     bool m_registered = false;
+    QString m_address;
+    QString m_serviceName;
     InterfaceManagerInterface& m_interfaceManager;
 };
 

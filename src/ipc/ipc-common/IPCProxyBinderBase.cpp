@@ -83,6 +83,12 @@ void IPCProxyBinderBase::setObjectPath(const QString &objectPath)
     checkInit();
 }
 
+void IPCProxyBinderBase::setAddress(const QString& address)
+{
+    m_address = address;
+    checkInit();
+}
+
 bool IPCProxyBinderBase::isServiceAvailable() const {
     Q_ASSERT(false); // TODO: remove
     return true;

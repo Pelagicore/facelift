@@ -48,10 +48,6 @@ class FaceliftIPCLibDBus_EXPORT DBusManagerInterface
 {
 public:
     virtual ~DBusManagerInterface() = default;
-    virtual bool isDBusConnected() const = 0;
-    virtual bool registerServiceName(const QString &serviceName) = 0;
-    virtual QDBusConnection &connection() = 0;
-    virtual QString serviceName() const = 0;
     virtual DBusObjectRegistry &objectRegistry() = 0;
 };
 
