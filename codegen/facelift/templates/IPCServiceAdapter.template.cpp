@@ -144,7 +144,7 @@ void {{className}}::connectSignals()
 
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    m_{{property.name}}Handler.connectModel(QStringLiteral("{{property.name}}"), theService->{{property.name}}());
+    m_{{property.name}}Handler.connectModel(QLatin1String("{{property.name}}"), theService->{{property.name}}());
     {% else %}
     m_previous{{property.name}} = theService->{{property.name}}();
     {% endif %}
@@ -178,13 +178,13 @@ QVariantMap {{className}}::changedProperties()
     {% for property in interface.properties %}
     {% if not property.type.is_model %}
     if (m_previous{{property.name}} != theService->{{property.name}}()) {
-        ret[QStringLiteral("{{property.name}}")] = castToQVariant(theService->{{property.name}}());
+        ret[QLatin1String("{{property.name}}")] = castToQVariant(theService->{{property.name}}());
         m_previous{{property.name}} = theService->{{property.name}}();
     }
     {% endif %}
     {% endfor %}
     if (m_previousReadyState != theService->ready()) {
-        ret[QStringLiteral("ready")] = castToQVariant(theService->ready());
+        ret[QLatin1String("ready")] = castToQVariant(theService->ready());
         m_previousReadyState = theService->ready();
     }
     return ret;
@@ -200,19 +200,19 @@ QVariantMap {{className}}::marshalProperties()
 
     {% for property in interface.properties %}
     {% if property.type.is_model %}
-    ret["{{property.name}}"] = castToQVariant(theService->{{property.name}}().size());
+    ret[QLatin1String("{{property.name}}")] = castToQVariant(theService->{{property.name}}().size());
     {% else %}
-    ret["{{property.name}}"] = castToQVariant(theService->{{property.name}}());
+    ret[QLatin1String("{{property.name}}")] = castToQVariant(theService->{{property.name}}());
     {% endif %}
     {% endfor %}
-    ret["ready"] = castToQVariant(theService->ready());
+    ret[QLatin1String("ready")] = castToQVariant(theService->ready());
     return ret;
 }
 
 QVariant {{className}}::marshalProperty(const QString& propertyName)
 {
     {% for property in interface.properties %}
-    if (propertyName == QStringLiteral("{{property.name}}")) {
+    if (propertyName == QLatin1String("{{property.name}}")) {
     {% if property.type.is_model %}
 
     {% else %}
@@ -220,7 +220,7 @@ QVariant {{className}}::marshalProperty(const QString& propertyName)
     {% endif %}
     }
     {% endfor %}
-    if (propertyName == QStringLiteral("ready")) {
+    if (propertyName == QLatin1String("ready")) {
         return castToQVariant(service()->ready());
     }
 return QVariant();
@@ -231,7 +231,7 @@ void {{className}}::setProperty(const QString& propertyName, const QVariant& val
     Q_UNUSED(propertyName)
     Q_UNUSED(value)
     {% for property in interface.properties %}
-    if (propertyName == QStringLiteral("{{property.name}}")) {
+    if (propertyName == QLatin1String("{{property.name}}")) {
     {% if property.type.is_interface %}
         Q_ASSERT(false); // Writable interface properties are unsupported
     {% elif property.type.is_model %}

@@ -97,7 +97,7 @@ public:
         {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
-        sendSignal("{{event}}"
+        sendSignal(QLatin1String("{{event}}")
         {%- for parameter in event.parameters -%}
             , {{parameter.name}}
         {%- endfor -%}  );
