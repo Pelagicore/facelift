@@ -74,9 +74,9 @@ public:
 
     DBusObjectRegistry(DBusManagerInterface &dbusManager);
 
-    void registerObject(const QString &objectPath, const QString& serviceName, facelift::AsyncAnswer<bool> answer);
+    void registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer);
 
-    void unregisterObject(const QString &objectPath, const QString& serviceName);
+    void unregisterObject(const QString &objectPath);
 
     const Registry<QString>& objects(bool blocking);
 

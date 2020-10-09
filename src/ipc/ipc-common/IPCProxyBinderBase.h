@@ -48,7 +48,6 @@ public:
     Q_PROPERTY(QString objectPath READ objectPath WRITE setObjectPath)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled)
     Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName)
-    Q_PROPERTY(QString address READ address WRITE setAddress)
 
     IPCProxyBinderBase(InterfaceBase &owner, QObject *parent);
 
@@ -71,13 +70,8 @@ public:
         return m_objectPath;
     }
 
-    virtual void setObjectPath(const QString &objectPath);
 
-    inline const QString& address()
-    {
-        return m_address;
-    }
-    virtual void setAddress(const QString& address);
+    virtual void setObjectPath(const QString &objectPath);
 
     void onComponentCompleted();
 
@@ -146,7 +140,6 @@ private:
     InterfaceBase &m_owner;
     bool m_alreadyInitialized = false;
     bool m_enabled = true;
-    QString m_address;
     bool m_componentCompleted = false;
     bool m_isSynchronous = true;
 };

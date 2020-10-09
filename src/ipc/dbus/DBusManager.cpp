@@ -34,8 +34,12 @@
 namespace facelift {
 namespace dbus {
 
-DBusManager::DBusManager()
+DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 {
+    m_dbusConnected = m_busConnection.isConnected();
+    if (!m_dbusConnected) {
+        qCCritical(LogIpc) << "NOT connected to DBUS";
+    }
 }
 
 DBusManager &DBusManager::instance()
@@ -60,6 +64,19 @@ DBusObjectRegistry &DBusManager::objectRegistry()
 
     return *m_objectRegistry;
 }
+
+bool DBusManager::registerServiceName(const QString &serviceName)
+{
+    qCDebug(LogIpc) << "Registering serviceName " << serviceName;
+    auto success = m_busConnection.registerService(serviceName);
+    return success;
+}
+
+QString DBusManager::serviceName() const
+{
+    return m_busConnection.baseService();
+}
+
 
 } // end namespace dbus
 } // end namespace facelift

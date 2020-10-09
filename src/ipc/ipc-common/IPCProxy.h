@@ -75,7 +75,6 @@ public:
     void enableBinder(IPCProxyBinderBase * ipcBinder)
     {
         ipcBinder->setObjectPath(ipc()->objectPath());
-        ipcBinder->setAddress(ipc()->address());
         const auto &serviceName = ipc()->serviceName();
         if (!serviceName.isEmpty()) {
             ipcBinder->setServiceName(serviceName);

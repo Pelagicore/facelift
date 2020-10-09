@@ -39,8 +39,7 @@ namespace dbus {
 
 DBusIPCProxyBinder::DBusIPCProxyBinder(DBusManagerInterface& dbusManager, InterfaceBase &owner, QObject *parent) :
     IPCProxyBinderBase(owner, parent),
-    m_dbusManager(dbusManager),
-    m_connection(QDBusConnection::sessionBus())
+    m_dbusManager(dbusManager)
 {
     m_busWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration);
 }
@@ -111,20 +110,22 @@ void DBusIPCProxyBinder::requestPropertyValues()
 
 void DBusIPCProxyBinder::onServiceNameKnown()
 {
-    auto successPropertyChangeSignal = m_connection.connect(m_serviceName,
+    auto& connection = m_dbusManager.connection();
+
+    auto successPropertyChangeSignal = connection.connect(m_serviceName,
                     objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
     Q_UNUSED(successPropertyChangeSignal); // TODO: check
 
     for (const QString& signalEntry: m_serviceObject->getSignals()) {
-        auto signalConnected = m_connection.connect(m_serviceName,
+        auto signalConnected = connection.connect(m_serviceName,
                                                   objectPath(), m_interfaceName, signalEntry, this, SLOT(handleGenericSignals(const QDBusMessage&)));
         Q_UNUSED(signalConnected) // TODO: check
     }
 
     m_busWatcher.addWatchedService(m_serviceName);
-    m_busWatcher.setConnection(m_connection);
+    m_busWatcher.setConnection(connection);
     QObject::connect(&m_busWatcher, &QDBusServiceWatcher::serviceRegistered, this, [this](){
         requestPropertyValues();
     });
@@ -142,19 +143,21 @@ void DBusIPCProxyBinder::checkRegistry()
             if (serviceName != m_serviceName) {
                 m_serviceName = serviceName;
 
-                if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && m_connection.isConnected()) {
+                if (!m_serviceName.isEmpty() && !m_interfaceName.isEmpty() && m_dbusManager.isDBusConnected()) {
                     onServiceNameKnown();
                 }
             }
         } else if (!m_serviceName.isEmpty()){ // no point to proceed on empty service name
             m_busWatcher.removeWatchedService(m_serviceName);
 
-            m_connection.disconnect(m_serviceName,
+            auto& connection = m_dbusManager.connection();
+
+            connection.disconnect(m_serviceName,
                     objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME, this,
                     SLOT(onPropertiesChanged(const QDBusMessage&)));
 
             for (const QString& signalEntry: m_serviceObject->getSignals()) {
-                m_connection.disconnect(m_serviceName,
+                connection.disconnect(m_serviceName,
                                       objectPath(), interfaceName(), signalEntry, this, SLOT(handleGenericSignals(const QDBusMessage&)));
             }
 
@@ -172,8 +175,9 @@ void DBusIPCProxyBinder::handleGenericSignals(const QDBusMessage& msg)
 
 void DBusIPCProxyBinder::asyncCall(DBusIPCMessage &message, const QObject *context, std::function<void(DBusIPCMessage &message)> callback)
 {
+    auto& connection = m_dbusManager.connection();
     qCDebug(LogIpc) << "Sending async IPC message : " << message.toString();
-    auto reply = new QDBusPendingCallWatcher(m_connection.asyncCall(message.outputMessage()));
+    auto reply = new QDBusPendingCallWatcher(connection.asyncCall(message.outputMessage()));
     QObject::connect(reply, &QDBusPendingCallWatcher::finished, context, [callback, reply]() {
         DBusIPCMessage msg(reply->reply());
         if (msg.isReplyMessage()) {
@@ -185,30 +189,19 @@ void DBusIPCProxyBinder::asyncCall(DBusIPCMessage &message, const QObject *conte
 
 DBusIPCMessage DBusIPCProxyBinder::call(DBusIPCMessage &message) const
 {
+    auto& connection = m_dbusManager.connection();
     qCDebug(LogIpc) << "Sending blocking IPC message : " << message.toString();
-    auto replyDbusMessage = m_connection.call(message.outputMessage());
+    auto replyDbusMessage = connection.call(message.outputMessage());
     DBusIPCMessage reply(replyDbusMessage);
     return reply;
 }
 
 void DBusIPCProxyBinder::setObjectPath(const QString &objectPath)
 {
-    if (!m_explicitServiceName) {
-        m_dbusManager.objectRegistry().objects(false).addListener(objectPath, this, &DBusIPCProxyBinder::checkRegistry);
-    }
+    m_dbusManager.objectRegistry().objects(false).addListener(objectPath, this, &DBusIPCProxyBinder::checkRegistry);
     IPCProxyBinderBase::setObjectPath(objectPath);
 }
 
-void DBusIPCProxyBinder::setAddress(const QString& address)
-{
-    if (!address.isEmpty()) {
-        m_connection = QDBusConnection::connectToBus(address, address);
-        if (!m_connection.isConnected()) {
-            qFatal("Can't connect to DBUS at address: %s", qPrintable(address));
-        }
-        IPCProxyBinderBase::setAddress(address);
-    }
-}
 void DBusIPCProxyBinder::bindToIPC()
 {
     if (m_explicitServiceName) {
