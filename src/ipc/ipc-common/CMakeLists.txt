@@ -48,6 +48,7 @@ facelift_add_library(FaceliftIPCCommonLib
         SerializeParameterFunction.h
         StaticArrayReference.h
         ipc-common.h
+        observer.h
     LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )
