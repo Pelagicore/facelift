@@ -7,16 +7,17 @@ facelift_add_library(FaceliftIPCLocalLib
         LocalIPCRegistry.cpp
         LocalIPCServiceAdapterBase.cpp
     HEADERS
-        LocalIPCMessage.h
-        LocalIPCProxyBase.h
         LocalIPCProxyBinder.h
-        LocalIPCRequestHandler.h
         LocalIPCServiceAdapterBase.h
-        LocalIPCProxy.h
         LocalIPCRegistry.h
-        LocalIPC-serialization.h
-        LocalIPCServiceAdapter.h
+    HEADERS_NO_MOC
         FaceliftIPCCommon.h
+        LocalIPCMessage.h
+        LocalIPCProxy.h
+        LocalIPC-serialization.h
+        LocalIPCProxyBase.h
+        LocalIPCRequestHandler.h
+        LocalIPCServiceAdapter.h
     LINK_LIBRARIES FaceliftIPCCommonLib FaceliftModelLib
     PUBLIC_HEADER_BASE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
     MONOLITHIC_SUPPORTED

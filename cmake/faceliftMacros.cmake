@@ -211,6 +211,8 @@ function(facelift_generate_code )
             list(APPEND BASE_CODEGEN_COMMAND "--all")
         endif()
 
+        list(APPEND BASE_CODEGEN_COMMAND "--no_moc_file_path" "${ARGUMENT_OUTPUT_PATH}")
+
         string(REPLACE ";" " " BASE_CODEGEN_COMMAND_WITH_SPACES "${BASE_CODEGEN_COMMAND}")
         message("Calling facelift code generator. Command:\n PYTHONPATH=$ENV{PYTHONPATH} ${FACELIFT_PYTHON_EXECUTABLE} ${BASE_CODEGEN_COMMAND_WITH_SPACES}")
 
@@ -356,9 +358,10 @@ endfunction()
 macro(_facelift_parse_target_arguments additionalOptions additionalOneValueArgs additionalMultiValueArgs)
 
     set(options NO_INSTALL UNITY_BUILD NO_EXPORT INTERFACE ${additionalOptions})
-    set(oneValueArgs ${additionalOneValueArgs})
+    set(oneValueArgs ${additionalOneValueArgs} HEADERS_NO_MOC_FILE)
     set(multiValueArgs PRIVATE_DEFINITIONS PUBLIC_DEFINITIONS PROPERTIES COMPILE_OPTIONS
         HEADERS HEADERS_GLOB HEADERS_GLOB_RECURSE
+        HEADERS_NO_MOC
         SOURCES SOURCES_GLOB SOURCES_GLOB_RECURSE
         LINK_LIBRARIES
         UI_FILES
@@ -379,13 +382,19 @@ macro(_facelift_parse_target_arguments additionalOptions additionalOneValueArgs 
     endforeach()
 
     set(HEADERS ${ARGUMENT_HEADERS})
-    foreach(HEADER_GLOB ${ARGUMENT_HEADERS_GLOB_RECURSE})
-        file(GLOB_RECURSE GLOB_FILES ${HEADER_GLOB})
-        list(APPEND HEADERS ${GLOB_FILES})
+
+    set(HEADERS_NO_MOC ${ARGUMENT_HEADERS_NO_MOC})
+
+    set(HEADERS_NO_MOC_FILE ${ARGUMENT_HEADERS_NO_MOC_FILE})
+
+    unset(HEADERS_GLOB)
+    foreach(HEADER ${ARGUMENT_HEADERS_GLOB_RECURSE})
+        file(GLOB_RECURSE GLOB_FILES ${HEADER})
+        list(APPEND HEADERS_GLOB ${GLOB_FILES})
     endforeach()
-    foreach(HEADER_GLOB ${ARGUMENT_HEADERS_GLOB})
-        file(GLOB GLOB_FILES ${HEADER_GLOB})
-        list(APPEND HEADERS ${GLOB_FILES})
+    foreach(HEADER ${ARGUMENT_HEADERS_GLOB})
+        file(GLOB GLOB_FILES ${HEADER})
+        list(APPEND HEADERS_GLOB ${GLOB_FILES})
     endforeach()
 
     set(HEADERS_NO_INSTALL ${ARGUMENT_HEADERS_NO_INSTALL})
@@ -402,12 +411,44 @@ endmacro()
 
 macro(_facelift_add_target_start IMPLEMENTATION_TARGET_NAME)
 
-    set(HEADERS_TO_BE_MOCCED ${HEADERS} ${HEADERS_NO_INSTALL})
+    if(ORIGINAL_TARGET_NAME)
+        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${ORIGINAL_TARGET_NAME}) 
+    else()
+        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${TARGET_NAME}) 
+    endif()
+
+    # set HEADERS_NO_MOC_GENERATED in this include
+    include("${OUTPUT_PATH}/no_moc.cmake" OPTIONAL)
+    # set HEADERS_NO_MOC_FROM_FILE in this include (the file is the input parameter)
+    if(HEADERS_NO_MOC_FILE)
+        include("${HEADERS_NO_MOC_FILE}" OPTIONAL)
+    endif()
+
+    set(HEADERS_FOR_MOC ${HEADERS_GLOB} ${HEADERS_NO_INSTALL})
+    
+    foreach(HEADER ${HEADERS_NO_MOC_GENERATED} ${HEADERS_NO_MOC})
+        list(REMOVE_ITEM HEADERS_FOR_MOC ${HEADER})
+    endforeach()
+
+    foreach(HEADER ${HEADERS_FOR_MOC})
+        list(FIND HEADERS_NO_MOC_FROM_FILE ${HEADER} IS_FOUND)
+
+        if(${IS_FOUND} GREATER_EQUAL 0)
+            list(REMOVE_ITEM HEADERS_FOR_MOC ${HEADER})
+        endif()
+
+    endforeach()
+
+    list(APPEND HEADERS_FOR_MOC ${HEADERS})
+
     unset(HEADERS_MOCS)
 
-    if(HEADERS_TO_BE_MOCCED)
-        qt5_wrap_cpp(HEADERS_MOCS ${HEADERS} ${HEADERS_NO_INSTALL} TARGET ${IMPLEMENTATION_TARGET_NAME})
+    if(HEADERS_FOR_MOC)
+        qt5_wrap_cpp(HEADERS_MOCS ${HEADERS_FOR_MOC} TARGET ${IMPLEMENTATION_TARGET_NAME})
     endif()
+
+    # add processed for moc headers to the list of headers for installation
+    list(APPEND HEADERS ${HEADERS_GLOB} ${HEADERS_NO_MOC})
 
     unset(UI_FILES)
     if(ARGUMENT_UI_FILES)
@@ -553,6 +594,7 @@ function(facelift_add_library TARGET_NAME)
 
             else()
 
+                set(ORIGINAL_TARGET_NAME ${TARGET_NAME})
                 set(TARGET_NAME ${TARGET_NAME}_OBJECTS)
                 add_library(${ALIAS_NAME} INTERFACE)
                 target_link_libraries(${ALIAS_NAME} INTERFACE ${TARGET_NAME})

@@ -9,6 +9,7 @@ facelift_add_qml_plugin(MyPackagePlugin
     URI facelift.example.mypackage
     SOURCES_GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
     HEADERS_GLOB_RECURSE ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    HEADERS_NO_MOC ${CMAKE_CURRENT_SOURCE_DIR}/models/cpp/MyInterfaceCppImplementation.h
     LINK_LIBRARIES MyPackageInterface
 )
 
