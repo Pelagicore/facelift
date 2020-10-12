@@ -21,15 +21,16 @@ if(Qt5DBus_FOUND)
             DBusIPCProxyBinder.cpp
             DBusManager.cpp
         HEADERS
+            DBusObjectRegistry.h
+            DBusIPCProxyBinder.h
+            IPCDBusServiceAdapterBase.h
+        HEADERS_NO_MOC
+            DBusIPCMessage.h
+            DBusRequestHandler.h
             DBusManager.h
             DBusManagerInterface.h
             DBusIPCProxy.h
             IPCDBusServiceAdapter.h
-            DBusObjectRegistry.h
-            DBusIPCMessage.h
-            DBusRequestHandler.h
-            DBusIPCProxyBinder.h
-            IPCDBusServiceAdapterBase.h
         SOURCES_GLOB_RECURSE
             ${GENERATED_FILE_PATH}/ipc/*.cpp
             ${GENERATED_FILE_PATH}/ipc_dbus/*.cpp

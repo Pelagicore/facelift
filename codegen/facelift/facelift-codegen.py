@@ -36,6 +36,7 @@ from path import Path
 import logging.config
 import yaml
 import qface
+import os
 
 here = Path(__file__).dirname()
 
@@ -320,8 +321,10 @@ setattr(qface.idl.domain.Parameter, 'cppMethodArgumentType', property(cppMethodA
 setattr(qface.idl.domain.Property, 'cppMethodArgumentType', property(cppMethodArgumentType))
 
 ##############################
+def addFileNameToNoMocList(noMocListFile, filePath, fileName):
+    noMocListFile.write('    ' + os.path.join(filePath, fileName) + '\n')
 
-def generateFile(generator, outputPath, templatePath, context, libraryName, libraryType):
+def generateFile(generator, tmpPath, templatePath, context, libraryName, libraryType):
     if libraryName:
         name = libraryName
         if libraryType:
@@ -331,9 +334,9 @@ def generateFile(generator, outputPath, templatePath, context, libraryName, libr
     else:
         context.update({'classExportDefines': ""})
         context.update({'classExport': ""})
-    generator.write(outputPath, templatePath, context)
+    generator.write(tmpPath, templatePath, context)
 
-def run_generation(input, output, dependency, libraryName, all):
+def run_generation(input, output, dependency, libraryName, all, noMocFilePath, noMocListFile):
     global generateAsyncProxy
     global generateAll
     generateAll = all
@@ -363,10 +366,17 @@ def run_generation(input, output, dependency, libraryName, all):
             log.debug('process module %s' % module.module_name)
             ctx.update({'path': module_path})
             generateFile(generator, 'module/{{path}}/ModulePrivate.h', 'ModulePrivate.template.h', ctx, libraryName, "")
+            if not module.structs:
+                addFileNameToNoMocList(noMocListFile, noMocFilePath, 'module/{}/ModulePrivate.h'.format(module_path))
+
             generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "")
             generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "")
+            addFileNameToNoMocList(noMocListFile, noMocFilePath, 'module/{}/Module.h'.format(module_path))
+
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "")
             generateFile(generator, 'ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx, libraryName, "")
+            addFileNameToNoMocList(noMocListFile, noMocFilePath, 'ipc/{}/ModuleIPC.h'.format(module_path))
+
             for interface in module.interfaces:
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})
@@ -386,7 +396,10 @@ def run_generation(input, output, dependency, libraryName, all):
                 if isIPCEnabled(interface):
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.cpp', 'IPCAdapter.template.cpp', ctx, libraryName, "")
+
                     generateFile(generator, 'types/{{path}}/{{interface}}IPCCommon.h', 'IPCCommon.template.h', ctx, libraryName, "")
+                    addFileNameToNoMocList(noMocListFile, noMocFilePath, 'types/{}/{}IPCCommon.h'.format(module_path, interface))
+
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusServiceAdapter.template.h', ctx, libraryName, "")
                     generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusServiceAdapter.template.cpp', ctx, libraryName, "")
                     generateFile(generator, 'ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.h', 'IPCLocalServiceAdapter.template.h', ctx, libraryName, "")
@@ -439,10 +452,14 @@ def run_generation(input, output, dependency, libraryName, all):
 @click.option('--input', '-i', multiple=True)
 @click.option('--dependency', '-d', multiple=True)
 @click.option('--all', is_flag=True)
-def generate(input, output, dependency, library, all):
+@click.option('--no_moc_file_path', default=".")
+def generate(input, output, dependency, library, all, no_moc_file_path):
     """Takes several files or directories as input and generates the code
     in the given output directory."""
-    run_generation(input, output, dependency, library, all)
+    with open('{}/no_moc.cmake'.format(output), 'a+') as noMocListFile:
+        noMocListFile.write('set(HEADERS_NO_MOC_GENERATED\n')
+        run_generation(input, output, dependency, library, all, no_moc_file_path, noMocListFile)
+        noMocListFile.write(')\n')
 
 
 if __name__ == '__main__':
