@@ -96,7 +96,7 @@ facelift::IPCHandlingResult {{className}}::handleMethodCallMessage(InputIPCMessa
 
     return facelift::IPCHandlingResult::OK;
 }
-
+{% if proxyType and proxyType == "DBus" %}
 void {{className}}::appendDBUSIntrospectionData(QTextStream &s) const
 {
     Q_UNUSED(s)   // For empty interfaces
@@ -136,7 +136,7 @@ void {{className}}::appendDBUSIntrospectionData(QTextStream &s) const
     facelift::appendDBusModelSignals(s);
     {% endif %}
 }
-
+{% endif %}
 void {{className}}::connectSignals()
 {
     auto theService = service();
@@ -155,13 +155,13 @@ void {{className}}::connectSignals()
     {% for property in interface.properties %}
     {% if (not property.type.is_model) %}
     QObject::connect(theService, &ServiceType::{{property.name}}Changed, this, [this, theService] () {
-        this->sendPropertiesChanged(changedProperties());
+        this->sendPropertiesChanged(dirtyProperties());
     });
     {% endif %}
     {% endfor %}
 
     QObject::connect(theService, &ServiceType::readyChanged, this, [this, theService] () {
-        this->sendPropertiesChanged(changedProperties());
+        this->sendPropertiesChanged(dirtyProperties());
     });
 
     // Signals
@@ -170,7 +170,7 @@ void {{className}}::connectSignals()
     {% endfor %}
 }
 
-QVariantMap {{className}}::changedProperties()
+QVariantMap {{className}}::dirtyProperties()
 {
     QMap<QString, QVariant> ret;
     auto theService = service();

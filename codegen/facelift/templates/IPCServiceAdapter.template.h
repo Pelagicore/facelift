@@ -74,15 +74,15 @@ public:
     {% endfor %}
     {
     }
-
+    {% if proxyType and proxyType == "DBus" %}
     void appendDBUSIntrospectionData(QTextStream &s) const override;
-
+    {% endif %}
     ::facelift::IPCHandlingResult handleMethodCallMessage(InputIPCMessage &requestMessage,
             OutputIPCMessage &replyMessage) override;
 
     void connectSignals() override;
 
-    QVariantMap changedProperties();
+    QVariantMap dirtyProperties();
 
     QVariantMap marshalProperties() override;
 

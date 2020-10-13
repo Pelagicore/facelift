@@ -87,7 +87,7 @@ public:
 
     void connectSignals() override;
 
-    QVariantMap changedProperties();
+    QVariantMap dirtyProperties();
 
     QVariantMap marshalProperties() override;
 

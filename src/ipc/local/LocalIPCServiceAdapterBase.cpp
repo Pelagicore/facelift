@@ -105,12 +105,6 @@ LocalIPCServiceAdapterBase::~LocalIPCServiceAdapterBase()
     unregisterService();
 }
 
-QString LocalIPCServiceAdapterBase::introspect(const QString &path) const
-{
-    Q_UNUSED(path);
-    return QString();
-}
-
 void LocalIPCServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {

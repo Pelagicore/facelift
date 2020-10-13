@@ -45,8 +45,8 @@ class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
 {
 public:
 
-    virtual void unmarshalProperties(const QVariantMap& changedProperties) = 0;
-    virtual void unmarshalPropertiesChanged(const QVariantMap& changedProperties) = 0;
+    virtual void unmarshalProperties(const QVariantMap& properties) = 0;
+    virtual void unmarshalPropertiesChanged(const QVariantMap& dirtyProperties) = 0;
     virtual void handleSignals(DBusIPCMessage& msg) = 0;
     virtual const QList<QString>& getSignals() const = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;

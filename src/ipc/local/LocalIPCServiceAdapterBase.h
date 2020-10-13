@@ -62,7 +62,7 @@ public:
 
     IPCHandlingResult handleMessage(LocalIPCMessage &message);
 
-    inline void sendPropertiesChanged(const QVariantMap &changedProperties);
+    inline void sendPropertiesChanged(const QVariantMap &dirtyProperties);
 
     template<typename ... Args>
     void sendSignal(const QString& signalName, Args && ... args);
@@ -89,10 +89,6 @@ public:
     void send(LocalIPCMessage &message);
 
     void sendReply(LocalIPCMessage &message);
-
-    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
-
-    QString introspect(const QString &path) const;
 
     template<typename T>
     MemberIDType memberID(T member, MemberIDType memberName) const
@@ -149,11 +145,11 @@ protected:
     bool m_alreadyInitialized = false;
 };
 
-inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QVariantMap &changedProperties )
+inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QVariantMap &dirtyProperties )
 {
     LocalIPCMessage reply(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
     reply << interfaceName();
-    reply << QVariant::fromValue(changedProperties);
+    reply << QVariant::fromValue(dirtyProperties);
     this->send(reply);
 }
 

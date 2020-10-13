@@ -86,9 +86,11 @@ public:
 
     void handleSignals(InputIPCMessage& msg) override;
 
+    {% if proxyType and proxyType == "DBus" %}
     const QList<QString>& getSignals() const override;
+    {% endif %}
 
-    void unmarshalPropertiesChanged(const QVariantMap& changedProperties) override;
+    void unmarshalPropertiesChanged(const QVariantMap& dirtyProperties) override;
 
     {% for operation in interface.operations %}
 

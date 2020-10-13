@@ -111,7 +111,7 @@ void {{className}}::handleSignals(InputIPCMessage& msg)
     this->onModelUpdateEvent(msg);
     {% endif %}
 }
-
+{% if proxyType and proxyType == "DBus" %}
 const QList<QString>& {{className}}::getSignals() const
 {
     static QList<QString> allSignals{
@@ -129,7 +129,7 @@ const QList<QString>& {{className}}::getSignals() const
 
     return allSignals;
 }
-
+{% endif %}
 {% if interface.hasModelProperty %}
 void {{className}}::onModelUpdateEvent(const InputIPCMessage& msg)
 {
@@ -145,24 +145,24 @@ void {{className}}::onModelUpdateEvent(const InputIPCMessage& msg)
 }
 {% endif %}
 
-void {{className}}::unmarshalPropertiesChanged(const QVariantMap& changedProperties)
+void {{className}}::unmarshalPropertiesChanged(const QVariantMap& dirtyProperties)
 {
     {% if interface.properties %}
-    for (const QString &propertyName: changedProperties.keys()) {
+    for (const QString &propertyName: dirtyProperties.keys()) {
         {% for property in interface.properties %}
         if (propertyName == QLatin1String("{{property.name}}")) {
         {% if property.type.is_model %}
-            int {{property.name}}Size = castFromQVariant<int>(changedProperties[propertyName]);
+            int {{property.name}}Size = castFromQVariant<int>(dirtyProperties[propertyName]);
             m_{{property.name}}.beginResetModel();
             m_{{property.name}}.reset({{property.name}}Size, std::bind(&ThisType::{{property.name}}Data, this, std::placeholders::_1));
             m_{{property.name}}.endResetModel();
         {% else %}
-            m_{{property.name}} = castFromQVariant<{{property.interfaceCppType}}>(changedProperties[propertyName]);
+            m_{{property.name}} = castFromQVariant<{{property.interfaceCppType}}>(dirtyProperties[propertyName]);
         {% endif %}
         }
         {% endfor %}
     }
-    for (const QString &propertyName: changedProperties.keys()) {
+    for (const QString &propertyName: dirtyProperties.keys()) {
         {% for property in interface.properties %}
         if (propertyName == QLatin1String("{{property.name}}")) {
         {% if not property.type.is_model %}
@@ -172,7 +172,7 @@ void {{className}}::unmarshalPropertiesChanged(const QVariantMap& changedPropert
         {% endfor %}
     }
     {% else %}
-    Q_UNUSED(changedProperties);
+    Q_UNUSED(dirtyProperties);
     {% endif %}
 }
 

@@ -90,7 +90,7 @@ public:
 
     bool handleMessage(const QDBusMessage &dbusMsg);
 
-    inline void sendPropertiesChanged(const QVariantMap& changedProperties);
+    inline void sendPropertiesChanged(const QVariantMap& dirtyProperties);
 
     template<typename ... Args>
     void sendSignal(const QString& signalName, Args && ... args);
@@ -242,13 +242,13 @@ private:
     }
 };
 
-inline void IPCDBusServiceAdapterBase::sendPropertiesChanged(const QVariantMap &changedProperties)
+inline void IPCDBusServiceAdapterBase::sendPropertiesChanged(const QVariantMap &dirtyProperties)
 {
     DBusIPCMessage reply(objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
     reply << interfaceName();
     QMap<QString, QDBusVariant> convertedToDBusVariant;
-    for (const QString& key: changedProperties.keys()) {
-        convertedToDBusVariant[key] = QDBusVariant(changedProperties[key]);
+    for (const QString& key: dirtyProperties.keys()) {
+        convertedToDBusVariant[key] = QDBusVariant(dirtyProperties[key]);
     }
     reply << QVariant::fromValue(convertedToDBusVariant);
     this->send(reply);
