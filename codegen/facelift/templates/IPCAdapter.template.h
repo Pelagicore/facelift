@@ -35,8 +35,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include <memory>
 
 #include "IPCServiceAdapter.h"
@@ -58,7 +56,7 @@
 {{module.namespaceCppOpen}}
 
 
-class {{classExport}} {{interfaceName}}IPCAdapter: public ::facelift::IPCServiceAdapter<{{interfaceName}}>
+class {{interfaceName}}IPCAdapter: public ::facelift::IPCServiceAdapter<{{interfaceName}}>
 {
     Q_OBJECT
 

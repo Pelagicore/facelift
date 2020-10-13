@@ -37,12 +37,6 @@
 #include <QTextStream>
 #include <QList>
 
-#if defined(FaceliftCommonLib_LIBRARY)
-#  define FaceliftCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 template<typename ElementType>
 inline QTextStream &operator<<(QTextStream &outStream, const QList<ElementType> &f)
 {

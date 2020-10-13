@@ -17,12 +17,6 @@ endif()
 include(GNUInstallDirs)    # for standard installation locations
 include(CMakePackageConfigHelpers)
 
-# find_package(PythonInterp) causes some issues if another version has been searched before, and it is not needed anyway on non-Win32 platforms
-if(WIN32)
-    find_package(PythonInterp 3.0 REQUIRED)
-    set(FACELIFT_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
-endif()
-
 if(ENABLE_LTO)
     cmake_minimum_required(VERSION 3.9.0)
     include(CheckIPOSupported)
@@ -203,10 +197,6 @@ function(facelift_generate_code )
             list(APPEND BASE_CODEGEN_COMMAND "--dependency" "${IMPORT_FOLDER}")
         endforeach()
 
-        if(ARGUMENT_LIBRARY_NAME)
-            list(APPEND BASE_CODEGEN_COMMAND "--library" "${ARGUMENT_LIBRARY_NAME}")
-        endif()
-
         if(ARGUMENT_GENERATE_ALL)
             list(APPEND BASE_CODEGEN_COMMAND "--all")
         endif()
@@ -267,11 +257,8 @@ function(facelift_add_interface TARGET_NAME)
 
     set(GENERATED_HEADERS_INSTALLATION_LOCATION ${FACELIFT_GENERATED_HEADERS_INSTALLATION_LOCATION}/${LIBRARY_NAME})
 
-    if(WIN32)
-        set(OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # There is a weird issue on Windows related to the MOC if the generated files are outside of ${CMAKE_CURRENT_BINARY_DIR}
-    else()
-        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
-    endif()
+    set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${LIBRARY_NAME})  # Keep generated file folder outside of CMAKE_CURRENT_BINARY_DIR to avoid having the MOC generated file inside the same folder, which would cause unnecessary recompiles
+
 
     set(TYPES_OUTPUT_PATH ${OUTPUT_PATH}/types)
     set(DEVTOOLS_OUTPUT_PATH ${OUTPUT_PATH}/devtools)
@@ -975,8 +962,7 @@ function(facelift_add_qml_plugin PLUGIN_NAME)
     file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir "${QMLDIR_CONTENT}")
     file(WRITE ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/qmldir.installed "${QMLDIR_CONTENT}")
 
-    if(NOT CMAKE_CROSSCOMPILING AND NOT WIN32)
-        # not supported for now on Win32 since the required libraries can't be loaded without setting the PATH variable
+    if(NOT CMAKE_CROSSCOMPILING)
         add_custom_command(
             OUTPUT  ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes
             COMMAND ${_qt5Core_install_prefix}/bin/qmlplugindump -noinstantiate ${URI} ${PLUGIN_MAJOR_VERSION}.${PLUGIN_MINOR_VERSION} ${CMAKE_BINARY_DIR}/imports -output ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes || touch ${CMAKE_BINARY_DIR}/${INSTALL_PATH}/plugins.qmltypes

@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QDataStream>
 
 #include "FaceliftModel.h"
@@ -46,7 +40,7 @@
 
 namespace facelift {
 
-FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
+Q_DECLARE_LOGGING_CATEGORY(LogIpc)
 
 enum class CommonSignalID {
     readyChanged,

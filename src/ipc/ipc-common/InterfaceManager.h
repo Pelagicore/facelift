@@ -34,12 +34,6 @@
 #include "Registry.h"
 #include "InterfaceManagerInterface.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 class InterfaceBase;
@@ -47,7 +41,7 @@ class InterfaceBase;
 /**
  * This class maintains a registry of IPC services registered locally, which enables local proxies to get a direct reference to them
  */
-class FaceliftIPCCommonLib_EXPORT InterfaceManager : public InterfaceManagerInterface
+class InterfaceManager : public InterfaceManagerInterface
 {
     Q_OBJECT
 

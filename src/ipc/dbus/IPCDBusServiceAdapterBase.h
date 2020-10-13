@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QDBusVirtualObject>
 #include "IPCServiceAdapterBase.h"
 #include "DBusIPCMessage.h"
@@ -47,7 +41,7 @@ namespace facelift {
 
 namespace dbus {
 
-class FaceliftIPCLibDBus_EXPORT IPCDBusServiceAdapterBase : public IPCServiceAdapterBase
+class IPCDBusServiceAdapterBase : public IPCServiceAdapterBase
 {
     Q_OBJECT
 
