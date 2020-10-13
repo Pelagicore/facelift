@@ -21,63 +21,64 @@ facelift_add_library(FaceliftModelLib
         StructQObjectWrapperBase.cpp
         StructureFactoryBase.cpp
     HEADERS
-        FaceliftModel.h
-        QMLAdapter.h
-        ServiceWrapper.h
         StructureBase.h
-        ModuleBase.h
-        StructQObjectWrapper.h
-        QMLModel.h
-        ModelProperty.h
-        StringConversionHandler.h
-        FaceliftConversion.h
-        FaceliftCommon.h
-        FaceliftEnum.h
-        FaceliftQMLUtils.h
-        AsyncAnswer.h
-        PropertyVerifier.h
-        TAsyncAnswerMasterBase.h
-        TAsyncAnswerMaster.h
-        PropertyInit.h
         ModelBase.h
-        Model.h
-        ModelPropertyInterface.h
-        ServicePropertyInterface.h
         InterfaceBase.h
-        PropertyBase.h
-        TProperty.h
-        Property.h
-        ServiceProperty.h
-        ListProperty.h
-        PropertyConnector.h
-        QMLModelTypeHandler.h
         QMLAdapterBase.h
-        QMLAdapterByReference.h
-        TQMLAdapter.h
         ModelListModelBase.h
-        ModelListModel.h
         ModelQMLImplementationBase.h
-        ModelQMLImplementation.h
-        QMLModelImplementationFrontendBase.h
-        QMLModelImplementationFrontend.h
-        QObjectWrapperPointerBase.h
-        QObjectWrapperPointer.h
-        ServiceWrapperBase.h
         StructQObjectWrapperBase.h
-        TQMLImplListProperty.h
         QMLImplListPropertyBase.h
         QMLImplMapPropertyBase.h
-        TQMLImplMapProperty.h
-        QMLImplListProperty.h
-        QMLImplMapProperty.h
         StructureFactoryBase.h
-        Structure.h
-        TypeHandler.h
-        TypeHandlerBase.h
+    HEADERS_NO_MOC
+        ModelProperty.h
         BinarySeralizer.h
-        StructTypeHandler.h
-        PropertyInterface.h
+        FaceliftCommon.h
+        AsyncAnswer.h
+        ListProperty.h
+        FaceliftModel.h
+        TypeHandler.h
+        PropertyBase.h
+        Model.h
+        FaceliftEnum.h
+        TypeHandlerBase.h
+        FaceliftQMLUtils.h
+        PropertyConnector.h
         FaceliftProperty.h
+        FaceliftConversion.h
+        TQMLImplMapProperty.h
+        TQMLImplListProperty.h
+        Structure.h
+        TAsyncAnswerMaster.h
+        TProperty.h
+        TQMLAdapter.h
+        TAsyncAnswerMasterBase.h
+        ModelPropertyInterface.h
+        ModelListModel.h
+        PropertyInterface.h
+        ModuleBase.h
+        Property.h
+        PropertyInit.h
+        PropertyVerifier.h
+        ModelQMLImplementation.h
+        QMLAdapterByReference.h
+        QMLModelImplementationFrontend.h
+        QMLImplListProperty.h
+        QMLModelImplementationFrontendBase.h
+        QMLImplMapProperty.h
+        QMLAdapter.h
+        ServicePropertyInterface.h
+        ServiceProperty.h
+        QMLModelTypeHandler.h
+        QObjectWrapperPointerBase.h
+        QObjectWrapperPointer.h
+        ServiceWrapper.h
+        ServiceWrapperBase.h
+        QMLModel.h
+        StringConversionHandler.h
+        StructQObjectWrapper.h
+        StructTypeHandler.h
     LINK_LIBRARIES
         Qt5::Qml
         Qt5::Quick

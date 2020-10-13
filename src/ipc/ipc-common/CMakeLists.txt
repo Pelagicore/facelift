@@ -13,30 +13,30 @@ facelift_add_library(FaceliftIPCCommonLib
         NewIPCServiceAdapterBase.cpp
         LocalProviderBinderBase.cpp
     HEADERS
-        ipc-common.h
-        DBusSignatureHelper.h
-        NotAvailableImpl.h
-        NotAvailableImplBase.h
-        IPCProxyNewBase.h
-        LocalProviderBinder.h
-        LocalProviderBinderBase.h
-        StaticArrayReference.h
-        IPCProxyBase.h
-        IPCProxy.h
         InterfaceManager.h
         InterfaceManagerInterface.h
-        IPCProxyModelProperty.h
         IPCProxyBinderBase.h
-        IPCAdapterModelPropertyHandler.h
         IPCServiceAdapterBase.h
         NewIPCServiceAdapterBase.h
-        ModuleIPCBase.h
-        IPCAdapterFactoryManager.h
         IPCAttachedPropertyFactory.h
+    HEADERS_NO_MOC
+        DBusSignatureHelper.h
+        IPCProxyBase.h
+        IPCAdapterModelPropertyHandler.h
+        IPCProxyModelProperty.h
+        IPCProxyBaseBase.h
+        IPCAdapterFactoryManager.h
+        IPCProxyNewBase.h
+        IPCProxy.h
+        ModuleIPCBase.h
         IPCServiceAdapter.h
+        LocalProviderBinderBase.h
+        NotAvailableImpl.h
+        NotAvailableImplBase.h
         Registry.h
-    LINK_LIBRARIES
-        FaceliftModelLib
-        FaceliftCommonLib
+        LocalProviderBinder.h
+        StaticArrayReference.h
+        ipc-common.h
+    LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )
