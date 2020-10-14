@@ -33,7 +33,7 @@
 #include "ipc-common.h"
 #include "IPCProxyBaseBase.h"
 #include "IPCProxyBinderBase.h"
-
+#include "observer.h"
 
 #if defined(FaceliftIPCCommonLib_LIBRARY)
 #  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
@@ -54,7 +54,15 @@ public:
     IPCProxyBase(QObject *parent) : AdapterType(parent)
     {
     }
-
+    // Set observers
+    void setObservers(std::vector<IObserver *> &observers){
+        for(auto observer: observers){
+            auto connection = std::make_shared<QMetaObject::Connection>();
+            *connection = QObject::connect(this, &InterfaceBase::readyChanged, observer, [observer, connection](){
+                observer->onReadyChanged( connection );
+            });
+        }
+    }
     template<typename BinderType>
     void initBinder(BinderType &binder)
     {
