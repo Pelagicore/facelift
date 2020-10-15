@@ -1,5 +1,4 @@
 [![Travis status](https://travis-ci.com/Pelagicore/facelift.svg?branch=master)](https://travis-ci.com/Pelagicore/facelift)
-[![Appveyor status](https://ci.appveyor.com/api/projects/status/github/pelagicore/facelift?svg=true&branch=master)](https://ci.appveyor.com/project/weimerb/facelift-vum0d)
 
 # Motivation
 

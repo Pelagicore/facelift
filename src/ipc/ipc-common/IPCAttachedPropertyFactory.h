@@ -31,17 +31,11 @@
 
 #include "NewIPCServiceAdapterBase.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 class NewIPCServiceAdapterBase;
 
-class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public QObject
+class IPCAttachedPropertyFactory : public QObject
 {
     Q_OBJECT
 

@@ -38,8 +38,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "FaceliftUtils.h"
 #include "IPCDBusServiceAdapter.h"
 #include "IPCAdapterModelPropertyHandler.h"
@@ -58,7 +56,7 @@
 
 class {{interfaceName}}IPCQMLAdapterType;
 
-class {{classExport}} {{className}}: public {{baseClass}}
+class {{className}}: public {{baseClass}}
 {
     Q_OBJECT
 

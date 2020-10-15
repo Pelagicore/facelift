@@ -35,8 +35,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "QMLModel.h"
 
 #include "{{interface}}ImplementationBase.h"
@@ -61,7 +59,7 @@ class {{interface}}ImplementationBaseQML;
  * This class implements the actual service interface and wraps the object instantiated from QML, which implements
  * the actual logic
  */
-class {{classExport}} {{interface}}QMLImplementationProvider : public {{interface}}ImplementationBase,
+class {{interface}}QMLImplementationProvider : public {{interface}}ImplementationBase,
                                                public facelift::QMLModelImplementationFrontend<{{interface}}ImplementationBaseQML>
 {
     Q_OBJECT
@@ -109,7 +107,7 @@ public:
 /**
  * This class defines the QML component which is used when implementing a model using QML
  */
-class {{classExport}} {{interface}}ImplementationBaseQML : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationProvider>
+class {{interface}}ImplementationBaseQML : public facelift::ModelQMLImplementation<{{interface}}QMLImplementationProvider>
 {
     Q_OBJECT
 

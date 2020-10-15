@@ -35,8 +35,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "{{interfaceName}}.h"
 #include "ModelProperty.h"
 
@@ -45,7 +43,7 @@
 /**
  * A partial implementation of the service interface, using the Property helper class
  */
-class {{classExport}} {{interfaceName}}ImplementationBase : public {{interfaceName}}
+class {{interfaceName}}ImplementationBase : public {{interfaceName}}
 {
     Q_OBJECT
 

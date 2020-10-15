@@ -35,12 +35,6 @@
 #include <QString>
 #include <QLoggingCategory>
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #define STRINGIFY_(x) # x
 #define STRINGIFY(x) STRINGIFY_(x)
 
@@ -54,8 +48,8 @@ void M_UNUSED(const Args & ...)
 
 namespace facelift {
 
-FaceliftModelLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogGeneral)
-FaceliftModelLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogModel)
+Q_DECLARE_LOGGING_CATEGORY(LogGeneral)
+Q_DECLARE_LOGGING_CATEGORY(LogModel)
 
 typedef int ModelElementID;
 

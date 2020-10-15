@@ -40,7 +40,7 @@ namespace facelift {
 class IPCAttachedPropertyFactory;
 class IPCServiceAdapterBase;
 
-class FaceliftModelLib_EXPORT ModelListModelBase : public QAbstractListModel
+class ModelListModelBase : public QAbstractListModel
 {
     Q_OBJECT
 

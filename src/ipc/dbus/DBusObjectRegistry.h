@@ -40,7 +40,7 @@
 namespace facelift {
 namespace dbus {
 
-class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
+class DBusObjectRegistry : public QObject
 {
     Q_OBJECT
     static constexpr const int INVALID_REGISTRY_VERSION = 0;

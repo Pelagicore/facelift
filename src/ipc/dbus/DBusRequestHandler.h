@@ -30,18 +30,12 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 namespace dbus {
 
 class DBusIPCMessage;
 
-class FaceliftIPCLibDBus_EXPORT DBusRequestHandler
+class DBusRequestHandler
 {
 public:
 

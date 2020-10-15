@@ -37,8 +37,6 @@
 
 {% set className = interfaceName + proxyTypeNameSuffix %}
 
-{{classExportDefines}}
-
 #include "FaceliftUtils.h"
 #include "IPCAdapterModelPropertyHandler.h"
 
@@ -55,7 +53,7 @@
 
 class {{interfaceName}}IPCQMLAdapterType;
 
-class {{classExport}} {{className}}: public {{baseClass}}
+class {{className}}: public {{baseClass}}
 {
     Q_OBJECT
 
