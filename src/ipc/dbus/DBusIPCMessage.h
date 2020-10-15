@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <memory>
 #include <QDBusMessage>
 #include <QByteArray>
@@ -47,7 +41,7 @@ class InputPayLoad;
 
 namespace dbus {
 
-class FaceliftIPCLibDBus_EXPORT DBusIPCMessage
+class DBusIPCMessage
 {
 
 public:

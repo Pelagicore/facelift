@@ -37,8 +37,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "{{struct.name}}.h"
 #include "StructQObjectWrapper.h"
 
@@ -58,7 +56,7 @@
 * \ingroup {{struct.module.name|toValidId}}
 * \inqmlmodule {{struct.module.name}}
 */
-class {{classExport}} {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
+class {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
 {
     Q_OBJECT
 

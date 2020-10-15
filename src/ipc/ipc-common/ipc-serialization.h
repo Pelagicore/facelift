@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <tuple>
 
 #include "ipc-common.h"

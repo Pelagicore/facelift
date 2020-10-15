@@ -8,9 +8,7 @@ else()
     add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure)
 endif()
 
-if(NOT WIN32)
-    add_subdirectory(manual)
-endif()
+add_subdirectory(manual)
 
 add_subdirectory(cmake)
 

@@ -39,7 +39,7 @@
 namespace facelift {
 
 
-class FaceliftModelLib_EXPORT QObjectWrapperPointerBase
+class QObjectWrapperPointerBase
 {
 
 public:

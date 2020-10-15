@@ -34,7 +34,7 @@ class QQmlEngine;
 
 namespace facelift {
 
-class FaceliftModelLib_EXPORT QMLModelImplementationFrontendBase
+class QMLModelImplementationFrontendBase
 {
 protected:
     QQmlEngine *qmlEngine();

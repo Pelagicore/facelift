@@ -42,8 +42,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "QMLAdapter.h"
 #include "{{interfaceName}}.h"
 
@@ -70,7 +68,7 @@
 /**
  * This is the class registered as a QML component for the {{interfaceName}} interface
  */
-class {{classExport}} {{className}} : public facelift::QMLAdapterBase
+class {{className}} : public facelift::QMLAdapterBase
 {
     Q_OBJECT
 
