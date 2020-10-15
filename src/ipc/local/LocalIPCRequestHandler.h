@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLocalLib_LIBRARY)
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <memory>
 
 #include <QDebug>
@@ -57,7 +51,7 @@ namespace local {
 
 using namespace facelift;
 
-class FaceliftIPCLocalLib_EXPORT LocalIPCRequestHandler
+class LocalIPCRequestHandler
 {
 
 public:

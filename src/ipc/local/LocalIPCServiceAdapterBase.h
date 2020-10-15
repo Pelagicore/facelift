@@ -33,19 +33,13 @@
 #include "LocalIPCMessage.h"
 #include "IPCServiceAdapterBase.h"
 
-#if defined(FaceliftIPCLocalLib_LIBRARY)
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 namespace local {
 
 using namespace facelift;
 
-class FaceliftIPCLocalLib_EXPORT LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
+class LocalIPCServiceAdapterBase : public IPCServiceAdapterBase
 {
     Q_OBJECT
 

@@ -33,8 +33,6 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-{{classExportDefines}}
-
 #pragma once
 
 #include "IPCProxyModelProperty.h"
@@ -52,7 +50,7 @@
 
 class {{className}}QMLAdapterType;
 
-class {{classExport}} {{className}} : public {{baseClass}}
+class {{className}} : public {{baseClass}}
 {
     Q_OBJECT
 

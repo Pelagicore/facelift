@@ -32,16 +32,10 @@
 
 #include <QObject>
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 
-class FaceliftModelLib_EXPORT StructQObjectWrapperBase : public QObject
+class StructQObjectWrapperBase : public QObject
 {
     Q_OBJECT
 
