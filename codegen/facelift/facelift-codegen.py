@@ -432,7 +432,7 @@ def run_generation(input, output, dependency, all, noMocFilePath, noMocListFile)
 def generate(input, output, dependency, all, no_moc_file_path):
     """Takes several files or directories as input and generates the code
     in the given output directory."""
-    with open('{}/no_moc.cmake'.format(output), 'a+') as noMocListFile:
+    with open('{}/no_moc.cmake'.format(output), 'w') as noMocListFile:
         noMocListFile.write('set(HEADERS_NO_MOC_GENERATED\n')
         run_generation(input, output, dependency, all, no_moc_file_path, noMocListFile)
         noMocListFile.write(')\n')
