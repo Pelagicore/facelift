@@ -39,7 +39,7 @@
 
 namespace facelift {
 
-struct FaceliftModelLib_EXPORT TypeHandlerBase
+struct TypeHandlerBase
 {
 
     template<typename Type>

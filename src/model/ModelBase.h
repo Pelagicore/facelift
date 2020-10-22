@@ -31,15 +31,9 @@
 
 #include <QObject>
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
-class FaceliftModelLib_EXPORT ModelBase : public QObject
+class ModelBase : public QObject
 {
     Q_OBJECT
 

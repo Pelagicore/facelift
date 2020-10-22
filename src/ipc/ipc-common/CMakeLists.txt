@@ -17,36 +17,37 @@ facelift_add_library(FaceliftIPCCommonLib
         InputPayLoad.cpp
         LocalProviderBinderBase.cpp
     HEADERS
-        ipc-common.h
-        NotAvailableImpl.h
-        NotAvailableImplBase.h
-        IPCProxyNewBase.h
-        LocalProviderBinder.h
-        LocalProviderBinderBase.h
-        StaticArrayReference.h
-        IPCProxyBaseBase.h
-        IPCProxyBase.h
-        IPCProxy.h
-        IPCTypeHandler.h
         InterfaceManager.h
         InterfaceManagerInterface.h
-        IPCProxyModelProperty.h
         IPCProxyBinderBase.h
-        IPCAdapterModelPropertyHandler.h
         IPCServiceAdapterBase.h
         NewIPCServiceAdapterBase.h
-        ModuleIPCBase.h
-        ipc-serialization.h
-        IPCAdapterFactoryManager.h
         IPCAttachedPropertyFactory.h
-        IPCServiceAdapter.h
-        Registry.h
-        InputPayLoad.h
-        OutputPayLoad.h
-        DBusSignatureHelper.h
-        IPCTypeRegisterHandler.h
+    HEADERS_NO_MOC
         AppendDBUSSignatureFunction.h
+        ipc-serialization.h
+        DBusSignatureHelper.h
+        IPCProxyBase.h
+        IPCAdapterModelPropertyHandler.h
+        IPCProxyModelProperty.h
+        IPCProxyBaseBase.h
+        IPCAdapterFactoryManager.h
+        IPCProxyNewBase.h
+        IPCProxy.h
+        InputPayLoad.h
+        IPCTypeHandler.h
+        IPCTypeRegisterHandler.h
+        ModuleIPCBase.h
+        IPCServiceAdapter.h
+        LocalProviderBinderBase.h
+        OutputPayLoad.h
+        NotAvailableImpl.h
+        NotAvailableImplBase.h
+        Registry.h
+        LocalProviderBinder.h
         SerializeParameterFunction.h
+        StaticArrayReference.h
+        ipc-common.h
     LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )

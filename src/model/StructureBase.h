@@ -34,15 +34,9 @@
 
 #include "FaceliftCommon.h"
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
-class FaceliftModelLib_EXPORT StructureBase
+class StructureBase
 {
     Q_GADGET
 
