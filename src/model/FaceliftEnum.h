@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include "FaceliftCommon.h"
 #include <QObject>
 #include <QTextStream>

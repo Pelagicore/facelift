@@ -30,17 +30,11 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 namespace dbus {
 using namespace facelift;
 
-struct FaceliftIPCLibDBus_EXPORT DBusIPCCommon {
+struct DBusIPCCommon {
     static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.registry";
     static constexpr const char *GET_ALL_PROPERTIES_MESSAGE_NAME = "GetAll";
     static constexpr const char *GET_PROPERTY_MESSAGE_NAME = "Get";

@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QString>
 #include <QDBusConnection>
 
@@ -44,7 +38,7 @@ namespace dbus {
 
 class DBusObjectRegistry;
 
-class FaceliftIPCLibDBus_EXPORT DBusManagerInterface
+class DBusManagerInterface
 {
 public:
     virtual ~DBusManagerInterface() = default;

@@ -34,12 +34,6 @@
 
 #include "DBusManagerInterface.h"
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 namespace dbus {
 
@@ -47,7 +41,7 @@ class DBusObjectRegistry;
 
 using namespace facelift;
 
-class FaceliftIPCLibDBus_EXPORT DBusManager : public DBusManagerInterface
+class DBusManager : public DBusManagerInterface
 {
 public:
     DBusManager(const DBusManager&) = delete;

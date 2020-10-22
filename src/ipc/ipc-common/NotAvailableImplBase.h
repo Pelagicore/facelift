@@ -31,15 +31,9 @@
 
 #include "FaceliftModel.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
-class FaceliftIPCCommonLib_EXPORT NotAvailableImplBase
+class NotAvailableImplBase
 {
 
 protected:

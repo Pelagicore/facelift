@@ -37,8 +37,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "Structure.h"
 #include "FaceliftQMLUtils.h"
 
@@ -60,7 +58,7 @@ class {{struct.name}}QObjectWrapper;
 */
 
 {{struct.comment}}
-class {{classExport}} {{struct.name}} : public facelift::Structure<
+class {{struct.name}} : public facelift::Structure<
     {%- for field in struct.fields -%}
         {{ comma() }}{{field.cppType}}
     {%- endfor -%} >

@@ -35,12 +35,6 @@
 #include "DBusIPCProxyBinder.h"
 #include "DBusManager.h"
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 namespace dbus {
