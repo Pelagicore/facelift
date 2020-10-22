@@ -66,15 +66,6 @@ inline const std::initializer_list<Type> &validValues()
     return l;
 }
 
-
-template<typename Type>
-QString enumToString(const Type &v)
-{
-    Q_UNUSED(v);
-    static_assert(!std::is_enum<Type>::value, "Missing specialization of enumToString() template");
-    return "";
-}
-
 #ifdef QT_DEBUG
 #define faceliftSeriousError qFatal
 #else

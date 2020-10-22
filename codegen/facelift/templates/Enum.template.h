@@ -74,37 +74,21 @@ template<> inline const std::initializer_list<{{enum.fullyQualifiedCppType}}>& v
     return values;
 }
 
-template <> inline QString enumToString(const {{enum.fullyQualifiedCppType}}& v)
+
+} // end namespace facelift
+
+inline void fromString(const QString& string, {{enum.fullyQualifiedCppType}}& value)
 {
-    const char* s = "Invalid";
-    switch(v) {
-    {% for member in enum.members %}
-    case {{enum.fullyQualifiedCppType}}::{{member}}:
-        s = "{{member}}";
-        break;
-    {% endfor %}
-    default:
-        break;
+    auto valuePointer = facelift::Enum::fromString<{{enum.fullyQualifiedCppType}}>(string);
+    if(!valuePointer) {
+        facelift::Enum::raiseFatalError(string);
+    } else {
+        value = *valuePointer;
     }
-    return s;
 }
 
-}
-
-
-inline void assignFromString(const QString &s, {{enum.fullyQualifiedCppType}}& v)
+inline QTextStream &operator <<(QTextStream& outStream, const {{enum.fullyQualifiedCppType}}& value)
 {
-    {% for member in enum.members %}
-    if (s == "{{member}}")
-        v = {{enum.fullyQualifiedCppType}}::{{member}};
-    else
-    {% endfor %}
-        ::facelift::onAssignFromStringError(s);
-}
-
-
-inline QTextStream &operator <<(QTextStream &outStream, const {{enum.fullyQualifiedCppType}}& f)
-{
-    outStream << facelift::enumToString(f);
+    outStream << facelift::Enum::toString(value);
     return outStream;
 }

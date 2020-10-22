@@ -31,11 +31,40 @@
 #pragma once
 
 #include "FaceliftCommon.h"
-#include <QObject>
-#include <QTextStream>
+#include <type_traits>
+#include <memory>
+#include <QString>
+#include <QMetaEnum>
+#include <QByteArray>
 
 namespace facelift {
 
-void onAssignFromStringError(const QString &s);
+namespace Enum {
 
+void raiseFatalError(const QString &string);
+
+// Returns the string that is used as the name of the given enumeration value,
+// or an empty string if value is not defined
+template<class T, std::enable_if_t<QtPrivate::IsQEnumHelper<T>::Value, T>* = nullptr>
+QString toString(T value)
+{
+    return QMetaEnum::fromType<T>().valueToKey(static_cast<int>(value));
 }
+
+// Returns the enumaration value of the given enumeration key, or nullptr if key is not defined.
+// TODO change std::unique_ptr to std::optional when it will be possible
+template<typename T>
+std::unique_ptr<T> fromString(const QString &string)
+{
+    QByteArray byteArray = string.toLocal8Bit();
+    bool ok = false;
+    int value = QMetaEnum::fromType<T>().keyToValue(byteArray.data(), &ok);
+    
+    T result = static_cast<T>(value);
+
+    return ok ? std::make_unique<T>(result) : nullptr;
+}
+
+
+} // end namespace Enum
+} // end namespace facelift
