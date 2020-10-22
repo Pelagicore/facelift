@@ -34,12 +34,6 @@
 #include "IPCProxyBase.h"
 #include "LocalIPCRequestHandler.h"
 
-#if defined(FaceliftIPCLocalLib_LIBRARY)
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 namespace local {
@@ -48,7 +42,7 @@ using namespace facelift;
 
 class LocalIPCServiceAdapterBase;
 
-class FaceliftIPCLocalLib_EXPORT LocalIPCProxyBinder : public IPCProxyBinderBase
+class LocalIPCProxyBinder : public IPCProxyBinderBase
 {
     Q_OBJECT
 

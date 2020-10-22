@@ -34,19 +34,13 @@
 #include <QMap>
 
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 
 namespace facelift {
 
 /**
  * Base interface which every interface inherits from
  */
-class FaceliftModelLib_EXPORT InterfaceBase : public QObject
+class InterfaceBase : public QObject
 {
     Q_OBJECT
 
@@ -106,7 +100,7 @@ private:
 
 };
 
-FaceliftModelLib_EXPORT void registerInterfaceImplementationInstance(InterfaceBase&);
+void registerInterfaceImplementationInstance(InterfaceBase&);
 
 }
 

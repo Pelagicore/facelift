@@ -33,8 +33,6 @@
 ** Do not edit! All changes made to it will be lost.
 ****************************************************************************/
 
-{{classExportDefines}}
-
 #pragma once
 
 #include "IPCProxy.h"
@@ -61,7 +59,7 @@
 
 class {{className}}QMLAdapterType;
 
-class {{classExport}} {{className}} : public facelift::IPCProxy<{{interfaceName}}Wrapper>
+class {{className}} : public facelift::IPCProxy<{{interfaceName}}Wrapper>
 {
     Q_OBJECT
 
@@ -82,7 +80,7 @@ private:
 };
 
 
-class {{classExport}} {{className}}QMLAdapterType : public {{interfaceName}}QMLAdapter
+class {{className}}QMLAdapterType : public {{interfaceName}}QMLAdapter
 {
     Q_OBJECT
 

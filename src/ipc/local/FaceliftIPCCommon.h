@@ -31,16 +31,10 @@
 
 #include "FaceliftUtils.h"
 
-#if defined(FaceliftIPCLocalLib_LIBRARY)
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 namespace local {
 
-struct FaceliftIPCLocalLib_EXPORT FaceliftIPCCommon
+struct FaceliftIPCCommon
 {
    static constexpr const char *GET_ALL_PROPERTIES_MESSAGE_NAME = "GetAll";
    static constexpr const char *GET_PROPERTY_MESSAGE_NAME = "Get";

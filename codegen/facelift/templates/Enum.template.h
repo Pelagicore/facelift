@@ -35,13 +35,11 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "FaceliftEnum.h"
 
 {{module.namespaceCppOpen}}
 
-class {{classExport}} {{enum}}Gadget
+class {{enum}}Gadget
 {
     Q_GADGET
 

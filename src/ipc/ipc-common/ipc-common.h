@@ -30,18 +30,12 @@
 
 #pragma once
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QDataStream>
 #include "FaceliftModel.h"
 
 namespace facelift {
 
-FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
+Q_DECLARE_LOGGING_CATEGORY(LogIpc)
 
 typedef int ASyncRequestID;
 
@@ -51,7 +45,7 @@ enum class IPCHandlingResult {
     INVALID,     // Message is invalid and could not be handled
 };
 
-struct FaceliftIPCCommonLib_EXPORT IPCCommon
+struct IPCCommon
 {
     static constexpr const char *MODEL_DATA_CHANGED_MESSAGE_NAME = "ModelUpdateEventDataChanged";
     static constexpr const char *MODEL_INSERT_MESSAGE_NAME = "ModelUpdateEventInsert";

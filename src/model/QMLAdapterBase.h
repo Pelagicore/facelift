@@ -42,7 +42,7 @@ namespace facelift {
 /*!
  * This is the base class which all QML frontends extend
  */
-class FaceliftModelLib_EXPORT QMLAdapterBase : public QObject, public QQmlParserStatus
+class QMLAdapterBase : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)

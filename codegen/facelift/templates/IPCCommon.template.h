@@ -35,11 +35,9 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 {{module.namespaceCppOpen}}
 
-class  {{classExport}} {{interfaceName}}IPCCommon
+class  {{interfaceName}}IPCCommon
 {
 public:
     enum class MethodID {

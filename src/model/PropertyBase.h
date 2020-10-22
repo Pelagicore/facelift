@@ -37,7 +37,7 @@
 
 namespace facelift {
 
-class FaceliftModelLib_EXPORT PropertyBase
+class PropertyBase
 {
 
 public:

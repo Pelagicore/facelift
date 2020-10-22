@@ -34,7 +34,7 @@
 
 namespace facelift {
 
-struct FaceliftModelLib_EXPORT BinarySeralizer
+struct BinarySeralizer
 {
     BinarySeralizer(QByteArray &array) : stream(&array, QIODevice::WriteOnly)
     {

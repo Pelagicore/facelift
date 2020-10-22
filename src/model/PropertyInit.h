@@ -33,16 +33,10 @@
 #include "FaceliftCommon.h"
 #include "ModelProperty.h"
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 
 namespace facelift {
 
-struct FaceliftModelLib_EXPORT PropertyInit {
+struct PropertyInit {
 
     using ChangeSignal = void (QObject::*)();
 

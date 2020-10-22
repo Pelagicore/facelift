@@ -37,11 +37,9 @@
 
 #include <QtCore/qglobal.h>
 
-{{classExportDefines}}
-
 {{module.namespaceCppOpen}}
 
-class {{classExport}} ModuleIPC
+class ModuleIPC
 {
 public:
     static void registerQmlTypes(const char* uri, int majorVersion = {{module.majorVersion}}, int minorVersion = {{module.minorVersion}});
