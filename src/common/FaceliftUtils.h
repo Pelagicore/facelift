@@ -197,8 +197,8 @@ public:
     void remove(const Key &key)
     {
         auto it = m_map.find(key);
-        m_map.erase(key);
         m_list.erase(it->second);
+        m_map.erase(key);
     }
 
     void clear()
