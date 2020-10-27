@@ -122,9 +122,6 @@ public:
     {
         return facelift::ServicePropertyInterface<ThisType, {{property.cppType}}>(this, &ThisType::{{property}}, &ThisType::{{property}}Changed);
     }
-    {% if (not property.readonly) %}
-    virtual void set{{property}}( {{property.cppMethodArgumentType}} newValue) = 0;
-    {% endif %}
     {% else %}
     using PropertyType_{{property}} = {{property.interfaceCppType}};
     virtual const {{property.interfaceCppType}}& {{property}}() const = 0;

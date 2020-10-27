@@ -43,6 +43,7 @@ function checkInit()
     tryVerify(function() { return api.ready; });
     verify(api.theModel);
     compare(api.theModel.rowCount(), 100);
+    compare(api.oversizedStruct.theKiller.anotherSecondLevel.firstLevel.someOtherString, "someOtherString");
     for(var i = 0; i < api.theModel.rowCount(); ++i) {
         compare(getData(i).name, "entry " + i);
         compare(getData(i).enabled, !(i%2));

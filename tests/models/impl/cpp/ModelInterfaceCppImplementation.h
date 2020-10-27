@@ -48,6 +48,34 @@ public:
             m_items.append(i);
 
         m_nextAvailableID = i;
+        FirstLevel firstLevel;
+        firstLevel.setsomeString("someString");
+        firstLevel.setsomeInt(10);
+        firstLevel.setsomeBool(true);
+        firstLevel.setsomeOtherString("someOtherString");
+        firstLevel.setsomeOtherInt(20);
+        firstLevel.setsomeOtherBool(true);
+        SecondLevel secondLevel;
+        secondLevel.setfirstLevel(firstLevel);
+        secondLevel.setanotherfirstLevel(firstLevel);
+        secondLevel.setyetAnotherFirstLevel(firstLevel);
+        ThirdLevel thirdLevel;
+        thirdLevel.setsecondLevel(secondLevel);
+        thirdLevel.setanotherSecondLevel(secondLevel);
+        thirdLevel.setyetAnotherSecondLevel(secondLevel);
+
+        HugeStruct hugeStruct;
+        hugeStruct.setthirdLevel(thirdLevel);
+        hugeStruct.setanotherThirdLevel(thirdLevel);
+        hugeStruct.setyetAnotherThirdLevel(thirdLevel);
+        m_hugeStruct.setValue(hugeStruct);
+
+        OversizedStruct oversizedStruct;
+        oversizedStruct.setthirdLevel(thirdLevel);
+        oversizedStruct.setanotherThirdLevel(thirdLevel);
+        oversizedStruct.setyetAnotherThirdLevel(thirdLevel);
+        oversizedStruct.settheKiller(thirdLevel);
+        m_oversizedStruct.setValue(oversizedStruct);
 
         m_theModel.reset(m_items.size(),
                          std::bind(&ModelInterfaceImplementation::getItem, this, std::placeholders::_1));
@@ -91,6 +119,11 @@ public:
             m_items[i] = serial;
 
         emit m_theModel.dataChanged(first, last);
+    }
+
+    HugeStruct hungryBeast(const tests::models::HugeStruct& hugeStruct) override
+    {
+        return hugeStruct;
     }
 
 private:

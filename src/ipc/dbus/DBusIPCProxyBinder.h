@@ -30,11 +30,15 @@
 
 #pragma once
 
+#include <QtDBus>
 #include <QDBusServiceWatcher>
 #include "IPCProxyBinderBase.h"
 #include "DBusIPCMessage.h"
-#include "ipc-serialization.h"
+#include "DBusIPCCommon.h"
+#include "FaceliftUtils.h"
+#include "FaceliftDBusMarshaller.h"
 #include "DBusManagerInterface.h"
+#include "IPCServiceAdapterBase.h"
 
 class QDBusMessage;
 
@@ -66,7 +70,7 @@ public:
 
     Q_SLOT void onPropertiesChanged(const QDBusMessage &dbusMessage);
 
-    Q_SLOT void onSignalTriggered(const QDBusMessage &dbusMessage);
+    Q_SLOT void handleGenericSignals(const QDBusMessage &msg);
 
     void bindToIPC() override;
 
@@ -85,33 +89,128 @@ public:
 
     void asyncCall(DBusIPCMessage &message, const QObject *context, std::function<void(DBusIPCMessage &message)> callback);
 
-    template<typename Type>
-    void serializeValue(DBusIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(DBusIPCMessage &msg, Type &v);
-
-    void onServerNotAvailableError(const char *methodName) const;
+    void onServerNotAvailableError(const QString &propertyName) const;
 
     template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value);
+    void sendSetterCall(const QString& property, const PropertyType &value);
 
     template<typename ... Args>
-    DBusIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
+    DBusIPCMessage sendMethodCall(const char *methodName, Args && ... args) const;
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args);
 
     template<typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args);
 
-    template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
+    template<typename ... Args>
+    QList<QVariant> sendMethodCallWithReturn(const char *methodName, Args && ... args) const;
 
     void setHandler(DBusRequestHandler *handler);
 
+    template<typename T>
+    T castFromQVariant(const QVariant& value) {
+        static std::once_flag registerFlag;
+        std::call_once(registerFlag, [](){registerDBusType(HelperType<T>());});
+        return castFromQVariantSpecialized(HelperType<T>(), value);
+    }
+
+    template<typename T>
+    QVariant castToQVariant(const T& value) const {
+        static std::once_flag registerFlag;
+        std::call_once(registerFlag, [](){registerDBusType(HelperType<T>());});
+        return castToQVariantSpecialized(HelperType<T>(), value);
+    }
+
 private:
     void checkRegistry();
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return qdbus_cast<T>(value);
+    }
+
+    QList<QString> castFromQVariantSpecialized(HelperType<QList<QString>>, const QVariant& value) {
+        return qdbus_cast<QStringList>(value); // workaround to use QList<QString> since its signature matches the QStringList
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return static_cast<T>(qdbus_cast<int>(value));
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    QList<T> castFromQVariantSpecialized(HelperType<QList<T>>, const QVariant& value) {
+        QList<T> ret;
+        QList<int> tmp = qdbus_cast<QList<int>>(value);
+        std::transform(tmp.begin(), tmp.end(), std::back_inserter(ret), [](const int entry){return static_cast<T>(entry);});
+        return ret;
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    QMap<QString, T> castFromQVariantSpecialized(HelperType<QMap<QString, T>>, const QVariant& value) {
+        QMap<QString, T> ret;
+        QMap<QString, int> tmp = qdbus_cast<QMap<QString, int>>(value);
+        for (const QString& key: tmp.keys()) {
+            ret[key] = static_cast<T>(tmp[key]);
+        }
+        return ret;
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCDBusProxyType>(qdbus_cast<QString>(value));
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QMap<QString, T> castFromQVariantSpecialized(HelperType<QMap<QString, T>>, const QVariant& value) {
+        QMap<QString, T> ret;
+        auto objectPaths = qdbus_cast<QMap<QString, QString>>(value);
+        for (const QString& key: objectPaths.keys()) {
+            ret[key] = getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCDBusProxyType>(objectPaths[key]);
+        }
+        return ret;
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QList<T> castFromQVariantSpecialized(HelperType<QList<T>>, const QVariant& value) {
+        QList<T> ret;
+        auto objectPaths = qdbus_cast<QStringList>(value);
+        for (const QString& objectPath: objectPaths) {
+            ret.append(getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCDBusProxyType>(objectPath));
+        }
+        return ret;
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && !std::is_enum<T>::value, int> = 0>
+    QVariant castToQVariantSpecialized(HelperType<T>, const T& value) const {
+        return QVariant::fromValue(value);
+    }
+
+    QVariant castToQVariantSpecialized(HelperType<QList<QString>>, const QList<QString>& value) const {
+        return QVariant::fromValue(QStringList(value)); // workaround to use QList<QString> since its signature matches the QStringList
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value && std::is_enum<T>::value, int> = 0>
+    QVariant castToQVariantSpecialized(HelperType<T>, const T& value) const {
+        return QVariant::fromValue(static_cast<int>(value));
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    QVariant castToQVariantSpecialized(HelperType<QList<T>>, const QList<T>& value) const {
+        QList<int> ret;
+        std::transform(value.begin(), value.end(), std::back_inserter(ret), [](const T entry){return static_cast<int>(entry);});
+        return QVariant::fromValue(ret);
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
+    QVariant castToQVariantSpecialized(HelperType<QMap<QString, T>>, const QMap<QString, T>& value) const {
+        QMap<QString, int> ret;
+        for (const QString& key: value.keys()) {
+            ret[key] = static_cast<int>(value[key]);
+        }
+        return QVariant::fromValue(ret);
+    }
 
     QString m_interfaceName;
     QDBusServiceWatcher m_busWatcher;
@@ -121,29 +220,14 @@ private:
 };
 
 
-template<typename Type>
-inline void DBusIPCProxyBinder::serializeValue(DBusIPCMessage &msg, const Type &v)
-{
-    typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-    IPCTypeHandler<SerializedType>::write(msg.outputPayLoad(), IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-}
-
-template<typename Type>
-inline void DBusIPCProxyBinder::deserializeValue(DBusIPCMessage &msg, Type &v)
-{
-    typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-    SerializedType serializedValue;
-    IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
-    IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-}
-
-
 template<typename ... Args>
-inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName, const Args & ... args) const
+inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName, Args && ... args) const
 {
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCProxyBinder>(msg.outputPayLoad(), *this));
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << castToQVariant(std::forward<Args>(args))), 0)...
+        };
     auto replyMessage = this->call(msg);
     if (replyMessage.isErrorMessage()) {
         onServerNotAvailableError(methodName);
@@ -152,15 +236,19 @@ inline DBusIPCMessage DBusIPCProxyBinder::sendMethodCall(const char *methodName,
 }
 
 template<typename ReturnType, typename ... Args>
-inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args)
+inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args)
 {
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCProxyBinder>(msg.outputPayLoad(), *this));
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << castToQVariant(std::forward<Args>(args))), 0)...
+        };
     asyncCall(msg, this, [this, answer](DBusIPCMessage &msg) {
         ReturnType returnValue;
         if (msg.isReplyMessage()) {
-            deserializeValue(msg, returnValue);
+            if (!msg.arguments().isEmpty()) {
+                returnValue = castFromQVariant<ReturnType>(msg.arguments().first());
+            }
             answer(returnValue);
         } else {
             qCWarning(LogIpc) << "Error received" << msg.toString();
@@ -169,43 +257,46 @@ inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, face
 }
 
 template<typename ... Args>
-inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args)
+inline void DBusIPCProxyBinder::sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args)
 {
     DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    auto argTuple = std::make_tuple(args ...);
-    for_each_in_tuple(argTuple, SerializeParameterFunction<DBusIPCProxyBinder>(msg.outputPayLoad(), *this));
+    using expander = int[];
+        (void)expander{0,
+            (void(msg << castToQVariant(std::forward<Args>(args))), 0)...
+        };
     asyncCall(msg, this, [answer](DBusIPCMessage &msg) {
-        Q_UNUSED(msg);
+        Q_UNUSED(msg)
         answer();
     });
 }
 
-template<typename ReturnType, typename ... Args>
-inline void DBusIPCProxyBinder::sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const
+template<typename ... Args>
+inline QList<QVariant> DBusIPCProxyBinder::sendMethodCallWithReturn(const char *methodName, Args && ... args) const
 {
     DBusIPCMessage msg = sendMethodCall(methodName, args ...);
+    QList<QVariant> ret;
     if (msg.isReplyMessage()) {
-        const_cast<DBusIPCProxyBinder *>(this)->deserializeValue(msg, returnValue);
-    } else {
-        assignDefaultValue(returnValue);
+        ret = msg.arguments();
     }
+    return ret;
 }
 
-
 template<typename PropertyType>
-inline void DBusIPCProxyBinder::sendSetterCall(const char *methodName, const PropertyType &value)
+inline void DBusIPCProxyBinder::sendSetterCall(const QString &property, const PropertyType &value)
 {
-    DBusIPCMessage msg(m_serviceName, objectPath(), m_interfaceName, methodName);
-    serializeValue(msg, value);
+    DBusIPCMessage msg(m_serviceName, objectPath(), DBusIPCCommon::PROPERTIES_INTERFACE_NAME, DBusIPCCommon::SET_PROPERTY_MESSAGE_NAME);
+    msg << QVariant::fromValue(m_interfaceName);
+    msg << castToQVariant(property);
+    msg << QVariant::fromValue(QDBusVariant(castToQVariant(value)));
     if (isSynchronous()) {
         auto replyMessage = call(msg);
         if (replyMessage.isErrorMessage()) {
-            onServerNotAvailableError(methodName);
+            onServerNotAvailableError(property);
         }
     } else {
-        asyncCall(msg, this, [this, methodName](const DBusIPCMessage &replyMessage) {
+        asyncCall(msg, this, [this, property](const DBusIPCMessage &replyMessage) {
             if (replyMessage.isErrorMessage()) {
-                onServerNotAvailableError(methodName);
+                onServerNotAvailableError(property);
             }
         });
     }

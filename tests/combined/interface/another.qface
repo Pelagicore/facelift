@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2020 Luxoft Sweden AB
+** Copyright (C) 2018 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -28,35 +28,10 @@
 **
 **********************************************************************/
 
-#pragma once
+module tests.combined.another 1.0
 
-
-#include <QTextStream>
-
-#include <tuple>
-
-#include "FaceliftUtils.h"
-
-namespace facelift {
-
-struct AppendDBUSSignatureFunction
-{
-    AppendDBUSSignatureFunction(QTextStream &s) :
-        s(s)
-    {
-    }
-
-    QTextStream &s;
-
-    template<typename T>
-    void operator()(T &&t)
-    {
-        Q_UNUSED(t);
-        typedef typename std::decay<T>::type TupleType;
-        std::tuple<TupleType> dummyTuple;
-        appendDBUSTypeSignature(s, dummyTuple);
-    }
-};
-
-
+enum AnotherEnum {
+    O1,
+    O2,
+    O3
 }

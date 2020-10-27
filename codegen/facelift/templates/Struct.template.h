@@ -96,6 +96,10 @@ public:
 
     {% endif %}
 
+    {% if struct.toByteArrayOverDBus %}
+    static bool toByteArrayOverDBus();
+    {% endif %}
+
     QString toString() const;
 
 {% for field in struct.fields %}
@@ -126,7 +130,6 @@ private:
 {% endfor -%}
 };
 
-
 {{module.namespaceCppClose}}
 
 inline QTextStream &operator <<(QTextStream &outStream, const {{struct.fullyQualifiedCppType}} &f)
@@ -144,8 +147,10 @@ inline QDebug operator<< (QDebug d, const {{struct.fullyQualifiedCppType}} &f)
     return d;
 }
 
+typedef QMap<QString,{{struct.fullyQualifiedCppType}}> QMapOf{{struct.fullyQualifiedCppType|replace("::","")}};
+
 Q_DECLARE_METATYPE(QList<{{struct.fullyQualifiedCppType}}>)   // Needed for list properties
-//Q_DECLARE_METATYPE(QMap<QString, {{struct.fullyQualifiedCppType}}>)   // TODO: Needed for map properties?
+Q_DECLARE_METATYPE(QMapOf{{struct.fullyQualifiedCppType|replace("::","")}})
 Q_DECLARE_METATYPE({{struct.fullyQualifiedCppType}})
 
 

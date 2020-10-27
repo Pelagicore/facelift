@@ -62,7 +62,6 @@ public:
     using ServiceType = {{interfaceName}};
     using BaseType = {{baseClass}};
     using ThisType = {{className}};
-    using SignalID = {{interface}}IPCCommon::SignalID;
     using MethodID = {{interface}}IPCCommon::MethodID;
 
     {{className}}(QObject* parent = nullptr) : BaseType(parent)
@@ -73,15 +72,21 @@ public:
     {% endfor %}
     {
     }
-
+    {% if proxyType and proxyType == "DBus" %}
     void appendDBUSIntrospectionData(QTextStream &s) const override;
-
+    {% endif %}
     ::facelift::IPCHandlingResult handleMethodCallMessage(InputIPCMessage &requestMessage,
             OutputIPCMessage &replyMessage) override;
 
     void connectSignals() override;
 
-    void serializePropertyValues(OutputIPCMessage& msg, bool isCompleteSnapshot) override;
+    QVariantMap dirtyProperties();
+
+    QVariantMap marshalProperties() override;
+
+    QVariant marshalProperty(const QString& propertyName) override;
+
+    void setProperty(const QString& propertyName, const QVariant& value) override;
 
     {% for event in interface.signals %}
     void {{event}}(
@@ -90,7 +95,7 @@ public:
         {{ comma() }}{{parameter.interfaceCppType}} {{parameter.name}}
     {%- endfor -%}  )
     {
-        sendSignal(SignalID::{{event}}
+        sendSignal(QLatin1String("{{event}}")
         {%- for parameter in event.parameters -%}
             , {{parameter.name}}
         {%- endfor -%}  );
@@ -101,15 +106,11 @@ private:
     {% for property in interface.properties %}
     {% if property.type.is_model %}
     ::facelift::IPCAdapterModelPropertyHandler<ThisType, {{property.nestedType.interfaceCppType}}> m_{{property.name}}Handler;
-    {% elif property.type.is_interface %}
-    QString m_previous{{property.name}}ObjectPath;
     {% else %}
     {{property.interfaceCppType}} m_previous{{property.name}} {};
     {% endif %}
-    {% if property.type.is_interface %}
-    InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}};
-    {% endif %}
     {% endfor %}
+    bool m_previousReadyState = false;
 };
 
 {{module.namespaceCppClose}}

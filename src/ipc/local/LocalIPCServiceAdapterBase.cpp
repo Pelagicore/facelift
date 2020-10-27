@@ -40,28 +40,6 @@
 namespace facelift {
 namespace local {
 
-void LocalIPCServiceAdapterBase::initOutgoingSignalMessage()
-{
-    m_pendingOutgoingMessage = std::make_unique<LocalIPCMessage>(FaceliftIPCCommon::SIGNAL_TRIGGERED_SIGNAL_NAME);
-
-    // Send property value updates before the signal itself so that they are set before the signal is triggered on the client side.
-    this->serializePropertyValues(*m_pendingOutgoingMessage, false);
-}
-
-void LocalIPCServiceAdapterBase::serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot)
-{
-    Q_ASSERT(service());
-    serializeOptionalValue(msg, service()->ready(), m_previousReadyState, isCompleteSnapshot);
-}
-
-void LocalIPCServiceAdapterBase::flush()
-{
-    if (m_pendingOutgoingMessage) {
-        this->send(*m_pendingOutgoingMessage);
-        m_pendingOutgoingMessage.reset();
-    }
-}
-
 IPCHandlingResult LocalIPCServiceAdapterBase::handleMessage(LocalIPCMessage &requestMessage)
 {
     LocalIPCMessage replyMessage = requestMessage.createReply();
@@ -71,9 +49,31 @@ IPCHandlingResult LocalIPCServiceAdapterBase::handleMessage(LocalIPCMessage &req
     auto handlingResult = IPCHandlingResult::OK;
 
     bool sendReply = true;
-    if (requestMessage.member() == FaceliftIPCCommon::GET_PROPERTIES_MESSAGE_NAME) {
-        serializePropertyValues(replyMessage, true);
-    } else {
+    if (requestMessage.interface() == FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME) {
+        if (requestMessage.member() == FaceliftIPCCommon::GET_ALL_PROPERTIES_MESSAGE_NAME) {
+            replyMessage << QVariant::fromValue(marshalProperties());
+        }
+        else if (requestMessage.member() == FaceliftIPCCommon::GET_PROPERTY_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            // no need to check interface name in local variant
+            auto propertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            QVariant value = marshalProperty(propertyName);
+            replyMessage << value;
+            send(replyMessage);
+        }
+        else if (requestMessage.member() == FaceliftIPCCommon::SET_PROPERTY_MESSAGE_NAME) {
+            QListIterator<QVariant> argumentsIterator(requestMessage.arguments());
+            auto msgInterfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+            if (msgInterfaceName == interfaceName()) {
+                QString propertyName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
+                if (argumentsIterator.hasNext()) {
+                    setProperty(propertyName, argumentsIterator.next());
+                }
+            }
+        }
+    }
+    else {
         handlingResult = handleMethodCallMessage(requestMessage, replyMessage);
         if (handlingResult == IPCHandlingResult::INVALID) {
             replyMessage = requestMessage.createErrorReply();
@@ -105,12 +105,6 @@ LocalIPCServiceAdapterBase::~LocalIPCServiceAdapterBase()
     unregisterService();
 }
 
-QString LocalIPCServiceAdapterBase::introspect(const QString &path) const
-{
-    Q_UNUSED(path);
-    return QString();
-}
-
 void LocalIPCServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
@@ -126,9 +120,6 @@ void LocalIPCServiceAdapterBase::registerService()
         m_alreadyInitialized = true;
         qCDebug(LogIpc) << "Registering local IPC object at " << objectPath();
         if (m_alreadyInitialized) {
-            QObject::connect(service(), &InterfaceBase::readyChanged, this, [this]() {
-                        this->sendSignal(CommonSignalID::readyChanged);
-                    });
             connectSignals();
         } else {
             qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));

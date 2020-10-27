@@ -100,6 +100,10 @@ CombinedInterfaceImplementationBase {
         return OtherEnum.O1;
     }
 
+    listOfAnotherEnums: function() {
+        return [OtherEnum.O2];
+    }
+
 
     initialize: function() {
         enumProperty = CombiEnum.E2;
@@ -111,6 +115,9 @@ CombinedInterfaceImplementationBase {
         structProperty2.cs = structProperty;
         structProperty2.cs.aString = "ok";
         structProperty2.e = CombiEnum.E2;
+
+        structWithExtDependency.otherEnums = [OtherEnum.O2];
+        structWithExtDependency.otherEnumMap = {"O1": OtherEnum.O1, "O2": OtherEnum.O2};
 
         intListProperty = [ 1, 2, 3, 5, 8 ];
         boolListProperty = [ false, true, true ];

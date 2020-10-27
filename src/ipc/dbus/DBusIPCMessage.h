@@ -54,20 +54,17 @@ public:
 
     QString member() const;
     QString toString() const;
+    QList<QVariant> arguments() const;
+    DBusIPCMessage &operator<<(const QVariant &arg);
     DBusIPCMessage createReply();
-    DBusIPCMessage createErrorReply(const QString &msg, const QString &member);
+    DBusIPCMessage createErrorReply(const QString &name, const QString &msg);
     QString signature() const;
     bool isReplyMessage() const;
     bool isErrorMessage() const;
-    OutputPayLoad &outputPayLoad();
-    InputPayLoad &inputPayLoad();
     QDBusMessage& outputMessage();
 
 private:
     QDBusMessage m_message;
-    QByteArray m_payload;
-    std::unique_ptr<OutputPayLoad> m_outputPayload;
-    std::unique_ptr<InputPayLoad> m_inputPayload;
 };
 
 } // end namespace dbus
