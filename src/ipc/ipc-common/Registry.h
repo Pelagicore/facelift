@@ -42,7 +42,7 @@ template<typename Type, typename Key = QString>
 class Registry {
 
     struct Listener {
-        QObject* context = nullptr;
+        QPointer<QObject> context = nullptr;
         std::function<void()> function;
     };
 
@@ -65,12 +65,13 @@ public:
         listeners.append(e);
         QObject::connect(receiver, &QObject::destroyed, m_owner, [this, key] (QObject *obj) {
             auto& elements = m_listeners[key];
-            for (int i = 0; i < elements.size(); i++) {
+            for (int i = 0; i < elements.size(); ++i) {
                 if (elements[i].context == obj) {
                     elements.remove(i);
                     break;
                 }
             }
+            removeInvalidListeners(key);
         });
     }
 
@@ -79,8 +80,11 @@ public:
         if (m_listeners.contains(key)) {
             const auto listeners = m_listeners[key];
             for (const auto& listener : listeners) {
-                listener.function();
+                if (listener.context) {
+                    listener.function();
+                }
             }
+            removeInvalidListeners(key);
         }
     }
 
@@ -149,6 +153,16 @@ private:
     QMap<Key, Type> m_content;
     mutable QMap<Key, QVector<Listener>> m_listeners;  // "mutable" since adding a listener is not considered as a change
     QObject* m_owner = nullptr;
+
+    void removeInvalidListeners(const Key& key) const
+    {
+        auto& listeners = m_listeners[key];
+        for (int i = listeners.size() - 1; i >= 0; --i) {
+            if (listeners[i].context == nullptr) {
+                listeners.remove(i);
+            }
+        }
+    }
 };
 
 }
