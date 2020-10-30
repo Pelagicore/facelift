@@ -105,7 +105,7 @@ public:
             return qobject_cast<SubInterfaceProxyType *>(&(m_subProxies[objectPath]->owner()));
         }
 
-        auto proxy = new SubInterfaceProxyType();
+        auto proxy = new SubInterfaceProxyType(this);
         proxy->ipc()->setObjectPath(objectPath);
         proxy->connectToServer();
 
