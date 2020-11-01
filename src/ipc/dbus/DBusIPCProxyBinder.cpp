@@ -74,7 +74,7 @@ void DBusIPCProxyBinder::onPropertiesChanged(const QDBusMessage &dbusMessage)
     QString interfaceName = (argumentsIterator.hasNext() ? castFromQVariant<QString>(argumentsIterator.next()): QString());
     if (interfaceName == m_interfaceName) {
         QVariantMap dirtyProperties = (argumentsIterator.hasNext() ? castFromQVariant<QVariantMap>(argumentsIterator.next()): QVariantMap());
-        m_serviceObject->unmarshalPropertiesChanged(dirtyProperties);
+        m_serviceObject->unmarshalProperties(dirtyProperties);
     }
 }
 

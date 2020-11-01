@@ -130,7 +130,7 @@ void LocalIPCProxyBinder::onPropertiesChanged(LocalIPCMessage &msg)
     QString interfaceName = (argumentsIterator.hasNext() ? qvariant_cast<QString>(argumentsIterator.next()): QString());
     if (interfaceName == m_interfaceName) {
         QVariantMap dirtyProperties = (argumentsIterator.hasNext() ? qvariant_cast<QVariantMap>(argumentsIterator.next()): QVariantMap());
-        m_serviceObject->unmarshalPropertiesChanged(dirtyProperties);
+        m_serviceObject->unmarshalProperties(dirtyProperties);
     }
 }
 

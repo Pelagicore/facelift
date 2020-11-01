@@ -55,7 +55,6 @@ class LocalIPCRequestHandler
 
 public:
     virtual void unmarshalProperties(const QVariantMap& properties) = 0;
-    virtual void unmarshalPropertiesChanged(const QVariantMap& dirtyProperties) = 0;
     virtual void handleSignals(LocalIPCMessage& msg) = 0;
     virtual void setServiceRegistered(bool isRegistered) = 0;
 

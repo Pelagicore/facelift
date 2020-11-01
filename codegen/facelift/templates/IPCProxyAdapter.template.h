@@ -88,8 +88,6 @@ public:
     const QList<QString>& getSignals() const override;
     {% endif %}
 
-    void unmarshalPropertiesChanged(const QVariantMap& dirtyProperties) override;
-
     {% for operation in interface.operations %}
 
     {% if operation.isAsync %}
