@@ -47,7 +47,7 @@ void IPCProxyBinderBase::connectToServer()
 
 bool IPCProxyBinderBase::isReadyToConnect() const
 {
-    return m_componentCompleted && enabled() && !objectPath().isEmpty();
+    return m_componentCompleted && enabled() && !objectPath().isNull() && !objectPath().isEmpty();
 }
 
 void IPCProxyBinderBase::checkInit()
