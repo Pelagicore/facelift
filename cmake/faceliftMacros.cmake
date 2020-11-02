@@ -398,14 +398,15 @@ endmacro()
 
 macro(_facelift_add_target_start IMPLEMENTATION_TARGET_NAME)
 
-    if(ORIGINAL_TARGET_NAME)
-        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${ORIGINAL_TARGET_NAME}) 
+    if(ALIAS_NAME)
+        set(NO_MOC_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${ALIAS_NAME})
     else()
-        set(OUTPUT_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${TARGET_NAME}) 
+        set(NO_MOC_PATH ${CMAKE_BINARY_DIR}/facelift_generated/${TARGET_NAME})
     endif()
 
     # set HEADERS_NO_MOC_GENERATED in this include
-    include("${OUTPUT_PATH}/no_moc.cmake" OPTIONAL)
+    include("${NO_MOC_PATH}/no_moc.cmake" OPTIONAL)
+
     # set HEADERS_NO_MOC_FROM_FILE in this include (the file is the input parameter)
     if(HEADERS_NO_MOC_FILE)
         include("${HEADERS_NO_MOC_FILE}" OPTIONAL)
@@ -581,7 +582,6 @@ function(facelift_add_library TARGET_NAME)
 
             else()
 
-                set(ORIGINAL_TARGET_NAME ${TARGET_NAME})
                 set(TARGET_NAME ${TARGET_NAME}_OBJECTS)
                 add_library(${ALIAS_NAME} INTERFACE)
                 target_link_libraries(${ALIAS_NAME} INTERFACE ${TARGET_NAME})
