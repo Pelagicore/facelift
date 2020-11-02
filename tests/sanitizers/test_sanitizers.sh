@@ -40,7 +40,8 @@ SANITIZER_FLAGS+="-shared-libasan "
 # UBSAN as a shared library. See more: https://reviews.llvm.org/D38525
 
 CXX="clang++"
-CXX_VERSION=$(${CXX} --version | head -n 1 | grep -o -E "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+")
+CXX_VERSION=$(${CXX} -dM -E -x c /dev/null | grep __clang_version | cut -d" " -f3 | grep -o -E "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+")
+
 LIBCLANG_RT_ASAN="libclang_rt.asan-x86_64.so"
 LIBCLANG_RT_UBSAN="libclang_rt.ubsan_standalone-x86_64.so"
 
