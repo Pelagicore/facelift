@@ -77,3 +77,4 @@ if(NOT ${FACELIFT_DISABLE_GTEST})
 endif()
 
 add_subdirectory(objectregistry)
+add_subdirectory(propertyconsistency)
