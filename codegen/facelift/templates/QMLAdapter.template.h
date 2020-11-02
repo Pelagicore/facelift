@@ -42,13 +42,13 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "QMLAdapter.h"
 #include "{{interfaceName}}.h"
 
 {% for type in interface.referencedTypes %}
+{% if type.requiredInclude != "" %}
 {{type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 //// Sub interfaces
@@ -68,7 +68,7 @@
 /**
  * This is the class registered as a QML component for the {{interfaceName}} interface
  */
-class {{classExport}} {{className}} : public facelift::QMLAdapterBase
+class {{className}} : public facelift::QMLAdapterBase
 {
     Q_OBJECT
 

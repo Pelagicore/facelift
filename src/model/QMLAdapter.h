@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -31,137 +31,17 @@
 #pragma once
 
 #include <QObject>
-#include <QDebug>
 #include <QQmlEngine>
-#include <QtQml>
-#include <QQmlParserStatus>
-#include <QAbstractListModel>
 
-#include "FaceliftModel.h"
+#include "QMLAdapterBase.h"
+#include "QMLAdapterByReference.h"
+#include "TQMLAdapter.h"
+#include "ModelListModel.h"
 
 namespace facelift {
 
 class IPCAttachedPropertyFactory;
 class IPCServiceAdapterBase;
-
-
-/*!
- * This is the base class which all QML frontends extend
- */
-class FaceliftModelLib_EXPORT QMLAdapterBase : public QObject, public QQmlParserStatus
-{
-    Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-
-public:
-
-    static const QJSValue NO_OPERATION_JS_CALLBACK;
-
-    QMLAdapterBase(QObject *parent);
-
-    /**
-     *  This constructor is used when instantiating a singleton
-     */
-    QMLAdapterBase(QQmlEngine *engine);
-
-    Q_PROPERTY(QObject * provider READ provider CONSTANT)
-    virtual InterfaceBase *provider();
-
-    Q_PROPERTY(bool ready READ ready NOTIFY readyChanged)
-    bool ready() const;
-
-    Q_SIGNAL void readyChanged();
-
-    Q_PROPERTY(QString implementationID READ implementationID CONSTANT)
-    virtual const QString &implementationID();
-
-    void classBegin() override;
-
-    void componentComplete() override;
-
-    QQmlEngine* qmlEngine() const;
-
-    void setParentQMLAdapter(QMLAdapterBase * parentQMLAdapter);
-
-protected:
-
-    void connectProvider(InterfaceBase &provider);
-
-    InterfaceBase *providerPrivate()
-    {
-        return m_provider;
-    }
-
-    friend class IPCAttachedPropertyFactory;
-    friend class IPCServiceAdapterBase;
-    friend class NewIPCServiceAdapterBase;
-
-private:
-    InterfaceBase *m_provider = nullptr;
-    mutable QQmlEngine* m_qmlEngine = nullptr;
-    QMLAdapterBase* m_parentQMLAdapter = nullptr;
-};
-
-/*!
- * This is the class which is registered when calling registerQmlComponent()
- * It is an actual instance of the QMLAdapterType and wraps an instance of the provider
- */
-template<typename ProviderImplementationType>
-class QMLAdapterByReference : public ProviderImplementationType::QMLAdapterType
-{
-
-public:
-    QMLAdapterByReference(ProviderImplementationType& provider, QObject *parent = nullptr)
-        : ProviderImplementationType::QMLAdapterType(parent), m_provider(provider)
-    {
-    }
-
-    QMLAdapterByReference(ProviderImplementationType& provider, QQmlEngine *engine)
-        : ProviderImplementationType::QMLAdapterType(engine), m_provider(provider)
-    {
-    }
-
-    const QString &implementationID() override
-    {
-        return m_provider.implementationID();
-    }
-
-    void componentComplete() override
-    {
-        // notify anyone interested that we are ready (such as an IPC attached property)
-        m_provider.setComponentCompleted();
-    }
-
-    void connectProvider() {
-        ProviderImplementationType::QMLAdapterType::connectProvider(m_provider);
-    }
-
-private:
-    ProviderImplementationType& m_provider;
-
-};
-
-template<typename ProviderImplementationType>
-class TQMLAdapter : public QMLAdapterByReference<ProviderImplementationType> {
-
-public:
-
-    TQMLAdapter(QObject *parent = nullptr) : QMLAdapterByReference<ProviderImplementationType>(m_provider, parent)
-    {
-        this->connectProvider();
-        registerInterfaceImplementationInstance(m_provider);
-    }
-
-    TQMLAdapter(QQmlEngine *engine) : QMLAdapterByReference<ProviderImplementationType>(m_provider, engine)
-    {
-        this->connectProvider();
-        registerInterfaceImplementationInstance(m_provider);
-    }
-
-private:
-    ProviderImplementationType m_provider;
-
-};
 
 
 template<typename Type>
@@ -268,84 +148,5 @@ typename ProviderType::QMLAdapterType *getQMLAdapter(ProviderType *provider)
     }
 }
 
-
-class FaceliftModelLib_EXPORT ModelListModelBase : public QAbstractListModel
-{
-    Q_OBJECT
-
-    Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
-
-public:
-    typedef size_t (QObject::*SizeGetterFunction)();
-
-    Q_SIGNAL void countChanged();
-
-    ModelListModelBase();
-
-    /**
-     * Return the element at the given row index
-     */
-    Q_INVOKABLE QVariant get(int rowIndex) const;
-
-    void setModelProperty(facelift::ModelBase &property);
-
-    int rowCount(const QModelIndex &index = QModelIndex()) const override;
-
-    QHash<int, QByteArray> roleNames() const override;
-
-private:
-
-    void onBeginResetModel();
-
-    void onEndResetModel();
-
-    void onBeginInsertElements(int first, int last);
-
-    void onEndInsertElements();
-
-    void onBeginMoveElements(int sourceFirstIndex, int sourceLastIndex, int destinationIndex);
-
-    void onEndMoveElements();
-
-    void onBeginRemoveElements(int first, int last);
-
-    void onEndRemoveElements();
-
-    void onDataChanged(int first, int last);
-
-protected:
-    facelift::ModelBase *m_property = nullptr;
-
-};
-
-template<typename ElementType>
-class ModelListModel : public ModelListModelBase
-{
-public:
-    typedef ElementType (QObject::*ElementGetterFunction)(size_t);
-
-    ModelListModel()
-    {
-    }
-
-    QVariant data(const QModelIndex &index, int role) const override
-    {
-        Q_UNUSED(role);
-        auto element = m_property->elementAt(index.row());
-        return QVariant::fromValue(element);
-    }
-
-    void setModelProperty(facelift::Model<ElementType> &property)
-    {
-        if (m_property != &property) {
-            m_property = &property;
-            ModelListModelBase::setModelProperty(property);
-        }
-    }
-
-private:
-    facelift::Model<ElementType> *m_property = nullptr;
-
-};
 
 }

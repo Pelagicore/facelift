@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,19 +30,17 @@
 
 #pragma once
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QDataStream>
 
 #include "FaceliftModel.h"
+#include "InputPayLoad.h"
+#include "OutputPayLoad.h"
+#include "DBusSignatureHelper.h"
+#include "IPCTypeRegisterHandler.h"
 
 namespace facelift {
 
-FaceliftIPCCommonLib_EXPORT Q_DECLARE_LOGGING_CATEGORY(LogIpc)
+Q_DECLARE_LOGGING_CATEGORY(LogIpc)
 
 enum class CommonSignalID {
     readyChanged,
@@ -70,190 +68,6 @@ inline void assignDefaultValue(Type &v)
 {
     v = Type {};
 }
-
-
-
-template<typename Type, typename Enable = void>
-struct IPCTypeRegisterHandler
-{
-    typedef Type SerializedType;
-
-    template<typename OwnerType>
-    static const Type &convertToSerializedType(const Type &v, OwnerType &adapter)
-    {
-        Q_UNUSED(adapter);
-        return v;
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(Type &v, const SerializedType &serializedValue, OwnerType &adapter)
-    {
-        Q_UNUSED(adapter);
-        v = serializedValue;
-    }
-
-};
-
-
-template<typename Type>
-struct IPCTypeRegisterHandler<QList<Type> >
-{
-    typedef QList<typename IPCTypeRegisterHandler<Type>::SerializedType> SerializedType;
-
-    template<typename OwnerType>
-    static SerializedType convertToSerializedType(const QList<Type> &v, OwnerType &adapter)
-    {
-        Q_UNUSED(v);
-        Q_UNUSED(adapter);
-        SerializedType convertedValue;
-        for (const auto &e : v) {
-            convertedValue.append(IPCTypeRegisterHandler<Type>::convertToSerializedType(e, adapter));
-        }
-        return convertedValue;
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(QList<Type> &v, const SerializedType &serializedValue, OwnerType &adapter)
-    {
-        v.clear();
-        for (const auto &e : serializedValue) {
-            Type c;
-            IPCTypeRegisterHandler<Type>::convertToDeserializedType(c, e, adapter);
-            v.append(c);
-        }
-    }
-
-};
-
-
-template<typename Type>
-struct IPCTypeRegisterHandler<QMap<QString, Type> >
-{
-    typedef QMap<QString, typename IPCTypeRegisterHandler<Type>::SerializedType> SerializedType;
-
-    template<typename OwnerType>
-    static SerializedType convertToSerializedType(const QMap<QString, Type> &v, OwnerType &adapter)
-    {
-        SerializedType convertedValue;
-        for (const auto &key : v.keys()) {
-            convertedValue.insert(key, IPCTypeRegisterHandler<Type>::convertToSerializedType(v[key], adapter));
-        }
-        return convertedValue;
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(QMap<QString, Type> &v, const SerializedType &serializedValue, OwnerType &adapter)
-    {
-        v.clear();
-        for (const auto &key : serializedValue.keys()) {
-            Type c;
-            IPCTypeRegisterHandler<Type>::convertToDeserializedType(c, serializedValue[key], adapter);
-            v.insert(key, c);
-        }
-    }
-
-};
-
-
-template<typename Type>
-struct IPCTypeRegisterHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
-{
-    typedef QString SerializedType;
-
-    template<typename OwnerType>
-    static SerializedType convertToSerializedType(Type *const &v, OwnerType &adapter)
-    {
-        using IPCAdapterType = typename OwnerType::template IPCAdapterType<Type>;
-        return adapter.template getOrCreateAdapter< IPCAdapterType >(v)->objectPath();
-    }
-
-    template<typename OwnerType>
-    static void convertToDeserializedType(Type * &v, const SerializedType &serializedValue, OwnerType &owner)
-    {
-        using IPCProxyType = typename OwnerType::template IPCProxyType<Type>;
-        v = owner.template getOrCreateSubProxy<IPCProxyType>(serializedValue);
-    }
-
-};
-
-
-class FaceliftIPCCommonLib_EXPORT OutputPayLoad
-{
-
-public:
-    OutputPayLoad(QByteArray &payloadArray) : m_payloadArray(payloadArray), m_dataStream(&m_payloadArray, QIODevice::WriteOnly)
-    {
-    }
-
-    template<typename Type>
-    void writeSimple(const Type &v)
-    {
-        //        qCDebug(LogIpc) << "Writing to message : " << v;
-        m_dataStream << v;
-    }
-
-    const QByteArray &getContent() const
-    {
-        return m_payloadArray;
-    }
-
-private:
-    QByteArray& m_payloadArray;
-    QDataStream m_dataStream;
-};
-
-
-class FaceliftIPCCommonLib_EXPORT InputPayLoad
-{
-
-public:
-    InputPayLoad(const QByteArray &payloadArray) :
-        m_payloadArray(payloadArray),
-        m_dataStream(m_payloadArray)
-    {
-    }
-
-    ~InputPayLoad()
-    {
-    }
-
-    template<typename Type>
-    void readNextParameter(Type &v)
-    {
-        m_dataStream >> v;
-        //        qCDebug(LogIpc) << "Read from message : " << v;
-    }
-
-    const QByteArray &getContent() const
-    {
-        return m_payloadArray;
-    }
-
-private:
-    const QByteArray& m_payloadArray;
-    QDataStream m_dataStream;
-};
-
-
-template<typename Type, typename Enable = void>
-struct IPCTypeHandler
-{
-    static void writeDBUSSignature(QTextStream &s)
-    {
-        s << "i";
-    }
-
-    static void write(OutputPayLoad &msg, const Type &v)
-    {
-        msg.writeSimple(v);
-    }
-
-    static void read(InputPayLoad &msg, Type &v)
-    {
-        msg.readNextParameter(v);
-    }
-
-};
 
 
 }

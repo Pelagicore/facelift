@@ -37,13 +37,13 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "FaceliftModel.h"
 
 // Dependencies
 {% for type in interface.referencedTypes %}
+{% if type.requiredInclude != "" %}
 {{type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}
@@ -56,7 +56,7 @@ class {{interfaceName}}IPCLocalProxyAdapter;
 class {{interfaceName}}ImplementationBaseQML;
 
 {% if hasReadyFlags %}
-class {{classExport}} {{interfaceName}}ReadyFlags
+class {{interfaceName}}ReadyFlags
 {
     Q_GADGET
 
@@ -76,7 +76,7 @@ public:
 {% endif %}
 
 {{interface.comment}}
-class {{classExport}} {{interfaceName}} : public facelift::InterfaceBase
+class {{interfaceName}} : public facelift::InterfaceBase
 {
     Q_OBJECT
 

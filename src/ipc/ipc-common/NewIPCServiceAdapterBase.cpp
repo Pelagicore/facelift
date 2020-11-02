@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,11 +30,12 @@
 
 #include "NewIPCServiceAdapterBase.h"
 #include "IPCServiceAdapterBase.h"
-#include "InterfaceManager.h"
 
 namespace facelift {
 
-NewIPCServiceAdapterBase::NewIPCServiceAdapterBase(QObject *parent) : QObject(parent)
+NewIPCServiceAdapterBase::NewIPCServiceAdapterBase(InterfaceManagerInterface& interfaceManager, QObject *parent) :
+    QObject(parent),
+    m_interfaceManager(interfaceManager)
 {
 }
 
@@ -45,12 +46,12 @@ NewIPCServiceAdapterBase::~NewIPCServiceAdapterBase() {
 
 void NewIPCServiceAdapterBase::registerLocalService()
 {
-    InterfaceManager::instance().registerAdapter(objectPath(), this);
+    m_interfaceManager.registerAdapter(objectPath(), this);
 }
 
 void NewIPCServiceAdapterBase::unregisterLocalService()
 {
-    InterfaceManager::instance().unregisterAdapter(this);
+    m_interfaceManager.unregisterAdapter(this);
 }
 
 void NewIPCServiceAdapterBase::registerService()
@@ -69,10 +70,6 @@ void NewIPCServiceAdapterBase::unregisterService()
     m_ipcServiceAdapters.clear();
 }
 
-void NewIPCServiceAdapterBase::setServiceAdapters(facelift::span<IPCServiceAdapterBase*> adapters) {
-    m_ipcServiceAdapters = adapters;
-}
-
 void NewIPCServiceAdapterBase::onValueChanged()
 {
     if (isReady()) {
@@ -87,5 +84,36 @@ void NewIPCServiceAdapterBase::onValueChanged()
         }
     }
 }
+
+void NewIPCServiceAdapterBase::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
+    onValueChanged();
+}
+
+void NewIPCServiceAdapterBase::checkedSetService(QObject *service)
+{
+    setService(service);
+    onValueChanged();
+}
+
+void NewIPCServiceAdapterBase::setObjectPath(const QString &objectPath)
+{
+    m_objectPath = objectPath;
+    onValueChanged();
+}
+
+bool NewIPCServiceAdapterBase::isReady() const
+{
+    return (enabled() && m_providerReady && !objectPath().isEmpty() && (service() != nullptr));
+}
+
+void NewIPCServiceAdapterBase::onProviderCompleted()
+{
+    // The parsing of the provider is finished => all our properties are set and we are ready to register our service
+    m_providerReady = true;
+    onValueChanged();
+}
+
 
 }

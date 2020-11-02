@@ -35,11 +35,12 @@
 #include "facelift/ipc/dbus/ObjectRegistryAsyncIPCDBusProxy.h"
 #include "facelift/ipc/dbus/ObjectRegistryIPCDBusAdapter.h"
 #include "Registry.h"
+#include "DBusManagerInterface.h"
 
 namespace facelift {
 namespace dbus {
 
-class FaceliftIPCLibDBus_EXPORT DBusObjectRegistry : public QObject
+class DBusObjectRegistry : public QObject
 {
     Q_OBJECT
     static constexpr const int INVALID_REGISTRY_VERSION = 0;
@@ -71,7 +72,7 @@ public:
         facelift::ipc::dbus::ObjectRegistryIPCDBusAdapter m_objectRegistryAdapter;
     };
 
-    DBusObjectRegistry(DBusManager &dbusManager);
+    DBusObjectRegistry(DBusManagerInterface &dbusManager);
 
     void registerObject(const QString &objectPath, facelift::AsyncAnswer<bool> answer);
 
@@ -95,7 +96,7 @@ private:
     int version() const { return m_registryVersion; }
 
     facelift::ipc::dbus::ObjectRegistryAsyncIPCDBusProxy* m_objectRegistryAsyncProxy = nullptr;
-    DBusManager &m_dbusManager;
+    DBusManagerInterface &m_dbusManager;
     bool m_initialized = false;
     std::unique_ptr<MasterImpl> m_master;
     Registry<QString> m_objects;

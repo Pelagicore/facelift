@@ -31,13 +31,8 @@
 #pragma once
 
 #include <QObject>
-#include <QDBusConnection>
 
-#if defined(FaceliftIPCLibDBus_LIBRARY)
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLibDBus_EXPORT Q_DECL_IMPORT
-#endif
+#include "DBusManagerInterface.h"
 
 namespace facelift {
 namespace dbus {
@@ -46,34 +41,39 @@ class DBusObjectRegistry;
 
 using namespace facelift;
 
-class FaceliftIPCLibDBus_EXPORT DBusManager
+class DBusManager : public DBusManagerInterface
 {
-
 public:
-    DBusManager();
+    DBusManager(const DBusManager&) = delete;
+    DBusManager(const DBusManager&&) = delete;
+    DBusManager& operator=(const DBusManager&) = delete;
+    DBusManager& operator=(const DBusManager&&) = delete;
 
     static DBusManager &instance();
 
-    bool isDBusConnected() const
+    bool isDBusConnected() const override
     {
         return m_dbusConnected;
     }
 
-    bool registerServiceName(const QString &serviceName);
+    bool registerServiceName(const QString &serviceName) override;
 
-    QDBusConnection &connection()
+    QDBusConnection &connection() override
     {
         return m_busConnection;
     }
 
-    QString serviceName() const;
+    QString serviceName() const override;
 
-    DBusObjectRegistry &objectRegistry();
+    DBusObjectRegistry &objectRegistry() override;
 
 private:
     QDBusConnection m_busConnection;
     DBusObjectRegistry *m_objectRegistry = nullptr;
     bool m_dbusConnected = false;
+
+    // singleton
+    DBusManager();
 };
 
 

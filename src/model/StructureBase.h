@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,25 +30,13 @@
 
 #pragma once
 
-#include <QObject>
 #include <QVariant>
-#include <QDataStream>
-#include <QQmlEngine>
-#include <QTextStream>
-#include <array>
 
 #include "FaceliftCommon.h"
-#include "FaceliftStringConversion.h"
-
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
 
 namespace facelift {
 
-class FaceliftModelLib_EXPORT StructureBase
+class StructureBase
 {
     Q_GADGET
 
@@ -80,97 +68,6 @@ public:
 
 protected:
     QVariant m_userData;
-};
-
-
-
-template<typename ... FieldTypes>
-class Structure : public StructureBase
-{
-
-public:
-    virtual ~Structure()
-    {
-    }
-
-    typedef std::tuple<FieldTypes ...> FieldTupleTypes;
-    static constexpr size_t FieldCount = sizeof ... (FieldTypes);
-
-    typedef std::array<const char *, FieldCount> FieldNames;
-
-    const FieldTupleTypes &asTuple() const
-    {
-        return m_values;
-    }
-
-    FieldTupleTypes &asTuple()
-    {
-        return m_values;
-    }
-
-    void setValue(FieldTupleTypes value)
-    {
-        m_values = value;
-    }
-
-    void copyFrom(const Structure &other)
-    {
-        setValue(other.m_values);
-        m_userData = other.m_userData;
-    }
-
-    bool operator==(const Structure &right) const
-    {
-        return (m_values == right.m_values);
-    }
-
-    bool operator!=(const Structure &right) const
-    {
-        return !(this->operator==(right));
-    }
-
-protected:
-    template<class Tuple, std::size_t... Is>
-    static void toStringWithFields(const Tuple &t, std::index_sequence<Is...>, const FieldNames &names,
-                                   QTextStream &outStream)
-    {
-        using expander = int[]; // workaround because fold expression is only available in C++17
-        (void)expander{0, (void(outStream << (Is == 0 ? "" : ", ") << names[Is] << "="
-                                          << StringConversionHandler<typename std::tuple_element<Is, Tuple>::type>::toString(std::get< Is >(t))), 0)...};
-    }
-
-    QString toStringWithFields(const QString &structName, const FieldNames &names) const
-    {
-        QString s;
-        QTextStream outStream(&s);
-        outStream << structName << " { ";
-
-        toStringWithFields(m_values, std::make_index_sequence<FieldCount>{}, names, outStream);
-        outStream << " }";
-
-        return s;
-    }
-
-    FieldTupleTypes m_values = {};
-};
-
-
-
-class FaceliftModelLib_EXPORT StructureFactoryBase : public QObject
-{
-
-    Q_OBJECT
-
-public:
-    StructureFactoryBase(QQmlEngine *engine);
-
-    template<typename Type>
-    static QObject *getter(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
-    {
-        Q_UNUSED(jsEngine);
-        return new Type(qmlEngine);
-    }
-
 };
 
 

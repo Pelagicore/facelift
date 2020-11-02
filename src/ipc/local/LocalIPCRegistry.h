@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -30,12 +30,6 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLocalLib_LIBRARY)
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
-#endif
-
 #include <QObject>
 #include <QMap>
 
@@ -46,7 +40,7 @@ namespace facelift {
 
 namespace local {
 
-class FaceliftIPCLocalLib_EXPORT LocalIPCRegistry : public QObject
+class LocalIPCRegistry : public QObject
 {
     Q_OBJECT
 
@@ -68,6 +62,7 @@ public:
     {
         return m_registry;
     }
+
 
 private:
     Registry<QPointer<LocalIPCServiceAdapterBase>> m_registry;

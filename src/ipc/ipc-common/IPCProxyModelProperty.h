@@ -31,12 +31,6 @@
 
 #include <QObject>
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 template<typename IPCProxyType, typename ModelDataType>
@@ -122,11 +116,7 @@ public:
 
     ModelDataType modelData(const MemberID &requestMemberID, int row)
     {
-        ModelDataType retval {};
-        if (m_cache.exists(row)) {
-            retval = m_cache.get(row);
-        } else {
-
+        if (!m_cache.exists(row)) {
             if (m_proxy.isSynchronous()) {
 
                 int first = row > PREFETCH_ITEM_COUNT ? row - PREFETCH_ITEM_COUNT : 0;
@@ -139,16 +129,16 @@ public:
                     --last;
                 }
 
-                QList<ModelDataType> list;
-                m_proxy.ipc()->sendMethodCallWithReturn(requestMemberID, list, first, last);
+                std::tuple<int, QList<ModelDataType>> requestResult;
+                m_proxy.ipc()->sendMethodCallWithReturn(requestMemberID, requestResult, first, last);
 
-                Q_ASSERT(list.size() == (last - first + 1));
+                first = std::get<0>(requestResult);
+                auto &list = std::get<1>(requestResult);
+                last = first + list.size() - 1;
 
                 for (int i = first; i <= last; ++i) {
                     m_cache.insert(i, list.at(i - first));
                 }
-
-                retval = list.at(row - first);
             } else {
                 // Request items asynchronously and return a default item for now
                 requestItemsAsync(requestMemberID, row);
@@ -168,7 +158,7 @@ public:
             requestItemsAsync(requestMemberID, previousIndex);
         }
 
-        return retval;
+        return m_cache.exists(row) ? m_cache.get(row) : ModelDataType {};
     }
 
     /**
@@ -191,9 +181,11 @@ public:
             }
 
             if (first <= last) {
-                m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<QList<ModelDataType> >(&m_proxy, [this, first,
-                        last](QList<ModelDataType> list) {
+                m_proxy.ipc()->sendAsyncMethodCall(requestMemberID, facelift::AsyncAnswer<std::tuple<int, QList<ModelDataType>>>(&m_proxy, [this](std::tuple<int, QList<ModelDataType>> result) {
                         //                    qCDebug(LogIpc) << "Received model items " << first << "-" << last;
+                        auto & first = std::get<0>(result);
+                        auto & list = std::get<1>(result);
+                        auto last = first + list.size() - 1;
                         for (int i = first; i <= last; ++i) {
                             auto &newItem = list[i - first];
                             if (!((m_cache.exists(i)) && (newItem == m_cache.get(i)))) {

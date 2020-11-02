@@ -43,7 +43,7 @@
 
 #include "FaceliftModel.h"
 #include "FaceliftUtils.h"
-#include "FaceliftProperty.h"
+#include "ModelProperty.h"
 
 #include "QMLAdapter.h"
 #include "QMLModel.h"
@@ -51,7 +51,6 @@
 #include "DBusIPCProxy.h"
 #include "DBusObjectRegistry.h"
 
-#include "DBusManager.h"
 #include "DBusIPCCommon.h"
 #include "IPCDBusServiceAdapterBase.h"
 
@@ -126,7 +125,10 @@ bool IPCDBusServiceAdapterBase::handleMessage(const QDBusMessage &dbusMsg)
     return false;
 }
 
-IPCDBusServiceAdapterBase::IPCDBusServiceAdapterBase(QObject *parent) : IPCServiceAdapterBase(parent), m_dbusVirtualObject(*this)
+IPCDBusServiceAdapterBase::IPCDBusServiceAdapterBase(DBusManagerInterface& dbusManager, QObject *parent) :
+    IPCServiceAdapterBase(parent),
+    m_dbusVirtualObject(*this),
+    m_dbusManager(dbusManager)
 {
 }
 
@@ -138,7 +140,7 @@ void IPCDBusServiceAdapterBase::sendAsyncCallAnswer(DBusIPCMessage &replyMessage
 void IPCDBusServiceAdapterBase::send(DBusIPCMessage &message)
 {
     qCDebug(LogIpc) << "Sending IPC message : " << message.toString();
-    bool successful = dbusManager().connection().send(message.outputMessage());
+    bool successful = m_dbusManager.connection().send(message.outputMessage());
     Q_ASSERT(successful);
 }
 
@@ -166,17 +168,12 @@ QString IPCDBusServiceAdapterBase::introspect(const QString &path) const
     return introspectionData;
 }
 
-DBusManager &IPCDBusServiceAdapterBase::dbusManager()
-{
-    return DBusManager::instance();
-}
-
 void IPCDBusServiceAdapterBase::unregisterService()
 {
     if (m_alreadyInitialized) {
-        dbusManager().connection().unregisterObject(objectPath());
+        m_dbusManager.connection().unregisterObject(objectPath());
         qCDebug(LogIpc) << "Unregistered IPCDBusServiceAdapter object at " << objectPath();
-        dbusManager().objectRegistry().unregisterObject(objectPath());
+        m_dbusManager.objectRegistry().unregisterObject(objectPath());
         m_alreadyInitialized = false;
     }
 }
@@ -184,19 +181,19 @@ void IPCDBusServiceAdapterBase::unregisterService()
 void IPCDBusServiceAdapterBase::registerService()
 {
     if (!m_alreadyInitialized) {
-        if (dbusManager().isDBusConnected()) {
+        if (m_dbusManager.isDBusConnected()) {
 
             if (!m_serviceName.isEmpty()) {
-                DBusManager::instance().registerServiceName(m_serviceName);
+                m_dbusManager.registerServiceName(m_serviceName);
             }
 
             qCDebug(LogIpc) << "Registering IPCDBusServiceAdapter object at " << objectPath();
-            m_alreadyInitialized = dbusManager().connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
+            m_alreadyInitialized = m_dbusManager.connection().registerVirtualObject(objectPath(), &m_dbusVirtualObject);
             if (!m_alreadyInitialized) {
                 qFatal("Could not register service at object path '%s'", qPrintable(objectPath()));
             }
 
-            DBusManager::instance().objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
+            m_dbusManager.objectRegistry().registerObject(objectPath(), facelift::AsyncAnswer<bool>(this, [](bool isSuccessful) {
                 Q_ASSERT(isSuccessful);
             }));
         }

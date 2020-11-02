@@ -22,7 +22,6 @@ option(FACELIFT_ENABLE_DBUS_IPC "Force DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_DISABLE_DBUS_IPC "Force disable DBus IPC support (no autodetection)" OFF)
 option(FACELIFT_BUILD_EXAMPLES "Enable build of examples" ON)
 option(FACELIFT_BUILD_TESTS "Enable build of tests" OFF)
-option(FACELIFT_ENABLE_DESKTOP_DEV_TOOLS "Enable desktop development tools" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries. If set to off, static libraries are built instead" ON)
 option(FACELIFT_DISABLE_GTEST "Disable GTest-based unit tests" OFF)
 
@@ -94,13 +93,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 
 function(add_example_script NAME MAIN_QML_FILE)
     set(QML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${MAIN_QML_FILE})
-    if(WIN32)
-        configure_file(${PROJECT_SOURCE_DIR}/examples/launch-example.bat.in ${PROJECT_BINARY_DIR}/examples/launch-${NAME}.bat @ONLY)
-    else()
-        configure_file(${PROJECT_SOURCE_DIR}/examples/launch-example.sh ${PROJECT_BINARY_DIR}/examples/launch-${NAME}.sh @ONLY)
-    endif()
+    configure_file(${PROJECT_SOURCE_DIR}/examples/launch-example.sh ${PROJECT_BINARY_DIR}/examples/launch-${NAME}.sh @ONLY)
 endfunction()
-
 
 add_subdirectory(src)
 

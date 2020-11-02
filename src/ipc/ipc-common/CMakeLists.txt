@@ -2,35 +2,52 @@
 facelift_add_library(FaceliftIPCCommonLib
     SOURCES
         ipc-common.cpp
-        IPCProxyBase.cpp
+        IPCProxyBaseBase.cpp
         ModuleIPCBase.cpp
         ipc-serialization.cpp
         IPCServiceAdapterBase.cpp
-        NotAvailableImpl.cpp
+        NotAvailableImplBase.cpp
         IPCAdapterFactoryManager.cpp
+        IPCAttachedPropertyFactory.cpp
         IPCProxyBinderBase.cpp
         InterfaceManager.cpp
         IPCProxyNewBase.cpp
         NewIPCServiceAdapterBase.cpp
+        OutputPayLoad.cpp
+        InputPayLoad.cpp
+        LocalProviderBinderBase.cpp
     HEADERS
-        ipc-common.h
-        NotAvailableImpl.h
-        IPCProxyNewBase.h
-        LocalProviderBinder.h
-        StaticArrayReference.h
-        IPCProxyBase.h
-        IPCProxy.h
         InterfaceManager.h
-        IPCProxyModelProperty.h
+        InterfaceManagerInterface.h
         IPCProxyBinderBase.h
-        IPCAdapterModelPropertyHandler.h
         IPCServiceAdapterBase.h
         NewIPCServiceAdapterBase.h
-        ModuleIPCBase.h
+        IPCAttachedPropertyFactory.h
+    HEADERS_NO_MOC
+        AppendDBUSSignatureFunction.h
         ipc-serialization.h
+        DBusSignatureHelper.h
+        IPCProxyBase.h
+        IPCAdapterModelPropertyHandler.h
+        IPCProxyModelProperty.h
+        IPCProxyBaseBase.h
         IPCAdapterFactoryManager.h
+        IPCProxyNewBase.h
+        IPCProxy.h
+        InputPayLoad.h
+        IPCTypeHandler.h
+        IPCTypeRegisterHandler.h
+        ModuleIPCBase.h
         IPCServiceAdapter.h
+        LocalProviderBinderBase.h
+        OutputPayLoad.h
+        NotAvailableImpl.h
+        NotAvailableImplBase.h
         Registry.h
+        LocalProviderBinder.h
+        SerializeParameterFunction.h
+        StaticArrayReference.h
+        ipc-common.h
     LINK_LIBRARIES FaceliftModelLib FaceliftCommonLib
     MONOLITHIC_SUPPORTED
 )

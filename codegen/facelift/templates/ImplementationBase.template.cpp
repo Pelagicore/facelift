@@ -35,7 +35,7 @@
 
 #include "{{interfaceName}}ImplementationBase.h"
 #include "FaceliftConversion.h"
-#include "FaceliftImplementationBase.h"
+#include "PropertyInit.h"
 
 {{module.namespaceCppOpen}}
 

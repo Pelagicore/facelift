@@ -10,7 +10,8 @@ The following functions are public and are meant to be used by FaceLift users.
 facelift_add_interface(<TargetName>
                        INTERFACE_DEFINITION_FOLDER dir
                        [LINK_LIBRARIES lib1 [lib2...]]
-                       [IMPORT_FOLDERS folder1 [folder2...]])
+                       [IMPORT_FOLDERS folder1 [folder2...]]
+                       [MONOLITHIC_SUPPORTED])
 \endcode
 
 This function adds a library containing the C++ classes generated from some QFace interface definition files
@@ -45,6 +46,8 @@ facelift_add_qml_plugin(<TargetName>
                         [HEADERS_GLOB [Globbing expressions]...]
                         [SOURCES_GLOB_RECURSE [Globbing expressions]...]
                         [HEADERS_GLOB_RECURSE [Globbing expressions]...]
+                        [HEADERS_NO_MOC hdr1 [hdr2...]]
+                        [HEADERS_NO_MOC_FILE file]
                         [HEADERS_NO_INSTALL hdrn1 [hdrn2...]]
                         [HEADERS_GLOB_NO_INSTALL [Globbing expressions]...]
                         [HEADERS_GLOB_RECURSE_NO_INSTALL [Globbing expressions]...]
@@ -64,17 +67,38 @@ facelift_add_library(<TargetName>
                      [HEADERS_GLOB [Globbing expressions]...]
                      [SOURCES_GLOB_RECURSE [Globbing expressions]...]
                      [HEADERS_GLOB_RECURSE [Globbing expressions]...]
+                     [HEADERS_NO_MOC hdr1 [hdr2...]]
+                     [HEADERS_NO_MOC_FILE file]
                      [HEADERS_NO_INSTALL hdrn1 [hdrn2...]]
                      [HEADERS_GLOB_NO_INSTALL [Globbing expressions]...]
                      [HEADERS_GLOB_RECURSE_NO_INSTALL [Globbing expressions]...]
                      [PUBLIC_HEADER_BASE_PATH path]
                      [LINK_LIBRARIES lib1 [lib2...]]
                      [NO_EXPORT]
-                     [NO_INSTALL])
+                     [NO_INSTALL]
+                     [MONOLITHIC_SUPPORTED])
 \endcode
 
 This function adds a library with the name \e TargetName from the specified source and header files. The parameter descriptions can be found below.
-
+In the parameter HEADERS_NO_MOC_FILE you can set the file with a list of the files which sould be excluded from processing by moc.
+This set should have the name HEADERS_NO_MOC_FROM_FILE. E.g in we create the file ~/nomoc.cmake and fill it like this:
+set(HEADERS_NO_MOC_FILE
+   file1.h
+   file2.h
+   ...
+   filen.h
+)
+after that we should call 
+facelift_add_library(
+    ...
+    HEADERS_NO_MOC
+        file3.h
+        hile4.h
+    HEADERS_NO_MOC_FILE  ~/nomoc.cmake
+    ...
+)
+This parameter is much preferred when the number of files which should not be processed by moc is quite large.
+When there are not a lot of files rather use HEADERS_NO_MOC parameter.
 \code
 facelift_add_executable(<TargetName>
                         [SOURCES src1 [src2...]]
@@ -112,6 +136,8 @@ This function adds a test with the name \e TargetName.The parameter descriptions
 \param SOURCES_GLOB_RECURSE List of source files searched recursively inside folder and subfolders, used to build this target provided as a wildcard expression
 \param HEADERS_GLOB_RECURSE List of header files to be MOCed and added to this target, searched recursively inside folder and subfolders provided as a wildcard expression
 \param LINK_LIBRARIES List of libraries that will be linked with this target
+\param HEADERS_NO_MOC The headers that should be excluded from moc processing
+\param HEADERS_NO_MOC_FILE The list of the files that should be excluded from moc processing
 \param HEADERS_NO_INSTALL Same as HEADERS, but those headers wouldn't be installed
 \param HEADERS_GLOB_NO_INSTALL Same as HEADERS_GLOB, but those headers wouldn't be installed
 \param HEADERS_GLOB_RECURSE_NO_INSTALL Same as HEADERS_GLOB_RECURSE, but those headers wouldn't be installed
@@ -121,5 +147,6 @@ This function adds a test with the name \e TargetName.The parameter descriptions
 \param OUTPUT_BASE_DIRECTORY The directory relative to CMAKE_BINARY_DIR, where the plugin will be installed. If not given default is imports
 \param URI The URI of the Target i.e qml plugin
 \param VERSION The target i.e Qml plugin version, if not provided it defaults to 1.0
+\param MONOLITHIC_SUPPORTED Include the library into the monolithic library
 
 */

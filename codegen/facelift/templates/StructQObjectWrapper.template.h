@@ -37,14 +37,14 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include "{{struct.name}}.h"
 #include "StructQObjectWrapper.h"
 
 // Dependencies
 {% for field in struct.fields %}
+{% if field.type.requiredInclude != "" %}
 {{field.type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}
@@ -56,7 +56,7 @@
 * \ingroup {{struct.module.name|toValidId}}
 * \inqmlmodule {{struct.module.name}}
 */
-class {{classExport}} {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
+class {{struct.name}}QObjectWrapper : public facelift::StructQObjectWrapper<{{struct.name}}>
 {
     Q_OBJECT
 

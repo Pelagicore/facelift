@@ -33,30 +33,11 @@
 #include <QMap>
 #include "NewIPCServiceAdapterBase.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 class NewIPCServiceAdapterBase;
 
-class FaceliftIPCCommonLib_EXPORT IPCAttachedPropertyFactory : public QObject
-{
-    Q_OBJECT
-
-public:
-    IPCAttachedPropertyFactory(QObject *parent);
-
-    static InterfaceBase *getProvider(QObject *object);
-
-    static NewIPCServiceAdapterBase *qmlAttachedProperties(QObject *object);
-
-};
-
-class FaceliftIPCCommonLib_EXPORT IPCAdapterFactoryManager
+class IPCAdapterFactoryManager
 {
 public:
     typedef NewIPCServiceAdapterBase * (*IPCAdapterFactory)(InterfaceBase *);
@@ -87,9 +68,7 @@ private:
     QMap<QString, IPCAdapterFactory> m_factories;
 };
 
-
-
 }
 
-QML_DECLARE_TYPEINFO(facelift::IPCAttachedPropertyFactory, QML_HAS_ATTACHED_PROPERTIES)
+
 

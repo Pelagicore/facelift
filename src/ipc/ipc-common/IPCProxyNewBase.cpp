@@ -36,5 +36,12 @@ IPCProxyNewBase::IPCProxyNewBase(InterfaceBase &owner) : m_ipc(owner, &owner)
 {
     QObject::connect(&owner, &InterfaceBase::componentCompleted, &m_ipc, &IPCProxyBinderBase::onComponentCompleted);
 }
+IPCProxyNewBase::~IPCProxyNewBase() = default;
+
+const QString &IPCProxyNewBase::objectPath() const
+{
+    return m_ipc.objectPath();
+}
+
 
 }

@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -31,54 +31,10 @@
 #pragma once
 
 #include "FaceliftModel.h"
+#include "ServiceWrapperBase.h"
 
 namespace facelift {
 
-
-class FaceliftModelLib_EXPORT ServiceWrapperBase
-{
-
-protected:
-    void addConnection(QMetaObject::Connection connection);
-
-    void clearConnections();
-
-    void setWrapped(InterfaceBase &wrapper, InterfaceBase *wrapped);
-
-    /// Normal property
-    template<typename PropertyType, typename InterfaceType>
-    static bool changeSignalRequired(const PropertyType& (InterfaceType::*getter)() const, const InterfaceType* newService, const InterfaceType* previousService, const PropertyType& previousValue)
-    {
-        Q_ASSERT(newService != previousService);
-        Q_ASSERT(newService != nullptr);
-        const auto & referenceValue = ((previousService == nullptr) ? previousValue : (previousService->*getter)());
-        return ((newService->*getter)() != referenceValue);
-    }
-
-    /// Model property
-    template<typename PropertyType, typename InterfaceType>
-    static bool changeSignalRequired(PropertyType& (InterfaceType::*getter)(), InterfaceType* newService, InterfaceType* previousService, const PropertyType* previousValue)
-    {
-        M_UNUSED(getter, newService, previousService, previousValue);
-        Q_ASSERT(newService != previousService);
-        Q_ASSERT(newService != nullptr);
-        return true;   // two distinct service instances may not share the same model instance
-    }
-
-    /// Interface property
-    template<typename PropertyType, typename InterfaceType>
-    static bool changeSignalRequired(PropertyType* (InterfaceType::*getter)(), InterfaceType* newService, InterfaceType* previousService, const PropertyType* previousValue)
-    {
-        Q_ASSERT(newService != previousService);
-        Q_ASSERT(newService != nullptr);
-        const auto referenceValue = ((previousService == nullptr) ? previousValue : (previousService->*getter)());
-        return ((newService->*getter)() != referenceValue);
-    }
-
-private:
-    QVector<QMetaObject::Connection> m_connections;  /// The list of connections which this property is bound to
-
-};
 
 /**
  * This class is used to write an interface implementation which delegates all calls to another implementation

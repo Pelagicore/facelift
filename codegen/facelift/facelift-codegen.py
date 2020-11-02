@@ -36,6 +36,7 @@ from path import Path
 import logging.config
 import yaml
 import qface
+import os
 
 here = Path(__file__).dirname()
 
@@ -92,17 +93,6 @@ def namespaceCppClose(symbol):
     ns = '} ' * len(parts)
     return ns
 
-def classExportDefines(libraryName):
-    defines = "#if defined(" + libraryName + "_LIBRARY)\n"
-    defines += "#  define " + libraryName + "_EXPORT Q_DECL_EXPORT\n"
-    defines += "#else\n"
-    defines += "#  define " + libraryName + "_EXPORT Q_DECL_IMPORT\n"
-    defines += "#endif"
-    return defines
-
-def classExport(libraryName):
-    return libraryName + "_EXPORT"
-
 def cppTypeFromSymbol(type, isInterfaceType):
     if type.is_void or type.is_primitive:
         if type.name == 'string':
@@ -132,7 +122,7 @@ def requiredIncludeFromType(symbol, suffix):
 
 def insertUniqueType(symbol, unique_types):
     type = symbol.type.nested if symbol.type.nested else symbol.type
-    if type not in (t.name for t in unique_types):
+    if type.name not in (t.name for t in unique_types):
         unique_types.append(type)
 
 def referencedTypes(self):
@@ -320,20 +310,10 @@ setattr(qface.idl.domain.Parameter, 'cppMethodArgumentType', property(cppMethodA
 setattr(qface.idl.domain.Property, 'cppMethodArgumentType', property(cppMethodArgumentType))
 
 ##############################
+def addFileNameToNoMocList(noMocListFile, filePath, fileName):
+    noMocListFile.write('    ' + os.path.join(filePath, fileName) + '\n')
 
-def generateFile(generator, outputPath, templatePath, context, libraryName, libraryType):
-    if libraryName:
-        name = libraryName
-        if libraryType:
-            name = libraryName + "_" + libraryType
-        context.update({'classExportDefines': classExportDefines(name)})
-        context.update({'classExport': classExport(name)})
-    else:
-        context.update({'classExportDefines': ""})
-        context.update({'classExport': ""})
-    generator.write(outputPath, templatePath, context)
-
-def run_generation(input, output, dependency, libraryName, all):
+def run_generation(input, output, dependency, all, noMocFilePath, noMocListFile):
     global generateAsyncProxy
     global generateAll
     generateAll = all
@@ -362,92 +342,100 @@ def run_generation(input, output, dependency, libraryName, all):
             module_path = '/'.join(module.name_parts)
             log.debug('process module %s' % module.module_name)
             ctx.update({'path': module_path})
-            generateFile(generator, 'module/{{path}}/ModulePrivate.h', 'ModulePrivate.template.h', ctx, libraryName, "")
-            generateFile(generator, 'module/{{path}}/Module.h', 'Module.template.h', ctx, libraryName, "")
-            generateFile(generator, 'module/{{path}}/Module.cpp', 'Module.template.cpp', ctx, libraryName, "")
-            generateFile(generator, 'ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx, libraryName, "")
-            generateFile(generator, 'ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx, libraryName, "")
-            generateFile(generator, 'devtools/{{path}}/ModuleMonitor.h', 'ModuleMonitor.template.h', ctx, libraryName, "")
-            generateFile(generator, 'devtools/{{path}}/ModuleMonitor.cpp', 'ModuleMonitor.template.cpp', ctx, libraryName, "")
-            generateFile(generator, 'devtools/{{path}}/ModuleDummy.h', 'DummyModule.template.h', ctx, libraryName, "")
+            generator.write('module/{{path}}/ModulePrivate.h', 'ModulePrivate.template.h', ctx)
+            if not module.structs:
+                addFileNameToNoMocList(noMocListFile, noMocFilePath, 'module/{}/ModulePrivate.h'.format(module_path))
+
+            generator.write('module/{{path}}/Module.h', 'Module.template.h', ctx)
+            generator.write('module/{{path}}/Module.cpp', 'Module.template.cpp', ctx)
+            addFileNameToNoMocList(noMocListFile, noMocFilePath, 'module/{}/Module.h'.format(module_path))
+
+            generator.write('ipc/{{path}}/ModuleIPC.h', 'ModuleIPC.template.h', ctx)
+            generator.write('ipc/{{path}}/ModuleIPC.cpp', 'ModuleIPC.template.cpp', ctx)
+            addFileNameToNoMocList(noMocListFile, noMocFilePath, 'ipc/{}/ModuleIPC.h'.format(module_path))
+
             for interface in module.interfaces:
                 log.debug('process interface %s' % interface)
                 ctx.update({'interface': interface})
                 ctx.update({'interfaceName': interface.name})
                 generateAsyncProxy = False
                 ctx.update({'generateAsyncProxy': generateAsyncProxy})
-                generateFile(generator, 'types/{{path}}/{{interface}}.h', 'Service.template.h', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.h', 'ImplementationBase.template.h', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBase.cpp', 'ImplementationBase.template.cpp', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{interface}}QMLAdapter.h', 'QMLAdapter.template.h', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{interface}}QMLAdapter.cpp', 'QMLAdapter.template.cpp', ctx, libraryName, "")
-                generateFile(generator, 'devtools/{{path}}/{{interface}}Dummy.h', 'DummyService.template.h', ctx, libraryName, "")
-                generateFile(generator, 'devtools/{{path}}/{{interface}}Monitor.h', 'ServiceMonitor.template.h', ctx, libraryName, "")
+                generator.write('types/{{path}}/{{interface}}.h', 'Service.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}.cpp', 'Service.template.cpp', ctx)
+                generator.write('types/{{path}}/{{interface}}ImplementationBase.h', 'ImplementationBase.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}ImplementationBase.cpp', 'ImplementationBase.template.cpp', ctx)
+                generator.write('types/{{path}}/{{interface}}QMLAdapter.h', 'QMLAdapter.template.h', ctx)
+                generator.write('types/{{path}}/{{interface}}QMLAdapter.cpp', 'QMLAdapter.template.cpp', ctx)
 
                 if isQMLImplementationEnabled(interface):
-                    generateFile(generator, 'types/{{path}}/{{interface}}ImplementationBaseQML.h', 'ImplementationBaseQML.template.h', ctx, libraryName, "")
+                    generator.write('types/{{path}}/{{interface}}ImplementationBaseQML.h', 'ImplementationBaseQML.template.h', ctx)
 
                 if isIPCEnabled(interface):
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCAdapter.cpp', 'IPCAdapter.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'types/{{path}}/{{interface}}IPCCommon.h', 'IPCCommon.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusServiceAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusServiceAdapter.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.h', 'IPCLocalServiceAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.cpp', 'IPCLocalServiceAdapter.template.cpp', ctx, libraryName, "")
+                    generator.write('ipc/{{path}}/{{interface}}IPCAdapter.h', 'IPCAdapter.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}IPCAdapter.cpp', 'IPCAdapter.template.cpp', ctx)
+
+                    generator.write('types/{{path}}/{{interface}}IPCCommon.h', 'IPCCommon.template.h', ctx)
+                    addFileNameToNoMocList(noMocListFile, noMocFilePath, 'types/{}/{}IPCCommon.h'.format(module_path, interface))
+
+                    generator.write('ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.h', 'IPCDBusServiceAdapter.template.h', ctx)
+                    generator.write('ipc_dbus/{{path}}/{{interface}}IPCDBusAdapter.cpp', 'IPCDBusServiceAdapter.template.cpp', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.h', 'IPCLocalServiceAdapter.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}IPCLocalServiceAdapter.cpp', 'IPCLocalServiceAdapter.template.cpp', ctx)
 
                 if isSynchronousIPCEnabled(interface):
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}NotAvailableImpl.h', 'ServiceNotAvailableImpl.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "")
+                    generator.write('ipc/{{path}}/{{interface}}IPCProxy.h', 'IPCProxy.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}IPCProxy.cpp', 'IPCProxy.template.cpp', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}ServiceWrapper.h', 'ServiceWrapper.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}ServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}NotAvailableImpl.h', 'ServiceNotAvailableImpl.template.h', ctx)
+                    generator.write('ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx)
+                    generator.write('ipc_dbus/{{path}}/{{interface}}IPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx)
 
                 if isAsynchronousIPCEnabled(interface):
                     generateAsyncProxy = True
                     ctx.update({'generateAsyncProxy': generateAsyncProxy})
                     ctx.update({'interfaceName': interface.name + interfaceNameSuffix()})
-                    generateFile(generator, 'types/{{path}}/{{interface}}Async.h', 'Service.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'types/{{path}}/{{interface}}Async.cpp', 'Service.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLAdapter.h', 'QMLAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'types/{{path}}/{{interface}}AsyncQMLAdapter.cpp', 'QMLAdapter.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.h', 'IPCProxy.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.h', 'ServiceWrapper.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncNotAvailableImpl.h', 'ServiceNotAvailableImpl.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.h', 'IPCLocalProxyAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.cpp', 'IPCLocalProxyAdapter.template.cpp', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx, libraryName, "")
+                    generator.write('types/{{path}}/{{interface}}Async.h', 'Service.template.h', ctx)
+                    generator.write('types/{{path}}/{{interface}}Async.cpp', 'Service.template.cpp', ctx)
+                    generator.write('types/{{path}}/{{interface}}AsyncQMLAdapter.h', 'QMLAdapter.template.h', ctx)
+                    generator.write('types/{{path}}/{{interface}}AsyncQMLAdapter.cpp', 'QMLAdapter.template.cpp', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncIPCProxy.h', 'IPCProxy.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncIPCProxy.cpp', 'IPCProxy.template.cpp', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncServiceWrapper.h', 'ServiceWrapper.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncServiceWrapper.cpp', 'ServiceWrapper.template.cpp', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncNotAvailableImpl.h', 'ServiceNotAvailableImpl.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.h', 'IPCLocalProxyAdapter.template.h', ctx)
+                    generator.write('ipc/{{path}}/{{interface}}AsyncIPCLocalProxyAdapter.cpp', 'IPCLocalProxyAdapter.template.cpp', ctx)
+                    generator.write('ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.h', 'IPCDBusProxyAdapter.template.h', ctx)
+                    generator.write('ipc_dbus/{{path}}/{{interface}}AsyncIPCDBusProxy.cpp', 'IPCDBusProxyAdapter.template.cpp', ctx)
 
             for enum in module.enums:
                 ctx.update({'enum': enum})
-                generateFile(generator, 'types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{enum}}.cpp', 'Enum.template.cpp', ctx, libraryName, "")
+                generator.write('types/{{path}}/{{enum}}.h', 'Enum.template.h', ctx)
+                generator.write('types/{{path}}/{{enum}}.cpp', 'Enum.template.cpp', ctx)
             for struct in module.structs:
                 ctx.update({'struct': struct})
-                generateFile(generator, 'types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx, libraryName, "")
-                generateFile(generator, 'types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx, libraryName, "")
+                generator.write('types/{{path}}/{{struct}}.h', 'Struct.template.h', ctx)
+                generator.write('types/{{path}}/{{struct}}.cpp', 'Struct.template.cpp', ctx)
 
                 if isQObjectWrapperEnabled(struct):
-                    generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.h', 'StructQObjectWrapper.template.h', ctx, libraryName, "")
-                    generateFile(generator, 'types/{{path}}/{{struct}}QObjectWrapper.cpp', 'StructQObjectWrapper.template.cpp', ctx, libraryName, "")
+                    generator.write('types/{{path}}/{{struct}}QObjectWrapper.h', 'StructQObjectWrapper.template.h', ctx)
+                    generator.write('types/{{path}}/{{struct}}QObjectWrapper.cpp', 'StructQObjectWrapper.template.cpp', ctx)
 
 
 @click.command()
-@click.option('--library', default="")
 @click.option('--output', default=".")
 @click.option('--input', '-i', multiple=True)
 @click.option('--dependency', '-d', multiple=True)
 @click.option('--all', is_flag=True)
-def generate(input, output, dependency, library, all):
+@click.option('--no_moc_file_path', default=".")
+def generate(input, output, dependency, all, no_moc_file_path):
     """Takes several files or directories as input and generates the code
     in the given output directory."""
-    run_generation(input, output, dependency, library, all)
+    with open('{}/no_moc.cmake'.format(output), 'w') as noMocListFile:
+        noMocListFile.write('set(HEADERS_NO_MOC_GENERATED\n')
+        run_generation(input, output, dependency, all, no_moc_file_path, noMocListFile)
+        noMocListFile.write(')\n')
 
 
 if __name__ == '__main__':

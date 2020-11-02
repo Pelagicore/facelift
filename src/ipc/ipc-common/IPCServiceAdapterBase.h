@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -33,16 +33,10 @@
 #include "FaceliftModel.h"
 
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 
-class FaceliftIPCCommonLib_EXPORT IPCServiceAdapterBase : public QObject
+class IPCServiceAdapterBase : public QObject
 {
     Q_OBJECT
 

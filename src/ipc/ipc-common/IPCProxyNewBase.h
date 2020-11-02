@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -32,25 +32,18 @@
 #include <QObject>
 #include "IPCProxyBinderBase.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
-class FaceliftIPCCommonLib_EXPORT IPCProxyNewBase
+class IPCProxyNewBase
 {
 public:
     IPCProxyNewBase(InterfaceBase &owner);
 
+    virtual ~IPCProxyNewBase();
+
     virtual void refreshProvider() = 0;
 
-    const QString &objectPath() const
-    {
-        return m_ipc.objectPath();
-    }
+    const QString &objectPath() const;
 
     IPCProxyBinderBase *ipc()
     {

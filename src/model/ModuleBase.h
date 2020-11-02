@@ -32,12 +32,6 @@
 
 #include <QObject>
 
-#if defined(FaceliftModelLib_LIBRARY)
-#  define FaceliftModelLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftModelLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
 /**
@@ -53,7 +47,7 @@ inline int qRegisterMetaType()
 /**
  * Base class for all generated Module classes
  */
-class FaceliftModelLib_EXPORT ModuleBase
+class ModuleBase
 {
 
 public:

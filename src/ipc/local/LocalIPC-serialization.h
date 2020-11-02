@@ -30,13 +30,7 @@
 
 #pragma once
 
-#if defined(FaceliftIPCLocalLib_LIBRARY)
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCLocalLib_EXPORT Q_DECL_IMPORT
-#endif
-
-#include "LocalIPC.h"
+#include "LocalIPCMessage.h"
 #include "ipc-serialization.h"
 #include "LocalIPCProxy.h"
 #include "LocalIPCServiceAdapter.h"
@@ -44,7 +38,6 @@
 namespace facelift {
 
 namespace local {
-
 
 
 template<typename Type>

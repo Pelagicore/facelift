@@ -38,8 +38,6 @@
 
 #pragma once
 
-{{classExportDefines}}
-
 #include <QtCore>
 
 #include "ServiceWrapper.h"
@@ -51,7 +49,7 @@
 
 /**
  */
-class {{classExport}} {{interfaceName}}Wrapper : public facelift::ServiceWrapper<{{interfaceName}}>  {
+class {{interfaceName}}Wrapper : public facelift::ServiceWrapper<{{interfaceName}}>  {
 
     Q_OBJECT
 

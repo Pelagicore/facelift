@@ -50,11 +50,13 @@ constexpr const char* {{interfaceName}}::FULLY_QUALIFIED_INTERFACE_NAME;
     init(FULLY_QUALIFIED_INTERFACE_NAME);
 
 #ifdef QT_DEBUG
-    QObject::connect(this, &InterfaceBase::componentCompleted, this, [this]() {
-    {% for property in interface.properties %}
-        facelift::checkProperty({{property.name}}Property(), "{{property.name}}");
-    {% endfor %}
-    });
+    if (facelift::PropertyVerifier::isEnabled()) {
+        QObject::connect(this, &InterfaceBase::componentCompleted, this, [this]() {
+        {% for property in interface.properties %}
+            facelift::PropertyVerifier::checkProperty({{property.name}}Property(), "{{property.name}}");
+        {% endfor %}
+        });
+    }
 #endif
 
 }

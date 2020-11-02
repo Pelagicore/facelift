@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2018 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -31,23 +31,11 @@
 #pragma once
 
 #include "ipc-common.h"
+#include "IPCProxyBaseBase.h"
 #include "IPCProxyBinderBase.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
 
 namespace facelift {
-
-class FaceliftIPCCommonLib_EXPORT IPCProxyBaseBase {
-
-public:
-
-    void deserializeCommonSignal(facelift::CommonSignalID signalID, InterfaceBase* i);
-
-};
 
 template<typename AdapterType>
 class IPCProxyBase : public AdapterType, protected IPCProxyBaseBase
@@ -113,6 +101,5 @@ protected:
     IPCProxyBinderBase *m_ipcBinder = nullptr;
 
 };
-
 
 }

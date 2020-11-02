@@ -1,6 +1,6 @@
 /**********************************************************************
 **
-** Copyright (C) 2019 Luxoft Sweden AB
+** Copyright (C) 2020 Luxoft Sweden AB
 **
 ** This file is part of the FaceLift project
 **
@@ -32,15 +32,9 @@
 #include <QObject>
 #include "ipc-common.h"
 
-#if defined(FaceliftIPCCommonLib_LIBRARY)
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_EXPORT
-#else
-#  define FaceliftIPCCommonLib_EXPORT Q_DECL_IMPORT
-#endif
-
 namespace facelift {
 
-class FaceliftIPCCommonLib_EXPORT IPCProxyBinderBase : public QObject
+class IPCProxyBinderBase : public QObject
 {
     Q_OBJECT
 
@@ -63,22 +57,15 @@ public:
         return m_enabled;
     }
 
-    void setEnabled(bool enabled)
-    {
-        m_enabled = enabled;
-        checkInit();
-    }
+    void setEnabled(bool enabled);
 
     const QString &objectPath() const
     {
         return m_objectPath;
     }
 
-    virtual void setObjectPath(const QString &objectPath)
-    {
-        m_objectPath = objectPath;
-        checkInit();
-    }
+
+    virtual void setObjectPath(const QString &objectPath);
 
     void onComponentCompleted();
 
@@ -93,16 +80,14 @@ public:
 
     virtual void bindToIPC()
     {
+
     }
 
     Q_SIGNAL void complete();
 
     Q_SIGNAL void serviceAvailableChanged();
 
-    virtual bool isServiceAvailable() const {
-        Q_ASSERT(false); // TODO: remove
-        return true;
-    }
+    virtual bool isServiceAvailable() const;
 
     InterfaceBase &owner()
     {
@@ -120,7 +105,7 @@ public:
             return qobject_cast<SubInterfaceProxyType *>(&(m_subProxies[objectPath]->owner()));
         }
 
-        auto proxy = new SubInterfaceProxyType();
+        auto proxy = new SubInterfaceProxyType(this);
         proxy->ipc()->setObjectPath(objectPath);
         proxy->connectToServer();
 
@@ -138,9 +123,11 @@ public:
     {
         return m_isSynchronous;
     }
+
 protected:
     bool m_explicitServiceName = false;
     QString m_serviceName;
+
 private:
     QMap<QString, IPCProxyBinderBase *> m_subProxies;
     QString m_objectPath;

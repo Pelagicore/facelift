@@ -37,8 +37,6 @@
 
 {% set className = interfaceName + proxyTypeNameSuffix %}
 
-{{classExportDefines}}
-
 #include "FaceliftUtils.h"
 #include "IPCAdapterModelPropertyHandler.h"
 
@@ -55,7 +53,7 @@
 
 class {{interfaceName}}IPCQMLAdapterType;
 
-class {{classExport}} {{className}}: public {{baseClass}}
+class {{className}}: public {{baseClass}}
 {
     Q_OBJECT
 
@@ -106,7 +104,7 @@ private:
     {% elif property.type.is_interface %}
     QString m_previous{{property.name}}ObjectPath;
     {% else %}
-    {{property.interfaceCppType}} m_previous{{property.name}};
+    {{property.interfaceCppType}} m_previous{{property.name}} {};
     {% endif %}
     {% if property.type.is_interface %}
     InterfacePropertyIPCAdapterHandler<{{property.cppType}}, {{property.cppType}}{{proxyTypeNameSuffix}}> m_{{property.name}};

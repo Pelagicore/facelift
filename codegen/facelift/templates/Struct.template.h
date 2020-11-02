@@ -37,14 +37,14 @@
 
 #pragma once
 
-{{classExportDefines}}
-
-#include "StructureBase.h"
+#include "Structure.h"
 #include "FaceliftQMLUtils.h"
 
 // Dependencies
 {% for field in struct.fields %}
+{% if field.type.requiredInclude != "" %}
 {{field.type.requiredInclude}}
+{% endif %}
 {% endfor %}
 
 {{module.namespaceCppOpen}}
@@ -58,7 +58,7 @@ class {{struct.name}}QObjectWrapper;
 */
 
 {{struct.comment}}
-class {{classExport}} {{struct.name}} : public facelift::Structure<
+class {{struct.name}} : public facelift::Structure<
     {%- for field in struct.fields -%}
         {{ comma() }}{{field.cppType}}
     {%- endfor -%} >

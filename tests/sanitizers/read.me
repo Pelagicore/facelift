@@ -1,0 +1,18 @@
+# Purpose of sanitizers
+ AddressSanitizer (ASan) is a memory error detector
+  See more: https://github.com/google/sanitizers/wiki/AddressSanitizer
+ LeakSanitizer (LSan) is a memory leak detector which is integrated into AddressSanitizer.
+  See more: https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer
+ UndefinedBehaviorSanitizer (UBSan) is a fast undefined behavior detector.
+  See more: https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+
+# docs: https://github.com/google/sanitizers
+# install: https://apt.llvm.org
+
+# How to use
+ Create a build folder and jump into it:
+  $ mkdir build && cd "$_"
+ Set env variables:
+  $ export SANITIZER=ASAN (or LSAN, UBSAN)
+ Run the script:
+  $ facelift/tests/sanitizers/test_sanitizers.sh
