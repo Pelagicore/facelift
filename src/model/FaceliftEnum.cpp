@@ -32,10 +32,14 @@
 #include <QDebug>
 
 namespace facelift {
+    
+namespace Enum {
 
-void onAssignFromStringError(const QString &s)
+void raiseFatalError(const QString &string)
 {
-    qFatal("No enum value matching string %s", qPrintable(s));
+    qFatal("No enum value matching string %s", qPrintable(string));
 }
 
-}
+
+} // end namespace Enum
+} // end namespace facelift

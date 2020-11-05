@@ -37,18 +37,17 @@
 #include <QList>
 #include <type_traits>
 #include "FaceliftCommon.h"
+#include "FaceliftEnum.h"
 
 namespace facelift {
 
 class InterfaceBase;
 class StructureBase;
 
-template<typename Type, typename Enable = void>
+template<typename T, typename Enable = void>
 struct StringConversionHandler
 {
-    typedef Type QMLType;
-
-    static QString toString(const Type &v)
+    static QString toString(const T &v)
     {
         QString s;
         QTextStream(&s) << v;
@@ -65,47 +64,46 @@ struct StringConversionHandler<QVariant>
     }
 };
 
-QString qObjectToString(const QObject *o);
+QString qObjectToString(const QObject *object);
 
-template<typename Type>
-struct StringConversionHandler<Type *, typename std::enable_if<std::is_base_of<InterfaceBase, Type>::value>::type>
+template<typename T>
+struct StringConversionHandler<T*, std::enable_if_t<std::is_base_of<InterfaceBase, T>::value>>
 {
-    static QString toString(const Type *o)
+    static QString toString(const T *object)
     {
-        return qObjectToString(o);
+        return qObjectToString(object);
     }
 };
 
 
-template<typename Type>
-struct StringConversionHandler<Type, typename std::enable_if<std::is_base_of<StructureBase, Type>::value>::type>
+template<typename T>
+struct StringConversionHandler<T, std::enable_if_t<std::is_base_of<StructureBase, T>::value>>
 {
-    static QString toString(const Type &v)
+    static QString toString(const T &value)
     {
-        return v.toString();
+        return value.toString();
     }
 };
 
-
-template<typename Type>
-struct StringConversionHandler<Type, typename std::enable_if<std::is_enum<Type>::value>::type>
+template<typename T>
+struct StringConversionHandler<T, std::enable_if_t<QtPrivate::IsQEnumHelper<T>::Value, T>>
 {
-    static QString toString(const Type &v)
+    static QString toString(T value)
     {
-        return facelift::enumToString(v);
+        return Enum::toString(value);        
     }
 };
 
-template<typename ElementType>
-struct StringConversionHandler<QList<ElementType> >
+template<typename T>
+struct StringConversionHandler<QList<T> >
 {
-    static QString toString(const QList<ElementType> &v)
+    static QString toString(const QList<T> &v)
     {
         QString s;
         QTextStream str(&s);
         str << "[ ";
         for (const auto &element : v) {
-            str << StringConversionHandler<ElementType>::toString(element);
+            str << StringConversionHandler<T>::toString(element);
             str << ", ";
         }
         str << "]";
@@ -113,10 +111,10 @@ struct StringConversionHandler<QList<ElementType> >
     }
 };
 
-template<typename ElementType>
-struct StringConversionHandler<QMap<QString, ElementType> >
+template<typename T>
+struct StringConversionHandler<QMap<QString, T> >
 {
-    static QString toString(const QMap<QString, ElementType> &map)
+    static QString toString(const QMap<QString, T> &map)
     {
         QString s;
         QTextStream str(&s);
@@ -124,7 +122,7 @@ struct StringConversionHandler<QMap<QString, ElementType> >
         for (auto i = map.constBegin(); i != map.constEnd(); ++i) {
             str << StringConversionHandler<QString>::toString(i.key());
             str << ":";
-            str << StringConversionHandler<ElementType>::toString(i.value());
+            str << StringConversionHandler<T>::toString(i.value());
             str << ", ";
         }
         str << "]";
@@ -132,10 +130,11 @@ struct StringConversionHandler<QMap<QString, ElementType> >
     }
 };
 
-template<typename Type>
-inline QString toString(const Type &v)
+template<typename T>
+inline QString toString(const T &v)
 {
-    return StringConversionHandler<Type>::toString(v);
+    return StringConversionHandler<T>::toString(v);
 }
+
 
 }
