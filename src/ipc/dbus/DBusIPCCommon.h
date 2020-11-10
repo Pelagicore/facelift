@@ -35,13 +35,14 @@ namespace dbus {
 using namespace facelift;
 
 struct DBusIPCCommon {
-    static constexpr const char *GET_PROPERTIES_MESSAGE_NAME = "GetAllProperties";
-    static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
-    static constexpr const char *SIGNAL_TRIGGERED_SIGNAL_NAME = "SignalTriggered";
-    static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "SetProperty";
-    static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
-    static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
     static constexpr const char *DEFAULT_SERVICE_NAME = "facelift.registry";
+    static constexpr const char *GET_ALL_PROPERTIES_MESSAGE_NAME = "GetAll";
+    static constexpr const char *GET_PROPERTY_MESSAGE_NAME = "Get";
+    static constexpr const char *SET_PROPERTY_MESSAGE_NAME = "Set";
+    static constexpr const char *PROPERTIES_CHANGED_SIGNAL_NAME = "PropertiesChanged";
+    static constexpr const char *PROPERTIES_INTERFACE_NAME = "org.freedesktop.DBus.Properties";
+    static constexpr const char *INTROSPECTABLE_INTERFACE_NAME = "org.freedesktop.DBus.Introspectable";
+    static constexpr const int FACELIFT_DBUS_MAXIMUM_SIGNATURE_LENGTH = 255;
 };
 
 }

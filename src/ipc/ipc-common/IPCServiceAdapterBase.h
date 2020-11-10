@@ -35,7 +35,6 @@
 
 namespace facelift {
 
-
 class IPCServiceAdapterBase : public QObject
 {
     Q_OBJECT
@@ -102,29 +101,6 @@ public:
 
         return serviceAdapter;
     }
-
-    template<typename InterfaceType, typename InterfaceAdapterType>
-    class InterfacePropertyIPCAdapterHandler
-    {
-
-    public:
-        void update(IPCServiceAdapterBase *parent, InterfaceType *service)
-        {
-            if (m_service != service) {
-                m_service = service;
-                m_serviceAdapter = parent->getOrCreateAdapter<InterfaceAdapterType>(service);
-            }
-        }
-
-        QString objectPath() const
-        {
-            return (m_serviceAdapter ? m_serviceAdapter->objectPath() :  "");
-        }
-
-        QPointer<InterfaceType> m_service;
-        QPointer<InterfaceAdapterType> m_serviceAdapter;
-    };
-
 private:
     QList<QPointer<IPCServiceAdapterBase> > m_subAdapters;
     QString m_objectPath;

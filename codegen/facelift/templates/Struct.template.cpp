@@ -95,6 +95,12 @@ void {{struct.name}}::deserialize(const QByteArray &array)
 
 {% endif %}
 
+{% if struct.toByteArrayOverDBus %}
+bool {{struct.name}}::toByteArrayOverDBus()
+{
+    return true;
+}
+{% endif %}
 
 const {{struct}}::FieldNames {{struct}}::FIELD_NAMES = { {
     {%- for field in struct.fields -%}
@@ -125,6 +131,5 @@ QString {{struct.name}}::toString() const
 {
     return toStringWithFields(CLASS_ID, FIELD_NAMES);
 }
-
 
 {{module.namespaceCppClose}}

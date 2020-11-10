@@ -31,21 +31,11 @@
 #pragma once
 
 #include <QDataStream>
-
 #include "FaceliftModel.h"
-#include "InputPayLoad.h"
-#include "OutputPayLoad.h"
-#include "DBusSignatureHelper.h"
-#include "IPCTypeRegisterHandler.h"
 
 namespace facelift {
 
 Q_DECLARE_LOGGING_CATEGORY(LogIpc)
-
-enum class CommonSignalID {
-    readyChanged,
-    firstSpecific
-};
 
 typedef int ASyncRequestID;
 
@@ -55,19 +45,15 @@ enum class IPCHandlingResult {
     INVALID,     // Message is invalid and could not be handled
 };
 
-enum class ModelUpdateEvent {
-    DataChanged,
-    Insert,
-    Remove,
-    Move,
-    Reset
+struct IPCCommon
+{
+    static constexpr const char *MODEL_DATA_CHANGED_MESSAGE_NAME = "ModelUpdateEventDataChanged";
+    static constexpr const char *MODEL_INSERT_MESSAGE_NAME = "ModelUpdateEventInsert";
+    static constexpr const char *MODEL_REMOVE_MESSAGE_NAME = "ModelUpdateEventRemove";
+    static constexpr const char *MODEL_MOVE_MESSAGE_NAME = "ModelUpdateEventMove";
+    static constexpr const char *MODEL_RESET_MESSAGE_NAME = "ModelUpdateEventReset";
 };
 
-template<typename Type>
-inline void assignDefaultValue(Type &v)
-{
-    v = Type {};
-}
 
 
 }

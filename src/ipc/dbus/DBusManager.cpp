@@ -44,6 +44,14 @@ DBusManager::DBusManager() : m_busConnection(QDBusConnection::sessionBus())
 
 DBusManager &DBusManager::instance()
 {
+    qDBusRegisterMetaType<QMap<QString,QDBusVariant>>();
+    qDBusRegisterMetaType<QMap<QString,QString>>();
+    qDBusRegisterMetaType<QMap<QString,int>>();
+    qDBusRegisterMetaType<QMap<QString,bool>>();
+    qDBusRegisterMetaType<QList<QString>>();
+    qDBusRegisterMetaType<QList<int>>();
+    qDBusRegisterMetaType<QList<bool>>();
+
     static auto i = new DBusManager(); // TODO solve memory leak
     return *i;
 }

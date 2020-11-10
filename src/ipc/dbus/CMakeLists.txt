@@ -17,6 +17,7 @@ if(Qt5DBus_FOUND)
             DBusIPCProxyBinder.cpp
             DBusManager.cpp
         HEADERS
+            DBusIPCCommon.h
             DBusObjectRegistry.h
             DBusIPCProxyBinder.h
             IPCDBusServiceAdapterBase.h
@@ -26,6 +27,7 @@ if(Qt5DBus_FOUND)
             DBusManager.h
             DBusManagerInterface.h
             DBusIPCProxy.h
+            FaceliftDBusMarshaller.h
             IPCDBusServiceAdapter.h
         SOURCES_GLOB_RECURSE
             ${GENERATED_FILE_PATH}/ipc/*.cpp

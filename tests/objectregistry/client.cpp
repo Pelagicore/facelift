@@ -30,8 +30,8 @@
 #include "client.h"
 #include <QCoreApplication>
 #include "DBusManager.h"
-#include "DBusIPCMessage.h"
 #include "DBusIPCCommon.h"
+#include "DBusIPCMessage.h"
 #include <QDBusPendingCall>
 
 void tests::ipc::Tester::registerAnotherAdapter()

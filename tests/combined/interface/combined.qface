@@ -30,6 +30,7 @@
 
 module tests.combined 1.0
 import tests.combined.other 1.0
+import tests.combined.another 1.0
 
 @ipc-async: true
 @ipc-sync: true
@@ -45,6 +46,7 @@ interface CombinedInterface {
     int intProperty;
     CombiStruct structProperty;
     CombiStruct2 structProperty2;
+    StructWithExtDependency structWithExtDependency;
 
     readonly CombinedInterface2 interfaceProperty;
     readonly list<CombinedInterface2> interfaceListProperty;
@@ -79,7 +81,15 @@ interface CombinedInterface {
     signal eventBoolAndCombiStruct(bool p, CombiStruct q);
     signal eventWithList(list<int> p, bool q);
     signal eventWithMap(map<int> p);
-    signal eventWithStructWithList(StructWithList p)
+    signal eventWithStructWithList(StructWithList p);
+
+    list<tests.combined.another.AnotherEnum> listOfAnotherEnums();
+
+    readonly string emptyString; // check QVariant delivery
+
+    OversizedStruct oversizedStruct;
+    HugeStruct hugeStruct;
+    HugeStruct hungryBeast(HugeStruct hugeStruct);
 }
 
 @ipc-async: true
@@ -98,6 +108,14 @@ struct CombiStruct2 {
     CombiEnum e;
 }
 
+struct StructWithExtDependency {
+    string aString;
+    int anInt;
+    tests.combined.other.OtherStruct otherStruct;
+    list<tests.combined.other.OtherEnum> otherEnums;
+    map<tests.combined.other.OtherEnum> otherEnumMap;
+}
+
 struct StructWithList {
     list<int> listOfInts;
     list<CombiStruct> listOfStructs;
@@ -108,4 +126,39 @@ enum CombiEnum {
     E1,
     E2,
     E3,
+}
+
+struct FirstLevel {
+string someString;
+int someInt;
+bool someBool;
+string someOtherString;
+int someOtherInt;
+bool someOtherBool;
+}
+
+struct SecondLevel {
+FirstLevel firstLevel;
+FirstLevel anotherfirstLevel;
+FirstLevel yetAnotherFirstLevel;
+}
+
+struct ThirdLevel {
+SecondLevel secondLevel;
+SecondLevel anotherSecondLevel;
+SecondLevel yetAnotherSecondLevel;
+}
+
+struct HugeStruct {
+    ThirdLevel thirdLevel;
+    ThirdLevel anotherThirdLevel;
+    ThirdLevel yetAnotherThirdLevel;
+}
+
+@toByteArrayOverDBus: true
+struct OversizedStruct {
+ThirdLevel thirdLevel;
+ThirdLevel anotherThirdLevel;
+ThirdLevel yetAnotherThirdLevel;
+ThirdLevel theKiller;
 }

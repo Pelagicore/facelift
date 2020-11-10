@@ -61,8 +61,6 @@ public:
 
     void onPropertiesChanged(LocalIPCMessage &message);
 
-    void onSignalTriggered(LocalIPCMessage &message);
-
     void bindToIPC() override;
 
     void setServiceAvailable(bool isRegistered);
@@ -75,28 +73,22 @@ public:
 
     void requestPropertyValues();
 
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v);
-
-    void onServerNotAvailableError(const char *methodName) const;
+    void onServerNotAvailableError(const QString &methodName) const;
 
     template<typename PropertyType>
-    void sendSetterCall(const char *methodName, const PropertyType &value);
+    void sendSetterCall(const QString &property, const PropertyType &value);
 
     template<typename ... Args>
-    LocalIPCMessage sendMethodCall(const char *methodName, const Args & ... args) const;
+    LocalIPCMessage sendMethodCall(const char *methodName, Args && ... args) const;
 
     template<typename ReturnType, typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<ReturnType> answer, Args && ... args);
 
     template<typename ... Args>
-    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, const Args & ... args);
+    void sendAsyncMethodCall(const char *methodName, facelift::AsyncAnswer<void> answer, Args && ... args);
 
     template<typename ReturnType, typename ... Args>
-    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, const Args & ... args) const;
+    void sendMethodCallWithReturn(const char *methodName, ReturnType &returnValue, Args && ... args) const;
 
     LocalIPCMessage call(LocalIPCMessage &message) const;
 

@@ -29,6 +29,7 @@
 **********************************************************************/
 
 module tests.combined.other 1.0
+import tests.combined.another 1.0
 
 @ipc-async: true
 @ipc-sync: true
@@ -44,6 +45,8 @@ interface OtherInterface {
 struct OtherStruct {
     string str;
     int ival;
+    tests.combined.another.AnotherEnum anotherenum;
+    OtherEnum otherEnum;
 }
 
 enum OtherEnum {

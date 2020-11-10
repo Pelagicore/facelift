@@ -69,35 +69,6 @@ public:
         return memberName;
     }
 
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        IPCTypeHandler<SerializedType>::write(msg, IPCTypeRegisterHandler<Type>::convertToSerializedType(v, *this));
-    }
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v)
-    {
-        typedef typename IPCTypeRegisterHandler<Type>::SerializedType SerializedType;
-        SerializedType serializedValue;
-        IPCTypeHandler<SerializedType>::read(msg.inputPayLoad(), serializedValue);
-        IPCTypeRegisterHandler<Type>::convertToDeserializedType(v, serializedValue, *this);
-    }
-
-    template<typename Type>
-    bool deserializeOptionalValue(LocalIPCMessage &msg, Type &value, bool isCompleteSnapshot)
-    {
-        bool b = true;
-        if (!isCompleteSnapshot) {
-            msg.inputPayLoad().readNextParameter(b);
-        }
-        if (b) {
-            this->deserializeValue(msg, value);
-        }
-        return b;
-    }
-
     void setServiceRegistered(bool isRegistered) override
     {
         bool oldReady = this->ready();
@@ -107,13 +78,6 @@ public:
         }
 
         m_ipcBinder.setServiceAvailable(isRegistered);
-    }
-
-    bool deserializeReadyValue(LocalIPCMessage &msg, bool isCompleteSnapshot)
-    {
-        bool previousIsReady = this->ready();
-        deserializeOptionalValue(msg, this->m_serviceReady, isCompleteSnapshot);
-        return (this->ready() != previousIsReady);
     }
 
     LocalIPCProxyBinder *ipc()
@@ -132,7 +96,43 @@ public:
         m_ipcBinder.connectToServer();
     }
 
+    template<typename T>
+    T castFromQVariant(const QVariant& value) {
+        return castFromQVariantSpecialized(HelperType<T>(), value);
+    }
+
 private:
+    template<typename T> struct HelperType { };
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return qvariant_cast<T>(value);
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    T castFromQVariantSpecialized(HelperType<T>, const QVariant& value) {
+        return getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(qvariant_cast<QString>(value));
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QMap<QString, T> castFromQVariantSpecialized(HelperType<QMap<QString, T>>, const QVariant& value) {
+        QMap<QString, T> ret;
+        auto objectPaths = qvariant_cast<QMap<QString, QString>>(value);
+        for (const QString& key: objectPaths.keys()) {
+            ret[key] = getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(objectPaths[key]);
+        }
+        return ret;
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QList<T> castFromQVariantSpecialized(HelperType<QList<T>>, const QVariant& value) {
+        QList<T> ret;
+        auto objectPaths = qvariant_cast<QStringList>(value);
+        for (const QString& objectPath: objectPaths) {
+            ret.append(getOrCreateSubProxy<typename std::remove_pointer<T>::type::IPCLocalProxyType>(objectPath));
+        }
+        return ret;
+    }
+
     LocalIPCProxyBinder m_ipcBinder;
 };
 

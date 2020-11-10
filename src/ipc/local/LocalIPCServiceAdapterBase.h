@@ -32,6 +32,7 @@
 
 #include "LocalIPCMessage.h"
 #include "IPCServiceAdapterBase.h"
+#include "FaceliftIPCCommon.h"
 
 namespace facelift {
 
@@ -55,18 +56,10 @@ public:
 
     IPCHandlingResult handleMessage(LocalIPCMessage &message);
 
-    void flush();
+    inline void sendPropertiesChanged(const QVariantMap &dirtyProperties);
 
-    template<typename Type>
-    void serializeValue(LocalIPCMessage &msg, const Type &v);
-
-    template<typename Type>
-    void deserializeValue(LocalIPCMessage &msg, Type &v);
-
-    void initOutgoingSignalMessage();
-
-    template<typename MemberID, typename ... Args>
-    void sendSignal(MemberID signalID, const Args & ... args);
+    template<typename ... Args>
+    void sendSignal(const QString& signalName, Args && ... args);
 
     template<typename ReturnType>
     void sendAsyncCallAnswer(LocalIPCMessage &replyMessage, const ReturnType returnValue);
@@ -75,7 +68,11 @@ public:
 
     virtual IPCHandlingResult handleMethodCallMessage(LocalIPCMessage &requestMessage, LocalIPCMessage &replyMessage) = 0;
 
-    virtual void serializePropertyValues(LocalIPCMessage &msg, bool isCompleteSnapshot);
+    virtual QVariantMap marshalProperties() = 0;
+
+    virtual QVariant marshalProperty(const QString& propertyName) = 0;
+
+    virtual void setProperty(const QString& propertyName, const QVariant& value) = 0;
 
     void registerService() override;
 
@@ -87,16 +84,6 @@ public:
 
     void sendReply(LocalIPCMessage &message);
 
-    template<typename Type>
-    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, Type &previousValue, bool isCompleteSnapshot);
-
-    template<typename Type>
-    void serializeOptionalValue(LocalIPCMessage &msg, const Type &currentValue, bool isCompleteSnapshot);
-
-    virtual void appendDBUSIntrospectionData(QTextStream &s) const = 0;
-
-    QString introspect(const QString &path) const;
-
     template<typename T>
     MemberIDType memberID(T member, MemberIDType memberName) const
     {
@@ -105,8 +92,44 @@ public:
         return memberName;
     }
 
+    template<typename T>
+    T castFromQVariant(const QVariant& value) {
+        return qvariant_cast<T>(value);
+    }
+
+    template<typename T, typename std::enable_if_t<!std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const T& value) {
+        return QVariant::fromValue(value);
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const T& value) {
+        QString  objectPath;
+        if (value != nullptr) {
+            objectPath = getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(value)->objectPath();
+        }
+        return QVariant::fromValue(objectPath);
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const QList<T>& value) {
+        QStringList objectPathes;
+        for (T service: value) {
+            objectPathes.append(getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(service)->objectPath());
+        }
+        return QVariant::fromValue(objectPathes);
+    }
+
+    template<typename T, typename std::enable_if_t<std::is_convertible<T, facelift::InterfaceBase*>::value, int> = 0>
+    QVariant castToQVariant(const QMap<QString, T>& value) {
+        QMap<QString, QString> objectPathesMap;
+        for (const QString& key: value.keys()) {
+            objectPathesMap[key] = getOrCreateAdapter<typename std::remove_pointer<T>::type::IPCLocalAdapterType>(value[key])->objectPath();
+        }
+        return QVariant::fromValue(objectPathesMap);
+    }
+
 protected:
-    std::unique_ptr<LocalIPCMessage> m_pendingOutgoingMessage;
 
     QString m_introspectionData;
     QString m_serviceName;
@@ -116,6 +139,13 @@ protected:
     bool m_alreadyInitialized = false;
 };
 
+inline void LocalIPCServiceAdapterBase::sendPropertiesChanged(const QVariantMap &dirtyProperties )
+{
+    LocalIPCMessage reply(FaceliftIPCCommon::PROPERTIES_INTERFACE_NAME, FaceliftIPCCommon::PROPERTIES_CHANGED_SIGNAL_NAME);
+    reply << interfaceName();
+    reply << QVariant::fromValue(dirtyProperties);
+    this->send(reply);
+}
 
 }
 
