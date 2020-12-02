@@ -23,6 +23,7 @@ facelift_add_library(FaceliftIPCCommonLib
         IPCServiceAdapterBase.h
         NewIPCServiceAdapterBase.h
         IPCAttachedPropertyFactory.h
+        observer.h
     HEADERS_NO_MOC
         AppendDBUSSignatureFunction.h
         ipc-serialization.h
